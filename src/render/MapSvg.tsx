@@ -711,11 +711,17 @@ export function MapSvg({ data }: { data: MoneyMapData }) {
       <IncomePanel data={data} placed={layout.income} />
       <NeedCard value={data.monthlyNeed} placed={layout.need} />
       <g aria-label="Accounts">
-        {layout.accounts.map((placed) =>
+        {layout.accounts.map((placed, index) =>
           placed.account.bucket === 'note' ? (
-            <NoteCard key={placed.account.id} placed={placed} />
+            <NoteCard
+              key={`${placed.account.id}-${index}`}
+              placed={placed}
+            />
           ) : (
-            <Cylinder key={placed.account.id} placed={placed} />
+            <Cylinder
+              key={`${placed.account.id}-${index}`}
+              placed={placed}
+            />
           ),
         )}
       </g>
