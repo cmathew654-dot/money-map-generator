@@ -64,6 +64,15 @@ function accountHeight(account: Account, width: number): number {
     ? account.positions.length * 20 + 20
     : 0
   const subAccountsHeight = (account.subAccounts?.length ?? 0) * 96
+  const isContentLight =
+    account.value === null &&
+    captionLines === 0 &&
+    positionsHeight === 0 &&
+    subAccountsHeight === 0
+  if (isContentLight && account.bucket !== 'shortTerm') {
+    return Math.max(MIN_ACCOUNT_HEIGHT, capRy * 2 + 86)
+  }
+
   const contentHeight =
     capRy * 2 +
     16 +
@@ -164,8 +173,22 @@ function waterfallArrows(accounts: PlacedAccount[]): Arrow[] {
   return chain.slice(0, -1).map((source, index) => {
     const target = chain[index + 1]
     const start = { x: source.x + source.w * 0.35, y: source.y }
-    const end = { x: target.x + target.w * 0.65, y: target.y - 4 }
-    const controlY = Math.min(start.y, end.y) - 70
+    const approachingFromRight = source.x > target.x
+    const end = {
+      x: target.x + target.w * (approachingFromRight ? 0.35 : 0.65),
+      y: target.y - 4,
+    }
+    const leftColumnX = Math.min(source.x, target.x)
+    const rightColumnX = Math.max(source.x, target.x)
+    const interveningTop = Math.min(
+      ...accounts
+        .filter(
+          (placed) =>
+            placed.x >= leftColumnX && placed.x <= rightColumnX,
+        )
+        .map((placed) => placed.y),
+    )
+    const controlY = interveningTop - 80
 
     return {
       kind: 'waterfall',
@@ -186,7 +209,7 @@ function incomeArrow(income: Placed, need: Placed): Arrow {
     kind: 'income',
     d: `M ${coordinate(income.x + income.w / 2)} ${coordinate(
       income.y + income.h,
-    )} L ${coordinate(need.x + need.w / 2)} ${coordinate(need.y - 6)}`,
+    )} L ${coordinate(need.x + need.w / 2)} ${coordinate(need.y)}`,
   }
 }
 
@@ -216,8 +239,7 @@ function asNeededArrow(
     y:
       oneMinusT * oneMinusT * start.y +
       2 * oneMinusT * t * control.y +
-      t * t * end.y -
-      18,
+      t * t * end.y,
   }
 
   return {

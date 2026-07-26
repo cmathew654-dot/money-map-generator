@@ -31,6 +31,12 @@ function expectColumnGaps(accounts: PlacedAccount[]) {
   }
 }
 
+function pathNumbers(path: string): number[] {
+  return [...path.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) =>
+    Number(match[0]),
+  )
+}
+
 describe('layoutMap', () => {
   it.each([
     ['sample client', SAMPLE_WHITFIELD],
@@ -68,6 +74,77 @@ describe('layoutMap', () => {
     ])
     expect(chain[0].x).toBeGreaterThan(chain[1].x)
     expect(chain[1].x).toBeGreaterThan(chain[2].x)
+  })
+
+  it('routes the after-tax waterfall above cash and into the target cap left half', () => {
+    const layout = layoutMap(SAMPLE_WHITFIELD)
+    const cash = layout.accounts.find(
+      (placed) => placed.account.id === 'cash-at-bank',
+    )!
+    const shortTerm = layout.accounts.find(
+      (placed) => placed.account.id === 'short-term-funds',
+    )!
+    const arrow = layout.arrows.find(
+      (candidate) =>
+        candidate.kind === 'waterfall' &&
+        candidate.sourceId === 'managed-after-tax-trust' &&
+        candidate.targetId === 'short-term-funds',
+    )!
+    const [, , , controlY, , , endX, endY] = pathNumbers(arrow.d)
+
+    expect(controlY).toBeLessThan(cash.y)
+    expect(endX).toBeGreaterThan(shortTerm.x)
+    expect(endX).toBeLessThan(shortTerm.x + shortTerm.w / 2)
+    expect(endY).toBe(shortTerm.y - 4)
+  })
+
+  it('keeps the content-light cash drum compact', () => {
+    const cash = layoutMap(SAMPLE_WHITFIELD).accounts.find(
+      (placed) => placed.account.id === 'cash-at-bank',
+    )!
+
+    expect(cash.h).toBeGreaterThanOrEqual(150)
+    expect(cash.h).toBeLessThanOrEqual(170)
+  })
+
+  it('lands need-card arrows at their distinct requested anchors', () => {
+    const layout = layoutMap(SAMPLE_WHITFIELD)
+    const income = layout.arrows.find((arrow) => arrow.kind === 'income')!
+    const asNeeded = layout.arrows.find(
+      (arrow) => arrow.kind === 'asNeeded',
+    )!
+    const incomePath = pathNumbers(income.d)
+    const asNeededPath = pathNumbers(asNeeded.d)
+    const shortTerm = layout.accounts.find(
+      (placed) => placed.account.id === 'short-term-funds',
+    )!
+
+    expect(incomePath).toEqual([
+      layout.income.x + layout.income.w / 2,
+      layout.income.y + layout.income.h,
+      layout.need.x + layout.need.w / 2,
+      layout.need.y,
+    ])
+    expect(asNeededPath.slice(-2)).toEqual([
+      layout.need.x + layout.need.w + 6,
+      layout.need.y + layout.need.h * 0.45,
+    ])
+
+    const [startX, startY, controlX, controlY, endX, endY] =
+      asNeededPath
+    const t = 0.4
+    const oneMinusT = 1 - t
+    const labelX =
+      oneMinusT ** 2 * startX +
+      2 * oneMinusT * t * controlX +
+      t ** 2 * endX
+    const labelY =
+      oneMinusT ** 2 * startY +
+      2 * oneMinusT * t * controlY +
+      t ** 2 * endY
+    expect(asNeeded.labelAt?.x).toBeCloseTo(labelX, 1)
+    expect(asNeeded.labelAt?.y).toBeCloseTo(labelY, 1)
+    expect(startY).toBe(shortTerm.y + shortTerm.h * 0.72)
   })
 
   it('uses the specified fixed panel and footnote slots', () => {
