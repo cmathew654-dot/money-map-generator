@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { layoutMap, type PlacedAccount } from '../src/layout/layout'
-import { blankClient, SAMPLE_WHITFIELD } from '../src/model/samples'
+import {
+  blankClient,
+  SAMPLE_CALLOWAY,
+  SAMPLE_WHITFIELD,
+} from '../src/model/samples'
 import type { Account, MoneyMapData } from '../src/model/types'
 
 function expectInsideArtboard(data: MoneyMapData) {
@@ -149,6 +153,27 @@ describe('layoutMap', () => {
     expect(asNeeded.labelAt?.x).toBeCloseTo(labelX, 1)
     expect(asNeeded.labelAt?.y).toBeCloseTo(labelY, 1)
     expect(startY).toBe(shortTerm.y + shortTerm.h * 0.72)
+  })
+
+  it('keeps the Calloway as-needed chip clear of every account', () => {
+    const layout = layoutMap(SAMPLE_CALLOWAY)
+    const labelAt = layout.arrows.find(
+      (arrow) => arrow.kind === 'asNeeded',
+    )!.labelAt!
+    const clearance = 10
+    const labelBox = {
+      x: labelAt.x - 260 / 2 - clearance,
+      y: labelAt.y - 34 / 2 - clearance,
+      w: 260 + clearance * 2,
+      h: 34 + clearance * 2,
+    }
+    const intersects = (account: PlacedAccount) =>
+      labelBox.x < account.x + account.w &&
+      labelBox.x + labelBox.w > account.x &&
+      labelBox.y < account.y + account.h &&
+      labelBox.y + labelBox.h > account.y
+
+    expect(layout.accounts.filter(intersects)).toEqual([])
   })
 
   it('uses the specified fixed panel and footnote slots', () => {

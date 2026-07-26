@@ -42,6 +42,9 @@ const ARTBOARD = { width: 1320, height: 1020 }
 const DEFAULT_GAP = 28
 const COMPRESSED_GAP = 16
 const MIN_ACCOUNT_HEIGHT = 120
+const AS_NEEDED_LABEL_WIDTH = 260
+const AS_NEEDED_LABEL_HEIGHT = 38
+const AS_NEEDED_LABEL_CLEARANCE = 10
 
 const COLUMNS: Column[] = [
   { x: 390, y: 150, w: 250, buckets: ['cash', 'shortTerm', 'note'] },
@@ -240,9 +243,64 @@ function incomeArrow(income: Placed, need: Placed): Arrow {
   }
 }
 
+function labelOverlapsAccount(
+  labelAt: { x: number; y: number },
+  account: PlacedAccount,
+): boolean {
+  const halfWidth = AS_NEEDED_LABEL_WIDTH / 2
+  const halfHeight = AS_NEEDED_LABEL_HEIGHT / 2
+
+  return (
+    labelAt.x + halfWidth + AS_NEEDED_LABEL_CLEARANCE > account.x &&
+    labelAt.x - halfWidth - AS_NEEDED_LABEL_CLEARANCE <
+      account.x + account.w &&
+    labelAt.y + halfHeight + AS_NEEDED_LABEL_CLEARANCE > account.y &&
+    labelAt.y - halfHeight - AS_NEEDED_LABEL_CLEARANCE <
+      account.y + account.h
+  )
+}
+
+function clearAsNeededLabel(
+  labelAt: { x: number; y: number },
+  accounts: PlacedAccount[],
+): { x: number; y: number } {
+  const collidingAtCurve = accounts.filter((account) =>
+    labelOverlapsAccount(labelAt, account),
+  )
+  const raised = {
+    x: labelAt.x,
+    y: Math.min(
+      labelAt.y,
+      ...collidingAtCurve.map(
+        (account) =>
+          account.y -
+          AS_NEEDED_LABEL_CLEARANCE -
+          AS_NEEDED_LABEL_HEIGHT / 2,
+      ),
+    ),
+  }
+  const collidingAfterRaise = accounts.filter((account) =>
+    labelOverlapsAccount(raised, account),
+  )
+
+  return {
+    x: Math.min(
+      raised.x,
+      ...collidingAfterRaise.map(
+        (account) =>
+          account.x -
+          AS_NEEDED_LABEL_CLEARANCE -
+          AS_NEEDED_LABEL_WIDTH / 2,
+      ),
+    ),
+    y: raised.y,
+  }
+}
+
 function asNeededArrow(
   shortTerm: PlacedAccount,
   need: Placed,
+  accounts: PlacedAccount[],
 ): Arrow {
   const start = {
     x: shortTerm.x,
@@ -258,7 +316,7 @@ function asNeededArrow(
   }
   const t = 0.4
   const oneMinusT = 1 - t
-  const labelAt = {
+  const labelOnCurve = {
     x:
       oneMinusT * oneMinusT * start.x +
       2 * oneMinusT * t * control.x +
@@ -268,6 +326,7 @@ function asNeededArrow(
       2 * oneMinusT * t * control.y +
       t * t * end.y,
   }
+  const labelAt = clearAsNeededLabel(labelOnCurve, accounts)
 
   return {
     kind: 'asNeeded',
@@ -297,7 +356,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
   )
-  if (shortTerm) arrows.push(asNeededArrow(shortTerm, need))
+  if (shortTerm) arrows.push(asNeededArrow(shortTerm, need, accounts))
 
   return {
     artboard: ARTBOARD,
