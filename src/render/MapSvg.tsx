@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { layoutMap } from '../layout/layout'
 import type {
   Arrow,
@@ -588,13 +589,19 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
   )
 }
 
-function ArrowPath({ arrow }: { arrow: Arrow }) {
+function ArrowPath({
+  arrow,
+  markerId,
+}: {
+  arrow: Arrow
+  markerId: string
+}) {
   const waterfall = arrow.kind === 'waterfall'
   return (
     <path
       d={arrow.d}
       fill="none"
-      markerEnd="url(#flow-arrowhead)"
+      markerEnd={`url(#${markerId})`}
       stroke={FLOW_GREEN}
       strokeDasharray={waterfall ? '0.1 9' : '7 6'}
       strokeLinecap={waterfall ? 'round' : 'butt'}
@@ -684,6 +691,7 @@ function FootnoteLine({
 }
 
 export function MapSvg({ data }: { data: MoneyMapData }) {
+  const markerId = `flow-arrowhead-${useId().replaceAll(':', '')}`
   const layout = layoutMap(data)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
 
@@ -705,7 +713,7 @@ export function MapSvg({ data }: { data: MoneyMapData }) {
       />
       <defs>
         <marker
-          id="flow-arrowhead"
+          id={markerId}
           viewBox="0 0 9 9"
           markerWidth={9}
           markerHeight={9}
@@ -721,7 +729,11 @@ export function MapSvg({ data }: { data: MoneyMapData }) {
       <Masthead data={data} />
       <g aria-label="Money flow">
         {layout.arrows.map((arrow, index) => (
-          <ArrowPath key={`${arrow.kind}-${index}`} arrow={arrow} />
+          <ArrowPath
+            key={`${arrow.kind}-${index}`}
+            arrow={arrow}
+            markerId={markerId}
+          />
         ))}
       </g>
       <IncomePanel data={data} placed={layout.income} />
