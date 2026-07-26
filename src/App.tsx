@@ -8,9 +8,15 @@ import {
   updateClient,
 } from './model/book'
 import type { MoneyMapFile } from './model/types'
-import { loadBookFromFile, saveBookToFile } from './export/export'
+import {
+  exportPng,
+  loadBookFromFile,
+  mapFileName,
+  saveBookToFile,
+} from './export/export'
 import { Form } from './form/Form'
 import { MapSvg } from './render/MapSvg'
+import './styles/print.css'
 
 const STORAGE_KEY = 'money-map-book:v1'
 
@@ -29,6 +35,7 @@ export default function App() {
     () => book.clients[0].id,
   )
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const printMapRef = useRef<HTMLDivElement>(null)
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
@@ -77,6 +84,28 @@ export default function App() {
     }
   }
 
+  const handleExportPng = async () => {
+    const svg = printMapRef.current?.querySelector('svg')
+    if (!svg) {
+      window.alert('The Money Map is not ready to export.')
+      return
+    }
+
+    try {
+      await exportPng(
+        svg,
+        mapFileName(
+          activeClient.client.title,
+          activeClient.client.year,
+        ),
+      )
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'The PNG could not be exported.'
+      window.alert(message)
+    }
+  }
+
   return (
     <main className="app-shell">
       <header className="app-header">
@@ -101,6 +130,12 @@ export default function App() {
         </button>
         <button type="button" onClick={handleDelete}>
           Delete
+        </button>
+        <button type="button" onClick={() => window.print()}>
+          Print
+        </button>
+        <button type="button" onClick={() => void handleExportPng()}>
+          Export PNG
         </button>
         <div className="header-spacer" />
         <button type="button" onClick={() => saveBookToFile(book)}>
@@ -137,6 +172,9 @@ export default function App() {
             <MapSvg data={activeClient} />
           </div>
         </section>
+      </div>
+      <div ref={printMapRef} aria-hidden="true" className="print-map">
+        <MapSvg data={activeClient} />
       </div>
     </main>
   )
