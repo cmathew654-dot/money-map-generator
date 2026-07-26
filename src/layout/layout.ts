@@ -61,7 +61,7 @@ function accountHeight(account: Account, width: number): number {
   const titleLines = Math.max(1, wrap(account.label, 24).length)
   const captionLines = account.caption ? wrap(account.caption, 30).length : 0
   const positionsHeight = account.positions?.length
-    ? account.positions.length * 20 + 8
+    ? account.positions.length * 20 + 20
     : 0
   const subAccountsHeight = (account.subAccounts?.length ?? 0) * 96
   const contentHeight =

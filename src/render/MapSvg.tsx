@@ -275,7 +275,7 @@ function SubAccountDrum({
   stroke: string
 }) {
   const h = 88
-  const capRy = 13
+  const capRy = 10
 
   return (
     <g>
