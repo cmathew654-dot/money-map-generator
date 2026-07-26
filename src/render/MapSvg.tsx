@@ -298,7 +298,7 @@ function SubAccountDrum({
       />
       <text
         x={x + w / 2}
-        y={y + 27}
+        y={y + 34}
         fill={INK}
         fontFamily={FONT_SANS}
         fontSize={12.5}
@@ -310,7 +310,7 @@ function SubAccountDrum({
       {subAccount.caption && (
         <text
           x={x + w / 2}
-          y={y + 44}
+          y={y + 51}
           fill={MUTED}
           fontFamily={FONT_SANS}
           fontSize={10.5}
@@ -322,7 +322,7 @@ function SubAccountDrum({
       )}
       <text
         x={x + w / 2}
-        y={y + 67}
+        y={y + 70}
         fill={INK}
         fontFamily={FONT_SERIF}
         fontSize={TYPE.subValue}
@@ -431,14 +431,30 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
   const captionLines = account.caption ? wrap(account.caption, 30) : []
   const centerX = x + w / 2
   const tagY = y + capRy + 18
-  const titleY = tagY + 25
-  const captionY = titleY + titleLines.length * 20
-  const rowsY = captionY + captionLines.length * 15 + 11
   const subAccounts = account.subAccounts ?? []
-  const subStartY = y + h - capRy - subAccounts.length * 96
   const valueY = subAccounts.length
-    ? subStartY - 17
+    ? y + h - capRy - subAccounts.length * 96 - 17
     : y + h - capRy - 18
+  const distributesSlack =
+    account.bucket === 'shortTerm' &&
+    !account.positions?.length &&
+    subAccounts.length === 0
+  const semanticGapCount = captionLines.length > 0 ? 3 : 2
+  const baseGapTotal = captionLines.length > 0 ? 73 : 58
+  const fixedLineSpan =
+    Math.max(0, titleLines.length - 1) * 20 +
+    Math.max(0, captionLines.length - 1) * 15
+  const sharedSlack = distributesSlack
+    ? Math.max(
+        0,
+        valueY - tagY - fixedLineSpan - baseGapTotal,
+      ) / semanticGapCount
+    : 0
+  const titleY = tagY + 25 + sharedSlack
+  const captionY =
+    titleY + titleLines.length * 20 + sharedSlack
+  const rowsY = captionY + captionLines.length * 15 + 11
+  const subStartY = y + h - capRy - subAccounts.length * 96
 
   return (
     <g>
