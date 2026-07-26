@@ -1,4 +1,9 @@
-import { blankClient, SAMPLE_WHITFIELD } from './samples'
+import {
+  blankClient,
+  SAMPLE_CALLOWAY,
+  SAMPLE_VENKAT,
+  SAMPLE_WHITFIELD,
+} from './samples'
 import type { MoneyMapData, MoneyMapFile } from './types'
 import { newId } from './types'
 
@@ -24,6 +29,8 @@ export function newBook(): MoneyMapFile {
     version: 1,
     clients: [
       structuredClone(SAMPLE_WHITFIELD),
+      structuredClone(SAMPLE_CALLOWAY),
+      structuredClone(SAMPLE_VENKAT),
       makeBlankClient(),
     ],
   }

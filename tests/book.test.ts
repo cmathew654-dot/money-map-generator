@@ -7,27 +7,33 @@ import {
   parseBook,
   updateClient,
 } from '../src/model/book'
-import { SAMPLE_WHITFIELD } from '../src/model/samples'
+import {
+  SAMPLE_CALLOWAY,
+  SAMPLE_VENKAT,
+  SAMPLE_WHITFIELD,
+} from '../src/model/samples'
 
 describe('book operations', () => {
-  it('starts with the sample and one blank client', () => {
+  it('starts with three samples and one blank client', () => {
     const book = newBook()
 
     expect(book.fileType).toBe('money-map-book')
     expect(book.version).toBe(1)
-    expect(book.clients).toHaveLength(2)
+    expect(book.clients).toHaveLength(4)
     expect(book.clients[0]).toEqual(SAMPLE_WHITFIELD)
-    expect(book.clients[1].client.title).toBe('')
-    expect(book.clients[1].id).not.toBe('')
-    expect(book.clients[1].accounts.every((account) => account.id)).toBe(true)
+    expect(book.clients[1]).toEqual(SAMPLE_CALLOWAY)
+    expect(book.clients[2]).toEqual(SAMPLE_VENKAT)
+    expect(book.clients[3].client.title).toBe('')
+    expect(book.clients[3].id).not.toBe('')
+    expect(book.clients[3].accounts.every((account) => account.id)).toBe(true)
   })
 
   it('adds a titled blank client without mutating the book', () => {
     const original = newBook()
     const result = addClient(original)
 
-    expect(original.clients).toHaveLength(2)
-    expect(result.book.clients).toHaveLength(3)
+    expect(original.clients).toHaveLength(4)
+    expect(result.book.clients).toHaveLength(5)
     expect(result.book.clients.at(-1)?.client.title).toBe('New Client')
     expect(result.book.clients.at(-1)?.id).toBe(result.id)
   })
@@ -62,7 +68,7 @@ describe('book operations', () => {
       remaining.clients[0].id,
     )
 
-    expect(remaining.clients).toHaveLength(1)
+    expect(remaining.clients).toHaveLength(3)
     expect(emptied.clients).toHaveLength(1)
     expect(emptied.clients[0].client.title).toBe('')
     expect(emptied.clients[0].id).not.toBe('')
