@@ -1,0 +1,122 @@
+import { describe, expect, it } from 'vitest'
+import {
+  addClient,
+  deleteClient,
+  duplicateClient,
+  newBook,
+  parseBook,
+  updateClient,
+} from '../src/model/book'
+import { SAMPLE_WHITFIELD } from '../src/model/samples'
+
+describe('book operations', () => {
+  it('starts with the sample and one blank client', () => {
+    const book = newBook()
+
+    expect(book.fileType).toBe('money-map-book')
+    expect(book.version).toBe(1)
+    expect(book.clients).toHaveLength(2)
+    expect(book.clients[0]).toEqual(SAMPLE_WHITFIELD)
+    expect(book.clients[1].client.title).toBe('')
+    expect(book.clients[1].id).not.toBe('')
+    expect(book.clients[1].accounts.every((account) => account.id)).toBe(true)
+  })
+
+  it('adds a titled blank client without mutating the book', () => {
+    const original = newBook()
+    const result = addClient(original)
+
+    expect(original.clients).toHaveLength(2)
+    expect(result.book.clients).toHaveLength(3)
+    expect(result.book.clients.at(-1)?.client.title).toBe('New Client')
+    expect(result.book.clients.at(-1)?.id).toBe(result.id)
+  })
+
+  it('duplicates deeply with fresh client and account ids', () => {
+    const original = newBook()
+    const source = original.clients[0]
+    const result = duplicateClient(original, source.id)
+    const copy = result.book.clients.at(-1)!
+
+    expect(copy.client.title).toBe(`${source.client.title} (copy)`)
+    expect(copy.id).toBe(result.id)
+    expect(copy.id).not.toBe(source.id)
+    expect(copy.accounts.map((account) => account.id)).not.toEqual(
+      source.accounts.map((account) => account.id),
+    )
+    copy.client.year = '2040'
+    expect(source.client.year).toBe('2026')
+  })
+
+  it('rejects duplication of an unknown client', () => {
+    expect(() => duplicateClient(newBook(), 'missing')).toThrow(
+      'Client to duplicate was not found.',
+    )
+  })
+
+  it('deletes a client and replaces the final client with a blank', () => {
+    const book = newBook()
+    const remaining = deleteClient(book, book.clients[0].id)
+    const emptied = deleteClient(
+      { ...remaining, clients: [remaining.clients[0]] },
+      remaining.clients[0].id,
+    )
+
+    expect(remaining.clients).toHaveLength(1)
+    expect(emptied.clients).toHaveLength(1)
+    expect(emptied.clients[0].client.title).toBe('')
+    expect(emptied.clients[0].id).not.toBe('')
+  })
+
+  it('replaces a client by id without changing file order', () => {
+    const book = newBook()
+    const replacement = structuredClone(book.clients[0])
+    replacement.client.title = 'Updated'
+    const updated = updateClient(book, replacement.id, replacement)
+
+    expect(updated.clients[0]).toBe(replacement)
+    expect(updated.clients[1]).toBe(book.clients[1])
+    expect(book.clients[0].client.title).toBe('Jordan & Dana Whitfield')
+  })
+})
+
+describe('parseBook', () => {
+  it('parses a valid book', () => {
+    const book = newBook()
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it('rejects malformed JSON with a human message', () => {
+    expect(() => parseBook('{bad json')).toThrow(
+      'The selected file is not valid JSON.',
+    )
+  })
+
+  it('rejects the wrong file type', () => {
+    const value = { ...newBook(), fileType: 'something-else' }
+    expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'wrong file type',
+    )
+  })
+
+  it('rejects the wrong version', () => {
+    const value = { ...newBook(), version: 2 }
+    expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'version is not supported',
+    )
+  })
+
+  it('rejects non-array clients', () => {
+    const value = { ...newBook(), clients: {} }
+    expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'clients array',
+    )
+  })
+
+  it('rejects invalid client shapes', () => {
+    const value = { ...newBook(), clients: [{ id: 'incomplete' }] }
+    expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'missing client details',
+    )
+  })
+})
