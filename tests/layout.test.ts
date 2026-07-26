@@ -90,9 +90,13 @@ describe('layoutMap', () => {
         candidate.sourceId === 'managed-after-tax-trust' &&
         candidate.targetId === 'short-term-funds',
     )!
-    const [, , , controlY, , , endX, endY] = pathNumbers(arrow.d)
+    const path = pathNumbers(arrow.d)
+    const [, , , controlY, clearX, , , , , turnY] = path
+    const [endX, endY] = path.slice(-2)
 
     expect(controlY).toBeLessThan(cash.y)
+    expect(clearX).toBeLessThan(cash.x)
+    expect(turnY).toBeGreaterThan(cash.y + cash.h)
     expect(endX).toBeGreaterThan(shortTerm.x)
     expect(endX).toBeLessThan(shortTerm.x + shortTerm.w / 2)
     expect(endY).toBe(shortTerm.y - 4)

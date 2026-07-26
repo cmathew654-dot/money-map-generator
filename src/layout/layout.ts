@@ -189,17 +189,44 @@ function waterfallArrows(accounts: PlacedAccount[]): Arrow[] {
         .map((placed) => placed.y),
     )
     const controlY = interveningTop - 80
+    const targetColumnBlockers = accounts.filter(
+      (placed) =>
+        placed.x === target.x &&
+        placed.account.id !== target.account.id &&
+        placed.y < target.y,
+    )
+    const clearX = approachingFromRight
+      ? target.x - 18
+      : target.x + target.w + 18
+    const d =
+      targetColumnBlockers.length > 0
+        ? [
+            `M ${coordinate(start.x)} ${coordinate(start.y)}`,
+            `C ${coordinate(start.x)} ${coordinate(controlY)}`,
+            `${coordinate(clearX)} ${coordinate(controlY)}`,
+            `${coordinate(clearX)} ${coordinate(interveningTop - 20)}`,
+            `L ${coordinate(clearX)} ${coordinate(
+              Math.max(
+                ...targetColumnBlockers.map(
+                  (placed) => placed.y + placed.h,
+                ),
+              ) + 8,
+            )}`,
+            `Q ${coordinate(clearX)} ${coordinate(end.y)}`,
+            `${coordinate(end.x)} ${coordinate(end.y)}`,
+          ].join(' ')
+        : [
+            `M ${coordinate(start.x)} ${coordinate(start.y)}`,
+            `C ${coordinate(start.x)} ${coordinate(controlY)}`,
+            `${coordinate(end.x)} ${coordinate(controlY)}`,
+            `${coordinate(end.x)} ${coordinate(end.y)}`,
+          ].join(' ')
 
     return {
       kind: 'waterfall',
       sourceId: source.account.id,
       targetId: target.account.id,
-      d: [
-        `M ${coordinate(start.x)} ${coordinate(start.y)}`,
-        `C ${coordinate(start.x)} ${coordinate(controlY)}`,
-        `${coordinate(end.x)} ${coordinate(controlY)}`,
-        `${coordinate(end.x)} ${coordinate(end.y)}`,
-      ].join(' '),
+      d,
     }
   })
 }
