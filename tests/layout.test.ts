@@ -154,23 +154,40 @@ describe('layoutMap', () => {
     expect(endY).toBe(shortTerm.y - 4)
   })
 
-  it('keeps every waterfall coordinate below the masthead band', () => {
-    const waterfall = newBook().clients.flatMap((client) =>
-      layoutMap(client).arrows.filter(
-        (arrow) => arrow.kind === 'waterfall',
-      ),
-    )
+  it('caps every sample waterfall arc near its connected drum tops', () => {
+    let waterfallCount = 0
 
-    expect(waterfall.length).toBeGreaterThan(0)
-    for (const arrow of waterfall) {
-      expect(arrow.d).not.toContain('NaN')
-      const coordinates = pathNumbers(arrow.d)
-      expect(coordinates.length).toBeGreaterThan(0)
-      expect(coordinates.length % 2).toBe(0)
-      expect(coordinates.every(Number.isFinite)).toBe(true)
-      const yCoordinates = coordinates.filter((_, index) => index % 2 === 1)
-      expect(Math.min(...yCoordinates)).toBeGreaterThanOrEqual(128)
+    for (const client of newBook().clients) {
+      const layout = layoutMap(client)
+      const byId = new Map(
+        layout.accounts.map((placed) => [placed.account.id, placed]),
+      )
+      const waterfall = layout.arrows.filter(
+        (arrow) => arrow.kind === 'waterfall',
+      )
+      waterfallCount += waterfall.length
+
+      for (const arrow of waterfall) {
+        expect(arrow.d).not.toContain('NaN')
+        const coordinates = pathNumbers(arrow.d)
+        expect(coordinates.length).toBeGreaterThan(0)
+        expect(coordinates.length % 2).toBe(0)
+        expect(coordinates.every(Number.isFinite)).toBe(true)
+        const source = byId.get(arrow.sourceId ?? '')!
+        const target = byId.get(arrow.targetId ?? '')!
+        const yCoordinates = coordinates.filter(
+          (_, index) => index % 2 === 1,
+        )
+        const minimumPathY = Math.min(...yCoordinates)
+
+        expect(minimumPathY).toBeGreaterThanOrEqual(
+          Math.min(source.y, target.y) - 26,
+        )
+        expect(minimumPathY).toBeGreaterThanOrEqual(128)
+      }
     }
+
+    expect(waterfallCount).toBeGreaterThan(0)
   })
 
   it('keeps the content-light cash drum compact', () => {

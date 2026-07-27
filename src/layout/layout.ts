@@ -45,6 +45,7 @@ const MIN_ACCOUNT_HEIGHT = 120
 export const CAP_CONTENT_GAP = 21
 const WATERFALL_MIN_Y = 128
 const WATERFALL_CLEARANCE = 30
+const WATERFALL_MAX_RISE = 24
 const AS_NEEDED_LABEL_WIDTH = 260
 const AS_NEEDED_LABEL_HEIGHT = 34
 const AS_NEEDED_LABEL_CLEARANCE = 10
@@ -212,9 +213,12 @@ function waterfallArrows(accounts: PlacedAccount[]): Arrow[] {
         )
         .map((placed) => placed.y),
     )
+    const connectedTop = Math.min(source.y, target.y)
+    const waterfallApexFloor = connectedTop - WATERFALL_MAX_RISE
     const controlY = Math.max(
       WATERFALL_MIN_Y,
-      Math.min(source.y, target.y) - WATERFALL_CLEARANCE,
+      connectedTop - WATERFALL_CLEARANCE,
+      waterfallApexFloor,
     )
     const targetColumnBlockers = accounts.filter(
       (placed) =>
@@ -232,7 +236,11 @@ function waterfallArrows(accounts: PlacedAccount[]): Arrow[] {
             `C ${coordinate(start.x)} ${coordinate(controlY)}`,
             `${coordinate(clearX)} ${coordinate(controlY)}`,
             `${coordinate(clearX)} ${coordinate(
-              Math.max(WATERFALL_MIN_Y, interveningTop - 20),
+              Math.max(
+                WATERFALL_MIN_Y,
+                interveningTop - 20,
+                waterfallApexFloor,
+              ),
             )}`,
             `L ${coordinate(clearX)} ${coordinate(
               Math.max(
