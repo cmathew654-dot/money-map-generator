@@ -256,7 +256,7 @@ summary:focus-visible {
 .workspace {
   display: grid;
   height: calc(100vh - 52px);
-  grid-template-columns: 480px minmax(520px, 1fr);
+  grid-template-columns: 420px minmax(520px, 1fr);
 }
 
 .form-pane {
@@ -594,11 +594,11 @@ summary:focus-visible {
 }
 
 .bucket-taxPreferred {
-  border-left-color: #6fa7d4;
+  border-left-color: #2e8577;
 }
 
 .bucket-taxPreferred .account-swatch {
-  background: #6fa7d4;
+  background: #2e8577;
 }
 
 .bucket-charitable,

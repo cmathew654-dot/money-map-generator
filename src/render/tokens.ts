@@ -19,20 +19,55 @@ export const FLOW_GREEN = '#1e7a4a'
 export interface BucketStyle {
   stroke: string
   tagColor: string
-  tint: string // body fill
-  capTint: string // top ellipse fill, slightly deeper than body
+  tint: string
   dashed?: boolean
-  tag: string // tiny classification label rendered above the title
+  tag: string
 }
 
 export const BUCKETS: Record<string, BucketStyle> = {
-  shortTerm: { stroke: '#2a3230', tagColor: '#2a3230', tint: '#ffffff', capTint: '#f1f3f0', dashed: true, tag: 'Short-Term Bucket' },
-  afterTax: { stroke: '#b98a1e', tagColor: '#836313', tint: '#fdf8ec', capTint: '#f7ecd2', tag: 'After-Tax' },
-  taxDeferred: { stroke: '#2f6bab', tagColor: '#2f6bab', tint: '#f2f7fc', capTint: '#e0ecf7', tag: 'Tax-Deferred' },
-  taxPreferred: { stroke: '#6fa7d4', tagColor: '#34719f', tint: '#f6fafd', capTint: '#e9f2fa', tag: 'Tax-Preferred' },
-  charitable: { stroke: '#6b4fa0', tagColor: '#6b4fa0', tint: '#f7f4fb', capTint: '#ece6f6', tag: 'Charitable' },
-  cash: { stroke: '#59645f', tagColor: '#59645f', tint: '#f6f7f5', capTint: '#eceeea', tag: 'Cash' },
-  note: { stroke: '#6b4fa0', tagColor: '#6b4fa0', tint: '#fbfaf6', capTint: '#fbfaf6', tag: 'Note' },
+  shortTerm: {
+    stroke: '#2a3230',
+    tagColor: '#2a3230',
+    tint: '#ffffff',
+    dashed: true,
+    tag: 'Short-Term Bucket',
+  },
+  afterTax: {
+    stroke: '#b98a1e',
+    tagColor: '#836313',
+    tint: '#fdf8ec',
+    tag: 'After-Tax',
+  },
+  taxDeferred: {
+    stroke: '#2f6bab',
+    tagColor: '#2f6bab',
+    tint: '#f2f7fc',
+    tag: 'Tax-Deferred',
+  },
+  taxPreferred: {
+    stroke: '#2e8577',
+    tagColor: '#23695e',
+    tint: '#eef7f5',
+    tag: 'Tax-Preferred',
+  },
+  charitable: {
+    stroke: '#6b4fa0',
+    tagColor: '#6b4fa0',
+    tint: '#f7f4fb',
+    tag: 'Charitable',
+  },
+  cash: {
+    stroke: '#59645f',
+    tagColor: '#59645f',
+    tint: '#f6f7f5',
+    tag: 'Cash',
+  },
+  note: {
+    stroke: '#6b4fa0',
+    tagColor: '#6b4fa0',
+    tint: '#fbfaf6',
+    tag: 'Note',
+  },
 }
 
 export const FONT_SERIF = "'Literata', Georgia, serif"
@@ -44,8 +79,8 @@ export const TYPE = {
   panelHeader: 15,
   accountTitle: 16,
   accountTag: 10.5,
-  caption: 12,
-  value: 21,
+  caption: 12.5,
+  value: 24,
   subValue: 15,
   row: 12.5,
   needLabel: 13,

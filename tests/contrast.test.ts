@@ -39,11 +39,8 @@ function contrastRatio(foreground: string, background: string): number {
 
 describe('palette contrast contract', () => {
   it.each(Object.entries(BUCKETS))(
-    '%s tag meets 4.5:1 on its cap and body tints',
+    '%s tag meets 4.5:1 on its flat tint',
     (_bucket, style) => {
-      expect(contrastRatio(style.tagColor, style.capTint)).toBeGreaterThanOrEqual(
-        4.5,
-      )
       expect(contrastRatio(style.tagColor, style.tint)).toBeGreaterThanOrEqual(
         4.5,
       )

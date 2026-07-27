@@ -313,12 +313,14 @@ function SubAccountDrum({
   x,
   y,
   w,
+  fill,
   stroke,
 }: {
   subAccount: SubAccount
   x: number
   y: number
   w: number
+  fill: string
   stroke: string
 }) {
   const h = 88
@@ -329,7 +331,7 @@ function SubAccountDrum({
     <g>
       <path
         d={cylinderBody(x, y, w, h, capRy)}
-        fill="#ffffff"
+        fill={fill}
         stroke={stroke}
         strokeDasharray="6 5"
         strokeWidth={1.75}
@@ -339,7 +341,7 @@ function SubAccountDrum({
         cy={y + capRy}
         rx={w / 2}
         ry={capRy}
-        fill="#ffffff"
+        fill={fill}
         stroke={stroke}
         strokeDasharray="6 5"
         strokeWidth={1.75}
@@ -362,7 +364,6 @@ function SubAccountDrum({
           fill={MUTED}
           fontFamily={FONT_SANS}
           fontSize={10.5}
-          fontStyle="italic"
           textAnchor="middle"
         >
           {subAccount.caption}
@@ -410,7 +411,7 @@ function NoteCard({ placed }: { placed: PlacedAccount }) {
         fontFamily={FONT_SANS}
         fontSize={TYPE.accountTag}
         fontWeight={700}
-        letterSpacing={1.5}
+        letterSpacing={1.2}
         textAnchor="middle"
       >
         {style.tag.toUpperCase()}
@@ -441,7 +442,6 @@ function NoteCard({ placed }: { placed: PlacedAccount }) {
           fill={MUTED}
           fontFamily={FONT_SANS}
           fontSize={TYPE.caption}
-          fontStyle="italic"
           textAnchor="middle"
         >
           {captionLines.map((line, index) => (
@@ -519,7 +519,7 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
         cy={y + capRy}
         rx={w / 2}
         ry={capRy}
-        fill={style.capTint}
+        fill={style.tint}
         stroke={style.stroke}
         strokeDasharray={dash}
         strokeWidth={2.5}
@@ -531,7 +531,7 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
         fontFamily={FONT_SANS}
         fontSize={TYPE.accountTag}
         fontWeight={700}
-        letterSpacing={1.5}
+        letterSpacing={1.2}
         dominantBaseline="middle"
         textAnchor="middle"
       >
@@ -563,7 +563,6 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
           fill={MUTED}
           fontFamily={FONT_SANS}
           fontSize={TYPE.caption}
-          fontStyle="italic"
           textAnchor="middle"
         >
           {captionLines.map((line, index) => (
@@ -631,6 +630,7 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
           x={x + w * 0.14}
           y={subStartY + index * 96}
           w={w * 0.72}
+          fill={style.tint}
           stroke={style.stroke}
         />
       ))}
@@ -646,13 +646,17 @@ function ArrowPath({
   markerId: string
 }) {
   const waterfall = arrow.kind === 'waterfall'
+  const asNeeded = arrow.kind === 'asNeeded'
   return (
     <path
+      data-arrow-kind={arrow.kind}
       d={arrow.d}
       fill="none"
       markerEnd={`url(#${markerId})`}
       stroke={FLOW_GREEN}
-      strokeDasharray={waterfall ? '0.1 9' : '7 6'}
+      strokeDasharray={
+        waterfall ? '0.1 9' : asNeeded ? '7 6' : undefined
+      }
       strokeLinecap={waterfall ? 'round' : 'butt'}
       strokeWidth={waterfall ? 3.5 : 2}
     />
@@ -716,6 +720,7 @@ function FootnoteLine({
       fill={INK}
       fontFamily={FONT_SANS}
       fontSize={TYPE.footnote}
+      textAnchor="middle"
     >
       {footnote.label}:{' '}
       <tspan
@@ -739,12 +744,106 @@ function FootnoteLine({
   )
 }
 
+function Footnotes({
+  footnotes,
+  x,
+  y,
+}: {
+  footnotes: Footnote[]
+  x: number
+  y: number
+}) {
+  if (footnotes.length === 0) return null
+  return (
+    <g aria-label="Footnotes">
+      <line
+        x1={x - 110}
+        y1={y - 18}
+        x2={x + 110}
+        y2={y - 18}
+        stroke={HAIRLINE}
+      />
+      {footnotes.map((footnote, index) => (
+        <FootnoteLine
+          key={`${footnote.label}-${index}`}
+          footnote={footnote}
+          x={x}
+          y={y + index * 24}
+        />
+      ))}
+    </g>
+  )
+}
+
+const LEGEND_Y = 966
+const LEGEND_ITEMS: {
+  kind: Arrow['kind']
+  label: string
+  width: number
+}[] = [
+  { kind: 'waterfall', label: 'Refills', width: 84 },
+  { kind: 'income', label: 'Income', width: 83 },
+  { kind: 'asNeeded', label: 'Draw as needed', width: 124 },
+]
+
+function FlowLegend({
+  arrows,
+  markerId,
+}: {
+  arrows: Arrow[]
+  markerId: string
+}) {
+  const present = new Set(arrows.map((arrow) => arrow.kind))
+  let x = 48
+
+  return (
+    <g aria-label="Flow legend">
+      {LEGEND_ITEMS.filter((item) => present.has(item.kind)).map(
+        (item) => {
+          const itemX = x
+          x += item.width
+          const waterfall = item.kind === 'waterfall'
+          const asNeeded = item.kind === 'asNeeded'
+          return (
+            <g key={item.kind} data-legend-kind={item.kind}>
+              <line
+                x1={itemX}
+                y1={LEGEND_Y - 4}
+                x2={itemX + 24}
+                y2={LEGEND_Y - 4}
+                markerEnd={`url(#${markerId})`}
+                stroke={FLOW_GREEN}
+                strokeDasharray={
+                  waterfall ? '0.1 9' : asNeeded ? '7 6' : undefined
+                }
+                strokeLinecap={waterfall ? 'round' : 'butt'}
+                strokeWidth={waterfall ? 3.5 : 2}
+              />
+              <text
+                x={itemX + 32}
+                y={LEGEND_Y}
+                fill={MUTED}
+                fontFamily={FONT_SANS}
+                fontSize={11}
+              >
+                {item.label}
+              </text>
+            </g>
+          )
+        },
+      )}
+    </g>
+  )
+}
+
 export function MapSvg({
   data,
   onElementClick,
   highlightId,
 }: MapSvgProps) {
-  const markerId = `flow-arrowhead-${useId().replaceAll(':', '')}`
+  const id = useId().replaceAll(':', '')
+  const markerId = `flow-arrowhead-${id}`
+  const legendMarkerId = `legend-arrowhead-${id}`
   const layout = layoutMap(data)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
 
@@ -776,6 +875,18 @@ export function MapSvg({
           markerUnits="strokeWidth"
         >
           <path d="M 0 0 L 9 4.5 L 0 9 Z" fill={FLOW_GREEN} />
+        </marker>
+        <marker
+          id={legendMarkerId}
+          viewBox="0 0 7 7"
+          markerWidth={5}
+          markerHeight={5}
+          refX={6}
+          refY={3.5}
+          orient="auto"
+          markerUnits="strokeWidth"
+        >
+          <path d="M 0 0 L 7 3.5 L 0 7 Z" fill={FLOW_GREEN} />
         </marker>
       </defs>
 
@@ -846,16 +957,12 @@ export function MapSvg({
       {asNeeded && (
         <AsNeededLabel arrow={asNeeded} amount={data.asNeededAmount} />
       )}
-      <g aria-label="Footnotes">
-        {data.footnotes.map((footnote, index) => (
-          <FootnoteLine
-            key={`${footnote.label}-${index}`}
-            footnote={footnote}
-            x={layout.footnotesAt.x}
-            y={layout.footnotesAt.y + index * 24}
-          />
-        ))}
-      </g>
+      <Footnotes
+        footnotes={data.footnotes}
+        x={layout.footnotesAt.x}
+        y={layout.footnotesAt.y}
+      />
+      <FlowLegend arrows={layout.arrows} markerId={legendMarkerId} />
     </svg>
   )
 }

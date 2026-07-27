@@ -9,7 +9,7 @@ export type Bucket =
   | 'shortTerm' // dashed ink cylinder — 2-3 years of income needs
   | 'afterTax' // gold — trust / managed after-tax
   | 'taxDeferred' // blue — IRA / 401k
-  | 'taxPreferred' // light blue — Roth, cash-value life
+  | 'taxPreferred' // teal — Roth, cash-value life
   | 'charitable' // purple — DAF / charitable fund
   | 'cash' // neutral — cash at bank / at home
   | 'note' // rounded card, not a cylinder — e.g. installment note
@@ -30,7 +30,7 @@ export interface Account {
   bucket: Bucket
   label: string
   value: number | null
-  /** small italic line under the label — allocation notes, "2-3 years' worth…" */
+  /** small line under the label — allocation notes, "2-3 years' worth…" */
   caption?: string
   /** ruled label/value rows inside the cylinder — holdings of note */
   positions?: Position[]
