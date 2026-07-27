@@ -4,7 +4,9 @@ import {
   MIN_ACCOUNT_HEIGHT,
   MIN_ACCOUNT_WIDTH,
   pointOnOutline,
+  rotatedBounds,
 } from '../src/layout/layout'
+import { newBook, parseBook } from '../src/model/book'
 import {
   blankClient,
   SAMPLE_WHITFIELD,
@@ -15,6 +17,7 @@ import {
   crossedDragThreshold,
   screenDeltaToArtboard,
   screenPointToArtboard,
+  snapRotation,
   signedPerpendicularOffset,
   withOverride,
 } from '../src/render/mapInteraction'
@@ -88,6 +91,65 @@ describe('map interaction helpers', () => {
         { x: 60, y: 45 },
       ),
     ).toBe(25)
+  })
+
+  it('soft-snaps rotation within three degrees of 15-degree steps', () => {
+    expect(snapRotation(32)).toBe(30)
+    expect(snapRotation(33)).toBe(30)
+    expect(snapRotation(33.1)).toBeCloseTo(33.1)
+    expect(snapRotation(-2)).toBe(0)
+    expect(snapRotation(-4)).toBe(356)
+  })
+
+  it('stores rotation modulo 360 while preserving other overrides', () => {
+    const rotated = withOverride(SAMPLE_WHITFIELD, IRA_ID, {
+      dx: 20,
+      rot: -30,
+    })
+    const resized = withOverride(rotated, IRA_ID, { w: 300 })
+
+    expect(rotated.layoutOverrides?.[IRA_ID]).toEqual({
+      dx: 20,
+      rot: 330,
+    })
+    expect(resized.layoutOverrides?.[IRA_ID]).toEqual({
+      dx: 20,
+      rot: 330,
+      w: 300,
+    })
+  })
+
+  it('normalizes and finite-validates rotation and endpoint offsets in books', () => {
+    const book = newBook()
+    book.clients[0].layoutOverrides = {
+      [IRA_ID]: { rot: 725 },
+      'arrow:income': {
+        startAt: { dx: 12, dy: -8 },
+        endAt: { dx: 4, dy: 9 },
+      },
+    }
+    const parsed = parseBook(JSON.stringify(book))
+
+    expect(parsed.clients[0].layoutOverrides?.[IRA_ID].rot).toBe(5)
+    expect(
+      parsed.clients[0].layoutOverrides?.['arrow:income'].startAt,
+    ).toEqual({ dx: 12, dy: -8 })
+
+    const infiniteRotation = JSON.stringify(book).replace(
+      '"rot":725',
+      '"rot":1e400',
+    )
+    expect(() => parseBook(infiniteRotation)).toThrow(
+      'invalid layout overrides',
+    )
+
+    book.clients[0].layoutOverrides['arrow:income'].endAt = {
+      dx: 4,
+      dy: Number.NaN,
+    }
+    expect(() => parseBook(JSON.stringify(book))).toThrow(
+      'invalid layout overrides',
+    )
   })
 })
 
@@ -168,6 +230,30 @@ describe('layout overrides', () => {
     expect(chip.y - 19).toBe(118)
   })
 
+  it('clamps a rotated account by its rotated bounding box', () => {
+    const layout = layoutMap(
+      withOverrides({
+        [TRUST_ID]: {
+          dx: -10_000,
+          dy: -10_000,
+          w: 10_000,
+          h: 10_000,
+          rot: 45,
+        },
+      }),
+    )
+    const trust = layout.accounts.find(
+      (placed) => placed.account.id === TRUST_ID,
+    )!
+    const bounds = rotatedBounds(trust, trust.rot)
+
+    expect(trust.rot).toBe(45)
+    expect(bounds.x).toBeCloseTo(48)
+    expect(bounds.y).toBeCloseTo(118)
+    expect(bounds.x + bounds.w).toBeCloseTo(902)
+    expect(bounds.y + bounds.h).toBeCloseTo(972)
+  })
+
   it('re-attaches waterfall arrows to moved and resized drums', () => {
     const layout = layoutMap(
       withOverrides({
@@ -238,6 +324,99 @@ describe('layout overrides', () => {
     expect(income.end).toEqual(
       pointOnOutline(overridden.need, 0.8),
     )
+  })
+
+  it('gives free endpoints precedence over legacy outline parameters', () => {
+    const layout = layoutMap(
+      withOverrides({
+        'arrow:income': {
+          bow: 40,
+          startT: 0.1,
+          endT: 0.9,
+          startAt: { dx: 360, dy: -20 },
+          endAt: { dx: 400, dy: 35 },
+        },
+      }),
+    )
+    const arrow = layout.arrows.find(
+      (candidate) => candidate.kind === 'income',
+    )!
+
+    expect(arrow.start).toEqual({
+      x: layout.income.x + layout.income.w / 2 + 360,
+      y: layout.income.y + layout.income.h / 2 - 20,
+    })
+    expect(arrow.end).toEqual({
+      x: layout.need.x + layout.need.w / 2 + 400,
+      y: layout.need.y + layout.need.h / 2 + 35,
+    })
+    expect(arrow.start).not.toEqual(
+      pointOnOutline(layout.income, arrow.startT),
+    )
+    expect(arrow.end).not.toEqual(
+      pointOnOutline(layout.need, arrow.endT),
+    )
+    expect(arrow.bow).toBe(40)
+  })
+
+  it('moves a free endpoint with its connected element center', () => {
+    const startAt = { dx: -140, dy: -90 }
+    const base = layoutMap(
+      withOverrides({
+        [`arrow:waterfall:${TRUST_ID}`]: { startAt },
+      }),
+    )
+    const moved = layoutMap(
+      withOverrides({
+        [TRUST_ID]: { dx: -70, dy: 55, w: 340, h: 260 },
+        [`arrow:waterfall:${TRUST_ID}`]: { startAt },
+      }),
+    )
+    const baseTrust = base.accounts.find(
+      (placed) => placed.account.id === TRUST_ID,
+    )!
+    const movedTrust = moved.accounts.find(
+      (placed) => placed.account.id === TRUST_ID,
+    )!
+    const baseArrow = base.arrows.find(
+      (arrow) =>
+        arrow.kind === 'waterfall' && arrow.sourceId === TRUST_ID,
+    )!
+    const movedArrow = moved.arrows.find(
+      (arrow) =>
+        arrow.kind === 'waterfall' && arrow.sourceId === TRUST_ID,
+    )!
+
+    expect(movedArrow.start.x - baseArrow.start.x).toBeCloseTo(
+      movedTrust.x +
+        movedTrust.w / 2 -
+        (baseTrust.x + baseTrust.w / 2),
+    )
+    expect(movedArrow.start.y - baseArrow.start.y).toBeCloseTo(
+      movedTrust.y +
+        movedTrust.h / 2 -
+        (baseTrust.y + baseTrust.h / 2),
+    )
+    expect(movedArrow.sourceId).toBe(baseArrow.sourceId)
+    expect(movedArrow.targetId).toBe(baseArrow.targetId)
+  })
+
+  it('keeps legacy t-only arrow overrides attached unchanged', () => {
+    const layout = layoutMap(
+      withOverrides({
+        'arrow:income': { startT: 0.35, endT: 0.8 },
+      }),
+    )
+    const arrow = layout.arrows.find(
+      (candidate) => candidate.kind === 'income',
+    )!
+
+    expect(arrow.startAt).toBeUndefined()
+    expect(arrow.endAt).toBeUndefined()
+    expect(arrow.start).toEqual(
+      pointOnOutline(layout.income, 0.35),
+    )
+    expect(arrow.end).toEqual(pointOnOutline(layout.need, 0.8))
   })
 
   it('applies the chip delta on top of its automatic position', () => {

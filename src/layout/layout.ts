@@ -9,6 +9,7 @@ import { accountShape } from '../model/types'
 import {
   clamp,
   clampRectToBounds,
+  normalizeRotation,
 } from '../render/mapInteraction'
 
 export interface Placed {
@@ -21,6 +22,7 @@ export interface Placed {
 export interface PlacedAccount extends Placed {
   account: Account
   capRy: number
+  rot: number
 }
 
 export interface Arrow {
@@ -32,6 +34,8 @@ export interface Arrow {
   bow: number
   startT: number
   endT: number
+  startAt?: { dx: number; dy: number }
+  endAt?: { dx: number; dy: number }
   labelAt?: { x: number; y: number }
   sourceId?: string
   targetId?: string
@@ -201,6 +205,7 @@ function placeColumn(data: MoneyMapData, column: Column): PlacedAccount[] {
       w: column.w,
       h: heights[index],
       capRy: Math.round(column.w * 0.13),
+      rot: 0,
     }
     y += heights[index] + gap
     return placed
@@ -306,12 +311,49 @@ function centerOf(element: Placed): Point {
   }
 }
 
+export function rotatePoint(
+  point: Point,
+  center: Point,
+  degrees: number,
+): Point {
+  const radians = (degrees * Math.PI) / 180
+  const cosine = Math.cos(radians)
+  const sine = Math.sin(radians)
+  const dx = point.x - center.x
+  const dy = point.y - center.y
+  return {
+    x: center.x + dx * cosine - dy * sine,
+    y: center.y + dx * sine + dy * cosine,
+  }
+}
+
+export function rotatedBounds(element: Placed, degrees: number): Placed {
+  const radians = (degrees * Math.PI) / 180
+  const cosine = Math.abs(Math.cos(radians))
+  const sine = Math.abs(Math.sin(radians))
+  const w = element.w * cosine + element.h * sine
+  const h = element.w * sine + element.h * cosine
+  const center = centerOf(element)
+  return {
+    x: center.x - w / 2,
+    y: center.y - h / 2,
+    w,
+    h,
+  }
+}
+
+function obstacleBounds(element: Placed): Placed {
+  return 'rot' in element
+    ? rotatedBounds(element, (element as PlacedAccount).rot)
+    : element
+}
+
 /**
  * Clockwise outline parameter. Flat shapes start along their top-left edge;
  * drums start at the left shoulder and follow the top arc, right side,
  * bottom arc, then left side.
  */
-export function pointOnOutline(
+function pointOnUnrotatedOutline(
   element: OutlineElement,
   rawT: number,
 ): Point {
@@ -386,6 +428,16 @@ export function pointOnOutline(
       element.capRy -
       (element.h - element.capRy * 2) * (t - 0.75) * 4,
   }
+}
+
+export function pointOnOutline(
+  element: OutlineElement,
+  rawT: number,
+): Point {
+  const point = pointOnUnrotatedOutline(element, rawT)
+  return 'rot' in element && element.rot !== 0
+    ? rotatePoint(point, centerOf(element), element.rot)
+    : point
 }
 
 function facingOutlineT(
@@ -519,7 +571,7 @@ function routePenalty(
       sample / CURVE_SAMPLES,
     )
     penalty += obstacles.filter((obstacle) =>
-      segmentIntersectsBox(previous, point, obstacle),
+      segmentIntersectsBox(previous, point, obstacleBounds(obstacle)),
     ).length * 10_000
     penalty += Math.max(0, minimumY - point.y) * 100
     previous = point
@@ -555,8 +607,30 @@ function routedArrow({
   const defaultEndT = preferredEndT ?? facingOutlineT(target, source)
   const startT = clamp(override?.startT ?? defaultStartT, 0, 1)
   const endT = clamp(override?.endT ?? defaultEndT, 0, 1)
-  const start = pointOnOutline(source, startT)
-  const end = pointOnOutline(target, endT)
+  const freePoint = (
+    element: OutlineElement,
+    offset: { dx: number; dy: number },
+  ): Point => {
+    const center = centerOf(element)
+    return {
+      x: clamp(
+        center.x + offset.dx,
+        PAGE_MARGIN,
+        ARTBOARD.width - PAGE_MARGIN,
+      ),
+      y: clamp(
+        center.y + offset.dy,
+        PAGE_MARGIN,
+        ARTBOARD.height - PAGE_MARGIN,
+      ),
+    }
+  }
+  const start = override?.startAt
+    ? freePoint(source, override.startAt)
+    : pointOnOutline(source, startT)
+  const end = override?.endAt
+    ? freePoint(target, override.endAt)
+    : pointOnOutline(target, endT)
   const chordLength = Math.hypot(end.x - start.x, end.y - start.y)
   const maximumBow = chordLength * MAX_BOW_FRACTION
   const baseMagnitude = chordLength * DEFAULT_BOW_FRACTION
@@ -611,6 +685,8 @@ function routedArrow({
     bow,
     startT,
     endT,
+    startAt: override?.startAt,
+    endAt: override?.endAt,
     d: [
       `M ${coordinate(start.x)} ${coordinate(start.y)}`,
       `Q ${coordinate(control.x)} ${coordinate(control.y)}`,
@@ -805,7 +881,7 @@ function contentBounds(
   const boxes = [
     layout.income,
     layout.need,
-    ...layout.accounts,
+    ...layout.accounts.map(obstacleBounds),
     ...layout.arrows.flatMap(arrowBounds),
   ]
   const x = Math.min(...boxes.map((box) => box.x))
@@ -929,29 +1005,65 @@ function applyAccountOverride(
   placed: PlacedAccount,
   override: LayoutOverride | undefined,
 ): PlacedAccount {
-  const desiredWidth = clamp(
+  const rot = normalizeRotation(override?.rot ?? 0)
+  let desiredWidth = clamp(
     override?.w ?? placed.w,
     MIN_ACCOUNT_WIDTH,
     OVERRIDE_BOUNDS.right - OVERRIDE_BOUNDS.left,
   )
-  const desiredHeight = clamp(
+  let desiredHeight = clamp(
     override?.h ?? placed.h,
     MIN_ACCOUNT_HEIGHT,
     OVERRIDE_BOUNDS.bottom - OVERRIDE_BOUNDS.top,
   )
-  const clamped = clampRectToBounds(
-    {
-      x: placed.x + (override?.dx ?? 0),
-      y: placed.y + (override?.dy ?? 0),
-      w: desiredWidth,
-      h: desiredHeight,
-    },
-    OVERRIDE_BOUNDS,
+  const radians = (rot * Math.PI) / 180
+  const cosine = Math.abs(Math.cos(radians))
+  const sine = Math.abs(Math.sin(radians))
+  const minimumRotatedWidth =
+    MIN_ACCOUNT_WIDTH * cosine + MIN_ACCOUNT_HEIGHT * sine
+  const minimumRotatedHeight =
+    MIN_ACCOUNT_WIDTH * sine + MIN_ACCOUNT_HEIGHT * cosine
+  const extraWidth = desiredWidth - MIN_ACCOUNT_WIDTH
+  const extraHeight = desiredHeight - MIN_ACCOUNT_HEIGHT
+  const rotatedExtraWidth =
+    extraWidth * cosine + extraHeight * sine
+  const rotatedExtraHeight =
+    extraWidth * sine + extraHeight * cosine
+  const sizeScale = Math.min(
+    1,
+    rotatedExtraWidth === 0
+      ? 1
+      : (OVERRIDE_BOUNDS.right -
+          OVERRIDE_BOUNDS.left -
+          minimumRotatedWidth) /
+          rotatedExtraWidth,
+    rotatedExtraHeight === 0
+      ? 1
+      : (OVERRIDE_BOUNDS.bottom -
+          OVERRIDE_BOUNDS.top -
+          minimumRotatedHeight) /
+          rotatedExtraHeight,
   )
+  desiredWidth = MIN_ACCOUNT_WIDTH + extraWidth * sizeScale
+  desiredHeight = MIN_ACCOUNT_HEIGHT + extraHeight * sizeScale
+  const desired = {
+    x: placed.x + (override?.dx ?? 0),
+    y: placed.y + (override?.dy ?? 0),
+    w: desiredWidth,
+    h: desiredHeight,
+  }
+  const rotated = rotatedBounds(desired, rot)
+  const clampedBounds = clampRectToBounds(rotated, OVERRIDE_BOUNDS)
+  const clamped = {
+    ...desired,
+    x: desired.x + clampedBounds.x - rotated.x,
+    y: desired.y + clampedBounds.y - rotated.y,
+  }
   return {
     ...placed,
     ...clamped,
     capRy: Math.round(clamped.w * 0.13),
+    rot,
   }
 }
 
@@ -999,7 +1111,8 @@ function arrowsForFinalGeometry(
         override?.dx === undefined &&
         override?.dy === undefined &&
         override?.w === undefined &&
-        override?.h === undefined
+        override?.h === undefined &&
+        override?.rot === undefined
       )
     })
   const arrows = [

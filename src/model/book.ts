@@ -192,7 +192,16 @@ function validateLayoutOverrides(
         `Client ${clientIndex + 1} has invalid layout overrides.`,
       )
     }
-    for (const field of ['dx', 'dy', 'w', 'h'] as const) {
+    for (const field of [
+      'dx',
+      'dy',
+      'w',
+      'h',
+      'rot',
+      'bow',
+      'startT',
+      'endT',
+    ] as const) {
       if (
         override[field] !== undefined &&
         (typeof override[field] !== 'number' ||
@@ -202,6 +211,24 @@ function validateLayoutOverrides(
           `Client ${clientIndex + 1} has invalid layout overrides.`,
         )
       }
+    }
+    for (const field of ['startAt', 'endAt'] as const) {
+      const point = override[field]
+      if (
+        point !== undefined &&
+        (!isRecord(point) ||
+          typeof point.dx !== 'number' ||
+          !Number.isFinite(point.dx) ||
+          typeof point.dy !== 'number' ||
+          !Number.isFinite(point.dy))
+      ) {
+        throw new Error(
+          `Client ${clientIndex + 1} has invalid layout overrides.`,
+        )
+      }
+    }
+    if (typeof override.rot === 'number') {
+      override.rot = ((override.rot % 360) + 360) % 360
     }
   }
 }

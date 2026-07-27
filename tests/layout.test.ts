@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   hexagonInset,
   layoutMap,
+  pointOnOutline,
+  rotatePoint,
   type PlacedAccount,
 } from '../src/layout/layout'
 import { newBook } from '../src/model/book'
@@ -303,6 +305,38 @@ describe('layoutMap', () => {
         expect(arrow.start.x).toBeCloseTo(slantMidpoint.x, 0)
         expect(arrow.start.y).toBeCloseTo(slantMidpoint.y, 0)
       }
+    },
+  )
+
+  it.each([45, 90])(
+    'rotates a cardinal drum outline anchor by %i degrees',
+    (rot) => {
+      const data = singleAccountData('drum')
+      data.layoutOverrides = {
+        'shape-account': { rot },
+      }
+      const layout = layoutMap(data)
+      const account = layout.accounts[0]
+      const unrotated = { ...account, rot: 0 }
+      const center = {
+        x: account.x + account.w / 2,
+        y: account.y + account.h / 2,
+      }
+      const expected = rotatePoint(
+        pointOnOutline(unrotated, 0.125),
+        center,
+        rot,
+      )
+
+      expect(pointOnOutline(account, 0.125).x).toBeCloseTo(expected.x)
+      expect(pointOnOutline(account, 0.125).y).toBeCloseTo(expected.y)
+
+      const arrow = layout.arrows.find(
+        (candidate) => candidate.kind === 'asNeeded',
+      )!
+      expect(arrow.start).toEqual(
+        pointOnOutline(account, arrow.startT),
+      )
     },
   )
 

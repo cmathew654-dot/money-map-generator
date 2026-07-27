@@ -75,6 +75,26 @@ export function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
 }
 
+export function normalizeRotation(angle: number): number {
+  return ((angle % 360) + 360) % 360
+}
+
+export function snapRotation(
+  angle: number,
+  increment = 15,
+  threshold = 3,
+): number {
+  const normalized = normalizeRotation(angle)
+  const snapped = Math.round(normalized / increment) * increment
+  const distance = Math.min(
+    Math.abs(normalized - snapped),
+    Math.abs(normalized - (snapped - 360)),
+  )
+  return distance <= threshold
+    ? normalizeRotation(snapped)
+    : normalized
+}
+
 export function clampRectToBounds(
   rect: Rect,
   bounds: RectBounds,
@@ -110,8 +130,12 @@ export function withOverride(
   patch: LayoutOverride,
 ): MoneyMapData {
   const previous = data.layoutOverrides?.[key] ?? {}
+  const normalizedPatch =
+    patch.rot === undefined
+      ? patch
+      : { ...patch, rot: normalizeRotation(patch.rot) }
   const merged = Object.fromEntries(
-    Object.entries({ ...previous, ...patch }).filter(
+    Object.entries({ ...previous, ...normalizedPatch }).filter(
       ([, value]) => value !== undefined,
     ),
   ) as LayoutOverride
