@@ -9,6 +9,10 @@ season.
 
 This tool generates it. Fill in a form; the map draws itself.
 
+**Live demo:** https://cmathew654-dot.github.io/money-map-generator/ — all
+sample data is fictional. Click any cylinder on the map to jump to its form
+card.
+
 ![Sample money map](docs/media/sample-map.png)
 
 *All sample data is fictional.*
@@ -77,3 +81,7 @@ npm run build    # production build to dist/
 
 Typefaces: [Literata](https://github.com/googlefonts/literata) and
 [Public Sans](https://public-sans.digital.gov/) (both SIL OFL), self-hosted.
+
+## License
+
+[MIT](LICENSE) © 2026 Cyril Mathew.
