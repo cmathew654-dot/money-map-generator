@@ -5,6 +5,7 @@ import type {
   LayoutOverride,
   MoneyMapData,
 } from '../model/types'
+import { accountShape } from '../model/types'
 import {
   clamp,
   clampRectToBounds,
@@ -216,8 +217,62 @@ export type OutlineElement = Placed | PlacedAccount
 function isDrum(element: OutlineElement): element is PlacedAccount {
   return (
     'account' in element &&
-    element.account.bucket !== 'note'
+    accountShape(element.account) === 'drum'
   )
+}
+
+function pointOnRoundedRect(
+  element: Placed,
+  t: number,
+  radius: number,
+): Point {
+  const r = Math.min(radius, element.w / 2, element.h / 2)
+  const quarter = Math.min(3, Math.floor(t * 4))
+  const progress = t * 4 - quarter
+  const horizontal = element.w - r * 2
+  const vertical = element.h - r * 2
+  const arc = (Math.PI * r) / 2
+  const edge = quarter % 2 === 0 ? horizontal : vertical
+  const distance = progress * (edge + arc)
+
+  if (distance <= edge) {
+    if (quarter === 0) {
+      return { x: element.x + r + distance, y: element.y }
+    }
+    if (quarter === 1) {
+      return {
+        x: element.x + element.w,
+        y: element.y + r + distance,
+      }
+    }
+    if (quarter === 2) {
+      return {
+        x: element.x + element.w - r - distance,
+        y: element.y + element.h,
+      }
+    }
+    return {
+      x: element.x,
+      y: element.y + element.h - r - distance,
+    }
+  }
+
+  const angleProgress = arc === 0 ? 1 : (distance - edge) / arc
+  const angle = -Math.PI / 2 + (quarter + angleProgress) * (Math.PI / 2)
+  const cornerCenters = [
+    { x: element.x + element.w - r, y: element.y + r },
+    {
+      x: element.x + element.w - r,
+      y: element.y + element.h - r,
+    },
+    { x: element.x + r, y: element.y + element.h - r },
+    { x: element.x + r, y: element.y + r },
+  ]
+  const center = cornerCenters[quarter]
+  return {
+    x: center.x + r * Math.cos(angle),
+    y: center.y + r * Math.sin(angle),
+  }
 }
 
 function centerOf(element: Placed): Point {
@@ -237,7 +292,17 @@ export function pointOnOutline(
   rawT: number,
 ): Point {
   const t = clamp(rawT, 0, 1)
-  if (!isDrum(element)) {
+  if ('account' in element && !isDrum(element)) {
+    const shape = accountShape(element.account)
+    const radius =
+      shape === 'card'
+        ? 12
+        : shape === 'pill'
+          ? Math.min(element.w, element.h) / 2
+          : 2
+    return pointOnRoundedRect(element, t, radius)
+  }
+  if (!('account' in element)) {
     if (t <= 0.25) {
       return { x: element.x + element.w * t * 4, y: element.y }
     }
@@ -554,8 +619,8 @@ function waterfallArrows(
         (placed) => placed !== source && placed !== target,
       ),
       override: overrides?.[`arrow:waterfall:${source.account.id}`],
-      preferredStartT: capT,
-      preferredEndT: capT,
+      preferredStartT: isDrum(source) ? capT : undefined,
+      preferredEndT: isDrum(target) ? capT : undefined,
       preferAbove: preserveGeneratedCaps,
       sourceId: source.account.id,
       targetId: target.account.id,

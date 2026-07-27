@@ -8,6 +8,7 @@ import {
   SAMPLE_WHITFIELD,
 } from '../src/model/samples'
 import type { Account, MoneyMapData } from '../src/model/types'
+import type { AccountShape } from '../src/model/types'
 
 function expectInsideArtboard(data: MoneyMapData) {
   const layout = layoutMap(data)
@@ -115,6 +116,21 @@ function pointOnQuadratic(
   }
 }
 
+function singleAccountData(shape: AccountShape): MoneyMapData {
+  const data = blankClient()
+  data.accounts = [
+    {
+      id: 'shape-account',
+      bucket: 'shortTerm',
+      shape,
+      label: 'Shape account',
+      value: 250000,
+      inWaterfall: false,
+    },
+  ]
+  return data
+}
+
 describe('layoutMap', () => {
   it.each([
     ['sample client', SAMPLE_WHITFIELD],
@@ -166,6 +182,94 @@ describe('layoutMap', () => {
     expect(shortTerm.x).toBe(cash.x)
     expect(shortTerm.y).toBeLessThan(cash.y)
   })
+
+  it('keeps account placement boxes shape-independent', () => {
+    const placements = (['drum', 'card', 'rect', 'pill'] as const).map(
+      (shape) => {
+        const placed = layoutMap(singleAccountData(shape)).accounts[0]
+        return {
+          x: placed.x,
+          y: placed.y,
+          w: placed.w,
+          h: placed.h,
+        }
+      },
+    )
+
+    expect(placements.slice(1).every((placed) =>
+      JSON.stringify(placed) === JSON.stringify(placements[0]),
+    )).toBe(true)
+  })
+
+  it.each(['drum', 'card', 'rect', 'pill'] as const)(
+    'anchors cardinal arrows on the facing %s boundary',
+    (shape) => {
+      const data = singleAccountData(shape)
+      const base = layoutMap(data)
+      const account = base.accounts[0]
+      const need = base.need
+      const center = {
+        x: account.x + account.w / 2,
+        y: account.y + account.h / 2,
+      }
+      const targets = [
+        {
+          edge: 'top',
+          x: center.x - need.w / 2,
+          y: 128,
+          coordinate: account.y,
+        },
+        {
+          edge: 'right',
+          x: 1022,
+          y: center.y - need.h / 2,
+          coordinate: account.x + account.w,
+        },
+        {
+          edge: 'bottom',
+          x: center.x - need.w / 2,
+          y: 800,
+          coordinate: account.y + account.h,
+        },
+        {
+          edge: 'left',
+          x: 48,
+          y: center.y - need.h / 2,
+          coordinate: account.x,
+        },
+      ]
+
+      for (const target of targets) {
+        const placed = layoutMap({
+          ...data,
+          layoutOverrides: {
+            need: {
+              dx: target.x - need.x,
+              dy: target.y - need.y,
+            },
+          },
+        })
+        const arrow = placed.arrows.find(
+          (candidate) => candidate.kind === 'asNeeded',
+        )!
+        const boundary =
+          target.edge === 'top' || target.edge === 'bottom'
+            ? arrow.start.y
+            : arrow.start.x
+        const crossAxis =
+          target.edge === 'top' || target.edge === 'bottom'
+            ? arrow.start.x
+            : arrow.start.y
+        const expectedCrossAxis =
+          target.edge === 'top' || target.edge === 'bottom'
+            ? center.x
+            : center.y
+
+        expect(boundary).toBeCloseTo(target.coordinate, 0)
+        expect(crossAxis).toBeCloseTo(expectedCrossAxis, 0)
+      }
+    },
+  )
 
   it('keeps generated Whitfield waterfalls cap-to-cap with an apex above both caps', () => {
     const layout = layoutMap(SAMPLE_WHITFIELD)
