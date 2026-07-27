@@ -214,6 +214,10 @@ function coordinate(value: number): string {
 type Point = { x: number; y: number }
 export type OutlineElement = Placed | PlacedAccount
 
+export function hexagonInset(width: number, height: number): number {
+  return Math.min(height * 0.22, 34, width / 2)
+}
+
 function isDrum(element: OutlineElement): boolean {
   return (
     'account' in element &&
@@ -275,6 +279,26 @@ function pointOnRoundedRect(
   }
 }
 
+function pointOnHexagon(element: Placed, t: number): Point {
+  const inset = hexagonInset(element.w, element.h)
+  const points = [
+    { x: element.x + inset, y: element.y },
+    { x: element.x + element.w - inset, y: element.y },
+    { x: element.x + element.w, y: element.y + element.h / 2 },
+    { x: element.x + element.w - inset, y: element.y + element.h },
+    { x: element.x + inset, y: element.y + element.h },
+    { x: element.x, y: element.y + element.h / 2 },
+  ]
+  const segment = Math.min(5, Math.floor(t * 6))
+  const progress = t * 6 - segment
+  const start = points[segment]
+  const end = points[(segment + 1) % points.length]
+  return {
+    x: start.x + (end.x - start.x) * progress,
+    y: start.y + (end.y - start.y) * progress,
+  }
+}
+
 function centerOf(element: Placed): Point {
   return {
     x: element.x + element.w / 2,
@@ -283,7 +307,7 @@ function centerOf(element: Placed): Point {
 }
 
 /**
- * Clockwise outline parameter. Rectangles start at their top-left corner;
+ * Clockwise outline parameter. Flat shapes start along their top-left edge;
  * drums start at the left shoulder and follow the top arc, right side,
  * bottom arc, then left side.
  */
@@ -294,12 +318,13 @@ export function pointOnOutline(
   const t = clamp(rawT, 0, 1)
   if ('account' in element && !isDrum(element)) {
     const shape = accountShape(element.account)
+    if (shape === 'rect') return pointOnHexagon(element, t)
     const radius =
       shape === 'card'
         ? 12
         : shape === 'pill'
           ? Math.min(element.w, element.h) / 2
-          : 2
+          : 0
     return pointOnRoundedRect(element, t, radius)
   }
   if (!('account' in element)) {

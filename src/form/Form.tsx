@@ -116,7 +116,7 @@ const accountPresets: {
 const shapeLabels: Record<AccountShape, string> = {
   drum: 'Drum',
   card: 'Card',
-  rect: 'Rectangle',
+  rect: 'Hexagon',
   pill: 'Pill',
 }
 
@@ -126,6 +126,13 @@ function ShapeGlyph({ shape }: { shape: AccountShape }) {
       <svg aria-hidden="true" viewBox="0 0 24 16">
         <path d="M4 4v7c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V4" />
         <ellipse cx="12" cy="4" rx="8" ry="2.5" />
+      </svg>
+    )
+  }
+  if (shape === 'rect') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 16">
+        <path d="M5.4 2.5h13.2l2.4 5.5-2.4 5.5H5.4L3 8Z" />
       </svg>
     )
   }

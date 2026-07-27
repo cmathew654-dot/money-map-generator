@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { layoutMap, type PlacedAccount } from '../src/layout/layout'
+import {
+  hexagonInset,
+  layoutMap,
+  type PlacedAccount,
+} from '../src/layout/layout'
 import { newBook } from '../src/model/book'
 import {
   blankClient,
@@ -266,7 +270,38 @@ describe('layoutMap', () => {
             : center.y
 
         expect(boundary).toBeCloseTo(target.coordinate, 0)
-        expect(crossAxis).toBeCloseTo(expectedCrossAxis, 0)
+        if (shape === 'rect') {
+          expect(Math.abs(crossAxis - expectedCrossAxis)).toBeLessThan(1)
+        } else {
+          expect(crossAxis).toBeCloseTo(expectedCrossAxis, 0)
+        }
+      }
+
+      if (shape === 'rect') {
+        const inset = hexagonInset(account.w, account.h)
+        const slantMidpoint = {
+          x: account.x + account.w - inset / 2,
+          y: account.y + account.h / 4,
+        }
+        const targetCenter = {
+          x: center.x + (slantMidpoint.x - center.x) * 2,
+          y: center.y + (slantMidpoint.y - center.y) * 2,
+        }
+        const placed = layoutMap({
+          ...data,
+          layoutOverrides: {
+            need: {
+              dx: targetCenter.x - need.w / 2 - need.x,
+              dy: targetCenter.y - need.h / 2 - need.y,
+            },
+          },
+        })
+        const arrow = placed.arrows.find(
+          (candidate) => candidate.kind === 'asNeeded',
+        )!
+
+        expect(arrow.start.x).toBeCloseTo(slantMidpoint.x, 0)
+        expect(arrow.start.y).toBeCloseTo(slantMidpoint.y, 0)
       }
     },
   )

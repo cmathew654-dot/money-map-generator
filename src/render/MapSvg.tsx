@@ -10,6 +10,7 @@ import {
 } from 'react'
 import {
   CAP_CONTENT_GAP,
+  hexagonInset,
   layoutMap,
   nearestOutlineT,
 } from '../layout/layout'
@@ -66,6 +67,19 @@ import {
 
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
 const SUB_ACCOUNT_CAP_CONTENT_GAP = 14
+
+function hexagonPath(x: number, y: number, w: number, h: number): string {
+  const inset = hexagonInset(w, h)
+  return [
+    `M ${x + inset} ${y}`,
+    `L ${x + w - inset} ${y}`,
+    `L ${x + w} ${y + h / 2}`,
+    `L ${x + w - inset} ${y + h}`,
+    `L ${x + inset} ${y + h}`,
+    `L ${x} ${y + h / 2}`,
+    'Z',
+  ].join(' ')
+}
 
 function wrapLengths(placed: PlacedAccount): {
   title: number
@@ -679,8 +693,7 @@ function FlatAccount({
     ? wrap(account.caption, wrapAt.caption)
     : []
   const subAccounts = account.subAccounts ?? []
-  const radius =
-    shape === 'card' ? 12 : shape === 'pill' ? Math.min(w, h) / 2 : 2
+  const radius = shape === 'card' ? 12 : Math.min(w, h) / 2
   const captionY = y + 56 + titleLines.length * 20
   const rowsY =
     captionLines.length > 0
@@ -690,20 +703,27 @@ function FlatAccount({
     shape === 'pill' ? Math.max(12, radius * 0.32) : 12
   const subStartY = y + h - lowerInset - subAccounts.length * 96
   const valueY = subAccounts.length ? subStartY - 17 : y + h - 25
+  const outlineProps = {
+    fill: style.tint,
+    stroke: style.stroke,
+    strokeDasharray: dash,
+    strokeWidth: 2.5,
+  }
 
   return (
     <g>
-      <rect
-        x={x}
-        y={y}
-        width={w}
-        height={h}
-        rx={radius}
-        fill={style.tint}
-        stroke={style.stroke}
-        strokeDasharray={dash}
-        strokeWidth={2.5}
-      />
+      {shape === 'rect' ? (
+        <path d={hexagonPath(x, y, w, h)} {...outlineProps} />
+      ) : (
+        <rect
+          x={x}
+          y={y}
+          width={w}
+          height={h}
+          rx={radius}
+          {...outlineProps}
+        />
+      )}
       <AccountContent
         captionLines={captionLines}
         captionY={captionY}
@@ -739,6 +759,9 @@ function ShapeFlipGlyph({
         <ellipse cx={x + 6} cy={y + 2} rx={6} ry={2} fill="none" />
       </>
     )
+  }
+  if (shape === 'rect') {
+    return <path d={hexagonPath(x, y, 12, 10)} fill="none" />
   }
   return (
     <rect
