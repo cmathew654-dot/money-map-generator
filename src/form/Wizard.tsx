@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { MapElementTarget } from '../render/MapSvg'
 import {
   AccountsSection,
@@ -12,26 +13,31 @@ import {
 export const WIZARD_STEPS = [
   {
     id: 'client',
+    label: 'Client',
     title: 'Who is this map for?',
     mapTargets: [],
   },
   {
     id: 'income',
+    label: 'Income',
     title: 'What income comes in?',
     mapTargets: ['income'],
   },
   {
     id: 'need',
+    label: 'Need',
     title: 'What does the month need to cover?',
     mapTargets: ['need'],
   },
   {
     id: 'accounts',
+    label: 'Accounts',
     title: 'What accounts hold the money?',
     mapTargets: ['account'],
   },
   {
     id: 'footnotes',
+    label: 'Footnotes',
     title: 'Footnotes (optional)',
     mapTargets: [],
   },
@@ -44,6 +50,46 @@ export function wizardStepNumberForMapTarget(
     step.mapTargets.some((mapTarget) => mapTarget === target),
   )
   return index === -1 ? null : index + 1
+}
+
+interface WizardProgressProps {
+  currentStep: number
+  onCurrentStepChange(step: number): void
+  onDoneChange(done: boolean): void
+}
+
+export function WizardProgress({
+  currentStep,
+  onCurrentStepChange,
+  onDoneChange,
+}: WizardProgressProps) {
+  return (
+    <div className="wizard-progress" aria-label="Wizard progress">
+      {WIZARD_STEPS.map((item, index) => (
+        <button
+          aria-current={index === currentStep ? 'step' : undefined}
+          aria-label={
+            index < currentStep ? `${item.label}, completed` : item.label
+          }
+          className={
+            index < currentStep
+              ? 'wizard-step-button is-done'
+              : index === currentStep
+                ? 'wizard-step-button is-current'
+                : 'wizard-step-button'
+          }
+          key={item.id}
+          type="button"
+          onClick={() => {
+            onCurrentStepChange(index)
+            onDoneChange(false)
+          }}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 interface WizardProps extends FormProps {
@@ -70,6 +116,13 @@ export function Wizard({
   onPrint,
 }: WizardProps) {
   const step = WIZARD_STEPS[currentStep] ?? WIZARD_STEPS[0]
+  const printButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (done) {
+      printButtonRef.current?.focus()
+    }
+  }, [done])
 
   const renderStep = () => {
     switch (step.id) {
@@ -110,28 +163,55 @@ export function Wizard({
   if (done) {
     return (
       <div className="wizard wizard-done" aria-live="polite">
-        <h1>The map is ready.</h1>
-        <div className="wizard-done-actions">
-          <button type="button" onClick={onPrint}>
-            Print
-          </button>
-          <button type="button" onClick={onExportPng}>
-            Export PNG
-          </button>
-          <button type="button" onClick={onFullForm}>
-            Fine-tune in full form
-          </button>
+        <header className="wizard-header">
+          <p className="wizard-step-count">
+            Step {currentStep + 1} of {WIZARD_STEPS.length}
+          </p>
+          <WizardProgress
+            currentStep={currentStep}
+            onCurrentStepChange={onCurrentStepChange}
+            onDoneChange={onDoneChange}
+          />
+        </header>
+        <div className="wizard-done-content">
+          <h1>The map is ready.</h1>
+          <div className="wizard-done-primary">
+            <button
+              className="primary-button"
+              ref={printButtonRef}
+              type="button"
+              onClick={onPrint}
+            >
+              Print
+            </button>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={onExportPng}
+            >
+              Export PNG
+            </button>
+          </div>
+          <div className="wizard-done-secondary">
+            <button
+              className="quiet-button"
+              type="button"
+              onClick={onFullForm}
+            >
+              Fine-tune in full form
+            </button>
+            <button
+              className="text-button wizard-start-over"
+              type="button"
+              onClick={() => {
+                onCurrentStepChange(0)
+                onDoneChange(false)
+              }}
+            >
+              Start over
+            </button>
+          </div>
         </div>
-        <button
-          className="text-button wizard-start-over"
-          type="button"
-          onClick={() => {
-            onCurrentStepChange(0)
-            onDoneChange(false)
-          }}
-        >
-          Start over
-        </button>
       </div>
     )
   }
@@ -147,29 +227,15 @@ export function Wizard({
           Step {currentStep + 1} of {WIZARD_STEPS.length}
         </p>
         <h1>{step.title}</h1>
-        <div className="wizard-progress" aria-label="Wizard progress">
-          {WIZARD_STEPS.map((item, index) => (
-            <span
-              aria-label={
-                index < currentStep
-                  ? `${item.title}: done`
-                  : index === currentStep
-                    ? `${item.title}: current`
-                    : item.title
-              }
-              className={
-                index < currentStep
-                  ? 'wizard-dot is-done'
-                  : index === currentStep
-                    ? 'wizard-dot is-current'
-                    : 'wizard-dot'
-              }
-              key={item.id}
-            />
-          ))}
-        </div>
+        <WizardProgress
+          currentStep={currentStep}
+          onCurrentStepChange={onCurrentStepChange}
+          onDoneChange={onDoneChange}
+        />
       </header>
-      <div className="wizard-step-content">{renderStep()}</div>
+      <div className="wizard-step-content" key={step.id}>
+        {renderStep()}
+      </div>
       <footer className="wizard-footer">
         {currentStep > 0 && (
           <button
