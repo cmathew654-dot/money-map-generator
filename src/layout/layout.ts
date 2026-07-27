@@ -27,6 +27,7 @@ export interface MapLayout {
   need: Placed
   accounts: PlacedAccount[]
   arrows: Arrow[]
+  contentBounds: Placed
   footnotesAt: { x: number; y: number }
 }
 
@@ -39,6 +40,11 @@ interface Column {
 
 const STACK_BOTTOM = 890
 const ARTBOARD = { width: 1320, height: 1020 }
+const PAGE_MARGIN = 48
+const MASTHEAD_RULE_Y = 118
+const FOOTNOTED_CONTENT_BOTTOM = 900
+const OPEN_CONTENT_BOTTOM = 950
+const FOOTNOTE_BASELINE_Y = 930
 const DEFAULT_GAP = 28
 const COMPRESSED_GAP = 16
 const MIN_ACCOUNT_HEIGHT = 120
@@ -49,6 +55,8 @@ const WATERFALL_MAX_RISE = 24
 const AS_NEEDED_LABEL_WIDTH = 260
 const AS_NEEDED_LABEL_HEIGHT = 34
 const AS_NEEDED_LABEL_CLEARANCE = 10
+const AS_NEEDED_CHIP_WIDTH = 250
+const AS_NEEDED_CHIP_HEIGHT = 38
 const AS_NEEDED_START_FRACTIONS = [0.72, 0.77, 0.82, 0.87, 0.92, 0.95]
 const AS_NEEDED_LABEL_TS = [
   0.4, 0.35, 0.45, 0.3, 0.5, 0.25, 0.55, 0.2, 0.6, 0.15, 0.65, 0.7,
@@ -59,7 +67,7 @@ const COLUMNS: Column[] = [
   { x: 390, y: 200, w: 250, buckets: ['shortTerm', 'cash', 'note'] },
   { x: 700, y: 240, w: 260, buckets: ['afterTax'] },
   {
-    x: 1020,
+    x: 1012,
     y: 200,
     w: 260,
     buckets: ['taxDeferred', 'taxPreferred', 'charitable'],
@@ -433,6 +441,137 @@ function asNeededArrow(
   }
 }
 
+function pathCoordinates(path: string): { x: number; y: number }[] {
+  const values = [...path.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) =>
+    Number(match[0]),
+  )
+  const points: { x: number; y: number }[] = []
+  for (let index = 0; index < values.length; index += 2) {
+    points.push({ x: values[index], y: values[index + 1] })
+  }
+  return points
+}
+
+function boundsForPoints(
+  points: { x: number; y: number }[],
+): Placed {
+  const xValues = points.map((point) => point.x)
+  const yValues = points.map((point) => point.y)
+  const x = Math.min(...xValues)
+  const y = Math.min(...yValues)
+  return {
+    x,
+    y,
+    w: Math.max(...xValues) - x,
+    h: Math.max(...yValues) - y,
+  }
+}
+
+function arrowBounds(arrow: Arrow): Placed[] {
+  const bounds = [boundsForPoints(pathCoordinates(arrow.d))]
+  if (arrow.labelAt) {
+    bounds.push({
+      x: arrow.labelAt.x - AS_NEEDED_CHIP_WIDTH / 2,
+      y: arrow.labelAt.y - AS_NEEDED_CHIP_HEIGHT / 2,
+      w: AS_NEEDED_CHIP_WIDTH,
+      h: AS_NEEDED_CHIP_HEIGHT,
+    })
+  }
+  return bounds
+}
+
+function contentBounds(
+  layout: Pick<MapLayout, 'income' | 'need' | 'accounts' | 'arrows'>,
+): Placed {
+  const boxes = [
+    layout.income,
+    layout.need,
+    ...layout.accounts,
+    ...layout.arrows.flatMap(arrowBounds),
+  ]
+  const x = Math.min(...boxes.map((box) => box.x))
+  const y = Math.min(...boxes.map((box) => box.y))
+  const right = Math.max(...boxes.map((box) => box.x + box.w))
+  const bottom = Math.max(...boxes.map((box) => box.y + box.h))
+  return { x, y, w: right - x, h: bottom - y }
+}
+
+function constrainedOffset(
+  desired: number,
+  minimum: number,
+  maximum: number,
+): number {
+  if (minimum > maximum) return (minimum + maximum) / 2
+  return Math.min(maximum, Math.max(minimum, desired))
+}
+
+function translatePath(path: string, dx: number, dy: number): string {
+  let index = 0
+  return path.replace(/-?\d+(?:\.\d+)?/g, (match) => {
+    const offset = index % 2 === 0 ? dx : dy
+    index += 1
+    return coordinate(Number(match) + offset)
+  })
+}
+
+function translatePlaced<T extends Placed>(
+  placed: T,
+  dx: number,
+  dy: number,
+): T {
+  return { ...placed, x: placed.x + dx, y: placed.y + dy }
+}
+
+function centerComposition(
+  layout: Omit<MapLayout, 'contentBounds'>,
+  hasFootnotes: boolean,
+): MapLayout {
+  const bounds = contentBounds(layout)
+  const horizontalCenter = ARTBOARD.width / 2
+  const lowerBound = hasFootnotes
+    ? FOOTNOTED_CONTENT_BOTTOM
+    : OPEN_CONTENT_BOTTOM
+  const verticalCenter = (MASTHEAD_RULE_Y + lowerBound) / 2
+  const dx = constrainedOffset(
+    horizontalCenter - (bounds.x + bounds.w / 2),
+    PAGE_MARGIN - bounds.x,
+    ARTBOARD.width - PAGE_MARGIN - (bounds.x + bounds.w),
+  )
+  const dy = constrainedOffset(
+    verticalCenter - (bounds.y + bounds.h / 2),
+    MASTHEAD_RULE_Y - bounds.y,
+    lowerBound - (bounds.y + bounds.h),
+  )
+  const centered = {
+    ...layout,
+    income: translatePlaced(layout.income, dx, dy),
+    need: translatePlaced(layout.need, dx, dy),
+    accounts: layout.accounts.map((account) =>
+      translatePlaced(account, dx, dy),
+    ),
+    arrows: layout.arrows.map((arrow) => ({
+      ...arrow,
+      d: translatePath(arrow.d, dx, dy),
+      labelAt: arrow.labelAt
+        ? {
+            x: arrow.labelAt.x + dx,
+            y: arrow.labelAt.y + dy,
+          }
+        : undefined,
+    })),
+  }
+  const centeredBounds = contentBounds(centered)
+
+  return {
+    ...centered,
+    contentBounds: centeredBounds,
+    footnotesAt: {
+      x: centeredBounds.x + centeredBounds.w / 2,
+      y: FOOTNOTE_BASELINE_Y,
+    },
+  }
+}
+
 export function layoutMap(data: MoneyMapData): MapLayout {
   const income: Placed = {
     x: 48,
@@ -455,12 +594,15 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     )
   }
 
-  return {
-    artboard: ARTBOARD,
-    income,
-    need,
-    accounts,
-    arrows,
-    footnotesAt: { x: 390, y: 930 },
-  }
+  return centerComposition(
+    {
+      artboard: ARTBOARD,
+      income,
+      need,
+      accounts,
+      arrows,
+      footnotesAt: { x: 390, y: 930 },
+    },
+    data.footnotes.length > 0,
+  )
 }

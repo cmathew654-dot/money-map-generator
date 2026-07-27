@@ -37,6 +37,22 @@ function expectColumnGaps(accounts: PlacedAccount[]) {
   }
 }
 
+function expectCenteredContent(
+  data: MoneyMapData,
+  lowerBound: number,
+) {
+  const { contentBounds } = layoutMap(data)
+  const leftMargin = contentBounds.x - 48
+  const rightMargin =
+    1320 - 48 - (contentBounds.x + contentBounds.w)
+  const topMargin = contentBounds.y - 118
+  const bottomMargin =
+    lowerBound - (contentBounds.y + contentBounds.h)
+
+  expect(Math.abs(leftMargin - rightMargin)).toBeLessThanOrEqual(24)
+  expect(Math.abs(topMargin - bottomMargin)).toBeLessThanOrEqual(40)
+}
+
 function pathNumbers(path: string): number[] {
   return [...path.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) =>
     Number(match[0]),
@@ -275,17 +291,30 @@ describe('layoutMap', () => {
     ).toHaveLength(1)
   })
 
-  it('uses the specified fixed panel and footnote slots', () => {
+  it.each([
+    ['blank client', blankClient(), 950],
+    ['Venkat', SAMPLE_VENKAT, 950],
+  ])(
+    'centers the %s content between the composition bounds',
+    (_label, data, lowerBound) => {
+      expectCenteredContent(data, lowerBound)
+    },
+  )
+
+  it('keeps the specified panel sizes and fixed footnote baseline', () => {
     const sample = layoutMap(SAMPLE_WHITFIELD)
     const blank = layoutMap(blankClient())
 
     for (const layout of [sample, blank]) {
-      expect(layout.income.x).toBe(48)
-      expect(layout.income.y).toBe(170)
       expect(layout.income.w).toBe(280)
-      expect(layout.need).toEqual({ x: 48, y: 700, w: 250, h: 170 })
-      expect(layout.footnotesAt).toEqual({ x: 390, y: 930 })
+      expect(layout.need.w).toBe(250)
+      expect(layout.need.h).toBe(170)
+      expect(layout.footnotesAt.y).toBe(930)
     }
+    expect(sample.income).toEqual({ x: 48, y: 154, w: 280, h: 248 })
+    expect(sample.need).toEqual({ x: 48, y: 684, w: 250, h: 170 })
+    expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 128 })
+    expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
   })
 
   it('compresses a dense eight-account client without shrinking below 120', () => {
@@ -313,7 +342,7 @@ describe('layoutMap', () => {
       ],
     }
     const layout = layoutMap(dense)
-    const farColumn = layout.accounts.filter((account) => account.x === 1020)
+    const farColumn = layout.accounts.filter((account) => account.x === 1012)
 
     expect(layout.accounts).toHaveLength(8)
     expect(farColumn).toHaveLength(5)
