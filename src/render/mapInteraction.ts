@@ -89,6 +89,21 @@ export function clampRectToBounds(
   }
 }
 
+export function signedPerpendicularOffset(
+  start: Point,
+  end: Point,
+  point: Point,
+): number {
+  const chord = { x: end.x - start.x, y: end.y - start.y }
+  const length = Math.hypot(chord.x, chord.y)
+  if (length === 0) return 0
+  return (
+    ((point.x - start.x) * -chord.y +
+      (point.y - start.y) * chord.x) /
+    length
+  )
+}
+
 export function withOverride(
   data: MoneyMapData,
   key: string,

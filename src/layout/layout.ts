@@ -25,6 +25,12 @@ export interface PlacedAccount extends Placed {
 export interface Arrow {
   kind: 'waterfall' | 'income' | 'asNeeded'
   d: string
+  start: { x: number; y: number }
+  control: { x: number; y: number }
+  end: { x: number; y: number }
+  bow: number
+  startT: number
+  endT: number
   labelAt?: { x: number; y: number }
   sourceId?: string
   targetId?: string
@@ -60,16 +66,15 @@ export const MIN_ACCOUNT_HEIGHT = 120
 export const MIN_ACCOUNT_WIDTH = 180
 export const CAP_CONTENT_GAP = 21
 const WATERFALL_MIN_Y = 128
-const WATERFALL_CLEARANCE = 30
-const WATERFALL_MAX_RISE = 24
 const AS_NEEDED_LABEL_WIDTH = 260
 const AS_NEEDED_LABEL_HEIGHT = 34
 const AS_NEEDED_LABEL_CLEARANCE = 10
 const AS_NEEDED_CHIP_WIDTH = 250
 const AS_NEEDED_CHIP_HEIGHT = 38
-const AS_NEEDED_START_X_FRACTIONS = [0.25, 0.3, 0.35, 0.4, 0.45]
-const AS_NEEDED_CONTROL_RISES = [12, 8, 16, 4, 20]
-const AS_NEEDED_CURVE_SAMPLES = 32
+const CURVE_SAMPLES = 32
+const OUTLINE_SAMPLES = 512
+const DEFAULT_BOW_FRACTION = 0.15
+const MAX_BOW_FRACTION = 0.5
 const AS_NEEDED_LABEL_TS = [
   0.4, 0.35, 0.45, 0.3, 0.5, 0.25, 0.55, 0.2, 0.6, 0.15, 0.65, 0.7,
   0.75, 0.8,
@@ -205,113 +210,186 @@ function coordinate(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1)
 }
 
-function waterfallArrows(accounts: PlacedAccount[]): Arrow[] {
-  const chain = WATERFALL_ORDER.flatMap((bucket) =>
-    accounts
-      .filter(
-        (placed) =>
-          placed.account.bucket === bucket && placed.account.inWaterfall,
-      )
-      .sort((a, b) => a.y - b.y),
+type Point = { x: number; y: number }
+export type OutlineElement = Placed | PlacedAccount
+
+function isDrum(element: OutlineElement): element is PlacedAccount {
+  return (
+    'account' in element &&
+    element.account.bucket !== 'note'
   )
-
-  return chain.slice(0, -1).map((source, index) => {
-    const target = chain[index + 1]
-    const start = { x: source.x + source.w * 0.35, y: source.y }
-    const approachingFromRight = source.x > target.x
-    const end = {
-      x: target.x + target.w * 0.35,
-      y: target.y - 4,
-    }
-    const leftColumnX = Math.min(source.x, target.x)
-    const rightColumnX = Math.max(source.x, target.x)
-    const interveningTop = Math.min(
-      ...accounts
-        .filter(
-          (placed) =>
-            placed.x >= leftColumnX && placed.x <= rightColumnX,
-        )
-        .map((placed) => placed.y),
-    )
-    const connectedTop = Math.min(source.y, target.y)
-    const waterfallApexFloor = connectedTop - WATERFALL_MAX_RISE
-    const controlY = Math.max(
-      WATERFALL_MIN_Y,
-      connectedTop - WATERFALL_CLEARANCE,
-      waterfallApexFloor,
-    )
-    const targetColumnBlockers = accounts.filter(
-      (placed) =>
-        placed.x === target.x &&
-        placed.account.id !== target.account.id &&
-        placed.y < target.y,
-    )
-    const clearX = approachingFromRight
-      ? target.x - 18
-      : target.x + target.w + 18
-    const d =
-      targetColumnBlockers.length > 0
-        ? [
-            `M ${coordinate(start.x)} ${coordinate(start.y)}`,
-            `C ${coordinate(start.x)} ${coordinate(controlY)}`,
-            `${coordinate(clearX)} ${coordinate(controlY)}`,
-            `${coordinate(clearX)} ${coordinate(
-              Math.max(
-                WATERFALL_MIN_Y,
-                interveningTop - 20,
-                waterfallApexFloor,
-              ),
-            )}`,
-            `L ${coordinate(clearX)} ${coordinate(
-              Math.max(
-                ...targetColumnBlockers.map(
-                  (placed) => placed.y + placed.h,
-                ),
-              ) + 8,
-            )}`,
-            `Q ${coordinate(clearX)} ${coordinate(end.y)}`,
-            `${coordinate(end.x)} ${coordinate(end.y)}`,
-          ].join(' ')
-        : [
-            `M ${coordinate(start.x)} ${coordinate(start.y)}`,
-            `C ${coordinate(start.x)} ${coordinate(controlY)}`,
-            `${coordinate(end.x)} ${coordinate(controlY)}`,
-            `${coordinate(end.x)} ${coordinate(end.y)}`,
-          ].join(' ')
-
-    return {
-      kind: 'waterfall',
-      sourceId: source.account.id,
-      targetId: target.account.id,
-      d,
-    }
-  })
 }
 
-function incomeArrow(income: Placed, need: Placed): Arrow {
+function centerOf(element: Placed): Point {
   return {
-    kind: 'income',
-    d: `M ${coordinate(income.x + income.w / 2)} ${coordinate(
-      income.y + income.h,
-    )} L ${coordinate(need.x + need.w / 2)} ${coordinate(need.y)}`,
+    x: element.x + element.w / 2,
+    y: element.y + element.h / 2,
   }
 }
 
-function boxesIntersect(
-  first: Placed,
-  second: Placed,
-): boolean {
-  return (
-    first.x < second.x + second.w &&
-    first.x + first.w > second.x &&
-    first.y < second.y + second.h &&
-    first.y + first.h > second.y
-  )
+/**
+ * Clockwise outline parameter. Rectangles start at their top-left corner;
+ * drums start at the left shoulder and follow the top arc, right side,
+ * bottom arc, then left side.
+ */
+export function pointOnOutline(
+  element: OutlineElement,
+  rawT: number,
+): Point {
+  const t = clamp(rawT, 0, 1)
+  if (!isDrum(element)) {
+    if (t <= 0.25) {
+      return { x: element.x + element.w * t * 4, y: element.y }
+    }
+    if (t <= 0.5) {
+      return {
+        x: element.x + element.w,
+        y: element.y + element.h * (t - 0.25) * 4,
+      }
+    }
+    if (t <= 0.75) {
+      return {
+        x: element.x + element.w * (1 - (t - 0.5) * 4),
+        y: element.y + element.h,
+      }
+    }
+    return {
+      x: element.x,
+      y: element.y + element.h * (1 - (t - 0.75) * 4),
+    }
+  }
+
+  const centerX = element.x + element.w / 2
+  const radiusX = element.w / 2
+  if (t <= 0.25) {
+    const angle = Math.PI + t * 4 * Math.PI
+    return {
+      x: centerX + radiusX * Math.cos(angle),
+      y: element.y + element.capRy + element.capRy * Math.sin(angle),
+    }
+  }
+  if (t <= 0.5) {
+    return {
+      x: element.x + element.w,
+      y:
+        element.y +
+        element.capRy +
+        (element.h - element.capRy * 2) * (t - 0.25) * 4,
+    }
+  }
+  if (t <= 0.75) {
+    const angle = (t - 0.5) * 4 * Math.PI
+    return {
+      x: centerX + radiusX * Math.cos(angle),
+      y:
+        element.y +
+        element.h -
+        element.capRy +
+        element.capRy * Math.sin(angle),
+    }
+  }
+  return {
+    x: element.x,
+    y:
+      element.y +
+      element.h -
+      element.capRy -
+      (element.h - element.capRy * 2) * (t - 0.75) * 4,
+  }
+}
+
+function facingOutlineT(
+  element: OutlineElement,
+  counterpart: OutlineElement,
+): number {
+  const center = centerOf(element)
+  const toward = centerOf(counterpart)
+  const direction = {
+    x: toward.x - center.x,
+    y: toward.y - center.y,
+  }
+  const length = Math.hypot(direction.x, direction.y)
+  if (length === 0) return 0
+
+  let bestT = 0
+  let bestScore = Number.POSITIVE_INFINITY
+  for (let sample = 0; sample < OUTLINE_SAMPLES; sample += 1) {
+    const t = sample / OUTLINE_SAMPLES
+    const point = pointOnOutline(element, t)
+    const relative = { x: point.x - center.x, y: point.y - center.y }
+    const forward =
+      (relative.x * direction.x + relative.y * direction.y) / length
+    if (forward <= 0) continue
+    const perpendicular = Math.abs(
+      relative.x * direction.y - relative.y * direction.x,
+    ) / length
+    const score = perpendicular / forward
+    if (score < bestScore) {
+      bestScore = score
+      bestT = t
+    }
+  }
+  return bestT
+}
+
+export function nearestOutlineT(
+  element: OutlineElement,
+  point: Point,
+): number {
+  let bestT = 0
+  let bestDistance = Number.POSITIVE_INFINITY
+  for (let sample = 0; sample <= OUTLINE_SAMPLES; sample += 1) {
+    const t = sample / OUTLINE_SAMPLES
+    const candidate = pointOnOutline(element, t)
+    const distance = Math.hypot(
+      point.x - candidate.x,
+      point.y - candidate.y,
+    )
+    if (distance < bestDistance) {
+      bestDistance = distance
+      bestT = t
+    }
+  }
+  return bestT
+}
+
+function topCapT(xFraction = 0.35): number {
+  const angle = Math.acos(xFraction * 2 - 1)
+  return (Math.PI * 2 - angle - Math.PI) / (Math.PI * 4)
+}
+
+function pointOnQuadratic(
+  start: Point,
+  control: Point,
+  end: Point,
+  t: number,
+): Point {
+  const oneMinusT = 1 - t
+  return {
+    x:
+      oneMinusT ** 2 * start.x +
+      2 * oneMinusT * t * control.x +
+      t ** 2 * end.x,
+    y:
+      oneMinusT ** 2 * start.y +
+      2 * oneMinusT * t * control.y +
+      t ** 2 * end.y,
+  }
+}
+
+function controlForBow(start: Point, end: Point, bow: number): Point {
+  const chordX = end.x - start.x
+  const chordY = end.y - start.y
+  const length = Math.hypot(chordX, chordY) || 1
+  return {
+    x: (start.x + end.x) / 2 - (chordY / length) * bow,
+    y: (start.y + end.y) / 2 + (chordX / length) * bow,
+  }
 }
 
 function segmentIntersectsBox(
-  start: { x: number; y: number },
-  end: { x: number; y: number },
+  start: Point,
+  end: Point,
   box: Placed,
 ): boolean {
   let entry = 0
@@ -334,6 +412,184 @@ function segmentIntersectsBox(
   return entry < exit && exit > 0 && entry < 1
 }
 
+function routePenalty(
+  start: Point,
+  control: Point,
+  end: Point,
+  obstacles: Placed[],
+  minimumY = MASTHEAD_RULE_Y,
+): number {
+  let penalty = 0
+  let previous = start
+  for (let sample = 1; sample <= CURVE_SAMPLES; sample += 1) {
+    const point = pointOnQuadratic(
+      start,
+      control,
+      end,
+      sample / CURVE_SAMPLES,
+    )
+    penalty += obstacles.filter((obstacle) =>
+      segmentIntersectsBox(previous, point, obstacle),
+    ).length * 10_000
+    penalty += Math.max(0, minimumY - point.y) * 100
+    previous = point
+  }
+  return penalty
+}
+
+function routedArrow({
+  kind,
+  source,
+  target,
+  obstacles,
+  override,
+  preferredStartT,
+  preferredEndT,
+  preferAbove = false,
+  sourceId,
+  targetId,
+}: {
+  kind: Arrow['kind']
+  source: OutlineElement
+  target: OutlineElement
+  obstacles: Placed[]
+  override?: LayoutOverride
+  preferredStartT?: number
+  preferredEndT?: number
+  preferAbove?: boolean
+  sourceId?: string
+  targetId?: string
+}): Arrow {
+  const defaultStartT =
+    preferredStartT ?? facingOutlineT(source, target)
+  const defaultEndT = preferredEndT ?? facingOutlineT(target, source)
+  const startT = clamp(override?.startT ?? defaultStartT, 0, 1)
+  const endT = clamp(override?.endT ?? defaultEndT, 0, 1)
+  const start = pointOnOutline(source, startT)
+  const end = pointOnOutline(target, endT)
+  const chordLength = Math.hypot(end.x - start.x, end.y - start.y)
+  const maximumBow = chordLength * MAX_BOW_FRACTION
+  const baseMagnitude = chordLength * DEFAULT_BOW_FRACTION
+  const normalY = chordLength === 0 ? 0 : (end.x - start.x) / chordLength
+  const preferredSign = preferAbove
+    ? normalY <= 0
+      ? 1
+      : -1
+    : -1
+  const requestedBow =
+    override?.bow === undefined
+      ? undefined
+      : clamp(override.bow, -maximumBow, maximumBow)
+  const candidates =
+    requestedBow === undefined
+      ? [1, -1, 1.35, -1.35, 1.7, -1.7, 2.1, -2.1].map(
+          (scale) =>
+            clamp(
+              preferredSign * baseMagnitude * scale,
+              -maximumBow,
+              maximumBow,
+            ),
+        )
+      : [requestedBow]
+  let bow = candidates[0] ?? 0
+  let control = controlForBow(start, end, bow)
+  let bestPenalty = Number.POSITIVE_INFINITY
+  for (const candidateBow of candidates) {
+    const candidateControl = controlForBow(start, end, candidateBow)
+    const penalty = routePenalty(
+      start,
+      candidateControl,
+      end,
+      obstacles,
+      kind === 'waterfall' ? WATERFALL_MIN_Y : MASTHEAD_RULE_Y,
+    )
+    if (penalty < bestPenalty) {
+      bow = candidateBow
+      control = candidateControl
+      bestPenalty = penalty
+    }
+    if (penalty === 0) break
+  }
+
+  return {
+    kind,
+    sourceId,
+    targetId,
+    start,
+    control,
+    end,
+    bow,
+    startT,
+    endT,
+    d: [
+      `M ${coordinate(start.x)} ${coordinate(start.y)}`,
+      `Q ${coordinate(control.x)} ${coordinate(control.y)}`,
+      `${coordinate(end.x)} ${coordinate(end.y)}`,
+    ].join(' '),
+  }
+}
+
+function waterfallArrows(
+  accounts: PlacedAccount[],
+  overrides?: Record<string, LayoutOverride>,
+  preserveGeneratedCaps = true,
+): Arrow[] {
+  const chain = WATERFALL_ORDER.flatMap((bucket) =>
+    accounts
+      .filter(
+        (placed) =>
+          placed.account.bucket === bucket && placed.account.inWaterfall,
+      )
+      .sort((a, b) => a.y - b.y),
+  )
+
+  return chain.slice(0, -1).map((source, index) => {
+    const target = chain[index + 1]
+    const capT = preserveGeneratedCaps ? topCapT() : undefined
+    return routedArrow({
+      kind: 'waterfall',
+      source,
+      target,
+      obstacles: accounts.filter(
+        (placed) => placed !== source && placed !== target,
+      ),
+      override: overrides?.[`arrow:waterfall:${source.account.id}`],
+      preferredStartT: capT,
+      preferredEndT: capT,
+      preferAbove: preserveGeneratedCaps,
+      sourceId: source.account.id,
+      targetId: target.account.id,
+    })
+  })
+}
+
+function incomeArrow(
+  income: Placed,
+  need: Placed,
+  obstacles: Placed[],
+  override?: LayoutOverride,
+): Arrow {
+  return routedArrow({
+    kind: 'income',
+    source: income,
+    target: need,
+    obstacles,
+    override,
+  })
+}
+
+function boxesIntersect(
+  first: Placed,
+  second: Placed,
+): boolean {
+  return (
+    first.x < second.x + second.w &&
+    first.x + first.w > second.x &&
+    first.y < second.y + second.h &&
+    first.y + first.h > second.y
+  )
+}
+
 function labelBox(labelAt: { x: number; y: number }): Placed {
   return {
     x:
@@ -346,68 +602,6 @@ function labelBox(labelAt: { x: number; y: number }): Placed {
       AS_NEEDED_LABEL_CLEARANCE,
     w: AS_NEEDED_LABEL_WIDTH + AS_NEEDED_LABEL_CLEARANCE * 2,
     h: AS_NEEDED_LABEL_HEIGHT + AS_NEEDED_LABEL_CLEARANCE * 2,
-  }
-}
-
-function pointOnQuadratic(
-  start: { x: number; y: number },
-  control: { x: number; y: number },
-  end: { x: number; y: number },
-  t: number,
-): { x: number; y: number } {
-  const oneMinusT = 1 - t
-  return {
-    x:
-      oneMinusT ** 2 * start.x +
-      2 * oneMinusT * t * control.x +
-      t ** 2 * end.x,
-    y:
-      oneMinusT ** 2 * start.y +
-      2 * oneMinusT * t * control.y +
-      t ** 2 * end.y,
-  }
-}
-
-function sampledQuadraticClears(
-  start: { x: number; y: number },
-  control: { x: number; y: number },
-  end: { x: number; y: number },
-  obstacles: Placed[],
-): boolean {
-  let previous = start
-  for (let sample = 1; sample <= AS_NEEDED_CURVE_SAMPLES; sample += 1) {
-    const point = pointOnQuadratic(
-      start,
-      control,
-      end,
-      sample / AS_NEEDED_CURVE_SAMPLES,
-    )
-    if (
-      obstacles.some((obstacle) =>
-        segmentIntersectsBox(previous, point, obstacle),
-      )
-    ) {
-      return false
-    }
-    previous = point
-  }
-  return true
-}
-
-function lowerDrumArcPoint(
-  drum: PlacedAccount,
-  widthFraction: number,
-): { x: number; y: number } {
-  const radiusX = drum.w / 2
-  const centerX = drum.x + radiusX
-  const centerY = drum.y + drum.h - drum.capRy
-  const x = drum.x + drum.w * widthFraction
-  const normalizedX = (x - centerX) / radiusX
-  return {
-    x,
-    y:
-      centerY +
-      drum.capRy * Math.sqrt(Math.max(0, 1 - normalizedX ** 2)),
   }
 }
 
@@ -443,41 +637,19 @@ function asNeededArrow(
   shortTerm: PlacedAccount,
   need: Placed,
   obstacles: Placed[],
+  override?: LayoutOverride,
 ): Arrow {
-  const end = {
-    x: need.x + need.w + 6,
-    y: need.y + need.h * 0.45,
-  }
-  const otherObstacles = obstacles.filter(
-    (obstacle) => obstacle !== shortTerm,
-  )
-  let start = lowerDrumArcPoint(
-    shortTerm,
-    AS_NEEDED_START_X_FRACTIONS[0],
-  )
-  let control = { x: end.x, y: start.y + AS_NEEDED_CONTROL_RISES[0] }
-
-  outer: for (const fraction of AS_NEEDED_START_X_FRACTIONS) {
-    const candidateStart = lowerDrumArcPoint(shortTerm, fraction)
-    for (const rise of AS_NEEDED_CONTROL_RISES) {
-      const candidateControl = {
-        x: end.x,
-        y: candidateStart.y + rise,
-      }
-      if (
-        sampledQuadraticClears(
-          candidateStart,
-          candidateControl,
-          end,
-          otherObstacles,
-        )
-      ) {
-        start = candidateStart
-        control = candidateControl
-        break outer
-      }
-    }
-  }
+  const arrow = routedArrow({
+    kind: 'asNeeded',
+    source: shortTerm,
+    target: need,
+    obstacles: obstacles.filter(
+      (obstacle) => obstacle !== shortTerm && obstacle !== need,
+    ),
+    override,
+    sourceId: shortTerm.account.id,
+  })
+  const { start, control, end } = arrow
   let labelAt = pointOnQuadratic(start, control, end, 0.4)
   for (const t of AS_NEEDED_LABEL_TS) {
     const candidate = pointOnQuadratic(start, control, end, t)
@@ -493,13 +665,7 @@ function asNeededArrow(
   labelAt = clearAsNeededLabel(labelAt, start, end, obstacles)
 
   return {
-    kind: 'asNeeded',
-    sourceId: shortTerm.account.id,
-    d: [
-      `M ${coordinate(start.x)} ${coordinate(start.y)}`,
-      `Q ${coordinate(control.x)} ${coordinate(control.y)}`,
-      `${coordinate(end.x)} ${coordinate(end.y)}`,
-    ].join(' '),
+    ...arrow,
     labelAt,
   }
 }
@@ -615,6 +781,18 @@ function centerComposition(
     arrows: layout.arrows.map((arrow) => ({
       ...arrow,
       d: translatePath(arrow.d, dx, dy),
+      start: {
+        x: arrow.start.x + dx,
+        y: arrow.start.y + dy,
+      },
+      control: {
+        x: arrow.control.x + dx,
+        y: arrow.control.y + dy,
+      },
+      end: {
+        x: arrow.end.x + dx,
+        y: arrow.end.y + dy,
+      },
       labelAt: arrow.labelAt
         ? {
             x: arrow.labelAt.x + dx,
@@ -720,11 +898,32 @@ function arrowsForFinalGeometry(
   income: Placed,
   need: Placed,
   accounts: PlacedAccount[],
+  overrides: Record<string, LayoutOverride> | undefined,
   chipOverride: LayoutOverride | undefined,
 ): Arrow[] {
+  const preserveGeneratedCaps = accounts
+    .filter((placed) => placed.account.inWaterfall)
+    .every((placed) => {
+      const override = overrides?.[placed.account.id]
+      return (
+        override?.dx === undefined &&
+        override?.dy === undefined &&
+        override?.w === undefined &&
+        override?.h === undefined
+      )
+    })
   const arrows = [
-    ...waterfallArrows(accounts),
-    incomeArrow(income, need),
+    ...waterfallArrows(
+      accounts,
+      overrides,
+      preserveGeneratedCaps,
+    ),
+    incomeArrow(
+      income,
+      need,
+      accounts,
+      overrides?.['arrow:income'],
+    ),
   ]
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
@@ -732,7 +931,12 @@ function arrowsForFinalGeometry(
   if (shortTerm) {
     arrows.push(
       applyAsNeededChipOverride(
-        asNeededArrow(shortTerm, need, [income, need, ...accounts]),
+        asNeededArrow(
+          shortTerm,
+          need,
+          [income, need, ...accounts],
+          overrides?.['arrow:asNeeded'],
+        ),
         chipOverride,
       ),
     )
@@ -751,7 +955,7 @@ function baseLayout(data: MoneyMapData): MapLayout {
   const accounts = COLUMNS.flatMap((column) => placeColumn(data, column))
   const arrows = [
     ...waterfallArrows(accounts),
-    incomeArrow(income, need),
+    incomeArrow(income, need, accounts),
   ]
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
@@ -795,6 +999,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     income,
     need,
     accounts,
+    data.layoutOverrides,
     data.layoutOverrides?.asNeededChip,
   )
   const finalBounds = contentBounds({

@@ -59,6 +59,9 @@ export interface LayoutOverride {
   dy?: number
   w?: number
   h?: number
+  bow?: number
+  startT?: number
+  endT?: number
 }
 
 export interface MoneyMapData {

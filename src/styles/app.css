@@ -236,6 +236,38 @@ summary:focus-visible {
   cursor: nwse-resize;
 }
 
+.map-page svg .map-arrow-editor {
+  cursor: grab;
+}
+
+.map-page svg .map-arrow-hit {
+  stroke: transparent;
+  stroke-width: 18;
+}
+
+.map-page svg .map-arrow-handle {
+  opacity: 0;
+  fill: #fcfcfa;
+  stroke: #1e7a4a;
+  stroke-width: 2;
+  transition: opacity 120ms ease;
+}
+
+.map-page svg .map-arrow-editor:hover > .map-arrow-handle,
+.map-page svg .map-arrow-editor:focus > .map-arrow-handle,
+.map-page svg .map-arrow-editor:focus-within > .map-arrow-handle,
+.map-page svg .map-arrow-handle:hover {
+  opacity: 1;
+}
+
+.map-page svg .map-arrow-editor:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.map-page svg.is-dragging .map-arrow-handle {
+  transition: none;
+}
+
 .map-page svg .map-draggable:hover > .map-resize-handle,
 .map-page svg .map-draggable:focus > .map-resize-handle,
 .map-page svg .map-draggable:focus-within > .map-resize-handle,

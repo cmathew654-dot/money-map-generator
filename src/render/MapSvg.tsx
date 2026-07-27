@@ -8,9 +8,14 @@ import {
   type PointerEvent,
   type SVGProps,
 } from 'react'
-import { CAP_CONTENT_GAP, layoutMap } from '../layout/layout'
+import {
+  CAP_CONTENT_GAP,
+  layoutMap,
+  nearestOutlineT,
+} from '../layout/layout'
 import type {
   Arrow,
+  OutlineElement,
   Placed,
   PlacedAccount,
 } from '../layout/layout'
@@ -34,6 +39,8 @@ import type {
 import {
   crossedDragThreshold,
   screenDeltaToArtboard,
+  screenPointToArtboard,
+  signedPerpendicularOffset,
   withOverride,
   type Point,
   type TransformMatrix,
@@ -85,7 +92,12 @@ interface MapSvgProps {
   highlightId?: string | null
 }
 
-type DragMode = 'move' | 'resize'
+type DragMode =
+  | 'move'
+  | 'resize'
+  | 'arrowBow'
+  | 'arrowStart'
+  | 'arrowEnd'
 
 interface DragSession {
   active: boolean
@@ -95,6 +107,8 @@ interface DragSession {
   latestData: MoneyMapData
   mode: DragMode
   pointerId: number
+  startArrow?: Arrow
+  startOutline?: OutlineElement
   startPlaced?: Placed
   startScreen: Point
 }
@@ -801,6 +815,63 @@ function ArrowPath({
   )
 }
 
+function ArrowEditor({
+  arrow,
+  markerId,
+  onBeginDrag,
+}: {
+  arrow: Arrow
+  markerId: string
+  onBeginDrag: (
+    mode: DragMode,
+    outline?: OutlineElement,
+  ) => (event: PointerEvent<SVGElement>) => void
+}) {
+  const midpoint = {
+    x:
+      (arrow.start.x +
+        2 * arrow.control.x +
+        arrow.end.x) /
+      4,
+    y:
+      (arrow.start.y +
+        2 * arrow.control.y +
+        arrow.end.y) /
+      4,
+  }
+  return (
+    <g
+      aria-label={`Adjust ${arrow.kind} arrow`}
+      className="map-arrow-editor"
+      role="button"
+      tabIndex={0}
+    >
+      <ArrowPath arrow={arrow} markerId={markerId} />
+      <path
+        className="map-arrow-hit"
+        d={arrow.d}
+        fill="none"
+        onPointerDown={onBeginDrag('arrowBow')}
+      />
+      {[
+        ['arrowStart', arrow.start],
+        ['arrowBow', midpoint],
+        ['arrowEnd', arrow.end],
+      ].map(([mode, point]) => (
+        <circle
+          key={mode as string}
+          aria-label={`${String(mode).replace('arrow', '')} handle`}
+          className="map-arrow-handle"
+          cx={(point as Point).x}
+          cy={(point as Point).y}
+          r={7}
+          onPointerDown={onBeginDrag(mode as DragMode)}
+        />
+      ))}
+    </g>
+  )
+}
+
 function AsNeededLabel({
   arrow,
   amount,
@@ -1031,9 +1102,11 @@ export function MapSvg({
     key: string,
     mode: DragMode,
     startPlaced?: Placed,
+    startArrow?: Arrow,
+    startOutline?: OutlineElement,
   ) => (event: PointerEvent<SVGElement>) => {
     if (!onChange || event.button !== 0) return
-    if (mode === 'resize') event.stopPropagation()
+    if (mode !== 'move') event.stopPropagation()
     const screenCtm = svgRef.current?.getScreenCTM()
     if (!screenCtm) return
 
@@ -1045,6 +1118,8 @@ export function MapSvg({
       latestData: data,
       mode,
       pointerId: event.pointerId,
+      startArrow,
+      startOutline,
       startPlaced,
       startScreen: { x: event.clientX, y: event.clientY },
     }
@@ -1074,16 +1149,46 @@ export function MapSvg({
       },
       session.inverseScreenCtm,
     )
-    const patch =
-      session.mode === 'resize' && session.startPlaced
-        ? {
-            w: session.startPlaced.w + delta.x,
-            h: session.startPlaced.h + delta.y,
-          }
-        : {
-            dx: (session.initialOverride.dx ?? 0) + delta.x,
-            dy: (session.initialOverride.dy ?? 0) + delta.y,
-          }
+    let patch: LayoutOverride
+    if (session.mode === 'resize' && session.startPlaced) {
+      patch = {
+        w: session.startPlaced.w + delta.x,
+        h: session.startPlaced.h + delta.y,
+      }
+    } else if (session.mode === 'arrowBow' && session.startArrow) {
+      const perpendicularDelta = signedPerpendicularOffset(
+        session.startArrow.start,
+        session.startArrow.end,
+        {
+          x: session.startArrow.start.x + delta.x,
+          y: session.startArrow.start.y + delta.y,
+        },
+      )
+      patch = {
+        bow:
+          (session.initialOverride.bow ??
+            session.startArrow.bow) +
+          perpendicularDelta * 2,
+      }
+    } else if (
+      (session.mode === 'arrowStart' ||
+        session.mode === 'arrowEnd') &&
+      session.startOutline
+    ) {
+      const artboardPoint = screenPointToArtboard(
+        currentScreen,
+        session.inverseScreenCtm,
+      )
+      patch = {
+        [session.mode === 'arrowStart' ? 'startT' : 'endT']:
+          nearestOutlineT(session.startOutline, artboardPoint),
+      }
+    } else {
+      patch = {
+        dx: (session.initialOverride.dx ?? 0) + delta.x,
+        dy: (session.initialOverride.dy ?? 0) + delta.y,
+      }
+    }
     const nextData = withOverride(data, session.key, patch)
     session.latestData = nextData
     setPreviewData(nextData)
@@ -1171,15 +1276,6 @@ export function MapSvg({
       </defs>
 
       <Masthead data={displayData} />
-      <g aria-label="Money flow">
-        {layout.arrows.map((arrow, index) => (
-          <ArrowPath
-            key={`${arrow.kind}-${index}`}
-            arrow={arrow}
-            markerId={markerId}
-          />
-        ))}
-      </g>
       <g
         {...interactiveGroupProps(
           'Income sources',
@@ -1281,6 +1377,53 @@ export function MapSvg({
                 />
               )}
             </g>
+          )
+        })}
+      </g>
+      <g aria-label="Money flow">
+        {layout.arrows.map((arrow, index) => {
+          if (!onChange) {
+            return (
+              <ArrowPath
+                key={`${arrow.kind}-${index}`}
+                arrow={arrow}
+                markerId={markerId}
+              />
+            )
+          }
+          const key =
+            arrow.kind === 'waterfall'
+              ? `arrow:waterfall:${arrow.sourceId}`
+              : `arrow:${arrow.kind}`
+          const source =
+            arrow.kind === 'income'
+              ? layout.income
+              : layout.accounts.find(
+                  (placed) =>
+                    placed.account.id === arrow.sourceId,
+                )
+          const target =
+            arrow.kind === 'income' || arrow.kind === 'asNeeded'
+              ? layout.need
+              : layout.accounts.find(
+                  (placed) =>
+                    placed.account.id === arrow.targetId,
+                )
+          return (
+            <ArrowEditor
+              key={`${arrow.kind}-${index}`}
+              arrow={arrow}
+              markerId={markerId}
+              onBeginDrag={(mode) =>
+                beginDrag(
+                  key,
+                  mode,
+                  undefined,
+                  arrow,
+                  mode === 'arrowStart' ? source : target,
+                )
+              }
+            />
           )
         })}
       </g>

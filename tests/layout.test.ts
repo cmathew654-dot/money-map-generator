@@ -167,26 +167,34 @@ describe('layoutMap', () => {
     expect(shortTerm.y).toBeLessThan(cash.y)
   })
 
-  it('routes the after-tax waterfall directly into the target cap left shoulder', () => {
+  it('keeps generated Whitfield waterfalls cap-to-cap with an apex above both caps', () => {
     const layout = layoutMap(SAMPLE_WHITFIELD)
-    const shortTerm = layout.accounts.find(
-      (placed) => placed.account.id === 'short-term-funds',
-    )!
-    const arrow = layout.arrows.find(
-      (candidate) =>
-        candidate.kind === 'waterfall' &&
-        candidate.sourceId === 'managed-after-tax-trust' &&
-        candidate.targetId === 'short-term-funds',
-    )!
-    const path = pathNumbers(arrow.d)
-    const [, , , firstControlY, , secondControlY] = path
-    const [endX, endY] = path.slice(-2)
+    const byId = new Map(
+      layout.accounts.map((placed) => [placed.account.id, placed]),
+    )
+    const waterfall = layout.arrows.filter(
+      (arrow) => arrow.kind === 'waterfall',
+    )
 
-    expect(path).toHaveLength(8)
-    expect(firstControlY).toBeLessThan(shortTerm.y)
-    expect(secondControlY).toBe(firstControlY)
-    expect(endX).toBe(shortTerm.x + shortTerm.w * 0.35)
-    expect(endY).toBe(shortTerm.y - 4)
+    for (const arrow of waterfall) {
+      const source = byId.get(arrow.sourceId ?? '')!
+      const target = byId.get(arrow.targetId ?? '')!
+      const midpoint = pointOnQuadratic(
+        arrow.start,
+        arrow.control,
+        arrow.end,
+        0.5,
+      )
+
+      expect(arrow.start.y).toBeLessThan(
+        source.y + source.capRy * 0.15,
+      )
+      expect(arrow.end.y).toBeLessThan(
+        target.y + target.capRy * 0.15,
+      )
+      expect(midpoint.y).toBeLessThan(source.y)
+      expect(midpoint.y).toBeLessThan(target.y)
+    }
   })
 
   it('caps every sample waterfall arc near its connected drum tops', () => {
@@ -234,37 +242,54 @@ describe('layoutMap', () => {
     expect(cash.h).toBeLessThanOrEqual(170)
   })
 
-  it('lands need-card arrows at their distinct requested anchors', () => {
-    const layout = layoutMap(SAMPLE_WHITFIELD)
-    const income = layout.arrows.find((arrow) => arrow.kind === 'income')!
-    const asNeeded = layout.arrows.find(
-      (arrow) => arrow.kind === 'asNeeded',
-    )!
-    const incomePath = pathNumbers(income.d)
-    const asNeededPath = pathNumbers(asNeeded.d)
-    const shortTerm = layout.accounts.find(
-      (placed) => placed.account.id === 'short-term-funds',
-    )!
+  it.each([
+    ['above', { dx: 15, dy: -596 }, { dy: 500 }, 'top', 'bottom'],
+    ['below', { dx: 15 }, {}, 'bottom', 'top'],
+    ['left', { dx: -472, dy: -551 }, {}, 'left', 'right'],
+    ['right', { dx: 502, dy: -551 }, {}, 'right', 'left'],
+  ])(
+    'selects facing card anchors when the target is %s',
+    (_label, needOverride, incomeOverride, sourceEdge, targetEdge) => {
+      const data = blankClient()
+      data.layoutOverrides = {
+        income: incomeOverride,
+        need: needOverride,
+      }
+      const layout = layoutMap(data)
+      const arrow = layout.arrows.find(
+        (candidate) => candidate.kind === 'income',
+      )!
 
-    expect(incomePath).toEqual([
-      layout.income.x + layout.income.w / 2,
-      layout.income.y + layout.income.h,
-      layout.need.x + layout.need.w / 2,
-      layout.need.y,
-    ])
-    expect(asNeededPath.slice(-2)).toEqual([
-      layout.need.x + layout.need.w + 6,
-      layout.need.y + layout.need.h * 0.45,
-    ])
+      const edgeCoordinate = (
+        box: typeof layout.income,
+        edge: string,
+      ) =>
+        edge === 'top'
+          ? box.y
+          : edge === 'bottom'
+            ? box.y + box.h
+            : edge === 'left'
+              ? box.x
+              : box.x + box.w
+      const sourceValue =
+        sourceEdge === 'top' || sourceEdge === 'bottom'
+          ? arrow.start.y
+          : arrow.start.x
+      const targetValue =
+        targetEdge === 'top' || targetEdge === 'bottom'
+          ? arrow.end.y
+          : arrow.end.x
 
-    expect(asNeeded.labelAt).toBeDefined()
-    expect(asNeededPath[0]).toBeGreaterThanOrEqual(
-      shortTerm.x + shortTerm.w * 0.25,
-    )
-    expect(asNeededPath[0]).toBeLessThanOrEqual(
-      shortTerm.x + shortTerm.w * 0.45,
-    )
-  })
+      expect(sourceValue).toBeCloseTo(
+        edgeCoordinate(layout.income, sourceEdge),
+        1,
+      )
+      expect(targetValue).toBeCloseTo(
+        edgeCoordinate(layout.need, targetEdge),
+        1,
+      )
+    },
+  )
 
   it.each([
     ['Whitfield', SAMPLE_WHITFIELD],
@@ -289,14 +314,6 @@ describe('layoutMap', () => {
     const shortTerm = layout.accounts.find(
       (placed) => placed.account.id === asNeeded.sourceId,
     )!
-    const startFraction = (start.x - shortTerm.x) / shortTerm.w
-    const radiusX = shortTerm.w / 2
-    const centerX = shortTerm.x + radiusX
-    const centerY = shortTerm.y + shortTerm.h - shortTerm.capRy
-    const normalizedX = (start.x - centerX) / radiusX
-    const expectedArcY =
-      centerY +
-      shortTerm.capRy * Math.sqrt(1 - normalizedX ** 2)
     const obstacles = [
       layout.income,
       layout.need,
@@ -321,11 +338,27 @@ describe('layoutMap', () => {
       previous = point
     }
 
-    expect(startFraction).toBeGreaterThanOrEqual(0.25)
-    expect(startFraction).toBeLessThanOrEqual(0.45)
-    expect(start.y).toBeCloseTo(expectedArcY, 1)
-    expect(control.x).toBeLessThan(start.x)
-    expect(control.y).toBeGreaterThan(start.y)
+    const chord = {
+      x: end.x - start.x,
+      y: end.y - start.y,
+    }
+    const tangent = {
+      x: end.x - control.x,
+      y: end.y - control.y,
+    }
+    const tangentAngle = Math.acos(
+      (chord.x * tangent.x + chord.y * tangent.y) /
+        (Math.hypot(chord.x, chord.y) *
+          Math.hypot(tangent.x, tangent.y)),
+    )
+
+    expect(start.x).toBeCloseTo(asNeeded.start.x, 1)
+    expect(start.y).toBeCloseTo(asNeeded.start.y, 1)
+    expect(end.x).toBeCloseTo(asNeeded.end.x, 1)
+    expect(end.y).toBeCloseTo(asNeeded.end.y, 1)
+    expect(control.x).not.toBe(end.x)
+    expect(control.y).not.toBe(end.y)
+    expect(tangentAngle).toBeLessThanOrEqual(Math.PI / 4)
     expect(intersections).toEqual([])
     expect(
       obstacles.filter((obstacle) =>
@@ -335,6 +368,64 @@ describe('layoutMap', () => {
     expect(
       Math.hypot(labelAt.x - start.x, labelAt.y - start.y),
     ).toBeGreaterThanOrEqual(60)
+  })
+
+  it.each([
+    ['Whitfield', SAMPLE_WHITFIELD],
+    ['Calloway', SAMPLE_CALLOWAY],
+    ['Venkat', SAMPLE_VENKAT],
+  ])('keeps every overridden %s arrow clear', (_label, data) => {
+    const base = layoutMap(data)
+    const layoutOverrides = Object.fromEntries(
+      base.arrows.map((arrow) => [
+        arrow.kind === 'waterfall'
+          ? `arrow:waterfall:${arrow.sourceId}`
+          : `arrow:${arrow.kind}`,
+        {
+          bow: arrow.bow * 0.9,
+          startT: arrow.startT,
+          endT: arrow.endT,
+        },
+      ]),
+    )
+    const layout = layoutMap({ ...data, layoutOverrides })
+
+    for (const arrow of layout.arrows) {
+      const obstacles =
+        arrow.kind === 'income'
+          ? layout.accounts
+          : arrow.kind === 'asNeeded'
+            ? [
+                layout.income,
+                ...layout.accounts.filter(
+                  (placed) =>
+                    placed.account.id !== arrow.sourceId,
+                ),
+              ]
+            : layout.accounts.filter(
+                (placed) =>
+                  placed.account.id !== arrow.sourceId &&
+                  placed.account.id !== arrow.targetId,
+              )
+      let previous = arrow.start
+      const intersections = []
+      for (let sample = 1; sample <= 32; sample += 1) {
+        const point = pointOnQuadratic(
+          arrow.start,
+          arrow.control,
+          arrow.end,
+          sample / 32,
+        )
+        intersections.push(
+          ...obstacles.filter((obstacle) =>
+            segmentIntersectsBox(previous, point, obstacle),
+          ),
+        )
+        previous = point
+      }
+
+      expect(intersections).toEqual([])
+    }
   })
 
   it('lays out a truly blank client with only the income-to-need arrow', () => {

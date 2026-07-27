@@ -3,6 +3,7 @@ import {
   layoutMap,
   MIN_ACCOUNT_HEIGHT,
   MIN_ACCOUNT_WIDTH,
+  pointOnOutline,
 } from '../src/layout/layout'
 import {
   blankClient,
@@ -14,6 +15,7 @@ import {
   crossedDragThreshold,
   screenDeltaToArtboard,
   screenPointToArtboard,
+  signedPerpendicularOffset,
   withOverride,
 } from '../src/render/mapInteraction'
 
@@ -76,6 +78,16 @@ describe('map interaction helpers', () => {
         { left: 48, top: 118, right: 1272, bottom: 972 },
       ),
     ).toEqual({ x: 48, y: 118, w: 100, h: 200 })
+  })
+
+  it('measures signed perpendicular arrow movement', () => {
+    expect(
+      signedPerpendicularOffset(
+        { x: 10, y: 20 },
+        { x: 110, y: 20 },
+        { x: 60, y: 45 },
+      ),
+    ).toBe(25)
   })
 })
 
@@ -174,14 +186,58 @@ describe('layout overrides', () => {
         arrow.kind === 'waterfall' && arrow.targetId === TRUST_ID,
     )!
 
+    expect(outgoing.start).toEqual(
+      pointOnOutline(trust, outgoing.startT),
+    )
+    expect(incoming.end).toEqual(
+      pointOnOutline(trust, incoming.endT),
+    )
     expect(pathNumbers(outgoing.d).slice(0, 2)).toEqual([
-      trust.x + trust.w * 0.35,
-      trust.y,
+      Number(outgoing.start.x.toFixed(1)),
+      Number(outgoing.start.y.toFixed(1)),
     ])
     expect(pathNumbers(incoming.d).slice(-2)).toEqual([
-      trust.x + trust.w * 0.35,
-      trust.y - 4,
+      Number(incoming.end.x.toFixed(1)),
+      Number(incoming.end.y.toFixed(1)),
     ])
+  })
+
+  it('applies and clamps arrow bow and outline parameters', () => {
+    const overridden = layoutMap(
+      withOverrides({
+        'arrow:asNeeded': {
+          bow: 10_000,
+          startT: -2,
+          endT: 4,
+        },
+        'arrow:income': { bow: -72, startT: 0.35, endT: 0.8 },
+      }),
+    )
+    const asNeeded = overridden.arrows.find(
+      (arrow) => arrow.kind === 'asNeeded',
+    )!
+    const income = overridden.arrows.find(
+      (arrow) => arrow.kind === 'income',
+    )!
+    const chordLength = Math.hypot(
+      asNeeded.end.x - asNeeded.start.x,
+      asNeeded.end.y - asNeeded.start.y,
+    )
+
+    expect(asNeeded.startT).toBe(0)
+    expect(asNeeded.endT).toBe(1)
+    expect(asNeeded.bow).toBeCloseTo(chordLength / 2)
+    expect(income).toMatchObject({
+      bow: -72,
+      startT: 0.35,
+      endT: 0.8,
+    })
+    expect(income.start).toEqual(
+      pointOnOutline(overridden.income, 0.35),
+    )
+    expect(income.end).toEqual(
+      pointOnOutline(overridden.need, 0.8),
+    )
   })
 
   it('applies the chip delta on top of its automatic position', () => {
