@@ -42,12 +42,15 @@ const ARTBOARD = { width: 1320, height: 1020 }
 const DEFAULT_GAP = 28
 const COMPRESSED_GAP = 16
 const MIN_ACCOUNT_HEIGHT = 120
+export const CAP_CONTENT_GAP = 14
+const WATERFALL_MIN_Y = 128
+const WATERFALL_CLEARANCE = 30
 const AS_NEEDED_LABEL_WIDTH = 260
 const AS_NEEDED_LABEL_HEIGHT = 38
 const AS_NEEDED_LABEL_CLEARANCE = 10
 
 const COLUMNS: Column[] = [
-  { x: 390, y: 150, w: 250, buckets: ['cash', 'shortTerm', 'note'] },
+  { x: 390, y: 150, w: 250, buckets: ['shortTerm', 'cash', 'note'] },
   { x: 700, y: 190, w: 260, buckets: ['afterTax'] },
   {
     x: 1020,
@@ -63,28 +66,38 @@ function accountHeight(account: Account, width: number): number {
   const capRy = Math.round(width * 0.13)
   const titleLines = Math.max(1, wrap(account.label, 24).length)
   const captionLines = account.caption ? wrap(account.caption, 30).length : 0
-  const positionsHeight = account.positions?.length
-    ? account.positions.length * 20 + 20
-    : 0
+  const positionCount = account.positions?.length ?? 0
   const subAccountsHeight = (account.subAccounts?.length ?? 0) * 96
   const isContentLight =
     account.value === null &&
     captionLines === 0 &&
-    positionsHeight === 0 &&
+    positionCount === 0 &&
     subAccountsHeight === 0
   if (isContentLight && account.bucket !== 'shortTerm') {
-    return Math.max(MIN_ACCOUNT_HEIGHT, capRy * 2 + 86)
+    return Math.max(MIN_ACCOUNT_HEIGHT, capRy * 3 + 62)
   }
 
+  const titleBaseline = capRy * 2 + CAP_CONTENT_GAP
+  let valueBaseline: number
+  if (positionCount > 0) {
+    valueBaseline =
+      titleBaseline +
+      titleLines * 20 +
+      captionLines * 15 +
+      positionCount * 20 +
+      34
+  } else if (captionLines > 0) {
+    valueBaseline =
+      titleBaseline +
+      titleLines * 20 +
+      (captionLines - 1) * 15 +
+      25
+  } else {
+    valueBaseline =
+      titleBaseline + (titleLines - 1) * 20 + 30
+  }
   const contentHeight =
-    capRy * 2 +
-    16 +
-    titleLines * 20 +
-    captionLines * 15 +
-    positionsHeight +
-    34 +
-    subAccountsHeight +
-    24
+    valueBaseline + capRy + 18 + subAccountsHeight
 
   if (account.bucket === 'shortTerm') return Math.max(250, contentHeight)
   if (account.bucket === 'cash') return Math.max(120, contentHeight)
@@ -178,7 +191,7 @@ function waterfallArrows(accounts: PlacedAccount[]): Arrow[] {
     const start = { x: source.x + source.w * 0.35, y: source.y }
     const approachingFromRight = source.x > target.x
     const end = {
-      x: target.x + target.w * (approachingFromRight ? 0.35 : 0.65),
+      x: target.x + target.w * 0.35,
       y: target.y - 4,
     }
     const leftColumnX = Math.min(source.x, target.x)
@@ -191,7 +204,10 @@ function waterfallArrows(accounts: PlacedAccount[]): Arrow[] {
         )
         .map((placed) => placed.y),
     )
-    const controlY = interveningTop - 80
+    const controlY = Math.max(
+      WATERFALL_MIN_Y,
+      Math.min(source.y, target.y) - WATERFALL_CLEARANCE,
+    )
     const targetColumnBlockers = accounts.filter(
       (placed) =>
         placed.x === target.x &&
@@ -207,7 +223,9 @@ function waterfallArrows(accounts: PlacedAccount[]): Arrow[] {
             `M ${coordinate(start.x)} ${coordinate(start.y)}`,
             `C ${coordinate(start.x)} ${coordinate(controlY)}`,
             `${coordinate(clearX)} ${coordinate(controlY)}`,
-            `${coordinate(clearX)} ${coordinate(interveningTop - 20)}`,
+            `${coordinate(clearX)} ${coordinate(
+              Math.max(WATERFALL_MIN_Y, interveningTop - 20),
+            )}`,
             `L ${coordinate(clearX)} ${coordinate(
               Math.max(
                 ...targetColumnBlockers.map(
