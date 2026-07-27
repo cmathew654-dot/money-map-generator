@@ -12,7 +12,6 @@ import {
   CAP_CONTENT_GAP,
   hexagonInset,
   layoutMap,
-  nearestOutlineT,
 } from '../layout/layout'
 import type {
   Arrow,
@@ -45,6 +44,7 @@ import type {
 } from '../ui/MapTextEditor'
 import {
   crossedDragThreshold,
+  snapRotation,
   screenDeltaToArtboard,
   screenPointToArtboard,
   signedPerpendicularOffset,
@@ -115,6 +115,7 @@ interface MapSvgProps {
 type DragMode =
   | 'move'
   | 'resize'
+  | 'rotate'
   | 'arrowBow'
   | 'arrowStart'
   | 'arrowEnd'
@@ -131,6 +132,12 @@ interface DragSession {
   startOutline?: OutlineElement
   startPlaced?: Placed
   startScreen: Point
+}
+
+function placedRotation(placed: Placed): number {
+  return 'rot' in placed && typeof placed.rot === 'number'
+    ? placed.rot
+    : 0
 }
 
 function interactiveGroupProps(
@@ -1267,9 +1274,47 @@ export function MapSvg({
     )
     let patch: LayoutOverride
     if (session.mode === 'resize' && session.startPlaced) {
+      const rotation = placedRotation(session.startPlaced)
+      const radians = (-rotation * Math.PI) / 180
+      const localDelta = {
+        x:
+          delta.x * Math.cos(radians) -
+          delta.y * Math.sin(radians),
+        y:
+          delta.x * Math.sin(radians) +
+          delta.y * Math.cos(radians),
+      }
       patch = {
-        w: session.startPlaced.w + delta.x,
-        h: session.startPlaced.h + delta.y,
+        w: session.startPlaced.w + localDelta.x,
+        h: session.startPlaced.h + localDelta.y,
+      }
+    } else if (session.mode === 'rotate' && session.startPlaced) {
+      const center = {
+        x: session.startPlaced.x + session.startPlaced.w / 2,
+        y: session.startPlaced.y + session.startPlaced.h / 2,
+      }
+      const startPoint = screenPointToArtboard(
+        session.startScreen,
+        session.inverseScreenCtm,
+      )
+      const currentPoint = screenPointToArtboard(
+        currentScreen,
+        session.inverseScreenCtm,
+      )
+      const startAngle = Math.atan2(
+        startPoint.y - center.y,
+        startPoint.x - center.x,
+      )
+      const currentAngle = Math.atan2(
+        currentPoint.y - center.y,
+        currentPoint.x - center.x,
+      )
+      patch = {
+        rot: snapRotation(
+          (session.initialOverride.rot ??
+            placedRotation(session.startPlaced)) +
+            ((currentAngle - startAngle) * 180) / Math.PI,
+        ),
       }
     } else if (session.mode === 'arrowBow' && session.startArrow) {
       const perpendicularDelta = signedPerpendicularOffset(
@@ -1295,9 +1340,15 @@ export function MapSvg({
         currentScreen,
         session.inverseScreenCtm,
       )
+      const center = {
+        x: session.startOutline.x + session.startOutline.w / 2,
+        y: session.startOutline.y + session.startOutline.h / 2,
+      }
       patch = {
-        [session.mode === 'arrowStart' ? 'startT' : 'endT']:
-          nearestOutlineT(session.startOutline, artboardPoint),
+        [session.mode === 'arrowStart' ? 'startAt' : 'endAt']: {
+          dx: artboardPoint.x - center.x,
+          dy: artboardPoint.y - center.y,
+        },
       }
     } else {
       patch = {
@@ -1459,6 +1510,13 @@ export function MapSvg({
                 onElementClick,
               )}
               className={onChange ? 'map-draggable' : undefined}
+              transform={
+                placed.rot === 0
+                  ? undefined
+                  : `rotate(${placed.rot} ${
+                      placed.x + placed.w / 2
+                    } ${placed.y + placed.h / 2})`
+              }
               onPointerDown={
                 onChange
                   ? beginDrag(placed.account.id, 'move', placed)
@@ -1496,6 +1554,20 @@ export function MapSvg({
               )}
               {onChange && (
                 <>
+                  <circle
+                    aria-label={`Rotate ${accountDisplayName(
+                      placed.account,
+                    )}`}
+                    className="map-rotate-handle"
+                    cx={placed.x + placed.w / 2}
+                    cy={placed.y - 22}
+                    r={7}
+                    onPointerDown={beginDrag(
+                      placed.account.id,
+                      'rotate',
+                      placed,
+                    )}
+                  />
                   <g
                     aria-label={`Change ${accountDisplayName(
                       placed.account,

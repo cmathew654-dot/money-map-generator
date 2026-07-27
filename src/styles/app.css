@@ -356,6 +356,20 @@ summary:focus-visible {
   cursor: nwse-resize;
 }
 
+.map-page svg .map-rotate-handle {
+  opacity: 0;
+  fill: #fcfcfa;
+  stroke: #1e7a4a;
+  stroke-width: 2;
+  transition: opacity 120ms ease;
+  cursor: grab;
+}
+
+.map-page svg .map-rotate-handle:active,
+.map-page svg.is-dragging .map-rotate-handle {
+  cursor: grabbing;
+}
+
 .map-page svg .map-shape-flip {
   opacity: 0;
   cursor: pointer;
@@ -408,6 +422,10 @@ summary:focus-visible {
 .map-page svg .map-draggable:focus > .map-resize-handle,
 .map-page svg .map-draggable:focus-within > .map-resize-handle,
 .map-page svg .map-resize-handle:hover,
+.map-page svg .map-draggable:hover > .map-rotate-handle,
+.map-page svg .map-draggable:focus > .map-rotate-handle,
+.map-page svg .map-draggable:focus-within > .map-rotate-handle,
+.map-page svg .map-rotate-handle:hover,
 .map-page svg .map-draggable:hover > .map-shape-flip,
 .map-page svg .map-draggable:focus > .map-shape-flip,
 .map-page svg .map-draggable:focus-within > .map-shape-flip,
@@ -416,6 +434,7 @@ summary:focus-visible {
 }
 
 .map-page svg.is-dragging .map-resize-handle,
+.map-page svg.is-dragging .map-rotate-handle,
 .map-page svg.is-dragging .map-shape-flip {
   transition: none;
 }
