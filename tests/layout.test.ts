@@ -96,6 +96,25 @@ function segmentIntersectsBox(
   return entry < exit && exit > 0 && entry < 1
 }
 
+function pointOnQuadratic(
+  start: { x: number; y: number },
+  control: { x: number; y: number },
+  end: { x: number; y: number },
+  t: number,
+): { x: number; y: number } {
+  const oneMinusT = 1 - t
+  return {
+    x:
+      oneMinusT ** 2 * start.x +
+      2 * oneMinusT * t * control.x +
+      t ** 2 * end.x,
+    y:
+      oneMinusT ** 2 * start.y +
+      2 * oneMinusT * t * control.y +
+      t ** 2 * end.y,
+  }
+}
+
 describe('layoutMap', () => {
   it.each([
     ['sample client', SAMPLE_WHITFIELD],
@@ -238,16 +257,20 @@ describe('layoutMap', () => {
       layout.need.y + layout.need.h * 0.45,
     ])
 
-    const [, startY] = asNeededPath
     expect(asNeeded.labelAt).toBeDefined()
-    expect(startY).toBe(shortTerm.y + shortTerm.h * 0.72)
+    expect(asNeededPath[0]).toBeGreaterThanOrEqual(
+      shortTerm.x + shortTerm.w * 0.25,
+    )
+    expect(asNeededPath[0]).toBeLessThanOrEqual(
+      shortTerm.x + shortTerm.w * 0.45,
+    )
   })
 
   it.each([
     ['Whitfield', SAMPLE_WHITFIELD],
     ['Calloway', SAMPLE_CALLOWAY],
     ['Venkat', SAMPLE_VENKAT],
-  ])('keeps the %s as-needed chip and segment clear', (_label, data) => {
+  ])('anchors and clears the %s as-needed curve', (_label, data) => {
     const layout = layoutMap(data)
     const asNeeded = layout.arrows.find(
       (arrow) => arrow.kind === 'asNeeded',
@@ -259,21 +282,59 @@ describe('layoutMap', () => {
       w: 260 + 20,
       h: 34 + 20,
     }
-    const obstacles = [layout.income, layout.need, ...layout.accounts]
     const path = pathNumbers(asNeeded.d)
     const start = { x: path[0], y: path[1] }
-    const end = { x: path.at(-2)!, y: path.at(-1)! }
+    const control = { x: path[2], y: path[3] }
+    const end = { x: path[4], y: path[5] }
+    const shortTerm = layout.accounts.find(
+      (placed) => placed.account.id === asNeeded.sourceId,
+    )!
+    const startFraction = (start.x - shortTerm.x) / shortTerm.w
+    const radiusX = shortTerm.w / 2
+    const centerX = shortTerm.x + radiusX
+    const centerY = shortTerm.y + shortTerm.h - shortTerm.capRy
+    const normalizedX = (start.x - centerX) / radiusX
+    const expectedArcY =
+      centerY +
+      shortTerm.capRy * Math.sqrt(1 - normalizedX ** 2)
+    const obstacles = [
+      layout.income,
+      layout.need,
+      ...layout.accounts.filter(
+        (placed) => placed.account.id !== shortTerm.account.id,
+      ),
+    ]
+    let previous = start
+    const intersections = []
+    for (let sample = 1; sample <= 32; sample += 1) {
+      const point = pointOnQuadratic(
+        start,
+        control,
+        end,
+        sample / 32,
+      )
+      intersections.push(
+        ...obstacles.filter((obstacle) =>
+          segmentIntersectsBox(previous, point, obstacle),
+        ),
+      )
+      previous = point
+    }
 
+    expect(startFraction).toBeGreaterThanOrEqual(0.25)
+    expect(startFraction).toBeLessThanOrEqual(0.45)
+    expect(start.y).toBeCloseTo(expectedArcY, 1)
+    expect(control.x).toBeLessThan(start.x)
+    expect(control.y).toBeGreaterThan(start.y)
+    expect(intersections).toEqual([])
     expect(
       obstacles.filter((obstacle) =>
         boxesIntersect(labelBox, obstacle),
       ),
     ).toEqual([])
     expect(
-      [layout.income, ...layout.accounts].filter((obstacle) =>
-        segmentIntersectsBox(start, end, obstacle),
-      ),
-    ).toEqual([])
+      Math.hypot(labelAt.x - start.x, labelAt.y - start.y),
+    ).toBeGreaterThanOrEqual(60)
   })
 
   it('lays out a truly blank client with only the income-to-need arrow', () => {

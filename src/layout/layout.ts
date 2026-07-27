@@ -57,7 +57,9 @@ const AS_NEEDED_LABEL_HEIGHT = 34
 const AS_NEEDED_LABEL_CLEARANCE = 10
 const AS_NEEDED_CHIP_WIDTH = 250
 const AS_NEEDED_CHIP_HEIGHT = 38
-const AS_NEEDED_START_FRACTIONS = [0.72, 0.77, 0.82, 0.87, 0.92, 0.95]
+const AS_NEEDED_START_X_FRACTIONS = [0.25, 0.3, 0.35, 0.4, 0.45]
+const AS_NEEDED_CONTROL_RISES = [12, 8, 16, 4, 20]
+const AS_NEEDED_CURVE_SAMPLES = 32
 const AS_NEEDED_LABEL_TS = [
   0.4, 0.35, 0.45, 0.3, 0.5, 0.25, 0.55, 0.2, 0.6, 0.15, 0.65, 0.7,
   0.75, 0.8,
@@ -356,6 +358,49 @@ function pointOnQuadratic(
   }
 }
 
+function sampledQuadraticClears(
+  start: { x: number; y: number },
+  control: { x: number; y: number },
+  end: { x: number; y: number },
+  obstacles: Placed[],
+): boolean {
+  let previous = start
+  for (let sample = 1; sample <= AS_NEEDED_CURVE_SAMPLES; sample += 1) {
+    const point = pointOnQuadratic(
+      start,
+      control,
+      end,
+      sample / AS_NEEDED_CURVE_SAMPLES,
+    )
+    if (
+      obstacles.some((obstacle) =>
+        segmentIntersectsBox(previous, point, obstacle),
+      )
+    ) {
+      return false
+    }
+    previous = point
+  }
+  return true
+}
+
+function lowerDrumArcPoint(
+  drum: PlacedAccount,
+  widthFraction: number,
+): { x: number; y: number } {
+  const radiusX = drum.w / 2
+  const centerX = drum.x + radiusX
+  const centerY = drum.y + drum.h - drum.capRy
+  const x = drum.x + drum.w * widthFraction
+  const normalizedX = (x - centerX) / radiusX
+  return {
+    x,
+    y:
+      centerY +
+      drum.capRy * Math.sqrt(Math.max(0, 1 - normalizedX ** 2)),
+  }
+}
+
 function clearAsNeededLabel(
   labelAt: { x: number; y: number },
   start: { x: number; y: number },
@@ -393,27 +438,35 @@ function asNeededArrow(
     x: need.x + need.w + 6,
     y: need.y + need.h * 0.45,
   }
-  let start = {
-    x: shortTerm.x,
-    y: shortTerm.y + shortTerm.h * AS_NEEDED_START_FRACTIONS.at(-1)!,
-  }
-  for (const fraction of AS_NEEDED_START_FRACTIONS) {
-    const candidate = {
-      x: shortTerm.x,
-      y: shortTerm.y + shortTerm.h * fraction,
+  const otherObstacles = obstacles.filter(
+    (obstacle) => obstacle !== shortTerm,
+  )
+  let start = lowerDrumArcPoint(
+    shortTerm,
+    AS_NEEDED_START_X_FRACTIONS[0],
+  )
+  let control = { x: end.x, y: start.y + AS_NEEDED_CONTROL_RISES[0] }
+
+  outer: for (const fraction of AS_NEEDED_START_X_FRACTIONS) {
+    const candidateStart = lowerDrumArcPoint(shortTerm, fraction)
+    for (const rise of AS_NEEDED_CONTROL_RISES) {
+      const candidateControl = {
+        x: end.x,
+        y: candidateStart.y + rise,
+      }
+      if (
+        sampledQuadraticClears(
+          candidateStart,
+          candidateControl,
+          end,
+          otherObstacles,
+        )
+      ) {
+        start = candidateStart
+        control = candidateControl
+        break outer
+      }
     }
-    if (
-      obstacles.every(
-        (obstacle) => !segmentIntersectsBox(candidate, end, obstacle),
-      )
-    ) {
-      start = candidate
-      break
-    }
-  }
-  const control = {
-    x: (start.x + end.x) / 2,
-    y: (start.y + end.y) / 2 + 40,
   }
   let labelAt = pointOnQuadratic(start, control, end, 0.4)
   for (const t of AS_NEEDED_LABEL_TS) {
