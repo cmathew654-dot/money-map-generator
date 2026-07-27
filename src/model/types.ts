@@ -14,6 +14,9 @@ export type Bucket =
   | 'cash' // neutral — cash at bank / at home
   | 'note' // rounded card, not a cylinder — e.g. installment note
 
+export const ACCOUNT_SHAPES = ['drum', 'card', 'rect', 'pill'] as const
+export type AccountShape = (typeof ACCOUNT_SHAPES)[number]
+
 export interface Position {
   label: string
   value: number | null
@@ -28,6 +31,8 @@ export interface SubAccount {
 export interface Account {
   id: string
   bucket: Bucket
+  /** absent uses the bucket default: notes are cards; everything else is a drum */
+  shape?: AccountShape
   label: string
   value: number | null
   /** small line under the label — allocation notes, "2-3 years' worth…" */
@@ -86,6 +91,17 @@ export interface MoneyMapFile {
   fileType: 'money-map-book'
   version: 1
   clients: MoneyMapData[]
+}
+
+export function accountShape(
+  account: Pick<Account, 'bucket' | 'shape'>,
+): AccountShape {
+  return account.shape ?? (account.bucket === 'note' ? 'card' : 'drum')
+}
+
+export function nextAccountShape(shape: AccountShape): AccountShape {
+  const index = ACCOUNT_SHAPES.indexOf(shape)
+  return ACCOUNT_SHAPES[(index + 1) % ACCOUNT_SHAPES.length]
 }
 
 let counter = 0

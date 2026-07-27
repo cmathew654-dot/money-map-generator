@@ -5,7 +5,7 @@ import {
   SAMPLE_WHITFIELD,
 } from './samples'
 import type { MoneyMapData, MoneyMapFile } from './types'
-import { newId } from './types'
+import { ACCOUNT_SHAPES, newId } from './types'
 
 function withFreshIds(data: MoneyMapData): MoneyMapData {
   const copy = structuredClone(data)
@@ -141,6 +141,17 @@ function validateClient(value: unknown, index: number): void {
   for (const field of ['incomeSources', 'accounts', 'footnotes'] as const) {
     if (!Array.isArray(value[field])) {
       throw new Error(`Client ${index + 1} has invalid ${field}.`)
+    }
+  }
+  for (const account of value.accounts) {
+    if (
+      !isRecord(account) ||
+      (account.shape !== undefined &&
+        !ACCOUNT_SHAPES.includes(
+          account.shape as (typeof ACCOUNT_SHAPES)[number],
+        ))
+    ) {
+      throw new Error(`Client ${index + 1} has an invalid account shape.`)
     }
   }
   validateLayoutOverrides(value.layoutOverrides, index)

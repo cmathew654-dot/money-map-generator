@@ -13,6 +13,12 @@ import {
   SAMPLE_VENKAT,
   SAMPLE_WHITFIELD,
 } from '../src/model/samples'
+import {
+  ACCOUNT_SHAPES,
+  accountShape,
+  nextAccountShape,
+  type Bucket,
+} from '../src/model/types'
 
 describe('book operations', () => {
   it('creates a truly blank client', () => {
@@ -120,16 +126,27 @@ describe('parseBook', () => {
     expect(parseBook(JSON.stringify(book))).toEqual(book)
   })
 
-  it('loads a legacy book without layout overrides', () => {
+  it('round-trips explicit account shapes', () => {
+    const book = newBook()
+    book.clients[0].accounts.slice(0, 4).forEach((account, index) => {
+      account.shape = ACCOUNT_SHAPES[index]
+    })
+
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it('loads a legacy book without shapes or layout overrides', () => {
     const legacy = newBook()
     for (const client of legacy.clients) {
       delete client.layoutOverrides
+      for (const account of client.accounts) delete account.shape
     }
 
     const parsed = parseBook(JSON.stringify(legacy))
 
     expect(parsed).toEqual(legacy)
     expect(parsed.clients[0].layoutOverrides).toBeUndefined()
+    expect(parsed.clients[0].accounts[0].shape).toBeUndefined()
   })
 
   it('rejects malformed JSON with a human message', () => {
@@ -164,5 +181,44 @@ describe('parseBook', () => {
     expect(() => parseBook(JSON.stringify(value))).toThrow(
       'missing client details',
     )
+  })
+
+  it('rejects an invalid explicit account shape', () => {
+    const value = newBook() as unknown as {
+      clients: { accounts: { shape?: string }[] }[]
+    }
+    value.clients[0].accounts[0].shape = 'triangle'
+
+    expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'invalid account shape',
+    )
+  })
+})
+
+describe('account shapes', () => {
+  it.each([
+    ['shortTerm', 'drum'],
+    ['afterTax', 'drum'],
+    ['taxDeferred', 'drum'],
+    ['taxPreferred', 'drum'],
+    ['charitable', 'drum'],
+    ['cash', 'drum'],
+    ['note', 'card'],
+  ] satisfies [Bucket, string][])(
+    'derives the %s bucket default as %s',
+    (bucket, expected) => {
+      expect(accountShape({ bucket })).toBe(expected)
+    },
+  )
+
+  it('honors an explicit shape and cycles through the palette purely', () => {
+    expect(accountShape({ bucket: 'note', shape: 'pill' })).toBe('pill')
+    expect(ACCOUNT_SHAPES.map(nextAccountShape)).toEqual([
+      'card',
+      'rect',
+      'pill',
+      'drum',
+    ])
+    expect(ACCOUNT_SHAPES).toEqual(['drum', 'card', 'rect', 'pill'])
   })
 })
