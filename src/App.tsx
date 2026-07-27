@@ -24,6 +24,12 @@ import {
   type MapElementTarget,
 } from './render/MapSvg'
 import { Dialog } from './ui/Dialog'
+import {
+  applyMapTextEdit,
+  mapTextEditRawValue,
+  MapTextEditor,
+  type ActiveMapTextEdit,
+} from './ui/MapTextEditor'
 import { Mark } from './ui/Mark'
 import { Toast, type ToastMessage } from './ui/Toast'
 import './styles/print.css'
@@ -68,11 +74,14 @@ export default function App() {
     at: number
   }>()
   const [highlightId, setHighlightId] = useState<string | null>(null)
+  const [mapTextEdit, setMapTextEdit] =
+    useState<ActiveMapTextEdit | null>(null)
   const [dialog, setDialog] = useState<AppDialog | null>(null)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const focusRequestCounter = useRef(0)
   const toastCounter = useRef(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const previewPaneRef = useRef<HTMLElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
@@ -115,6 +124,7 @@ export default function App() {
   }
 
   const selectClient = (id: string) => {
+    setMapTextEdit(null)
     setActiveClientId(id)
     resetWizard()
   }
@@ -195,6 +205,15 @@ export default function App() {
   }
 
   const handleMapElementClick = (target: MapElementTarget) => {
+    if (target.kind === 'edit') {
+      setMapTextEdit({
+        target: target.edit,
+        rect: target.rect,
+        rawValue: mapTextEditRawValue(activeClient, target.edit),
+      })
+      return
+    }
+    setMapTextEdit(null)
     if (formMode === 'guided') {
       const stepNumber = wizardStepNumberForMapTarget(target.kind)
       if (stepNumber !== null) {
@@ -207,6 +226,9 @@ export default function App() {
     focusRequestCounter.current += 1
     setFocusRequest({ id, at: focusRequestCounter.current })
   }
+
+  const handleClientChange = (next: typeof activeClient) =>
+    setBook((current) => updateClient(current, activeClient.id, next))
 
   return (
     <main className="app-shell">
@@ -325,11 +347,7 @@ export default function App() {
               data={activeClient}
               done={wizardDone}
               focusRequest={focusRequest}
-              onChange={(next) =>
-                setBook((current) =>
-                  updateClient(current, activeClient.id, next),
-                )
-              }
+              onChange={handleClientChange}
               onCurrentStepChange={setWizardStep}
               onDoneChange={setWizardDone}
               onExportPng={() => void handleExportPng()}
@@ -341,16 +359,16 @@ export default function App() {
             <Form
               data={activeClient}
               focusRequest={focusRequest}
-              onChange={(next) =>
-                setBook((current) =>
-                  updateClient(current, activeClient.id, next),
-                )
-              }
+              onChange={handleClientChange}
               onHoverAccount={setHighlightId}
             />
           )}
         </aside>
-        <section className="preview-pane" aria-label="Money Map preview">
+        <section
+          ref={previewPaneRef}
+          className="preview-pane"
+          aria-label="Money Map preview"
+        >
           <div className="map-page">
             <MapSvg
               data={activeClient}
@@ -358,6 +376,24 @@ export default function App() {
               onElementClick={handleMapElementClick}
             />
           </div>
+          {mapTextEdit && (
+            <MapTextEditor
+              containerRef={previewPaneRef}
+              edit={mapTextEdit}
+              key={JSON.stringify(mapTextEdit.target)}
+              onCancel={() => setMapTextEdit(null)}
+              onCommit={(rawValue) => {
+                handleClientChange(
+                  applyMapTextEdit(
+                    activeClient,
+                    mapTextEdit.target,
+                    rawValue,
+                  ),
+                )
+                setMapTextEdit(null)
+              }}
+            />
+          )}
         </section>
       </div>
       <div ref={printMapRef} aria-hidden="true" className="print-map">

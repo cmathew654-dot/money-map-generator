@@ -1,6 +1,7 @@
 import {
   useId,
   type KeyboardEvent,
+  type MouseEvent,
   type SVGProps,
 } from 'react'
 import { CAP_CONTENT_GAP, layoutMap } from '../layout/layout'
@@ -21,6 +22,10 @@ import type {
   MoneyMapData,
   SubAccount,
 } from '../model/types'
+import type {
+  MapTextEditRect,
+  MapTextEditTarget,
+} from '../ui/MapTextEditor'
 import {
   ARTBOARD,
   BUCKETS,
@@ -38,10 +43,13 @@ import {
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
 const SUB_ACCOUNT_CAP_CONTENT_GAP = 14
 
-export interface MapElementTarget {
-  kind: 'account' | 'income' | 'need'
-  id?: string
-}
+export type MapElementTarget =
+  | { kind: 'account' | 'income' | 'need'; id?: string }
+  | {
+      kind: 'edit'
+      edit: MapTextEditTarget
+      rect: MapTextEditRect
+    }
 
 interface MapSvgProps {
   data: MoneyMapData
@@ -67,6 +75,41 @@ function interactiveGroupProps(
     },
     role: 'button',
     style: { cursor: 'pointer' },
+    tabIndex: 0,
+  }
+}
+
+function editableTextProps(
+  edit: MapTextEditTarget,
+  onElementClick?: (target: MapElementTarget) => void,
+): SVGProps<SVGTextElement | SVGTSpanElement> {
+  if (!onElementClick) return {}
+
+  const activate = (element: SVGGraphicsElement) => {
+    const { left, top, width, height } = element.getBoundingClientRect()
+    onElementClick({
+      kind: 'edit',
+      edit,
+      rect: { left, top, width, height },
+    })
+  }
+  return {
+    className: 'map-editable-text',
+    onClick: (
+      event: MouseEvent<SVGTextElement | SVGTSpanElement>,
+    ) => {
+      event.stopPropagation()
+      activate(event.currentTarget)
+    },
+    onKeyDown: (
+      event: KeyboardEvent<SVGTextElement | SVGTSpanElement>,
+    ) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      event.preventDefault()
+      event.stopPropagation()
+      activate(event.currentTarget)
+    },
+    role: 'button',
     tabIndex: 0,
   }
 }
@@ -111,10 +154,14 @@ function Masthead({ data }: { data: MoneyMapData }) {
 }
 
 function IncomeRow({
+  index,
+  onElementClick,
   source,
   x,
   y,
 }: {
+  index: number
+  onElementClick?: (target: MapElementTarget) => void
   source: IncomeSource
   x: number
   y: number
@@ -139,7 +186,14 @@ function IncomeRow({
         fontWeight={600}
         style={numericStyle}
       >
-        {moneyPer(source.amount, source.period)}
+        <tspan
+          {...editableTextProps(
+            { kind: 'incomeAmount', incomeIndex: index },
+            onElementClick,
+          )}
+        >
+          {moneyPer(source.amount, source.period)}
+        </tspan>
         {source.qualifier && (
           <tspan
             dx={7}
@@ -158,9 +212,11 @@ function IncomeRow({
 
 function IncomePanel({
   data,
+  onElementClick,
   placed,
 }: {
   data: MoneyMapData
+  onElementClick?: (target: MapElementTarget) => void
   placed: Placed
 }) {
   const dividerY =
@@ -199,7 +255,9 @@ function IncomePanel({
       />
       {data.incomeSources.map((source, index) => (
         <IncomeRow
+          index={index}
           key={`${source.label}-${index}`}
+          onElementClick={onElementClick}
           source={source}
           x={placed.x + 20}
           y={placed.y + 61 + index * 40}
@@ -246,9 +304,11 @@ function IncomePanel({
 }
 
 function NeedCard({
+  onElementClick,
   value,
   placed,
 }: {
+  onElementClick?: (target: MapElementTarget) => void
   value: number | null
   placed: Placed
 }) {
@@ -285,6 +345,7 @@ function NeedCard({
         fontWeight={600}
         textAnchor="middle"
         style={numericStyle}
+        {...editableTextProps({ kind: 'monthlyNeed' }, onElementClick)}
       >
         {money(value)}
       </text>
@@ -385,9 +446,15 @@ function SubAccountDrum({
   )
 }
 
-function NoteCard({ placed }: { placed: PlacedAccount }) {
+function NoteCard({
+  onElementClick,
+  placed,
+}: {
+  onElementClick?: (target: MapElementTarget) => void
+  placed: PlacedAccount
+}) {
   const style = BUCKETS.note
-  const titleLines = wrap(placed.account.label, 24)
+  const titleLines = wrap(accountDisplayName(placed.account), 24)
   const captionLines = placed.account.caption
     ? wrap(placed.account.caption, 30)
     : []
@@ -424,6 +491,10 @@ function NoteCard({ placed }: { placed: PlacedAccount }) {
         fontSize={TYPE.accountTitle}
         fontWeight={600}
         textAnchor="middle"
+        {...editableTextProps(
+          { kind: 'accountLabel', accountId: placed.account.id },
+          onElementClick,
+        )}
       >
         {titleLines.map((line, index) => (
           <tspan
@@ -464,6 +535,10 @@ function NoteCard({ placed }: { placed: PlacedAccount }) {
         fontWeight={600}
         textAnchor="middle"
         style={numericStyle}
+        {...editableTextProps(
+          { kind: 'accountValue', accountId: placed.account.id },
+          onElementClick,
+        )}
       >
         {money(placed.account.value)}
       </text>
@@ -471,11 +546,17 @@ function NoteCard({ placed }: { placed: PlacedAccount }) {
   )
 }
 
-function Cylinder({ placed }: { placed: PlacedAccount }) {
+function Cylinder({
+  onElementClick,
+  placed,
+}: {
+  onElementClick?: (target: MapElementTarget) => void
+  placed: PlacedAccount
+}) {
   const { account, x, y, w, h, capRy } = placed
   const style = BUCKETS[account.bucket]
   const dash = style.dashed ? '8 6' : undefined
-  const titleLines = wrap(account.label, 24)
+  const titleLines = wrap(accountDisplayName(account), 24)
   const captionLines = account.caption ? wrap(account.caption, 30) : []
   const centerX = x + w / 2
   const tagY = y + capRy
@@ -545,6 +626,10 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
         fontSize={TYPE.accountTitle}
         fontWeight={600}
         textAnchor="middle"
+        {...editableTextProps(
+          { kind: 'accountLabel', accountId: account.id },
+          onElementClick,
+        )}
       >
         {titleLines.map((line, index) => (
           <tspan
@@ -620,6 +705,10 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
         fontWeight={600}
         textAnchor="middle"
         style={numericStyle}
+        {...editableTextProps(
+          { kind: 'accountValue', accountId: account.id },
+          onElementClick,
+        )}
       >
         {money(account.value)}
       </text>
@@ -666,9 +755,11 @@ function ArrowPath({
 function AsNeededLabel({
   arrow,
   amount,
+  onElementClick,
 }: {
   arrow: Arrow
   amount: number | null
+  onElementClick?: (target: MapElementTarget) => void
 }) {
   if (!arrow.labelAt) return null
   return (
@@ -696,6 +787,10 @@ function AsNeededLabel({
           fontFamily={FONT_SERIF}
           fontWeight={600}
           style={numericStyle}
+          {...editableTextProps(
+            { kind: 'asNeededAmount' },
+            onElementClick,
+          )}
         >
           {money(amount)}
         </tspan>
@@ -907,7 +1002,11 @@ export function MapSvg({
           onElementClick,
         )}
       >
-        <IncomePanel data={data} placed={layout.income} />
+        <IncomePanel
+          data={data}
+          onElementClick={onElementClick}
+          placed={layout.income}
+        />
       </g>
       <g
         {...interactiveGroupProps(
@@ -916,7 +1015,11 @@ export function MapSvg({
           onElementClick,
         )}
       >
-        <NeedCard value={data.monthlyNeed} placed={layout.need} />
+        <NeedCard
+          onElementClick={onElementClick}
+          value={data.monthlyNeed}
+          placed={layout.need}
+        />
       </g>
       <g aria-label="Accounts">
         {layout.accounts.map((placed, index) => {
@@ -946,16 +1049,26 @@ export function MapSvg({
                 />
               )}
               {placed.account.bucket === 'note' ? (
-                <NoteCard placed={placed} />
+                <NoteCard
+                  onElementClick={onElementClick}
+                  placed={placed}
+                />
               ) : (
-                <Cylinder placed={placed} />
+                <Cylinder
+                  onElementClick={onElementClick}
+                  placed={placed}
+                />
               )}
             </g>
           )
         })}
       </g>
       {asNeeded && (
-        <AsNeededLabel arrow={asNeeded} amount={data.asNeededAmount} />
+        <AsNeededLabel
+          arrow={asNeeded}
+          amount={data.asNeededAmount}
+          onElementClick={onElementClick}
+        />
       )}
       <Footnotes
         footnotes={data.footnotes}

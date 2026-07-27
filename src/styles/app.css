@@ -188,6 +188,17 @@ summary:focus-visible {
   outline-offset: 3px;
 }
 
+.map-page svg .map-editable-text {
+  cursor: text;
+}
+
+.map-page svg .map-editable-text:hover {
+  text-decoration: underline;
+  text-decoration-color: rgb(28 36 34 / 35%);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .app-dialog {
   width: min(420px, calc(100vw - 32px));
   padding: 22px;
@@ -301,6 +312,7 @@ summary:focus-visible {
   min-width: 0;
   overflow: auto;
   place-items: center;
+  position: relative;
   padding: 24px;
   background: #eceeea;
 }
@@ -315,6 +327,22 @@ summary:focus-visible {
   width: 100%;
   height: auto;
   box-shadow: 0 1px 5px rgb(28 36 34 / 10%);
+}
+
+.map-text-editor {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  border: 2px solid #1e7a4a;
+  border-radius: 5px;
+  padding: 2px 7px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(28 36 34 / 20%);
+  color: #1c2422;
+  font: 600 15px/1.2 'Literata', Georgia, serif;
+  text-align: center;
 }
 
 .client-form {
