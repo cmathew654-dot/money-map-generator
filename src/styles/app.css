@@ -141,6 +141,7 @@ summary:focus-visible {
 .header-left,
 .header-right,
 .header-client-actions,
+.header-history-actions,
 .header-book-actions,
 .header-payoff-actions {
   display: flex;
@@ -154,9 +155,17 @@ summary:focus-visible {
 
 .header-right,
 .header-client-actions,
+.header-history-actions,
 .header-book-actions,
 .header-payoff-actions {
   gap: 4px;
+}
+
+.history-button {
+  width: 30px;
+  padding: 4px;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .wordmark {

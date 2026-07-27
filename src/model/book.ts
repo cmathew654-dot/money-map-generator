@@ -7,6 +7,92 @@ import {
 import type { MoneyMapData, MoneyMapFile } from './types'
 import { ACCOUNT_SHAPES, newId } from './types'
 
+export const HISTORY_LIMIT = 50
+export const HISTORY_COALESCE_MS = 800
+
+export interface BookSnapshot {
+  book: MoneyMapFile
+  activeClientId: string
+}
+
+export interface HistoryStep {
+  before: BookSnapshot
+  after: BookSnapshot
+  targetClientId: string | null
+  committedAt: number
+}
+
+export interface BookHistory {
+  past: HistoryStep[]
+  future: HistoryStep[]
+}
+
+export function emptyHistory(): BookHistory {
+  return { past: [], future: [] }
+}
+
+export function pushHistory(
+  history: BookHistory,
+  before: BookSnapshot,
+  after: BookSnapshot,
+  targetClientId: string | null,
+  committedAt: number,
+): BookHistory {
+  if (
+    before.book === after.book &&
+    before.activeClientId === after.activeClientId
+  ) {
+    return history
+  }
+
+  const last = history.past.at(-1)
+  const coalesces =
+    targetClientId !== null &&
+    last?.targetClientId === targetClientId &&
+    committedAt >= last.committedAt &&
+    committedAt - last.committedAt <= HISTORY_COALESCE_MS &&
+    last.after.book === before.book &&
+    last.after.activeClientId === before.activeClientId
+
+  const step: HistoryStep = coalesces
+    ? { ...last, after, committedAt }
+    : { before, after, targetClientId, committedAt }
+  const past = coalesces
+    ? [...history.past.slice(0, -1), step]
+    : [...history.past, step].slice(-HISTORY_LIMIT)
+  return { past, future: [] }
+}
+
+export function undoHistory(history: BookHistory): {
+  history: BookHistory
+  snapshot: BookSnapshot | null
+} {
+  const step = history.past.at(-1)
+  if (!step) return { history, snapshot: null }
+  return {
+    history: {
+      past: history.past.slice(0, -1),
+      future: [step, ...history.future],
+    },
+    snapshot: step.before,
+  }
+}
+
+export function redoHistory(history: BookHistory): {
+  history: BookHistory
+  snapshot: BookSnapshot | null
+} {
+  const [step, ...future] = history.future
+  if (!step) return { history, snapshot: null }
+  return {
+    history: {
+      past: [...history.past, step].slice(-HISTORY_LIMIT),
+      future,
+    },
+    snapshot: step.after,
+  }
+}
+
 function withFreshIds(data: MoneyMapData): MoneyMapData {
   const copy = structuredClone(data)
   copy.id = newId('client')

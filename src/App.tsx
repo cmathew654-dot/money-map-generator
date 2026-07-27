@@ -3,9 +3,15 @@ import {
   addClient,
   deleteClient,
   duplicateClient,
+  emptyHistory,
   newBook,
   parseBook,
+  pushHistory,
+  redoHistory,
+  undoHistory,
   updateClient,
+  type BookHistory,
+  type BookSnapshot,
 } from './model/book'
 import type { MoneyMapFile } from './model/types'
 import {
@@ -63,11 +69,12 @@ function initialFormMode(): FormMode {
 }
 
 export default function App() {
-  const [book, setBook] = useState<MoneyMapFile>(initialBook)
+  const [snapshot, setSnapshot] = useState<BookSnapshot>(() => {
+    const book = initialBook()
+    return { book, activeClientId: book.clients[0].id }
+  })
+  const [history, setHistory] = useState<BookHistory>(emptyHistory)
   const [formMode, setFormMode] = useState<FormMode>(initialFormMode)
-  const [activeClientId, setActiveClientId] = useState(
-    () => book.clients[0].id,
-  )
   const [wizardStep, setWizardStep] = useState(0)
   const [wizardDone, setWizardDone] = useState(false)
   const [focusRequest, setFocusRequest] = useState<{
@@ -81,14 +88,73 @@ export default function App() {
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const focusRequestCounter = useRef(0)
   const toastCounter = useRef(0)
+  const snapshotRef = useRef(snapshot)
+  const historyRef = useRef(history)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewPaneRef = useRef<HTMLElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
+  const { book, activeClientId } = snapshot
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
   const hasLayoutOverrides =
     Object.keys(activeClient.layoutOverrides ?? {}).length > 0
+
+  const showSnapshot = useCallback((next: BookSnapshot) => {
+    snapshotRef.current = next
+    setSnapshot(next)
+  }, [])
+
+  const showHistory = useCallback((next: BookHistory) => {
+    historyRef.current = next
+    setHistory(next)
+  }, [])
+
+  const commitSnapshot = useCallback(
+    (next: BookSnapshot, targetClientId: string | null) => {
+      const nextHistory = pushHistory(
+        historyRef.current,
+        snapshotRef.current,
+        next,
+        targetClientId,
+        Date.now(),
+      )
+      showHistory(nextHistory)
+      showSnapshot(next)
+    },
+    [showHistory, showSnapshot],
+  )
+
+  const resetWizard = useCallback(() => {
+    setWizardStep(0)
+    setWizardDone(false)
+  }, [])
+
+  const restoreHistorySnapshot = useCallback(
+    (next: BookSnapshot) => {
+      showSnapshot(next)
+      setMapTextEdit(null)
+      setDialog(null)
+      resetWizard()
+    },
+    [resetWizard, showSnapshot],
+  )
+
+  const handleUndo = useCallback(() => {
+    const result = undoHistory(historyRef.current)
+    if (!result.snapshot) return false
+    showHistory(result.history)
+    restoreHistorySnapshot(result.snapshot)
+    return true
+  }, [restoreHistorySnapshot, showHistory])
+
+  const handleRedo = useCallback(() => {
+    const result = redoHistory(historyRef.current)
+    if (!result.snapshot) return false
+    showHistory(result.history)
+    restoreHistorySnapshot(result.snapshot)
+    return true
+  }, [restoreHistorySnapshot, showHistory])
 
   const addToast = useCallback((message: string) => {
     toastCounter.current += 1
@@ -121,27 +187,50 @@ export default function App() {
     }
   }, [formMode])
 
-  const resetWizard = () => {
-    setWizardStep(0)
-    setWizardDone(false)
-  }
+  useEffect(() => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey) return
+      const key = event.key.toLowerCase()
+      const isUndo = key === 'z' && !event.shiftKey
+      const isRedo =
+        (key === 'z' && event.shiftKey) ||
+        (key === 'y' && !event.shiftKey)
+      if (!isUndo && !isRedo) return
+
+      const changed = isUndo ? handleUndo() : handleRedo()
+      if (changed) event.preventDefault()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleRedo, handleUndo])
 
   const selectClient = (id: string) => {
     setMapTextEdit(null)
-    setActiveClientId(id)
+    showSnapshot({ ...snapshotRef.current, activeClientId: id })
     resetWizard()
   }
 
   const handleNew = () => {
-    const result = addClient(book)
-    setBook(result.book)
-    selectClient(result.id)
+    const result = addClient(snapshotRef.current.book)
+    commitSnapshot(
+      { book: result.book, activeClientId: result.id },
+      result.id,
+    )
+    setMapTextEdit(null)
+    resetWizard()
   }
 
   const handleDuplicate = () => {
-    const result = duplicateClient(book, activeClient.id)
-    setBook(result.book)
-    selectClient(result.id)
+    const result = duplicateClient(
+      snapshotRef.current.book,
+      activeClient.id,
+    )
+    commitSnapshot(
+      { book: result.book, activeClientId: result.id },
+      result.id,
+    )
+    setMapTextEdit(null)
+    resetWizard()
   }
 
   const handleDelete = () => {
@@ -161,9 +250,13 @@ export default function App() {
   }
 
   const confirmDelete = (clientId: string) => {
-    const nextBook = deleteClient(book, clientId)
-    setBook(nextBook)
-    selectClient(nextBook.clients[0].id)
+    const nextBook = deleteClient(snapshotRef.current.book, clientId)
+    commitSnapshot(
+      { book: nextBook, activeClientId: nextBook.clients[0].id },
+      clientId,
+    )
+    setMapTextEdit(null)
+    resetWizard()
     setDialog(null)
   }
 
@@ -178,8 +271,15 @@ export default function App() {
   const handleLoad = async (file: File) => {
     try {
       const nextBook = await loadBookFromFile(file)
-      setBook(nextBook)
-      selectClient(nextBook.clients[0].id)
+      commitSnapshot(
+        {
+          book: nextBook,
+          activeClientId: nextBook.clients[0].id,
+        },
+        null,
+      )
+      setMapTextEdit(null)
+      resetWizard()
       addToast('Book loaded')
     } catch (error) {
       showError('Could not load book', error, 'The book could not be loaded.')
@@ -238,8 +338,16 @@ export default function App() {
     setFocusRequest({ id, at: focusRequestCounter.current })
   }
 
-  const handleClientChange = (next: typeof activeClient) =>
-    setBook((current) => updateClient(current, activeClient.id, next))
+  const handleClientChange = (next: typeof activeClient) => {
+    const current = snapshotRef.current
+    commitSnapshot(
+      {
+        book: updateClient(current.book, next.id, next),
+        activeClientId: next.id,
+      },
+      next.id,
+    )
+  }
 
   return (
     <main className="app-shell">
@@ -278,6 +386,28 @@ export default function App() {
               onClick={handleDelete}
             >
               Delete
+            </button>
+          </div>
+          <div className="header-history-actions">
+            <button
+              aria-label="Undo"
+              className="quiet-button history-button"
+              disabled={history.past.length === 0}
+              title="Undo (Ctrl+Z)"
+              type="button"
+              onClick={handleUndo}
+            >
+              ↶
+            </button>
+            <button
+              aria-label="Redo"
+              className="quiet-button history-button"
+              disabled={history.future.length === 0}
+              title="Redo (Ctrl+Shift+Z or Ctrl+Y)"
+              type="button"
+              onClick={handleRedo}
+            >
+              ↷
             </button>
           </div>
         </div>
@@ -428,7 +558,7 @@ export default function App() {
           onClose={() => setDialog(null)}
           onConfirm={() => confirmDelete(dialog.clientId)}
         >
-          Delete {dialog.name}? This cannot be undone.
+          Delete {dialog.name}? You can undo this action.
         </Dialog>
       )}
       {dialog?.kind === 'error' && (
