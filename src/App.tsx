@@ -13,6 +13,21 @@ import {
   type BookHistory,
   type BookSnapshot,
 } from './model/book'
+import {
+  chooseExistingBookFile,
+  chooseNewBookFile,
+  getStoredBookFileHandle,
+  readBookFile,
+  requestBookFilePermission,
+  resolveFileConnection,
+  storeBookFileHandle,
+  supportsFileStore,
+  writeBookFile,
+  clearStoredBookFileHandle,
+  type BookFileHandle,
+  type FileReadResult,
+  type FileStoreApi,
+} from './model/filestore'
 import type { MoneyMapFile } from './model/types'
 import {
   exportPng,
@@ -44,6 +59,7 @@ const STORAGE_KEY = 'money-map-book:v1'
 const FORM_MODE_STORAGE_KEY = 'money-map-form-mode:v1'
 
 type FormMode = 'guided' | 'full'
+type FileSaveStatus = 'saved' | 'saving'
 type AppDialog =
   | { kind: 'delete'; clientId: string; name: string }
   | { kind: 'error'; title: string; message: string }
@@ -86,10 +102,23 @@ export default function App() {
     useState<ActiveMapTextEdit | null>(null)
   const [dialog, setDialog] = useState<AppDialog | null>(null)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
+  const [connectedFile, setConnectedFile] =
+    useState<BookFileHandle | null>(null)
+  const [reconnectFile, setReconnectFile] =
+    useState<BookFileHandle | null>(null)
+  const [fileSaveStatus, setFileSaveStatus] =
+    useState<FileSaveStatus>('saved')
+  const [presentMode, setPresentMode] = useState(false)
+  const [fileStoreSupported] = useState(() =>
+    supportsFileStore(window as unknown as FileStoreApi),
+  )
   const focusRequestCounter = useRef(0)
   const toastCounter = useRef(0)
+  const fileSaveRevision = useRef(0)
+  const fileWriteQueue = useRef<Promise<void>>(Promise.resolve())
   const snapshotRef = useRef(snapshot)
   const historyRef = useRef(history)
+  const appShellRef = useRef<HTMLElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewPaneRef = useRef<HTMLElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
@@ -169,6 +198,15 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (!fileStoreSupported) return
+    void getStoredBookFileHandle()
+      .then(setReconnectFile)
+      .catch(() => {
+        // IndexedDB may be unavailable; the localStorage copy remains current.
+      })
+  }, [fileStoreSupported])
+
+  useEffect(() => {
     const timeout = window.setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(book))
@@ -178,6 +216,35 @@ export default function App() {
     }, 400)
     return () => window.clearTimeout(timeout)
   }, [book])
+
+  useEffect(() => {
+    if (!connectedFile) return
+    fileSaveRevision.current += 1
+    const revision = fileSaveRevision.current
+    setFileSaveStatus('saving')
+    const timeout = window.setTimeout(() => {
+      const write = fileWriteQueue.current
+        .catch(() => undefined)
+        .then(() => writeBookFile(connectedFile, book))
+      fileWriteQueue.current = write
+      void write.then(
+        () => {
+          if (fileSaveRevision.current === revision) {
+            setFileSaveStatus('saved')
+          }
+        },
+        () => {
+          if (fileSaveRevision.current !== revision) return
+          setConnectedFile(null)
+          setReconnectFile(connectedFile)
+          addToast(
+            `Could not save ${connectedFile.name}; browser copy kept`,
+          )
+        },
+      )
+    }, 800)
+    return () => window.clearTimeout(timeout)
+  }, [addToast, book, connectedFile])
 
   useEffect(() => {
     try {
@@ -203,6 +270,128 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleRedo, handleUndo])
+
+  const exitPresentMode = useCallback(() => {
+    setPresentMode(false)
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => undefined)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!presentMode) return
+    const handlePresentKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') exitPresentMode()
+    }
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        setPresentMode(false)
+      }
+    }
+    window.addEventListener('keydown', handlePresentKeyDown)
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      window.removeEventListener('keydown', handlePresentKeyDown)
+      document.removeEventListener(
+        'fullscreenchange',
+        handleFullscreenChange,
+      )
+    }
+  }, [exitPresentMode, presentMode])
+
+  const rememberConnectedFile = useCallback(
+    (handle: BookFileHandle) => {
+      setConnectedFile(handle)
+      setReconnectFile(null)
+      setFileSaveStatus('saved')
+      void storeBookFileHandle(handle).catch(() => {
+        addToast('Connected, but this file cannot be remembered')
+      })
+    },
+    [addToast],
+  )
+
+  const replaceBookFromFile = useCallback(
+    async (handle: BookFileHandle, isReconnect: boolean) => {
+      let result: FileReadResult
+      try {
+        if (!(await requestBookFilePermission(handle))) {
+          throw new Error('File permission was not granted.')
+        }
+        result = { status: 'success', book: await readBookFile(handle) }
+      } catch (error) {
+        result = { status: 'failure', error }
+      }
+
+      const resolution = resolveFileConnection(
+        snapshotRef.current.book,
+        result,
+      )
+      if (!resolution.connected) {
+        addToast(
+          isReconnect
+            ? `Could not reconnect ${handle.name}; browser copy kept`
+            : `Could not open ${handle.name}; current book unchanged`,
+        )
+        return
+      }
+
+      commitSnapshot(
+        {
+          book: resolution.book,
+          activeClientId: resolution.book.clients[0].id,
+        },
+        null,
+      )
+      setMapTextEdit(null)
+      resetWizard()
+      rememberConnectedFile(handle)
+      addToast(isReconnect ? 'Book restored from file' : 'Book loaded from file')
+    },
+    [addToast, commitSnapshot, rememberConnectedFile, resetWizard],
+  )
+
+  const handleCreateConnectedFile = async () => {
+    try {
+      const handle = await chooseNewBookFile()
+      await writeBookFile(handle, snapshotRef.current.book)
+      rememberConnectedFile(handle)
+      addToast('Book file connected')
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      addToast('Could not create the book file')
+    }
+  }
+
+  const handleOpenConnectedFile = async () => {
+    try {
+      const handle = await chooseExistingBookFile()
+      await replaceBookFromFile(handle, false)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      addToast('Could not open the book file')
+    }
+  }
+
+  const handleDisconnectFile = () => {
+    fileSaveRevision.current += 1
+    setConnectedFile(null)
+    setReconnectFile(null)
+    setFileSaveStatus('saved')
+    void clearStoredBookFileHandle().catch(() => undefined)
+    addToast('Book file disconnected')
+  }
+
+  const handlePresent = async () => {
+    setPresentMode(true)
+    const shell = appShellRef.current
+    if (!shell?.requestFullscreen) return
+    try {
+      await shell.requestFullscreen()
+    } catch {
+      // Present mode still works when fullscreen is unavailable or denied.
+    }
+  }
 
   const selectClient = (id: string) => {
     setMapTextEdit(null)
@@ -350,7 +539,10 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main
+      ref={appShellRef}
+      className={`app-shell${presentMode ? ' is-presenting' : ''}`}
+    >
       <header className="app-header">
         <div className="header-left">
           <div className="wordmark">
@@ -424,6 +616,52 @@ export default function App() {
             >
               Save book
             </button>
+            {fileStoreSupported && !connectedFile && (
+              <>
+                <button
+                  className="quiet-button"
+                  type="button"
+                  onClick={() => void handleCreateConnectedFile()}
+                >
+                  Keep in a file…
+                </button>
+                <button
+                  className="quiet-button"
+                  type="button"
+                  onClick={() => void handleOpenConnectedFile()}
+                >
+                  Open existing
+                </button>
+              </>
+            )}
+            {fileStoreSupported && reconnectFile && !connectedFile && (
+              <button
+                className="quiet-button reconnect-button"
+                type="button"
+                onClick={() =>
+                  void replaceBookFromFile(reconnectFile, true)
+                }
+              >
+                Reconnect {reconnectFile.name}
+              </button>
+            )}
+            {connectedFile && (
+              <div className="file-connection" title={connectedFile.name}>
+                <span className="file-connection-name">
+                  {connectedFile.name}
+                </span>
+                <span>
+                  {fileSaveStatus === 'saving' ? 'Saving…' : 'Saved'}
+                </span>
+                <button
+                  className="file-disconnect"
+                  type="button"
+                  onClick={handleDisconnectFile}
+                >
+                  Disconnect
+                </button>
+              </div>
+            )}
             <button
               className="quiet-button"
               type="button"
@@ -434,6 +672,13 @@ export default function App() {
           </div>
           <span aria-hidden="true" className="header-divider" />
           <div className="header-payoff-actions">
+            <button
+              className="quiet-button"
+              type="button"
+              onClick={() => void handlePresent()}
+            >
+              Present
+            </button>
             <button
               className="quiet-button"
               disabled={!hasLayoutOverrides}
@@ -543,6 +788,9 @@ export default function App() {
                 setMapTextEdit(null)
               }}
             />
+          )}
+          {presentMode && (
+            <div className="present-hint">Esc to exit</div>
           )}
         </section>
       </div>

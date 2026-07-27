@@ -201,6 +201,45 @@ summary:focus-visible {
   background: #dde1dc;
 }
 
+.reconnect-button {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-connection {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: #5b6663;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.file-connection-name {
+  max-width: 130px;
+  overflow: hidden;
+  color: #1c2422;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+.file-disconnect {
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  color: #5b6663;
+  font-size: 11px;
+  text-decoration: underline;
+}
+
+.file-disconnect:hover {
+  background: transparent;
+  color: #1c2422;
+}
+
 .map-page svg [role='button']:focus-visible {
   outline: 2px solid #1e7a4a;
   outline-offset: 3px;
@@ -437,6 +476,57 @@ summary:focus-visible {
   width: 100%;
   height: auto;
   box-shadow: 0 1px 5px rgb(28 36 34 / 10%);
+}
+
+.app-shell.is-presenting .app-header,
+.app-shell.is-presenting .form-pane,
+.app-shell.is-presenting .toast-region {
+  display: none;
+}
+
+.app-shell.is-presenting .workspace {
+  display: block;
+  height: 100vh;
+}
+
+.app-shell.is-presenting .preview-pane {
+  height: 100vh;
+  overflow: hidden;
+  padding: 16px;
+}
+
+.app-shell.is-presenting .map-page {
+  width: min(
+    calc(100vw - 32px),
+    calc((100vh - 32px) * 1.294117647)
+  );
+  max-width: none;
+}
+
+.present-hint {
+  position: fixed;
+  z-index: 10;
+  bottom: 18px;
+  left: 50%;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgb(28 36 34 / 82%);
+  color: #fcfcfa;
+  font-size: 12px;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: present-hint 3s ease forwards;
+}
+
+@keyframes present-hint {
+  0%,
+  72% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 .map-text-editor {
