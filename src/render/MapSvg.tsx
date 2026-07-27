@@ -26,11 +26,16 @@ import {
   wrap,
 } from '../model/format'
 import type {
+  AccountShape,
   Footnote,
   IncomeSource,
   LayoutOverride,
   MoneyMapData,
   SubAccount,
+} from '../model/types'
+import {
+  accountShape,
+  nextAccountShape,
 } from '../model/types'
 import type {
   MapTextEditRect,
@@ -502,64 +507,65 @@ function SubAccountDrum({
   )
 }
 
-function NoteCard({
+function AccountContent({
+  captionLines,
+  captionY,
   onElementClick,
   placed,
+  rowsY,
+  subStartY,
+  tagY,
+  titleLines,
+  titleY,
+  valueY,
+  verticallyCenterTag = false,
 }: {
+  captionLines: string[]
+  captionY: number
   onElementClick?: (target: MapElementTarget) => void
   placed: PlacedAccount
+  rowsY: number
+  subStartY: number
+  tagY: number
+  titleLines: string[]
+  titleY: number
+  valueY: number
+  verticallyCenterTag?: boolean
 }) {
-  const style = BUCKETS.note
-  const wrapAt = wrapLengths(placed)
-  const titleLines = wrap(
-    accountDisplayName(placed.account),
-    wrapAt.title,
-  )
-  const captionLines = placed.account.caption
-    ? wrap(placed.account.caption, wrapAt.caption)
-    : []
-
+  const { account, x, w } = placed
+  const style = BUCKETS[account.bucket]
   return (
-    <g>
-      <rect
-        x={placed.x}
-        y={placed.y}
-        width={placed.w}
-        height={placed.h}
-        rx={12}
-        fill={style.tint}
-        stroke={style.stroke}
-        strokeWidth={2.5}
-      />
+    <>
       <text
-        x={placed.x + placed.w / 2}
-        y={placed.y + 25}
+        x={x + w / 2}
+        y={tagY}
         fill={style.tagColor}
         fontFamily={FONT_SANS}
         fontSize={TYPE.accountTag}
         fontWeight={700}
         letterSpacing={1.2}
+        dominantBaseline={verticallyCenterTag ? 'middle' : undefined}
         textAnchor="middle"
       >
         {style.tag.toUpperCase()}
       </text>
       <text
-        x={placed.x + placed.w / 2}
-        y={placed.y + 52}
+        x={x + w / 2}
+        y={titleY}
         fill={INK}
         fontFamily={FONT_SERIF}
         fontSize={TYPE.accountTitle}
         fontWeight={600}
         textAnchor="middle"
         {...editableTextProps(
-          { kind: 'accountLabel', accountId: placed.account.id },
+          { kind: 'accountLabel', accountId: account.id },
           onElementClick,
         )}
       >
         {titleLines.map((line, index) => (
           <tspan
             key={`${line}-${index}`}
-            x={placed.x + placed.w / 2}
+            x={x + w / 2}
             dy={index === 0 ? 0 : 20}
           >
             {line}
@@ -568,8 +574,8 @@ function NoteCard({
       </text>
       {captionLines.length > 0 && (
         <text
-          x={placed.x + placed.w / 2}
-          y={placed.y + 56 + titleLines.length * 20}
+          x={x + w / 2}
+          y={captionY}
           fill={MUTED}
           fontFamily={FONT_SANS}
           fontSize={TYPE.caption}
@@ -578,7 +584,7 @@ function NoteCard({
           {captionLines.map((line, index) => (
             <tspan
               key={`${line}-${index}`}
-              x={placed.x + placed.w / 2}
+              x={x + w / 2}
               dy={index === 0 ? 0 : 15}
             >
               {line}
@@ -586,9 +592,44 @@ function NoteCard({
           ))}
         </text>
       )}
+      {account.positions?.map((position, index) => {
+        const rowTop = rowsY + index * 20
+        return (
+          <g key={`${position.label}-${index}`}>
+            <line
+              x1={x + 20}
+              y1={rowTop}
+              x2={x + w - 20}
+              y2={rowTop}
+              stroke={HAIRLINE}
+            />
+            <text
+              x={x + 20}
+              y={rowTop + 15}
+              fill={INK}
+              fontFamily={FONT_SANS}
+              fontSize={TYPE.row}
+            >
+              {position.label}
+            </text>
+            <text
+              x={x + w - 20}
+              y={rowTop + 15}
+              fill={INK}
+              fontFamily={FONT_SERIF}
+              fontSize={TYPE.row}
+              fontWeight={600}
+              textAnchor="end"
+              style={numericStyle}
+            >
+              {money(position.value)}
+            </text>
+          </g>
+        )
+      })}
       <text
-        x={placed.x + placed.w / 2}
-        y={placed.y + placed.h - 25}
+        x={x + w / 2}
+        y={valueY}
         fill={INK}
         fontFamily={FONT_SERIF}
         fontSize={TYPE.value}
@@ -596,13 +637,118 @@ function NoteCard({
         textAnchor="middle"
         style={numericStyle}
         {...editableTextProps(
-          { kind: 'accountValue', accountId: placed.account.id },
+          { kind: 'accountValue', accountId: account.id },
           onElementClick,
         )}
       >
-        {money(placed.account.value)}
+        {money(account.value)}
       </text>
+      {account.subAccounts?.map((subAccount, index) => (
+        <SubAccountDrum
+          key={`${subAccount.label}-${index}`}
+          subAccount={subAccount}
+          x={x + w * 0.14}
+          y={subStartY + index * 96}
+          w={w * 0.72}
+          fill={style.tint}
+          stroke={style.stroke}
+        />
+      ))}
+    </>
+  )
+}
+
+function FlatAccount({
+  onElementClick,
+  placed,
+  shape,
+}: {
+  onElementClick?: (target: MapElementTarget) => void
+  placed: PlacedAccount
+  shape: Exclude<AccountShape, 'drum'>
+}) {
+  const { account, x, y, w, h } = placed
+  const style = BUCKETS[account.bucket]
+  const dash = style.dashed ? '8 6' : undefined
+  const wrapAt = wrapLengths(placed)
+  const titleLines = wrap(
+    accountDisplayName(account),
+    wrapAt.title,
+  )
+  const captionLines = account.caption
+    ? wrap(account.caption, wrapAt.caption)
+    : []
+  const subAccounts = account.subAccounts ?? []
+  const radius =
+    shape === 'card' ? 12 : shape === 'pill' ? Math.min(w, h) / 2 : 2
+  const captionY = y + 56 + titleLines.length * 20
+  const rowsY =
+    captionLines.length > 0
+      ? captionY + captionLines.length * 15 + 11
+      : y + 58 + titleLines.length * 20
+  const lowerInset =
+    shape === 'pill' ? Math.max(12, radius * 0.32) : 12
+  const subStartY = y + h - lowerInset - subAccounts.length * 96
+  const valueY = subAccounts.length ? subStartY - 17 : y + h - 25
+
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        rx={radius}
+        fill={style.tint}
+        stroke={style.stroke}
+        strokeDasharray={dash}
+        strokeWidth={2.5}
+      />
+      <AccountContent
+        captionLines={captionLines}
+        captionY={captionY}
+        onElementClick={onElementClick}
+        placed={placed}
+        rowsY={rowsY}
+        subStartY={subStartY}
+        tagY={y + 25}
+        titleLines={titleLines}
+        titleY={y + 52}
+        valueY={valueY}
+      />
     </g>
+  )
+}
+
+function ShapeFlipGlyph({
+  shape,
+  x,
+  y,
+}: {
+  shape: AccountShape
+  x: number
+  y: number
+}) {
+  if (shape === 'drum') {
+    return (
+      <>
+        <path
+          d={`M ${x} ${y + 2} L ${x} ${y + 8} A 6 2 0 0 0 ${x + 12} ${y + 8} L ${x + 12} ${y + 2}`}
+          fill="none"
+        />
+        <ellipse cx={x + 6} cy={y + 2} rx={6} ry={2} fill="none" />
+      </>
+    )
+  }
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={12}
+      height={10}
+      rx={shape === 'card' ? 2 : shape === 'pill' ? 5 : 0.5}
+      fill="none"
+    />
   )
 }
 
@@ -668,124 +814,19 @@ function Cylinder({
         strokeDasharray={dash}
         strokeWidth={2.5}
       />
-      <text
-        x={centerX}
-        y={tagY}
-        fill={style.tagColor}
-        fontFamily={FONT_SANS}
-        fontSize={TYPE.accountTag}
-        fontWeight={700}
-        letterSpacing={1.2}
-        dominantBaseline="middle"
-        textAnchor="middle"
-      >
-        {style.tag.toUpperCase()}
-      </text>
-      <text
-        x={centerX}
-        y={titleY}
-        fill={INK}
-        fontFamily={FONT_SERIF}
-        fontSize={TYPE.accountTitle}
-        fontWeight={600}
-        textAnchor="middle"
-        {...editableTextProps(
-          { kind: 'accountLabel', accountId: account.id },
-          onElementClick,
-        )}
-      >
-        {titleLines.map((line, index) => (
-          <tspan
-            key={`${line}-${index}`}
-            x={centerX}
-            dy={index === 0 ? 0 : 20}
-          >
-            {line}
-          </tspan>
-        ))}
-      </text>
-      {captionLines.length > 0 && (
-        <text
-          x={centerX}
-          y={captionY}
-          fill={MUTED}
-          fontFamily={FONT_SANS}
-          fontSize={TYPE.caption}
-          textAnchor="middle"
-        >
-          {captionLines.map((line, index) => (
-            <tspan
-              key={`${line}-${index}`}
-              x={centerX}
-              dy={index === 0 ? 0 : 15}
-            >
-              {line}
-            </tspan>
-          ))}
-        </text>
-      )}
-      {account.positions?.map((position, index) => {
-        const rowTop = rowsY + index * 20
-        return (
-          <g key={`${position.label}-${index}`}>
-            <line
-              x1={x + 20}
-              y1={rowTop}
-              x2={x + w - 20}
-              y2={rowTop}
-              stroke={HAIRLINE}
-            />
-            <text
-              x={x + 20}
-              y={rowTop + 15}
-              fill={INK}
-              fontFamily={FONT_SANS}
-              fontSize={TYPE.row}
-            >
-              {position.label}
-            </text>
-            <text
-              x={x + w - 20}
-              y={rowTop + 15}
-              fill={INK}
-              fontFamily={FONT_SERIF}
-              fontSize={TYPE.row}
-              fontWeight={600}
-              textAnchor="end"
-              style={numericStyle}
-            >
-              {money(position.value)}
-            </text>
-          </g>
-        )
-      })}
-      <text
-        x={centerX}
-        y={valueY}
-        fill={INK}
-        fontFamily={FONT_SERIF}
-        fontSize={TYPE.value}
-        fontWeight={600}
-        textAnchor="middle"
-        style={numericStyle}
-        {...editableTextProps(
-          { kind: 'accountValue', accountId: account.id },
-          onElementClick,
-        )}
-      >
-        {money(account.value)}
-      </text>
-      {subAccounts.map((subAccount, index) => (
-        <SubAccountDrum
-          key={`${subAccount.label}-${index}`}
-          subAccount={subAccount}
-          x={x + w * 0.14}
-          y={subStartY + index * 96}
-          w={w * 0.72}
-          fill={style.tint}
-          stroke={style.stroke}
-        />
-      ))}
+      <AccountContent
+        captionLines={captionLines}
+        captionY={captionY}
+        onElementClick={onElementClick}
+        placed={placed}
+        rowsY={rowsY}
+        subStartY={subStartY}
+        tagY={tagY}
+        titleLines={titleLines}
+        titleY={titleY}
+        valueY={valueY}
+        verticallyCenterTag
+      />
     </g>
   )
 }
@@ -1071,6 +1112,20 @@ export function MapSvg({
   const layout = layoutMap(displayData)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
 
+  const cycleShape = (accountId: string) => {
+    onChange?.({
+      ...data,
+      accounts: data.accounts.map((account) =>
+        account.id === accountId
+          ? {
+              ...account,
+              shape: nextAccountShape(accountShape(account)),
+            }
+          : account,
+      ),
+    })
+  }
+
   useEffect(() => {
     if (!dragRef.current) setPreviewData(null)
   }, [data])
@@ -1317,8 +1372,11 @@ export function MapSvg({
       <g aria-label="Accounts">
         {layout.accounts.map((placed, index) => {
           const style = BUCKETS[placed.account.bucket]
+          const shape = accountShape(placed.account)
           return (
             <g
+              data-account-id={placed.account.id}
+              data-account-shape={shape}
               key={`${placed.account.id}-${index}`}
               {...interactiveGroupProps(
                 accountDisplayName(placed.account),
@@ -1347,34 +1405,76 @@ export function MapSvg({
                   y={placed.y - 6}
                 />
               )}
-              {placed.account.bucket === 'note' ? (
-                <NoteCard
-                  onElementClick={onElementClick}
-                  placed={placed}
-                />
-              ) : (
+              {shape === 'drum' ? (
                 <Cylinder
                   onElementClick={onElementClick}
                   placed={placed}
                 />
+              ) : (
+                <FlatAccount
+                  onElementClick={onElementClick}
+                  placed={placed}
+                  shape={shape}
+                />
               )}
               {onChange && (
-                <rect
-                  aria-label={`Resize ${accountDisplayName(
-                    placed.account,
-                  )}`}
-                  className="map-resize-handle"
-                  height={16}
-                  rx={3}
-                  width={16}
-                  x={placed.x + placed.w - 20}
-                  y={placed.y + placed.h - 20}
-                  onPointerDown={beginDrag(
-                    placed.account.id,
-                    'resize',
-                    placed,
-                  )}
-                />
+                <>
+                  <g
+                    aria-label={`Change ${accountDisplayName(
+                      placed.account,
+                    )} shape`}
+                    className="map-shape-flip"
+                    role="button"
+                    tabIndex={0}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      cycleShape(placed.account.id)
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return
+                      event.preventDefault()
+                      event.stopPropagation()
+                      cycleShape(placed.account.id)
+                    }}
+                    onPointerDown={(event) => event.stopPropagation()}
+                  >
+                    <rect
+                      className="map-shape-flip-surface"
+                      height={16}
+                      rx={3}
+                      width={18}
+                      x={placed.x + placed.w - 44}
+                      y={placed.y + placed.h - 20}
+                    />
+                    <g
+                      className="map-shape-flip-glyph"
+                      stroke={style.stroke}
+                      strokeWidth={1.3}
+                    >
+                      <ShapeFlipGlyph
+                        shape={shape}
+                        x={placed.x + placed.w - 41}
+                        y={placed.y + placed.h - 17}
+                      />
+                    </g>
+                  </g>
+                  <rect
+                    aria-label={`Resize ${accountDisplayName(
+                      placed.account,
+                    )}`}
+                    className="map-resize-handle"
+                    height={16}
+                    rx={3}
+                    width={16}
+                    x={placed.x + placed.w - 20}
+                    y={placed.y + placed.h - 20}
+                    onPointerDown={beginDrag(
+                      placed.account.id,
+                      'resize',
+                      placed,
+                    )}
+                  />
+                </>
               )}
             </g>
           )

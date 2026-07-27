@@ -143,7 +143,8 @@ function validateClient(value: unknown, index: number): void {
       throw new Error(`Client ${index + 1} has invalid ${field}.`)
     }
   }
-  for (const account of value.accounts) {
+  const accounts = value.accounts as unknown[]
+  for (const account of accounts) {
     if (
       !isRecord(account) ||
       (account.shape !== undefined &&

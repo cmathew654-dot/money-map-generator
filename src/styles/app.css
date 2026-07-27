@@ -236,6 +236,22 @@ summary:focus-visible {
   cursor: nwse-resize;
 }
 
+.map-page svg .map-shape-flip {
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.map-page svg .map-shape-flip-surface {
+  fill: #fcfcfa;
+  stroke: #1e7a4a;
+  stroke-width: 2;
+}
+
+.map-page svg .map-shape-flip-glyph {
+  pointer-events: none;
+}
+
 .map-page svg .map-arrow-editor {
   cursor: grab;
 }
@@ -271,11 +287,16 @@ summary:focus-visible {
 .map-page svg .map-draggable:hover > .map-resize-handle,
 .map-page svg .map-draggable:focus > .map-resize-handle,
 .map-page svg .map-draggable:focus-within > .map-resize-handle,
-.map-page svg .map-resize-handle:hover {
+.map-page svg .map-resize-handle:hover,
+.map-page svg .map-draggable:hover > .map-shape-flip,
+.map-page svg .map-draggable:focus > .map-shape-flip,
+.map-page svg .map-draggable:focus-within > .map-shape-flip,
+.map-page svg .map-shape-flip:hover {
   opacity: 1;
 }
 
-.map-page svg.is-dragging .map-resize-handle {
+.map-page svg.is-dragging .map-resize-handle,
+.map-page svg.is-dragging .map-shape-flip {
   transition: none;
 }
 
@@ -607,7 +628,7 @@ summary:focus-visible {
 .account-summary {
   display: grid;
   min-height: 48px;
-  grid-template-columns: 12px 10px minmax(0, 1fr) auto;
+  grid-template-columns: 12px 10px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 9px;
   padding: 9px 12px;
@@ -664,6 +685,45 @@ summary:focus-visible {
   font-weight: 600;
   text-align: right;
   white-space: nowrap;
+}
+
+.shape-segmented-control {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid #cfd5d0;
+  border-radius: 5px;
+  background: #f7f8f5;
+}
+
+.shape-option {
+  display: grid;
+  width: 25px;
+  height: 24px;
+  padding: 3px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #59645f;
+  place-items: center;
+}
+
+.shape-option:hover {
+  border-color: transparent;
+  background: #e9ece8;
+}
+
+.shape-option[aria-pressed='true'] {
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #1e7a4a;
+  color: #1e7a4a;
+}
+
+.shape-option svg {
+  width: 18px;
+  height: 14px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.5;
 }
 
 .account-body {

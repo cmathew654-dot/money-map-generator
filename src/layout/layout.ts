@@ -214,7 +214,7 @@ function coordinate(value: number): string {
 type Point = { x: number; y: number }
 export type OutlineElement = Placed | PlacedAccount
 
-function isDrum(element: OutlineElement): element is PlacedAccount {
+function isDrum(element: OutlineElement): boolean {
   return (
     'account' in element &&
     accountShape(element.account) === 'drum'

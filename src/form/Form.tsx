@@ -13,6 +13,7 @@ import {
 } from '../model/format'
 import type {
   Account,
+  AccountShape,
   Bucket,
   Footnote,
   IncomeSource,
@@ -20,7 +21,11 @@ import type {
   Position,
   SubAccount,
 } from '../model/types'
-import { newId } from '../model/types'
+import {
+  ACCOUNT_SHAPES,
+  accountShape,
+  newId,
+} from '../model/types'
 
 export interface FormProps {
   data: MoneyMapData
@@ -107,6 +112,35 @@ const accountPresets: {
     },
   },
 ]
+
+const shapeLabels: Record<AccountShape, string> = {
+  drum: 'Drum',
+  card: 'Card',
+  rect: 'Rectangle',
+  pill: 'Pill',
+}
+
+function ShapeGlyph({ shape }: { shape: AccountShape }) {
+  if (shape === 'drum') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 16">
+        <path d="M4 4v7c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V4" />
+        <ellipse cx="12" cy="4" rx="8" ry="2.5" />
+      </svg>
+    )
+  }
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 16">
+      <rect
+        x="3"
+        y="2.5"
+        width="18"
+        height="11"
+        rx={shape === 'card' ? 2.5 : shape === 'pill' ? 5.5 : 0.5}
+      />
+    </svg>
+  )
+}
 
 function MoneyField({ label, value, onChange }: MoneyFieldProps) {
   const [focused, setFocused] = useState(false)
@@ -527,6 +561,29 @@ function AccountCard({
           {accountDisplayName(account)}
         </span>
         <span className="account-summary-value">{money(account.value)}</span>
+        <span
+          aria-label={`Shape for ${accountDisplayName(account)}`}
+          className="shape-segmented-control"
+          role="group"
+        >
+          {ACCOUNT_SHAPES.map((shape) => (
+            <button
+              aria-label={`${shapeLabels[shape]} shape`}
+              aria-pressed={accountShape(account) === shape}
+              className="shape-option"
+              key={shape}
+              type="button"
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                onChange({ ...account, shape })
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <ShapeGlyph shape={shape} />
+            </button>
+          ))}
+        </span>
       </summary>
       <div className="account-body">
         <button className="text-button" type="button" onClick={onRemove}>
