@@ -75,7 +75,8 @@ button:hover {
 
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+summary:focus-visible {
   border-color: #1e7a4a;
   outline: 2px solid #1e7a4a;
   outline-offset: 1px;
@@ -127,7 +128,7 @@ select:focus-visible {
 .workspace {
   display: grid;
   height: calc(100vh - 52px);
-  grid-template-columns: 400px minmax(520px, 1fr);
+  grid-template-columns: 480px minmax(520px, 1fr);
 }
 
 .form-pane {
@@ -193,8 +194,7 @@ select:focus-visible {
 }
 
 .form-field > span,
-.nested-list h4,
-.account-card h3 {
+.nested-list h4 {
   color: #5b6663;
   font-size: 12px;
   font-weight: 600;
@@ -208,6 +208,19 @@ select:focus-visible {
   min-width: 0;
   height: 32px;
   padding: 5px 8px;
+  font-size: 14px;
+}
+
+.client-fields,
+.account-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.client-meta-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .money-input {
@@ -222,37 +235,47 @@ select:focus-visible {
 
 .row-list {
   display: grid;
-  gap: 10px;
+  gap: 14px;
 }
 
-.compact-row {
+.stacked-row {
   display: grid;
-  position: relative;
+  gap: 8px;
+}
+
+.stacked-row + .stacked-row {
+  padding-top: 12px;
+  border-top: 1px solid #eef0ed;
+}
+
+.stacked-row-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
   align-items: end;
   gap: 8px;
 }
 
-.income-row {
-  grid-template-columns: minmax(75px, 1.3fr) minmax(70px, 0.9fr) 58px minmax(70px, 1fr);
-  padding-right: 24px;
+.income-row-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+  gap: 8px;
 }
 
-.nested-row {
-  grid-template-columns: minmax(0, 1.3fr) minmax(85px, 1fr);
-  padding-right: 24px;
+.footnote-row-fields,
+.subaccount-row-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
-.subaccount-row,
-.footnote-row {
-  grid-template-columns: minmax(95px, 1.2fr) minmax(85px, 1fr) minmax(80px, 0.9fr);
-  padding-right: 24px;
+.nested-row-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .remove-button {
-  position: absolute;
-  right: 0;
-  bottom: 5px;
-  width: 22px;
+  width: 24px;
+  height: 32px;
   border: 0;
   background: transparent;
   color: #5b6663;
@@ -301,7 +324,6 @@ select:focus-visible {
 
 .account-card {
   margin: 0 -4px 16px;
-  padding: 14px 12px 12px;
   border-top: 1px solid #dde1dc;
   border-right: 1px solid #dde1dc;
   border-bottom: 1px solid #dde1dc;
@@ -309,20 +331,103 @@ select:focus-visible {
   background: #fcfcfa;
 }
 
+.account-summary {
+  display: grid;
+  min-height: 48px;
+  grid-template-columns: 12px 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.account-summary::-webkit-details-marker {
+  display: none;
+}
+
+.account-summary::before {
+  color: #5b6663;
+  content: '›';
+  font-size: 19px;
+  line-height: 1;
+  transform-origin: center;
+  transition: transform 120ms ease;
+}
+
+.account-card[open] > .account-summary::before {
+  transform: rotate(90deg);
+}
+
+.account-summary:hover {
+  background: #f7f8f5;
+}
+
+.account-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 1px;
+  background: #59645f;
+}
+
+.account-summary-label {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.account-summary-value {
+  padding-left: 8px;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.account-body {
+  padding: 12px;
+  border-top: 1px solid #dde1dc;
+}
+
+.account-body > .text-button {
+  display: block;
+  margin: -4px 0 10px auto;
+}
+
 .bucket-shortTerm {
   border-left-color: #2a3230;
+}
+
+.bucket-shortTerm .account-swatch {
+  background: #2a3230;
 }
 
 .bucket-afterTax {
   border-left-color: #b98a1e;
 }
 
+.bucket-afterTax .account-swatch {
+  background: #b98a1e;
+}
+
 .bucket-taxDeferred {
   border-left-color: #2f6bab;
 }
 
+.bucket-taxDeferred .account-swatch {
+  background: #2f6bab;
+}
+
 .bucket-taxPreferred {
   border-left-color: #6fa7d4;
+}
+
+.bucket-taxPreferred .account-swatch {
+  background: #6fa7d4;
 }
 
 .bucket-charitable,
@@ -330,19 +435,17 @@ select:focus-visible {
   border-left-color: #6b4fa0;
 }
 
+.bucket-charitable .account-swatch,
+.bucket-note .account-swatch {
+  background: #6b4fa0;
+}
+
 .bucket-cash {
   border-left-color: #59645f;
 }
 
-.account-card-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.account-card h3 {
-  margin: 0;
+.bucket-cash .account-swatch {
+  background: #59645f;
 }
 
 .checkbox-field {
@@ -371,17 +474,21 @@ select:focus-visible {
   margin: 0 0 10px;
 }
 
+.nested-list .stacked-row + .stacked-row {
+  margin-top: 12px;
+}
+
+.footnote-row {
+  margin-bottom: 14px;
+}
+
 @media (max-width: 900px) {
   .app-shell {
-    min-width: 800px;
+    min-width: 1000px;
   }
 
   .app-header {
-    min-width: 800px;
-  }
-
-  .workspace {
-    grid-template-columns: 360px minmax(440px, 1fr);
+    min-width: 1000px;
   }
 
   .client-form {
