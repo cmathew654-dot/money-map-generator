@@ -26,6 +26,7 @@ import {
   moneyPer,
   wrap,
 } from '../model/format'
+import { gapLine, runwayLine } from '../model/math'
 import type {
   AccountShape,
   Footnote,
@@ -379,10 +380,12 @@ function IncomePanel({
 }
 
 function NeedCard({
+  mathLine,
   onElementClick,
   value,
   placed,
 }: {
+  mathLine: string | null
   onElementClick?: (target: MapElementTarget) => void
   value: number | null
   placed: Placed
@@ -424,6 +427,18 @@ function NeedCard({
       >
         {money(value)}
       </text>
+      {mathLine && (
+        <text
+          x={placed.x + placed.w / 2}
+          y={placed.y + 139}
+          fill={MUTED}
+          fontFamily={FONT_SANS}
+          fontSize={11.5}
+          textAnchor="middle"
+        >
+          {mathLine}
+        </text>
+      )}
     </g>
   )
 }
@@ -527,6 +542,7 @@ function AccountContent({
   onElementClick,
   placed,
   rowsY,
+  runway,
   subStartY,
   tagY,
   titleLines,
@@ -539,6 +555,7 @@ function AccountContent({
   onElementClick?: (target: MapElementTarget) => void
   placed: PlacedAccount
   rowsY: number
+  runway: string | null
   subStartY: number
   tagY: number
   titleLines: string[]
@@ -657,6 +674,18 @@ function AccountContent({
       >
         {money(account.value)}
       </text>
+      {runway && (
+        <text
+          x={x + w / 2}
+          y={valueY + 18}
+          fill={MUTED}
+          fontFamily={FONT_SANS}
+          fontSize={11.5}
+          textAnchor="middle"
+        >
+          {runway}
+        </text>
+      )}
       {account.subAccounts?.map((subAccount, index) => (
         <SubAccountDrum
           key={`${subAccount.label}-${index}`}
@@ -675,10 +704,12 @@ function AccountContent({
 function FlatAccount({
   onElementClick,
   placed,
+  runway,
   shape,
 }: {
   onElementClick?: (target: MapElementTarget) => void
   placed: PlacedAccount
+  runway: string | null
   shape: Exclude<AccountShape, 'drum'>
 }) {
   const { account, x, y, w, h } = placed
@@ -702,7 +733,9 @@ function FlatAccount({
   const lowerInset =
     shape === 'pill' ? Math.max(12, radius * 0.32) : 12
   const subStartY = y + h - lowerInset - subAccounts.length * 96
-  const valueY = subAccounts.length ? subStartY - 17 : y + h - 25
+  const valueY =
+    (subAccounts.length ? subStartY - 17 : y + h - 25) -
+    (runway ? 18 : 0)
   const outlineProps = {
     fill: style.tint,
     stroke: style.stroke,
@@ -730,6 +763,7 @@ function FlatAccount({
         onElementClick={onElementClick}
         placed={placed}
         rowsY={rowsY}
+        runway={runway}
         subStartY={subStartY}
         tagY={y + 25}
         titleLines={titleLines}
@@ -778,9 +812,11 @@ function ShapeFlipGlyph({
 function Cylinder({
   onElementClick,
   placed,
+  runway,
 }: {
   onElementClick?: (target: MapElementTarget) => void
   placed: PlacedAccount
+  runway: string | null
 }) {
   const { account, x, y, w, h, capRy } = placed
   const style = BUCKETS[account.bucket]
@@ -794,9 +830,10 @@ function Cylinder({
   const tagY = y + capRy
   const minimumTitleY = y + capRy * 2 + CAP_CONTENT_GAP
   const subAccounts = account.subAccounts ?? []
-  const valueY = subAccounts.length
-    ? y + h - capRy - subAccounts.length * 96 - 17
-    : y + h - capRy - 18
+  const valueY =
+    (subAccounts.length
+      ? y + h - capRy - subAccounts.length * 96 - 17
+      : y + h - capRy - 18) - (runway ? 18 : 0)
   const distributesSlack =
     account.bucket === 'shortTerm' &&
     !account.positions?.length &&
@@ -843,6 +880,7 @@ function Cylinder({
         onElementClick={onElementClick}
         placed={placed}
         rowsY={rowsY}
+        runway={runway}
         subStartY={subStartY}
         tagY={tagY}
         titleLines={titleLines}
@@ -1387,6 +1425,12 @@ export function MapSvg({
         }
       >
         <NeedCard
+          mathLine={gapLine(
+            displayData.monthlyNeed,
+            displayData.afterTaxIncome,
+            displayData.asNeededAmount,
+            displayData.showMath !== false,
+          )}
           onElementClick={onElementClick}
           value={displayData.monthlyNeed}
           placed={layout.need}
@@ -1396,6 +1440,14 @@ export function MapSvg({
         {layout.accounts.map((placed, index) => {
           const style = BUCKETS[placed.account.bucket]
           const shape = accountShape(placed.account)
+          const runway =
+            placed.account.bucket === 'shortTerm'
+              ? runwayLine(
+                  placed.account.value,
+                  displayData.asNeededAmount,
+                  displayData.showMath !== false,
+                )
+              : null
           return (
             <g
               data-account-id={placed.account.id}
@@ -1432,11 +1484,13 @@ export function MapSvg({
                 <Cylinder
                   onElementClick={onElementClick}
                   placed={placed}
+                  runway={runway}
                 />
               ) : (
                 <FlatAccount
                   onElementClick={onElementClick}
                   placed={placed}
+                  runway={runway}
                   shape={shape}
                 />
               )}

@@ -34,6 +34,7 @@ describe('book operations', () => {
     expect(blank.afterTaxIncome).toBeNull()
     expect(blank.monthlyNeed).toBeNull()
     expect(blank.asNeededAmount).toBeNull()
+    expect(blank.showMath).toBeUndefined()
   })
 
   it('starts with three samples and one blank client', () => {
@@ -147,6 +148,25 @@ describe('parseBook', () => {
     expect(parsed).toEqual(legacy)
     expect(parsed.clients[0].layoutOverrides).toBeUndefined()
     expect(parsed.clients[0].accounts[0].shape).toBeUndefined()
+    expect(parsed.clients[0].showMath).toBeUndefined()
+  })
+
+  it('round-trips explicit math visibility', () => {
+    const book = newBook()
+    book.clients[0].showMath = false
+
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it('rejects invalid math visibility', () => {
+    const value = newBook() as unknown as {
+      clients: { showMath?: unknown }[]
+    }
+    value.clients[0].showMath = 'yes'
+
+    expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'invalid math visibility',
+    )
   })
 
   it('rejects malformed JSON with a human message', () => {

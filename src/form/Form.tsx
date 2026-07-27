@@ -877,6 +877,16 @@ export function ClientSection({
             />
           </div>
         )}
+        <label className="checkbox-field client-math-toggle">
+          <input
+            checked={data.showMath !== false}
+            type="checkbox"
+            onChange={(event) =>
+              onChange({ ...data, showMath: event.target.checked })
+            }
+          />
+          <span>Show runway and gap math</span>
+        </label>
       </div>
     </section>
   )

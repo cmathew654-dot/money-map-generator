@@ -71,6 +71,8 @@ export interface LayoutOverride {
 
 export interface MoneyMapData {
   id: string
+  /** omitted in legacy books; arithmetic captions default on */
+  showMath?: boolean
   client: {
     title: string // "Jordan & Dana Whitfield"
     year: string // "2026"

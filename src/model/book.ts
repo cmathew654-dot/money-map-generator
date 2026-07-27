@@ -143,6 +143,12 @@ function validateClient(value: unknown, index: number): void {
       throw new Error(`Client ${index + 1} has invalid ${field}.`)
     }
   }
+  if (
+    value.showMath !== undefined &&
+    typeof value.showMath !== 'boolean'
+  ) {
+    throw new Error(`Client ${index + 1} has invalid math visibility.`)
+  }
   const accounts = value.accounts as unknown[]
   for (const account of accounts) {
     if (
