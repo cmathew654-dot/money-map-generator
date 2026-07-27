@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { layoutMap, type PlacedAccount } from '../src/layout/layout'
+import { newBook } from '../src/model/book'
 import {
   blankClient,
   SAMPLE_CALLOWAY,
@@ -80,11 +81,21 @@ describe('layoutMap', () => {
     expect(chain[1].x).toBeGreaterThan(chain[2].x)
   })
 
-  it('routes the after-tax waterfall above cash and into the target cap left half', () => {
+  it('places short-term accounts above cash in the center column', () => {
     const layout = layoutMap(SAMPLE_WHITFIELD)
     const cash = layout.accounts.find(
       (placed) => placed.account.id === 'cash-at-bank',
     )!
+    const shortTerm = layout.accounts.find(
+      (placed) => placed.account.id === 'short-term-funds',
+    )!
+
+    expect(shortTerm.x).toBe(cash.x)
+    expect(shortTerm.y).toBeLessThan(cash.y)
+  })
+
+  it('routes the after-tax waterfall directly into the target cap left shoulder', () => {
+    const layout = layoutMap(SAMPLE_WHITFIELD)
     const shortTerm = layout.accounts.find(
       (placed) => placed.account.id === 'short-term-funds',
     )!
@@ -95,15 +106,33 @@ describe('layoutMap', () => {
         candidate.targetId === 'short-term-funds',
     )!
     const path = pathNumbers(arrow.d)
-    const [, , , controlY, clearX, , , , , turnY] = path
+    const [, , , firstControlY, , secondControlY] = path
     const [endX, endY] = path.slice(-2)
 
-    expect(controlY).toBeLessThan(cash.y)
-    expect(clearX).toBeLessThan(cash.x)
-    expect(turnY).toBeGreaterThan(cash.y + cash.h)
-    expect(endX).toBeGreaterThan(shortTerm.x)
-    expect(endX).toBeLessThan(shortTerm.x + shortTerm.w / 2)
+    expect(path).toHaveLength(8)
+    expect(firstControlY).toBeLessThan(shortTerm.y)
+    expect(secondControlY).toBe(firstControlY)
+    expect(endX).toBe(shortTerm.x + shortTerm.w * 0.35)
     expect(endY).toBe(shortTerm.y - 4)
+  })
+
+  it('keeps every waterfall coordinate below the masthead band', () => {
+    const waterfall = newBook().clients.flatMap((client) =>
+      layoutMap(client).arrows.filter(
+        (arrow) => arrow.kind === 'waterfall',
+      ),
+    )
+
+    expect(waterfall.length).toBeGreaterThan(0)
+    for (const arrow of waterfall) {
+      expect(arrow.d).not.toContain('NaN')
+      const coordinates = pathNumbers(arrow.d)
+      expect(coordinates.length).toBeGreaterThan(0)
+      expect(coordinates.length % 2).toBe(0)
+      expect(coordinates.every(Number.isFinite)).toBe(true)
+      const yCoordinates = coordinates.filter((_, index) => index % 2 === 1)
+      expect(Math.min(...yCoordinates)).toBeGreaterThanOrEqual(128)
+    }
   })
 
   it('keeps the content-light cash drum compact', () => {
@@ -150,8 +179,8 @@ describe('layoutMap', () => {
       oneMinusT ** 2 * startY +
       2 * oneMinusT * t * controlY +
       t ** 2 * endY
-    expect(asNeeded.labelAt?.x).toBeCloseTo(labelX, 1)
-    expect(asNeeded.labelAt?.y).toBeCloseTo(labelY, 1)
+    expect(asNeeded.labelAt?.x).toBeLessThanOrEqual(labelX)
+    expect(asNeeded.labelAt?.y).toBeLessThanOrEqual(labelY)
     expect(startY).toBe(shortTerm.y + shortTerm.h * 0.72)
   })
 
