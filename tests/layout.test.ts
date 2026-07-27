@@ -231,7 +231,6 @@ describe('layoutMap', () => {
     ['Whitfield', SAMPLE_WHITFIELD],
     ['Calloway', SAMPLE_CALLOWAY],
     ['Venkat', SAMPLE_VENKAT],
-    ['blank client', blankClient()],
   ])('keeps the %s as-needed chip and segment clear', (_label, data) => {
     const layout = layoutMap(data)
     const asNeeded = layout.arrows.find(
@@ -259,6 +258,21 @@ describe('layoutMap', () => {
         segmentIntersectsBox(start, end, obstacle),
       ),
     ).toEqual([])
+  })
+
+  it('lays out a truly blank client with only the income-to-need arrow', () => {
+    const layout = layoutMap(blankClient())
+
+    expect(layout.accounts).toEqual([])
+    expect(
+      layout.arrows.filter((arrow) => arrow.kind === 'waterfall'),
+    ).toEqual([])
+    expect(
+      layout.arrows.filter((arrow) => arrow.kind === 'asNeeded'),
+    ).toEqual([])
+    expect(
+      layout.arrows.filter((arrow) => arrow.kind === 'income'),
+    ).toHaveLength(1)
   })
 
   it('uses the specified fixed panel and footnote slots', () => {

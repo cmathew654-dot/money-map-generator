@@ -6,7 +6,11 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type Ref,
 } from 'react'
-import { money, parseMoneyInput } from '../model/format'
+import {
+  accountDisplayName,
+  money,
+  parseMoneyInput,
+} from '../model/format'
 import type {
   Account,
   Bucket,
@@ -38,7 +42,7 @@ const bucketOptions: { value: Bucket; label: string }[] = [
   { value: 'taxPreferred', label: 'Tax-Preferred' },
   { value: 'charitable', label: 'Charitable' },
   { value: 'cash', label: 'Cash' },
-  { value: 'note', label: 'Note card' },
+  { value: 'note', label: 'Note' },
 ]
 
 const accountPresets: {
@@ -139,17 +143,20 @@ function TextField({
   value,
   onChange,
   inputRef,
+  placeholder,
 }: {
   label: string
   value: string
   onChange(value: string): void
   inputRef?: Ref<HTMLInputElement>
+  placeholder?: string
 }) {
   return (
     <label className="form-field">
       <span>{label}</span>
       <input
         ref={inputRef}
+        placeholder={placeholder}
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -186,20 +193,28 @@ export function NeedSection({
 }) {
   const fields = (
     <>
-      <MoneyField
-        label="Monthly Income Need"
-        value={data.monthlyNeed}
-        onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
-      />
+      <div>
+        <MoneyField
+          label="Monthly Income Need"
+          value={data.monthlyNeed}
+          onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
+        />
+        <p className="help-text">
+          The red number — what the household must cover each month.
+        </p>
+      </div>
       <div className="wide-field">
         <MoneyField
-          label="Monthly income as needed"
+          label="Draw from Short-Term Bucket"
           value={data.asNeededAmount}
           onChange={(asNeededAmount) =>
             onChange({ ...data, asNeededAmount })
           }
         />
-        <p className="help-text">Appears on the arrow.</p>
+        <p className="help-text">
+          Optional monthly draw — appears on the arrow from the short-term
+          bucket.
+        </p>
       </div>
     </>
   )
@@ -291,6 +306,9 @@ export function IncomeSection({
           </div>
         ))}
       </div>
+      {data.incomeSources.length === 0 && (
+        <p className="empty-state">No income sources yet.</p>
+      )}
       <button
         className="add-button"
         type="button"
@@ -499,8 +517,12 @@ function AccountCard({
     >
       <summary className="account-summary">
         <span aria-hidden="true" className="account-swatch" />
-        <span className="account-summary-label">
-          {account.label || 'Untitled account'}
+        <span
+          className={`account-summary-label${
+            account.label.trim() ? '' : ' is-unnamed'
+          }`}
+        >
+          {accountDisplayName(account)}
         </span>
         <span className="account-summary-value">{money(account.value)}</span>
       </summary>
@@ -657,6 +679,11 @@ export function AccountsSection({
           </button>
         ))}
       </div>
+      {data.accounts.length === 0 && (
+        <p className="empty-state">
+          No accounts yet — tap a type above to add one.
+        </p>
+      )}
     </section>
   )
 }
@@ -758,7 +785,7 @@ export function ClientSection({
             onChange={(year) => updateClient({ year })}
           />
           <label className="form-field">
-            <span>Variant</span>
+            <span>Map Type</span>
             <select
               value={data.client.variant}
               onChange={(event) =>
@@ -768,14 +795,15 @@ export function ClientSection({
               }
             >
               <option value="annual">Annual</option>
-              <option value="postNote">Post Note</option>
+              <option value="postNote">Mid-year update</option>
             </select>
           </label>
         </div>
         {data.client.variant === 'postNote' && (
           <div className="client-post-note-row">
             <TextField
-              label="Post Note Label"
+              label="As Of"
+              placeholder="April 2026"
               value={data.client.postNoteLabel ?? ''}
               onChange={(postNoteLabel) =>
                 updateClient({ postNoteLabel })

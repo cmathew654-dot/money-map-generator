@@ -1,6 +1,30 @@
+import type { Account, Bucket } from './types'
+
 /** Pure formatting helpers. null → the fill-in blank, by design. */
 
 export const BLANK = '~$ ______'
+
+const BUCKET_DISPLAY_NAMES: Record<Bucket, string> = {
+  shortTerm: 'Short-Term Bucket',
+  afterTax: 'After-Tax',
+  taxDeferred: 'Tax-Deferred',
+  taxPreferred: 'Tax-Preferred',
+  charitable: 'Charitable',
+  cash: 'Cash',
+  note: 'Note',
+}
+
+export function bucketDisplayName(bucket: Bucket): string {
+  return BUCKET_DISPLAY_NAMES[bucket]
+}
+
+export function accountDisplayName(
+  account: Pick<Account, 'bucket' | 'label'>,
+): string {
+  return account.label.trim()
+    ? account.label
+    : `${bucketDisplayName(account.bucket)} · unnamed`
+}
 
 /** Parse advisor-friendly dollar input, including k/m shorthand. */
 export function parseMoneyInput(text: string): number | null {

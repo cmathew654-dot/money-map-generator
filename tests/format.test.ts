@@ -1,11 +1,36 @@
 import { describe, expect, it } from 'vitest'
 import {
   BLANK,
+  accountDisplayName,
+  bucketDisplayName,
   money,
   moneyPer,
   parseMoneyInput,
   wrap,
 } from '../src/model/format'
+
+describe('account display names', () => {
+  it.each([
+    ['shortTerm', 'Short-Term Bucket'],
+    ['afterTax', 'After-Tax'],
+    ['taxDeferred', 'Tax-Deferred'],
+    ['taxPreferred', 'Tax-Preferred'],
+    ['charitable', 'Charitable'],
+    ['cash', 'Cash'],
+    ['note', 'Note'],
+  ] as const)('names the %s bucket', (bucket, displayName) => {
+    expect(bucketDisplayName(bucket)).toBe(displayName)
+  })
+
+  it('uses the label when present and the bucket identity when blank', () => {
+    expect(
+      accountDisplayName({ bucket: 'shortTerm', label: 'Bridge Cash' }),
+    ).toBe('Bridge Cash')
+    expect(
+      accountDisplayName({ bucket: 'shortTerm', label: '  ' }),
+    ).toBe('Short-Term Bucket · unnamed')
+  })
+})
 
 describe('parseMoneyInput', () => {
   it.each([

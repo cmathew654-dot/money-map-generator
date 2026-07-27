@@ -352,6 +352,13 @@ summary:focus-visible {
   font-size: 12px;
 }
 
+.empty-state {
+  margin: 8px 0;
+  color: #5b6663;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .account-card {
   margin: 0 -4px 16px;
   border-top: 1px solid #dde1dc;
@@ -406,6 +413,12 @@ summary:focus-visible {
   font-weight: 600;
   line-height: 1.35;
   overflow-wrap: anywhere;
+}
+
+.account-summary-label.is-unnamed {
+  color: #5b6663;
+  font-style: italic;
+  font-weight: 400;
 }
 
 .account-summary-value {

@@ -248,33 +248,11 @@ export function blankClient(): MoneyMapData {
       year: '',
       variant: 'annual',
     },
-    incomeSources: [{ label: '', amount: null, period: 'mo' }],
+    incomeSources: [],
     afterTaxIncome: null,
     monthlyNeed: null,
     asNeededAmount: null,
-    accounts: [
-      {
-        id: '',
-        bucket: 'shortTerm',
-        label: '',
-        value: null,
-        inWaterfall: true,
-      },
-      {
-        id: '',
-        bucket: 'afterTax',
-        label: '',
-        value: null,
-        inWaterfall: true,
-      },
-      {
-        id: '',
-        bucket: 'taxDeferred',
-        label: '',
-        value: null,
-        inWaterfall: true,
-      },
-    ],
+    accounts: [],
     footnotes: [],
   }
 }

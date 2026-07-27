@@ -8,12 +8,28 @@ import {
   updateClient,
 } from '../src/model/book'
 import {
+  blankClient,
   SAMPLE_CALLOWAY,
   SAMPLE_VENKAT,
   SAMPLE_WHITFIELD,
 } from '../src/model/samples'
 
 describe('book operations', () => {
+  it('creates a truly blank client', () => {
+    const blank = blankClient()
+
+    expect(blank.client).toEqual({
+      title: '',
+      year: '',
+      variant: 'annual',
+    })
+    expect(blank.incomeSources).toEqual([])
+    expect(blank.accounts).toEqual([])
+    expect(blank.afterTaxIncome).toBeNull()
+    expect(blank.monthlyNeed).toBeNull()
+    expect(blank.asNeededAmount).toBeNull()
+  })
+
   it('starts with three samples and one blank client', () => {
     const book = newBook()
 
@@ -25,7 +41,8 @@ describe('book operations', () => {
     expect(book.clients[2]).toEqual(SAMPLE_VENKAT)
     expect(book.clients[3].client.title).toBe('')
     expect(book.clients[3].id).not.toBe('')
-    expect(book.clients[3].accounts.every((account) => account.id)).toBe(true)
+    expect(book.clients[3].accounts).toEqual([])
+    expect(book.clients[3].incomeSources).toEqual([])
   })
 
   it('adds a titled blank client without mutating the book', () => {

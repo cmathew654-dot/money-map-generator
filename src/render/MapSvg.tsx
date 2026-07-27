@@ -9,7 +9,12 @@ import type {
   Placed,
   PlacedAccount,
 } from '../layout/layout'
-import { money, moneyPer, wrap } from '../model/format'
+import {
+  accountDisplayName,
+  money,
+  moneyPer,
+  wrap,
+} from '../model/format'
 import type {
   Footnote,
   IncomeSource,
@@ -68,7 +73,10 @@ function interactiveGroupProps(
 
 function mastheadLabel(data: MoneyMapData): string {
   if (data.client.variant === 'postNote') {
-    return `MONEY MAP — POST NOTE — ${data.client.postNoteLabel ?? ''}`.trim()
+    const asOf = data.client.postNoteLabel?.trim()
+    return asOf
+      ? `MONEY MAP — ${asOf} UPDATE`
+      : 'MONEY MAP — UPDATE'
   }
   return `MONEY MAP ${data.client.year}`
 }
@@ -806,7 +814,7 @@ export function MapSvg({
             <g
               key={`${placed.account.id}-${index}`}
               {...interactiveGroupProps(
-                placed.account.label || 'Untitled account',
+                accountDisplayName(placed.account),
                 { kind: 'account', id: placed.account.id },
                 onElementClick,
               )}
