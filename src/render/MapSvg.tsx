@@ -406,7 +406,7 @@ function NoteCard({ placed }: { placed: PlacedAccount }) {
       <text
         x={placed.x + placed.w / 2}
         y={placed.y + 25}
-        fill={style.stroke}
+        fill={style.tagColor}
         fontFamily={FONT_SANS}
         fontSize={TYPE.accountTag}
         fontWeight={700}
@@ -527,7 +527,7 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
       <text
         x={centerX}
         y={tagY}
-        fill={style.stroke}
+        fill={style.tagColor}
         fontFamily={FONT_SANS}
         fontSize={TYPE.accountTag}
         fontWeight={700}
