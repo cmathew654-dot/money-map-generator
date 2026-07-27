@@ -812,10 +812,12 @@ summary:focus-visible {
 }
 
 .wizard-done {
-  padding-top: 8px;
+  padding: 8px 20px 0;
 }
 
 .wizard-done-content {
+  margin-right: -20px;
+  margin-left: -20px;
   padding: 38px 20px 36px;
 }
 
@@ -875,6 +877,16 @@ summary:focus-visible {
   .client-form {
     padding-right: 14px;
     padding-left: 14px;
+  }
+
+  .wizard-done {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .wizard-done-content {
+    margin-right: -14px;
+    margin-left: -14px;
   }
 
   .form-mode-toggle {
