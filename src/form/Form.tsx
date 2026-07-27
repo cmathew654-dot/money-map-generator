@@ -18,7 +18,7 @@ import type {
 } from '../model/types'
 import { newId } from '../model/types'
 
-interface FormProps {
+export interface FormProps {
   data: MoneyMapData
   onChange(next: MoneyMapData): void
   focusRequest?: { id: string; at: number }
@@ -121,7 +121,10 @@ function MoneyField({ label, value, onChange }: MoneyFieldProps) {
           onChange(parseMoneyInput(raw))
           setFocused(false)
         }}
-        onChange={(event) => setRaw(event.target.value)}
+        onChange={(event) => {
+          setRaw(event.target.value)
+          onChange(parseMoneyInput(event.target.value))
+        }}
         onFocus={() => {
           setRaw(value === null ? '' : String(value))
           setFocused(true)
@@ -174,12 +177,51 @@ function RemoveButton({
   )
 }
 
-function IncomeSection({
+export function NeedSection({
+  data,
+  onChange,
+  embedded = false,
+}: Pick<FormProps, 'data' | 'onChange'> & {
+  embedded?: boolean
+}) {
+  const fields = (
+    <>
+      <MoneyField
+        label="Monthly Income Need"
+        value={data.monthlyNeed}
+        onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
+      />
+      <div className="wide-field">
+        <MoneyField
+          label="Monthly income as needed"
+          value={data.asNeededAmount}
+          onChange={(asNeededAmount) =>
+            onChange({ ...data, asNeededAmount })
+          }
+        />
+        <p className="help-text">Appears on the arrow.</p>
+      </div>
+    </>
+  )
+
+  if (embedded) return fields
+
+  return (
+    <section className="form-section">
+      <h2>Need</h2>
+      <div className="field-grid">{fields}</div>
+    </section>
+  )
+}
+
+export function IncomeSection({
   data,
   onChange,
   sectionRef,
+  includeNeed = true,
 }: Pick<FormProps, 'data' | 'onChange'> & {
   sectionRef?: Ref<HTMLElement>
+  includeNeed?: boolean
 }) {
   const setSources = (incomeSources: IncomeSource[]) =>
     onChange({ ...data, incomeSources })
@@ -267,21 +309,9 @@ function IncomeSection({
           value={data.afterTaxIncome}
           onChange={(afterTaxIncome) => onChange({ ...data, afterTaxIncome })}
         />
-        <MoneyField
-          label="Monthly Income Need"
-          value={data.monthlyNeed}
-          onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
-        />
-        <div className="wide-field">
-          <MoneyField
-            label="Monthly income as needed"
-            value={data.asNeededAmount}
-            onChange={(asNeededAmount) =>
-              onChange({ ...data, asNeededAmount })
-            }
-          />
-          <p className="help-text">Appears on the arrow.</p>
-        </div>
+        {includeNeed && (
+          <NeedSection data={data} embedded onChange={onChange} />
+        )}
       </div>
     </section>
   )
@@ -542,12 +572,15 @@ interface AccountFocusRefs {
   labelInput: HTMLInputElement
 }
 
-function AccountsSection({
+export function AccountsSection({
   data,
   focusRequest,
   onChange,
   onHoverAccount,
-}: FormProps) {
+  presetLabel = 'Add:',
+}: FormProps & {
+  presetLabel?: string
+}) {
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
   const focusRefs = useRef(new Map<string, AccountFocusRefs>())
   const registerFocusRefs = useCallback(
@@ -576,7 +609,7 @@ function AccountsSection({
   }, [focusRequest])
 
   return (
-    <section className="form-section">
+    <section className="form-section accounts-section">
       <h2>Accounts</h2>
       {data.accounts.map((account, index) => (
         <AccountCard
@@ -600,7 +633,7 @@ function AccountsSection({
         />
       ))}
       <div className="account-preset-row" aria-label="Add account">
-        <span className="account-preset-label">Add:</span>
+        <span className="account-preset-label">{presetLabel}</span>
         {accountPresets.map((preset) => (
           <button
             className={`account-preset-button bucket-${preset.account.bucket}`}
@@ -628,7 +661,7 @@ function AccountsSection({
   )
 }
 
-function FootnotesSection({ data, onChange }: FormProps) {
+export function FootnotesSection({ data, onChange }: FormProps) {
   const setFootnotes = (footnotes: Footnote[]) =>
     onChange({ ...data, footnotes })
   const updateFootnote = (index: number, footnote: Footnote) =>
@@ -699,6 +732,84 @@ function FootnotesSection({ data, onChange }: FormProps) {
   )
 }
 
+export function ClientSection({
+  data,
+  onChange,
+}: Pick<FormProps, 'data' | 'onChange'>) {
+  const updateClient = (
+    client: Partial<MoneyMapData['client']>,
+  ) => onChange({ ...data, client: { ...data.client, ...client } })
+
+  return (
+    <section className="form-section">
+      <h2>Client</h2>
+      <div className="client-fields">
+        <div className="client-title-row">
+          <TextField
+            label="Title"
+            value={data.client.title}
+            onChange={(title) => updateClient({ title })}
+          />
+        </div>
+        <div className="client-meta-row">
+          <TextField
+            label="Year"
+            value={data.client.year}
+            onChange={(year) => updateClient({ year })}
+          />
+          <label className="form-field">
+            <span>Variant</span>
+            <select
+              value={data.client.variant}
+              onChange={(event) =>
+                updateClient({
+                  variant: event.target.value as 'annual' | 'postNote',
+                })
+              }
+            >
+              <option value="annual">Annual</option>
+              <option value="postNote">Post Note</option>
+            </select>
+          </label>
+        </div>
+        {data.client.variant === 'postNote' && (
+          <div className="client-post-note-row">
+            <TextField
+              label="Post Note Label"
+              value={data.client.postNoteLabel ?? ''}
+              onChange={(postNoteLabel) =>
+                updateClient({ postNoteLabel })
+              }
+            />
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+export function handleFormKeyDown(
+  event: ReactKeyboardEvent<HTMLFormElement>,
+) {
+  if (
+    event.key !== 'Enter' ||
+    !(event.target instanceof HTMLInputElement) ||
+    event.target.type !== 'text'
+  ) {
+    return
+  }
+
+  const inputs = Array.from(
+    event.currentTarget.querySelectorAll<HTMLInputElement>(
+      'input:not([type="hidden"]):not([disabled])',
+    ),
+  ).filter((input) => input.getClientRects().length > 0)
+  const nextInput = inputs[inputs.indexOf(event.target) + 1]
+  if (!nextInput) return
+  event.preventDefault()
+  nextInput.focus()
+}
+
 export function Form({
   data,
   focusRequest,
@@ -706,9 +817,6 @@ export function Form({
   onHoverAccount,
 }: FormProps) {
   const incomeSectionRef = useRef<HTMLElement>(null)
-  const updateClient = (
-    client: Partial<MoneyMapData['client']>,
-  ) => onChange({ ...data, client: { ...data.client, ...client } })
 
   useEffect(() => {
     if (
@@ -723,76 +831,13 @@ export function Form({
     })
   }, [focusRequest])
 
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLFormElement>) => {
-    if (
-      event.key !== 'Enter' ||
-      !(event.target instanceof HTMLInputElement) ||
-      event.target.type !== 'text'
-    ) {
-      return
-    }
-
-    const inputs = Array.from(
-      event.currentTarget.querySelectorAll<HTMLInputElement>(
-        'input:not([type="hidden"]):not([disabled])',
-      ),
-    ).filter((input) => input.getClientRects().length > 0)
-    const nextInput = inputs[inputs.indexOf(event.target) + 1]
-    if (!nextInput) return
-    event.preventDefault()
-    nextInput.focus()
-  }
-
   return (
     <form
       className="client-form"
-      onKeyDown={handleKeyDown}
+      onKeyDown={handleFormKeyDown}
       onSubmit={(event) => event.preventDefault()}
     >
-      <section className="form-section">
-        <h2>Client</h2>
-        <div className="client-fields">
-          <div className="client-title-row">
-            <TextField
-              label="Title"
-              value={data.client.title}
-              onChange={(title) => updateClient({ title })}
-            />
-          </div>
-          <div className="client-meta-row">
-            <TextField
-              label="Year"
-              value={data.client.year}
-              onChange={(year) => updateClient({ year })}
-            />
-            <label className="form-field">
-              <span>Variant</span>
-              <select
-                value={data.client.variant}
-                onChange={(event) =>
-                  updateClient({
-                    variant: event.target.value as 'annual' | 'postNote',
-                  })
-                }
-              >
-                <option value="annual">Annual</option>
-                <option value="postNote">Post Note</option>
-              </select>
-            </label>
-          </div>
-          {data.client.variant === 'postNote' && (
-            <div className="client-post-note-row">
-              <TextField
-                label="Post Note Label"
-                value={data.client.postNoteLabel ?? ''}
-                onChange={(postNoteLabel) =>
-                  updateClient({ postNoteLabel })
-                }
-              />
-            </div>
-          )}
-        </div>
-      </section>
+      <ClientSection data={data} onChange={onChange} />
       <IncomeSection
         data={data}
         onChange={onChange}
