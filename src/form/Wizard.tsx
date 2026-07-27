@@ -181,7 +181,7 @@ export function Wizard({
           </button>
         )}
         <button
-          className="wizard-next"
+          className="primary-button wizard-next"
           type="button"
           onClick={() => {
             if (currentStep === WIZARD_STEPS.length - 1) {

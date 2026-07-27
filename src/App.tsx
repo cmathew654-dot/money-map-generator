@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   addClient,
   deleteClient,
@@ -23,12 +23,18 @@ import {
   MapSvg,
   type MapElementTarget,
 } from './render/MapSvg'
+import { Dialog } from './ui/Dialog'
+import { Mark } from './ui/Mark'
+import { Toast, type ToastMessage } from './ui/Toast'
 import './styles/print.css'
 
 const STORAGE_KEY = 'money-map-book:v1'
 const FORM_MODE_STORAGE_KEY = 'money-map-form-mode:v1'
 
 type FormMode = 'guided' | 'full'
+type AppDialog =
+  | { kind: 'delete'; clientId: string; name: string }
+  | { kind: 'error'; title: string; message: string }
 
 function initialBook(): MoneyMapFile {
   try {
@@ -62,12 +68,27 @@ export default function App() {
     at: number
   }>()
   const [highlightId, setHighlightId] = useState<string | null>(null)
+  const [dialog, setDialog] = useState<AppDialog | null>(null)
+  const [toasts, setToasts] = useState<ToastMessage[]>([])
   const focusRequestCounter = useRef(0)
+  const toastCounter = useRef(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
+
+  const addToast = useCallback((message: string) => {
+    toastCounter.current += 1
+    setToasts((current) => [
+      ...current,
+      { id: toastCounter.current, message },
+    ])
+  }, [])
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts((current) => current.filter((toast) => toast.id !== id))
+  }, [])
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -111,12 +132,26 @@ export default function App() {
   }
 
   const handleDelete = () => {
-    if (!window.confirm(`Delete ${activeClient.client.title || 'Untitled'}?`)) {
-      return
-    }
-    const nextBook = deleteClient(book, activeClient.id)
+    setDialog({
+      kind: 'delete',
+      clientId: activeClient.id,
+      name: activeClient.client.title || 'Untitled',
+    })
+  }
+
+  const confirmDelete = (clientId: string) => {
+    const nextBook = deleteClient(book, clientId)
     setBook(nextBook)
     selectClient(nextBook.clients[0].id)
+    setDialog(null)
+  }
+
+  const showError = (title: string, error: unknown, fallback: string) => {
+    setDialog({
+      kind: 'error',
+      title,
+      message: error instanceof Error ? error.message : fallback,
+    })
   }
 
   const handleLoad = async (file: File) => {
@@ -124,17 +159,20 @@ export default function App() {
       const nextBook = await loadBookFromFile(file)
       setBook(nextBook)
       selectClient(nextBook.clients[0].id)
+      addToast('Book loaded')
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'The book could not be loaded.'
-      window.alert(message)
+      showError('Could not load book', error, 'The book could not be loaded.')
     }
   }
 
   const handleExportPng = async () => {
     const svg = printMapRef.current?.querySelector('svg')
     if (!svg) {
-      window.alert('The Money Map is not ready to export.')
+      showError(
+        'Could not export PNG',
+        new Error('The Money Map is not ready to export.'),
+        'The PNG could not be exported.',
+      )
       return
     }
 
@@ -146,10 +184,13 @@ export default function App() {
           activeClient.client.year,
         ),
       )
+      addToast('PNG exported')
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'The PNG could not be exported.'
-      window.alert(message)
+      showError(
+        'Could not export PNG',
+        error,
+        'The PNG could not be exported.',
+      )
     }
   }
 
@@ -170,41 +211,82 @@ export default function App() {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <div className="wordmark">Money Map</div>
-        <select
-          aria-label="Active client"
-          className="client-select"
-          value={activeClient.id}
-          onChange={(event) => selectClient(event.target.value)}
-        >
-          {book.clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.client.title || 'Untitled'}
-            </option>
-          ))}
-        </select>
-        <button type="button" onClick={handleNew}>
-          New
-        </button>
-        <button type="button" onClick={handleDuplicate}>
-          Duplicate
-        </button>
-        <button type="button" onClick={handleDelete}>
-          Delete
-        </button>
-        <button type="button" onClick={() => window.print()}>
-          Print
-        </button>
-        <button type="button" onClick={() => void handleExportPng()}>
-          Export PNG
-        </button>
+        <div className="header-left">
+          <div className="wordmark">
+            <Mark />
+            <span>Money Map</span>
+          </div>
+          <div className="header-client-actions">
+            <select
+              aria-label="Active client"
+              className="client-select"
+              value={activeClient.id}
+              onChange={(event) => selectClient(event.target.value)}
+            >
+              {book.clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.client.title || 'Untitled'}
+                </option>
+              ))}
+            </select>
+            <button className="quiet-button" type="button" onClick={handleNew}>
+              New
+            </button>
+            <button
+              className="quiet-button"
+              type="button"
+              onClick={handleDuplicate}
+            >
+              Duplicate
+            </button>
+            <button
+              className="quiet-button header-delete"
+              type="button"
+              onClick={handleDelete}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
         <div className="header-spacer" />
-        <button type="button" onClick={() => saveBookToFile(book)}>
-          Save book
-        </button>
-        <button type="button" onClick={() => fileInputRef.current?.click()}>
-          Load book
-        </button>
+        <div className="header-right">
+          <div className="header-book-actions">
+            <button
+              className="quiet-button"
+              type="button"
+              onClick={() => {
+                saveBookToFile(book)
+                addToast('Book saved')
+              }}
+            >
+              Save book
+            </button>
+            <button
+              className="quiet-button"
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Load book
+            </button>
+          </div>
+          <span aria-hidden="true" className="header-divider" />
+          <div className="header-payoff-actions">
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => window.print()}
+            >
+              Print
+            </button>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => void handleExportPng()}
+            >
+              Export PNG
+            </button>
+          </div>
+        </div>
         <input
           ref={fileInputRef}
           accept=".json"
@@ -281,6 +363,30 @@ export default function App() {
       <div ref={printMapRef} aria-hidden="true" className="print-map">
         <MapSvg data={activeClient} />
       </div>
+      {dialog?.kind === 'delete' && (
+        <Dialog
+          confirmLabel="Delete"
+          danger
+          open
+          title="Delete client"
+          onClose={() => setDialog(null)}
+          onConfirm={() => confirmDelete(dialog.clientId)}
+        >
+          Delete {dialog.name}? This cannot be undone.
+        </Dialog>
+      )}
+      {dialog?.kind === 'error' && (
+        <Dialog
+          confirmLabel="OK"
+          open
+          title={dialog.title}
+          onClose={() => setDialog(null)}
+          onConfirm={() => setDialog(null)}
+        >
+          {dialog.message}
+        </Dialog>
+      )}
+      <Toast messages={toasts} onDismiss={dismissToast} />
     </main>
   )
 }

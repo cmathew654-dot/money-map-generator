@@ -73,6 +73,39 @@ button:hover {
   background: #f1f3f0;
 }
 
+.quiet-button {
+  border-color: transparent;
+  background: transparent;
+}
+
+.quiet-button:hover {
+  background: #f1f3f0;
+}
+
+.primary-button {
+  border-color: #1c2422;
+  background: #1c2422;
+  color: #fcfcfa;
+  font-weight: 600;
+}
+
+.primary-button:hover {
+  background: #2a3230;
+}
+
+.danger-button,
+.header-delete {
+  border-color: transparent;
+  background: transparent;
+  color: #c03a2d;
+  font-weight: 600;
+}
+
+.danger-button:hover,
+.header-delete:hover {
+  background: #faeae7;
+}
+
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
@@ -91,18 +124,46 @@ summary:focus-visible {
   display: flex;
   height: 52px;
   align-items: center;
-  gap: 8px;
   padding: 0 14px;
   border-bottom: 1px solid #dde1dc;
   background: #fcfcfa;
 }
 
+.header-left,
+.header-right,
+.header-client-actions,
+.header-book-actions,
+.header-payoff-actions {
+  display: flex;
+  align-items: center;
+}
+
+.header-left {
+  min-width: 0;
+  gap: 20px;
+}
+
+.header-right,
+.header-client-actions,
+.header-book-actions,
+.header-payoff-actions {
+  gap: 4px;
+}
+
 .wordmark {
-  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-family: 'Literata', Georgia, serif;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.wordmark-glyph {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
 }
 
 .client-select {
@@ -113,6 +174,73 @@ summary:focus-visible {
 
 .header-spacer {
   flex: 1;
+}
+
+.header-divider {
+  width: 1px;
+  height: 26px;
+  margin: 0 7px;
+  background: #dde1dc;
+}
+
+.map-page svg [role='button']:focus-visible {
+  outline: 2px solid #1e7a4a;
+  outline-offset: 3px;
+}
+
+.app-dialog {
+  width: min(420px, calc(100vw - 32px));
+  padding: 22px;
+  border: 1px solid #dde1dc;
+  border-radius: 6px;
+  background: #fcfcfa;
+  box-shadow: 0 14px 42px rgb(28 36 34 / 20%);
+  color: #1c2422;
+}
+
+.app-dialog::backdrop {
+  background: rgb(28 36 34 / 26%);
+}
+
+.app-dialog h2 {
+  margin: 0 0 10px;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.dialog-message {
+  color: #5b6663;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 22px;
+}
+
+.toast-region {
+  position: fixed;
+  z-index: 20;
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  width: min(300px, calc(100vw - 36px));
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 10px 13px;
+  border: 1px solid #dde1dc;
+  border-radius: 4px;
+  background: #fcfcfa;
+  box-shadow: 0 5px 18px rgb(28 36 34 / 14%);
+  color: #5b6663;
+  font-size: 13px;
 }
 
 .visually-hidden {
@@ -672,14 +800,6 @@ summary:focus-visible {
   min-width: 128px;
   min-height: 44px;
   margin-left: auto;
-  border-color: #1c2422;
-  background: #1c2422;
-  color: #fcfcfa;
-  font-weight: 600;
-}
-
-.wizard-next:hover {
-  background: #2a3230;
 }
 
 .wizard-done {
