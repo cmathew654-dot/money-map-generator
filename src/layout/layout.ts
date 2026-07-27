@@ -42,7 +42,7 @@ const ARTBOARD = { width: 1320, height: 1020 }
 const DEFAULT_GAP = 28
 const COMPRESSED_GAP = 16
 const MIN_ACCOUNT_HEIGHT = 120
-export const CAP_CONTENT_GAP = 14
+export const CAP_CONTENT_GAP = 21
 const WATERFALL_MIN_Y = 128
 const WATERFALL_CLEARANCE = 30
 const AS_NEEDED_LABEL_WIDTH = 260
@@ -74,7 +74,10 @@ function accountHeight(account: Account, width: number): number {
     positionCount === 0 &&
     subAccountsHeight === 0
   if (isContentLight && account.bucket !== 'shortTerm') {
-    return Math.max(MIN_ACCOUNT_HEIGHT, capRy * 3 + 62)
+    return Math.max(
+      MIN_ACCOUNT_HEIGHT,
+      capRy * 3 + CAP_CONTENT_GAP + 48,
+    )
   }
 
   const titleBaseline = capRy * 2 + CAP_CONTENT_GAP

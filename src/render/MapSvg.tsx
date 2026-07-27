@@ -27,6 +27,7 @@ import {
 } from './tokens'
 
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
+const SUB_ACCOUNT_CAP_CONTENT_GAP = 14
 
 function mastheadLabel(data: MoneyMapData): string {
   if (data.client.variant === 'postNote') {
@@ -277,7 +278,7 @@ function SubAccountDrum({
 }) {
   const h = 88
   const capRy = 10
-  const titleY = y + capRy * 2 + CAP_CONTENT_GAP
+  const titleY = y + capRy * 2 + SUB_ACCOUNT_CAP_CONTENT_GAP
 
   return (
     <g>
