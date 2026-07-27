@@ -1,3 +1,7 @@
+import literataItalic from '../fonts/literata-latin-wght-italic.woff2'
+import literataNormal from '../fonts/literata-latin-wght-normal.woff2'
+import publicSansItalic from '../fonts/public-sans-latin-wght-italic.woff2'
+import publicSansNormal from '../fonts/public-sans-latin-wght-normal.woff2'
 import { parseBook } from '../model/book'
 import type { MoneyMapFile } from '../model/types'
 
@@ -8,10 +12,10 @@ const MAX_FILE_NAME_LENGTH = 120
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
 const FONT_FILES = {
-  literataNormal: '/fonts/literata-latin-wght-normal.woff2',
-  literataItalic: '/fonts/literata-latin-wght-italic.woff2',
-  publicSansNormal: '/fonts/public-sans-latin-wght-normal.woff2',
-  publicSansItalic: '/fonts/public-sans-latin-wght-italic.woff2',
+  literataNormal,
+  literataItalic,
+  publicSansNormal,
+  publicSansItalic,
 } as const
 
 function cleanFileNamePart(value: string): string {
