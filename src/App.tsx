@@ -52,6 +52,7 @@ import {
   type ActiveMapTextEdit,
 } from './ui/MapTextEditor'
 import { Mark } from './ui/Mark'
+import { Menu, MenuItem, MenuSeparator } from './ui/Menu'
 import { Toast, type ToastMessage } from './ui/Toast'
 import './styles/print.css'
 
@@ -544,149 +545,145 @@ export default function App() {
       className={`app-shell${presentMode ? ' is-presenting' : ''}`}
     >
       <header className="app-header">
-        <div className="header-left">
-          <div className="wordmark">
-            <Mark />
-            <span>Money Map</span>
-          </div>
-          <div className="header-client-actions">
-            <select
-              aria-label="Active client"
-              className="client-select"
-              value={activeClient.id}
-              onChange={(event) => selectClient(event.target.value)}
-            >
-              {book.clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.client.title || 'Untitled'}
-                </option>
-              ))}
-            </select>
-            <button className="quiet-button" type="button" onClick={handleNew}>
-              New
-            </button>
-            <button
-              className="quiet-button"
-              type="button"
-              onClick={handleDuplicate}
-            >
-              Duplicate
-            </button>
-            <button
-              className="quiet-button header-delete"
-              type="button"
-              onClick={handleDelete}
-            >
-              Delete
-            </button>
-          </div>
-          <div className="header-history-actions">
-            <button
-              aria-label="Undo"
-              className="quiet-button history-button"
-              disabled={history.past.length === 0}
-              title="Undo (Ctrl+Z)"
-              type="button"
-              onClick={handleUndo}
-            >
-              ↶
-            </button>
-            <button
-              aria-label="Redo"
-              className="quiet-button history-button"
-              disabled={history.future.length === 0}
-              title="Redo (Ctrl+Shift+Z or Ctrl+Y)"
-              type="button"
-              onClick={handleRedo}
-            >
-              ↷
-            </button>
-          </div>
+        <div className="wordmark">
+          <Mark />
+          <span>Money Map</span>
         </div>
-        <div className="header-spacer" />
-        <div className="header-right">
-          <div className="header-book-actions">
-            <button
-              className="quiet-button"
-              type="button"
-              onClick={() => {
-                saveBookToFile(book)
-                addToast('Book saved')
-              }}
-            >
-              Save book
-            </button>
-            {fileStoreSupported && !connectedFile && (
-              <>
-                <button
-                  className="quiet-button"
-                  type="button"
-                  onClick={() => void handleCreateConnectedFile()}
-                >
-                  Keep in a file…
-                </button>
-                <button
-                  className="quiet-button"
-                  type="button"
-                  onClick={() => void handleOpenConnectedFile()}
-                >
-                  Open existing
-                </button>
-              </>
-            )}
-            {fileStoreSupported && reconnectFile && !connectedFile && (
-              <button
-                className="quiet-button reconnect-button"
-                type="button"
-                onClick={() =>
-                  void replaceBookFromFile(reconnectFile, true)
-                }
-              >
-                Reconnect {reconnectFile.name}
-              </button>
-            )}
-            {connectedFile && (
-              <div className="file-connection" title={connectedFile.name}>
-                <span className="file-connection-name">
-                  {connectedFile.name}
+        <div className="header-client-actions">
+          <select
+            aria-label="Active client"
+            className="client-select"
+            value={activeClient.id}
+            onChange={(event) => selectClient(event.target.value)}
+          >
+            {book.clients.map((client) => (
+              <option key={client.id} value={client.id}>
+                {client.client.title || 'Untitled'}
+              </option>
+            ))}
+          </select>
+          <button
+            className="quiet-button compact-button"
+            type="button"
+            onClick={handleNew}
+          >
+            New
+          </button>
+          <Menu
+            ariaLabel="Client menu"
+            trigger={<span aria-hidden="true">⋯</span>}
+            triggerClassName="client-menu-trigger"
+          >
+            <MenuItem onClick={handleDuplicate}>Duplicate</MenuItem>
+            <MenuItem danger onClick={handleDelete}>
+              Delete
+            </MenuItem>
+          </Menu>
+        </div>
+        <div className="header-history-actions">
+          <button
+            aria-label="Undo"
+            className="quiet-button history-button"
+            disabled={history.past.length === 0}
+            title="Undo (Ctrl+Z)"
+            type="button"
+            onClick={handleUndo}
+          >
+            ↶
+          </button>
+          <button
+            aria-label="Redo"
+            className="quiet-button history-button"
+            disabled={history.future.length === 0}
+            title="Redo (Ctrl+Shift+Z or Ctrl+Y)"
+            type="button"
+            onClick={handleRedo}
+          >
+            ↷
+          </button>
+        </div>
+        <Menu
+          ariaLabel="Book menu"
+          trigger={
+            <>
+              <span>Book</span>
+              <span aria-hidden="true" className="menu-caret">
+                ▾
+              </span>
+              {connectedFile && (
+                <span className="book-connection-summary">
+                  <span aria-hidden="true" className="connection-dot" />
+                  <span className="book-connection-name">
+                    {connectedFile.name}
+                  </span>
                 </span>
-                <span>
+              )}
+            </>
+          }
+          triggerClassName="book-menu-trigger"
+        >
+          <MenuItem
+            onClick={() => {
+              saveBookToFile(book)
+              addToast('Book saved')
+            }}
+          >
+            Save book
+          </MenuItem>
+          <MenuItem onClick={() => fileInputRef.current?.click()}>
+            Load book
+          </MenuItem>
+          {fileStoreSupported && <MenuSeparator />}
+          {fileStoreSupported && !connectedFile && (
+            <>
+              <MenuItem onClick={() => void handleCreateConnectedFile()}>
+                Keep in a file…
+              </MenuItem>
+              <MenuItem onClick={() => void handleOpenConnectedFile()}>
+                Open existing
+              </MenuItem>
+            </>
+          )}
+          {fileStoreSupported && reconnectFile && !connectedFile && (
+            <MenuItem
+              className="reconnect-menu-item"
+              title={reconnectFile.name}
+              onClick={() => void replaceBookFromFile(reconnectFile, true)}
+            >
+              Reconnect {reconnectFile.name}
+            </MenuItem>
+          )}
+          {connectedFile && (
+            <>
+              <div className="menu-file-connection" title={connectedFile.name}>
+                <span className="menu-file-name">{connectedFile.name}</span>
+                <span className="menu-file-status">
                   {fileSaveStatus === 'saving' ? 'Saving…' : 'Saved'}
                 </span>
-                <button
-                  className="file-disconnect"
-                  type="button"
-                  onClick={handleDisconnectFile}
-                >
-                  Disconnect
-                </button>
               </div>
-            )}
+              <MenuItem onClick={handleDisconnectFile}>Disconnect</MenuItem>
+            </>
+          )}
+        </Menu>
+        <div className="header-spacer" />
+        <div className="header-payoff-actions">
+          {hasLayoutOverrides && (
             <button
               className="quiet-button"
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Load book
-            </button>
-          </div>
-          <span aria-hidden="true" className="header-divider" />
-          <div className="header-payoff-actions">
-            <button
-              className="quiet-button"
-              type="button"
-              onClick={() => void handlePresent()}
-            >
-              Present
-            </button>
-            <button
-              className="quiet-button"
-              disabled={!hasLayoutOverrides}
               type="button"
               onClick={() => setDialog({ kind: 'resetLayout' })}
             >
               Reset layout
             </button>
+          )}
+          <button
+            className="quiet-button"
+            type="button"
+            onClick={() => void handlePresent()}
+          >
+            Present
+          </button>
+          <div className="header-primary-actions">
             <button
               className="primary-button"
               type="button"
