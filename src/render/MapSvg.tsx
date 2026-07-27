@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { layoutMap } from '../layout/layout'
+import { CAP_CONTENT_GAP, layoutMap } from '../layout/layout'
 import type {
   Arrow,
   Placed,
@@ -277,6 +277,7 @@ function SubAccountDrum({
 }) {
   const h = 88
   const capRy = 10
+  const titleY = y + capRy * 2 + CAP_CONTENT_GAP
 
   return (
     <g>
@@ -299,7 +300,7 @@ function SubAccountDrum({
       />
       <text
         x={x + w / 2}
-        y={y + 34}
+        y={titleY}
         fill={INK}
         fontFamily={FONT_SANS}
         fontSize={12.5}
@@ -431,7 +432,8 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
   const titleLines = wrap(account.label, 24)
   const captionLines = account.caption ? wrap(account.caption, 30) : []
   const centerX = x + w / 2
-  const tagY = y + capRy + 18
+  const tagY = y + capRy
+  const minimumTitleY = y + capRy * 2 + CAP_CONTENT_GAP
   const subAccounts = account.subAccounts ?? []
   const valueY = subAccounts.length
     ? y + h - capRy - subAccounts.length * 96 - 17
@@ -441,17 +443,17 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
     !account.positions?.length &&
     subAccounts.length === 0
   const semanticGapCount = captionLines.length > 0 ? 3 : 2
-  const baseGapTotal = captionLines.length > 0 ? 73 : 58
+  const baseGapTotal = captionLines.length > 0 ? 45 : 30
   const fixedLineSpan =
     Math.max(0, titleLines.length - 1) * 20 +
     Math.max(0, captionLines.length - 1) * 15
   const sharedSlack = distributesSlack
     ? Math.max(
         0,
-        valueY - tagY - fixedLineSpan - baseGapTotal,
+        valueY - minimumTitleY - fixedLineSpan - baseGapTotal,
       ) / semanticGapCount
     : 0
-  const titleY = tagY + 25 + sharedSlack
+  const titleY = minimumTitleY + sharedSlack
   const captionY =
     titleY + titleLines.length * 20 + sharedSlack
   const rowsY = captionY + captionLines.length * 15 + 11
@@ -484,6 +486,7 @@ function Cylinder({ placed }: { placed: PlacedAccount }) {
         fontSize={TYPE.accountTag}
         fontWeight={700}
         letterSpacing={1.5}
+        dominantBaseline="middle"
         textAnchor="middle"
       >
         {style.tag.toUpperCase()}
