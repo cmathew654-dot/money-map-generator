@@ -24,16 +24,16 @@ export const WIZARD_STEPS = [
     mapTargets: ['income'],
   },
   {
-    id: 'need',
-    label: 'Need',
-    title: 'What does the month need to cover?',
-    mapTargets: ['need'],
-  },
-  {
     id: 'accounts',
     label: 'Accounts',
     title: 'What accounts hold the money?',
     mapTargets: ['account'],
+  },
+  {
+    id: 'need',
+    label: 'Need',
+    title: 'What does the month need to cover?',
+    mapTargets: ['need'],
   },
   {
     id: 'footnotes',

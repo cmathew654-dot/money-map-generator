@@ -188,8 +188,10 @@ export function NeedSection({
   data,
   onChange,
   embedded = false,
+  sectionRef,
 }: Pick<FormProps, 'data' | 'onChange'> & {
   embedded?: boolean
+  sectionRef?: Ref<HTMLElement>
 }) {
   const fields = (
     <>
@@ -222,7 +224,7 @@ export function NeedSection({
   if (embedded) return fields
 
   return (
-    <section className="form-section">
+    <section className="form-section" ref={sectionRef}>
       <h2>Need</h2>
       <div className="field-grid">{fields}</div>
     </section>
@@ -845,15 +847,17 @@ export function Form({
   onHoverAccount,
 }: FormProps) {
   const incomeSectionRef = useRef<HTMLElement>(null)
+  const needSectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (
-      !focusRequest ||
-      (focusRequest.id !== 'income' && focusRequest.id !== 'need')
-    ) {
-      return
-    }
-    incomeSectionRef.current?.scrollIntoView({
+    if (!focusRequest) return
+    const section =
+      focusRequest.id === 'income'
+        ? incomeSectionRef.current
+        : focusRequest.id === 'need'
+          ? needSectionRef.current
+          : null
+    section?.scrollIntoView({
       block: 'center',
       behavior: 'smooth',
     })
@@ -868,6 +872,7 @@ export function Form({
       <ClientSection data={data} onChange={onChange} />
       <IncomeSection
         data={data}
+        includeNeed={false}
         onChange={onChange}
         sectionRef={incomeSectionRef}
       />
@@ -876,6 +881,11 @@ export function Form({
         focusRequest={focusRequest}
         onChange={onChange}
         onHoverAccount={onHoverAccount}
+      />
+      <NeedSection
+        data={data}
+        onChange={onChange}
+        sectionRef={needSectionRef}
       />
       <FootnotesSection data={data} onChange={onChange} />
     </form>

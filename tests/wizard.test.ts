@@ -12,16 +12,16 @@ describe('WIZARD_STEPS', () => {
     expect(WIZARD_STEPS.map((step) => step.id)).toEqual([
       'client',
       'income',
-      'need',
       'accounts',
+      'need',
       'footnotes',
     ])
   })
 
   it.each([
-    ['account', 4],
+    ['account', 3],
     ['income', 2],
-    ['need', 3],
+    ['need', 4],
   ] as const)('maps %s clicks to step %i', (target, stepNumber) => {
     expect(wizardStepNumberForMapTarget(target)).toBe(stepNumber)
   })
@@ -40,8 +40,8 @@ describe('WIZARD_STEPS', () => {
     expect(buttons.map((button) => button.props.children)).toEqual([
       'Client',
       'Income',
-      'Need',
       'Accounts',
+      'Need',
       'Footnotes',
     ])
     expect(
