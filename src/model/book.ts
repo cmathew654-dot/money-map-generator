@@ -89,6 +89,37 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+function validateLayoutOverrides(
+  value: unknown,
+  clientIndex: number,
+): void {
+  if (value === undefined) return
+  if (!isRecord(value)) {
+    throw new Error(
+      `Client ${clientIndex + 1} has invalid layout overrides.`,
+    )
+  }
+
+  for (const override of Object.values(value)) {
+    if (!isRecord(override)) {
+      throw new Error(
+        `Client ${clientIndex + 1} has invalid layout overrides.`,
+      )
+    }
+    for (const field of ['dx', 'dy', 'w', 'h'] as const) {
+      if (
+        override[field] !== undefined &&
+        (typeof override[field] !== 'number' ||
+          !Number.isFinite(override[field]))
+      ) {
+        throw new Error(
+          `Client ${clientIndex + 1} has invalid layout overrides.`,
+        )
+      }
+    }
+  }
+}
+
 function validateClient(value: unknown, index: number): void {
   if (!isRecord(value)) {
     throw new Error(`Client ${index + 1} must be an object.`)
@@ -112,6 +143,7 @@ function validateClient(value: unknown, index: number): void {
       throw new Error(`Client ${index + 1} has invalid ${field}.`)
     }
   }
+  validateLayoutOverrides(value.layoutOverrides, index)
 }
 
 export function parseBook(json: string): MoneyMapFile {

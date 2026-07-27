@@ -1,5 +1,14 @@
 import { wrap } from '../model/format'
-import type { Account, Bucket, MoneyMapData } from '../model/types'
+import type {
+  Account,
+  Bucket,
+  LayoutOverride,
+  MoneyMapData,
+} from '../model/types'
+import {
+  clamp,
+  clampRectToBounds,
+} from '../render/mapInteraction'
 
 export interface Placed {
   x: number
@@ -47,7 +56,8 @@ const OPEN_CONTENT_BOTTOM = 950
 const FOOTNOTE_BASELINE_Y = 930
 const DEFAULT_GAP = 28
 const COMPRESSED_GAP = 16
-const MIN_ACCOUNT_HEIGHT = 120
+export const MIN_ACCOUNT_HEIGHT = 120
+export const MIN_ACCOUNT_WIDTH = 180
 export const CAP_CONTENT_GAP = 21
 const WATERFALL_MIN_Y = 128
 const WATERFALL_CLEARANCE = 30
@@ -625,7 +635,112 @@ function centerComposition(
   }
 }
 
-export function layoutMap(data: MoneyMapData): MapLayout {
+const OVERRIDE_BOUNDS = {
+  left: PAGE_MARGIN,
+  top: MASTHEAD_RULE_Y,
+  right: ARTBOARD.width - PAGE_MARGIN,
+  bottom: ARTBOARD.height - PAGE_MARGIN,
+}
+
+function applyPlacedOverride<T extends Placed>(
+  placed: T,
+  override: LayoutOverride | undefined,
+): T {
+  const clamped = clampRectToBounds(
+    {
+      ...placed,
+      x: placed.x + (override?.dx ?? 0),
+      y: placed.y + (override?.dy ?? 0),
+    },
+    OVERRIDE_BOUNDS,
+  )
+  return { ...placed, ...clamped }
+}
+
+function applyAccountOverride(
+  placed: PlacedAccount,
+  override: LayoutOverride | undefined,
+): PlacedAccount {
+  const desiredWidth = clamp(
+    override?.w ?? placed.w,
+    MIN_ACCOUNT_WIDTH,
+    OVERRIDE_BOUNDS.right - OVERRIDE_BOUNDS.left,
+  )
+  const desiredHeight = clamp(
+    override?.h ?? placed.h,
+    MIN_ACCOUNT_HEIGHT,
+    OVERRIDE_BOUNDS.bottom - OVERRIDE_BOUNDS.top,
+  )
+  const clamped = clampRectToBounds(
+    {
+      x: placed.x + (override?.dx ?? 0),
+      y: placed.y + (override?.dy ?? 0),
+      w: desiredWidth,
+      h: desiredHeight,
+    },
+    OVERRIDE_BOUNDS,
+  )
+  return {
+    ...placed,
+    ...clamped,
+    capRy: Math.round(clamped.w * 0.13),
+  }
+}
+
+function applyAsNeededChipOverride(
+  arrow: Arrow,
+  override: LayoutOverride | undefined,
+): Arrow {
+  if (!arrow.labelAt) return arrow
+
+  const desired = {
+    x: arrow.labelAt.x + (override?.dx ?? 0),
+    y: arrow.labelAt.y + (override?.dy ?? 0),
+    w: AS_NEEDED_CHIP_WIDTH,
+    h: AS_NEEDED_CHIP_HEIGHT,
+  }
+  const clamped = clampRectToBounds(
+    {
+      ...desired,
+      x: desired.x - desired.w / 2,
+      y: desired.y - desired.h / 2,
+    },
+    OVERRIDE_BOUNDS,
+  )
+  return {
+    ...arrow,
+    labelAt: {
+      x: clamped.x + clamped.w / 2,
+      y: clamped.y + clamped.h / 2,
+    },
+  }
+}
+
+function arrowsForFinalGeometry(
+  income: Placed,
+  need: Placed,
+  accounts: PlacedAccount[],
+  chipOverride: LayoutOverride | undefined,
+): Arrow[] {
+  const arrows = [
+    ...waterfallArrows(accounts),
+    incomeArrow(income, need),
+  ]
+  const shortTerm = accounts.find(
+    (placed) => placed.account.bucket === 'shortTerm',
+  )
+  if (shortTerm) {
+    arrows.push(
+      applyAsNeededChipOverride(
+        asNeededArrow(shortTerm, need, [income, need, ...accounts]),
+        chipOverride,
+      ),
+    )
+  }
+  return arrows
+}
+
+function baseLayout(data: MoneyMapData): MapLayout {
   const income: Placed = {
     x: 48,
     y: 170,
@@ -658,4 +773,47 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     },
     data.footnotes.length > 0,
   )
+}
+
+export function layoutMap(data: MoneyMapData): MapLayout {
+  const base = baseLayout(data)
+  const income = applyPlacedOverride(
+    base.income,
+    data.layoutOverrides?.income,
+  )
+  const need = applyPlacedOverride(
+    base.need,
+    data.layoutOverrides?.need,
+  )
+  const accounts = base.accounts.map((placed) =>
+    applyAccountOverride(
+      placed,
+      data.layoutOverrides?.[placed.account.id],
+    ),
+  )
+  const arrows = arrowsForFinalGeometry(
+    income,
+    need,
+    accounts,
+    data.layoutOverrides?.asNeededChip,
+  )
+  const finalBounds = contentBounds({
+    income,
+    need,
+    accounts,
+    arrows,
+  })
+
+  return {
+    ...base,
+    income,
+    need,
+    accounts,
+    arrows,
+    contentBounds: finalBounds,
+    footnotesAt: {
+      x: finalBounds.x + finalBounds.w / 2,
+      y: FOOTNOTE_BASELINE_Y,
+    },
+  }
 }

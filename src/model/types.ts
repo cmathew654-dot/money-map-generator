@@ -54,6 +54,13 @@ export interface Footnote {
   net: number | null // after withholding — rendered in green
 }
 
+export interface LayoutOverride {
+  dx?: number
+  dy?: number
+  w?: number
+  h?: number
+}
+
 export interface MoneyMapData {
   id: string
   client: {
@@ -68,6 +75,7 @@ export interface MoneyMapData {
   asNeededAmount: number | null // "Monthly Income as Needed" arrow label
   accounts: Account[]
   footnotes: Footnote[]
+  layoutOverrides?: Record<string, LayoutOverride>
 }
 
 /** The whole practice in one file. */

@@ -109,6 +109,29 @@ describe('parseBook', () => {
     expect(parseBook(JSON.stringify(book))).toEqual(book)
   })
 
+  it('round-trips a client with layout overrides', () => {
+    const book = newBook()
+    book.clients[0].layoutOverrides = {
+      income: { dx: 24, dy: -12 },
+      'managed-ira-jordan': { dx: -80, dy: 60, w: 340, h: 280 },
+      asNeededChip: { dx: 30, dy: 18 },
+    }
+
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it('loads a legacy book without layout overrides', () => {
+    const legacy = newBook()
+    for (const client of legacy.clients) {
+      delete client.layoutOverrides
+    }
+
+    const parsed = parseBook(JSON.stringify(legacy))
+
+    expect(parsed).toEqual(legacy)
+    expect(parsed.clients[0].layoutOverrides).toBeUndefined()
+  })
+
   it('rejects malformed JSON with a human message', () => {
     expect(() => parseBook('{bad json')).toThrow(
       'The selected file is not valid JSON.',
