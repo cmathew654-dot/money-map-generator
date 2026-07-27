@@ -41,6 +41,7 @@ type FormMode = 'guided' | 'full'
 type AppDialog =
   | { kind: 'delete'; clientId: string; name: string }
   | { kind: 'error'; title: string; message: string }
+  | { kind: 'resetLayout' }
 
 function initialBook(): MoneyMapFile {
   try {
@@ -86,6 +87,8 @@ export default function App() {
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
+  const hasLayoutOverrides =
+    Object.keys(activeClient.layoutOverrides ?? {}).length > 0
 
   const addToast = useCallback((message: string) => {
     toastCounter.current += 1
@@ -147,6 +150,14 @@ export default function App() {
       clientId: activeClient.id,
       name: activeClient.client.title || 'Untitled',
     })
+  }
+
+  const handleResetLayout = () => {
+    const nextClient = { ...activeClient }
+    delete nextClient.layoutOverrides
+    handleClientChange(nextClient)
+    setDialog(null)
+    addToast('Layout reset')
   }
 
   const confirmDelete = (clientId: string) => {
@@ -294,6 +305,14 @@ export default function App() {
           <span aria-hidden="true" className="header-divider" />
           <div className="header-payoff-actions">
             <button
+              className="quiet-button"
+              disabled={!hasLayoutOverrides}
+              type="button"
+              onClick={() => setDialog({ kind: 'resetLayout' })}
+            >
+              Reset layout
+            </button>
+            <button
               className="primary-button"
               type="button"
               onClick={() => window.print()}
@@ -373,6 +392,7 @@ export default function App() {
             <MapSvg
               data={activeClient}
               highlightId={highlightId}
+              onChange={handleClientChange}
               onElementClick={handleMapElementClick}
             />
           </div>
@@ -420,6 +440,18 @@ export default function App() {
           onConfirm={() => setDialog(null)}
         >
           {dialog.message}
+        </Dialog>
+      )}
+      {dialog?.kind === 'resetLayout' && (
+        <Dialog
+          confirmLabel="Reset"
+          danger
+          open
+          title="Reset layout"
+          onClose={() => setDialog(null)}
+          onConfirm={handleResetLayout}
+        >
+          Restore the generated layout for this client?
         </Dialog>
       )}
       <Toast messages={toasts} onDismiss={dismissToast} />

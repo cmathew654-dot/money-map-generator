@@ -73,6 +73,15 @@ button:hover {
   background: #f1f3f0;
 }
 
+button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+button:disabled:hover {
+  background: inherit;
+}
+
 .quiet-button {
   border-color: transparent;
   background: transparent;
@@ -197,6 +206,41 @@ summary:focus-visible {
   text-decoration-color: rgb(28 36 34 / 35%);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+}
+
+.map-page svg.map-interactive {
+  touch-action: none;
+  user-select: none;
+}
+
+.map-page svg .map-draggable {
+  cursor: grab;
+}
+
+.map-page svg.is-dragging,
+.map-page svg.is-dragging .map-draggable,
+.map-page svg.is-dragging .map-editable-text {
+  cursor: move;
+}
+
+.map-page svg .map-resize-handle {
+  opacity: 0;
+  fill: #fcfcfa;
+  stroke: #1e7a4a;
+  stroke-width: 2;
+  transition: opacity 120ms ease;
+  cursor: nwse-resize;
+}
+
+.map-page svg .map-draggable:hover > .map-resize-handle,
+.map-page svg .map-draggable:focus > .map-resize-handle,
+.map-page svg .map-draggable:focus-within > .map-resize-handle,
+.map-page svg .map-resize-handle:hover {
+  opacity: 1;
+}
+
+.map-page svg.is-dragging .map-resize-handle {
+  transition: none;
 }
 
 .app-dialog {

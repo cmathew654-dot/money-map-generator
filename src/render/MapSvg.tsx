@@ -1,7 +1,11 @@
 import {
+  useEffect,
   useId,
+  useRef,
+  useState,
   type KeyboardEvent,
   type MouseEvent,
+  type PointerEvent,
   type SVGProps,
 } from 'react'
 import { CAP_CONTENT_GAP, layoutMap } from '../layout/layout'
@@ -19,6 +23,7 @@ import {
 import type {
   Footnote,
   IncomeSource,
+  LayoutOverride,
   MoneyMapData,
   SubAccount,
 } from '../model/types'
@@ -26,6 +31,13 @@ import type {
   MapTextEditRect,
   MapTextEditTarget,
 } from '../ui/MapTextEditor'
+import {
+  crossedDragThreshold,
+  screenDeltaToArtboard,
+  withOverride,
+  type Point,
+  type TransformMatrix,
+} from './mapInteraction'
 import {
   ARTBOARD,
   BUCKETS,
@@ -43,6 +55,21 @@ import {
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
 const SUB_ACCOUNT_CAP_CONTENT_GAP = 14
 
+function wrapLengths(placed: PlacedAccount): {
+  title: number
+  caption: number
+} {
+  const baseWidth = ['shortTerm', 'cash', 'note'].includes(
+    placed.account.bucket,
+  )
+    ? 250
+    : 260
+  return {
+    title: Math.max(12, Math.round((24 * placed.w) / baseWidth)),
+    caption: Math.max(16, Math.round((30 * placed.w) / baseWidth)),
+  }
+}
+
 export type MapElementTarget =
   | { kind: 'account' | 'income' | 'need'; id?: string }
   | {
@@ -54,7 +81,22 @@ export type MapElementTarget =
 interface MapSvgProps {
   data: MoneyMapData
   onElementClick?: (target: MapElementTarget) => void
+  onChange?: (data: MoneyMapData) => void
   highlightId?: string | null
+}
+
+type DragMode = 'move' | 'resize'
+
+interface DragSession {
+  active: boolean
+  initialOverride: LayoutOverride
+  inverseScreenCtm: TransformMatrix
+  key: string
+  latestData: MoneyMapData
+  mode: DragMode
+  pointerId: number
+  startPlaced?: Placed
+  startScreen: Point
 }
 
 function interactiveGroupProps(
@@ -454,9 +496,13 @@ function NoteCard({
   placed: PlacedAccount
 }) {
   const style = BUCKETS.note
-  const titleLines = wrap(accountDisplayName(placed.account), 24)
+  const wrapAt = wrapLengths(placed)
+  const titleLines = wrap(
+    accountDisplayName(placed.account),
+    wrapAt.title,
+  )
   const captionLines = placed.account.caption
-    ? wrap(placed.account.caption, 30)
+    ? wrap(placed.account.caption, wrapAt.caption)
     : []
 
   return (
@@ -556,8 +602,11 @@ function Cylinder({
   const { account, x, y, w, h, capRy } = placed
   const style = BUCKETS[account.bucket]
   const dash = style.dashed ? '8 6' : undefined
-  const titleLines = wrap(accountDisplayName(account), 24)
-  const captionLines = account.caption ? wrap(account.caption, 30) : []
+  const wrapAt = wrapLengths(placed)
+  const titleLines = wrap(accountDisplayName(account), wrapAt.title)
+  const captionLines = account.caption
+    ? wrap(account.caption, wrapAt.caption)
+    : []
   const centerX = x + w / 2
   const tagY = y + capRy
   const minimumTitleY = y + capRy * 2 + CAP_CONTENT_GAP
@@ -934,20 +983,156 @@ function FlowLegend({
 export function MapSvg({
   data,
   onElementClick,
+  onChange,
   highlightId,
 }: MapSvgProps) {
   const id = useId().replaceAll(':', '')
   const markerId = `flow-arrowhead-${id}`
   const legendMarkerId = `legend-arrowhead-${id}`
-  const layout = layoutMap(data)
+  const svgRef = useRef<SVGSVGElement>(null)
+  const dragRef = useRef<DragSession | null>(null)
+  const suppressNextClickRef = useRef(false)
+  const [previewData, setPreviewData] = useState<MoneyMapData | null>(
+    null,
+  )
+  const [dragging, setDragging] = useState(false)
+  const displayData = previewData ?? data
+  const layout = layoutMap(displayData)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
+
+  useEffect(() => {
+    if (!dragRef.current) setPreviewData(null)
+  }, [data])
+
+  const cancelDrag = () => {
+    const session = dragRef.current
+    if (!session) return
+    const svg = svgRef.current
+    if (svg?.hasPointerCapture(session.pointerId)) {
+      svg.releasePointerCapture(session.pointerId)
+    }
+    dragRef.current = null
+    setDragging(false)
+    setPreviewData(null)
+  }
+
+  useEffect(() => {
+    if (!onChange) return
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape' || !dragRef.current) return
+      event.preventDefault()
+      cancelDrag()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onChange])
+
+  const beginDrag = (
+    key: string,
+    mode: DragMode,
+    startPlaced?: Placed,
+  ) => (event: PointerEvent<SVGElement>) => {
+    if (!onChange || event.button !== 0) return
+    if (mode === 'resize') event.stopPropagation()
+    const screenCtm = svgRef.current?.getScreenCTM()
+    if (!screenCtm) return
+
+    dragRef.current = {
+      active: false,
+      initialOverride: data.layoutOverrides?.[key] ?? {},
+      inverseScreenCtm: screenCtm.inverse(),
+      key,
+      latestData: data,
+      mode,
+      pointerId: event.pointerId,
+      startPlaced,
+      startScreen: { x: event.clientX, y: event.clientY },
+    }
+  }
+
+  const previewDrag = (event: PointerEvent<SVGSVGElement>) => {
+    const session = dragRef.current
+    if (!session || session.pointerId !== event.pointerId) return
+    const currentScreen = { x: event.clientX, y: event.clientY }
+    if (
+      !session.active &&
+      !crossedDragThreshold(session.startScreen, currentScreen)
+    ) {
+      return
+    }
+    if (!session.active) {
+      session.active = true
+      event.currentTarget.setPointerCapture(event.pointerId)
+      setDragging(true)
+    }
+    event.preventDefault()
+
+    const delta = screenDeltaToArtboard(
+      {
+        x: currentScreen.x - session.startScreen.x,
+        y: currentScreen.y - session.startScreen.y,
+      },
+      session.inverseScreenCtm,
+    )
+    const patch =
+      session.mode === 'resize' && session.startPlaced
+        ? {
+            w: session.startPlaced.w + delta.x,
+            h: session.startPlaced.h + delta.y,
+          }
+        : {
+            dx: (session.initialOverride.dx ?? 0) + delta.x,
+            dy: (session.initialOverride.dy ?? 0) + delta.y,
+          }
+    const nextData = withOverride(data, session.key, patch)
+    session.latestData = nextData
+    setPreviewData(nextData)
+  }
+
+  const finishDrag = (event: PointerEvent<SVGSVGElement>) => {
+    const session = dragRef.current
+    if (!session || session.pointerId !== event.pointerId) return
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    dragRef.current = null
+    setDragging(false)
+    if (!session.active) return
+
+    event.preventDefault()
+    suppressNextClickRef.current = true
+    window.setTimeout(() => {
+      suppressNextClickRef.current = false
+    }, 0)
+    onChange?.(session.latestData)
+  }
 
   return (
     <svg
-      aria-label={`Money Map for ${data.client.title}`}
+      aria-label={`Money Map for ${displayData.client.title}`}
+      className={[
+        onChange ? 'map-interactive' : '',
+        dragging ? 'is-dragging' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      ref={svgRef}
       role="img"
       viewBox={`0 0 ${ARTBOARD.width} ${ARTBOARD.height}`}
       xmlns="http://www.w3.org/2000/svg"
+      onClickCapture={
+        onChange
+          ? (event) => {
+              if (!suppressNextClickRef.current) return
+              event.preventDefault()
+              event.stopPropagation()
+              suppressNextClickRef.current = false
+            }
+          : undefined
+      }
+      onPointerCancel={onChange ? cancelDrag : undefined}
+      onPointerMove={onChange ? previewDrag : undefined}
+      onPointerUp={onChange ? finishDrag : undefined}
     >
       <rect width={ARTBOARD.width} height={ARTBOARD.height} fill={PAPER} />
       <rect
@@ -985,7 +1170,7 @@ export function MapSvg({
         </marker>
       </defs>
 
-      <Masthead data={data} />
+      <Masthead data={displayData} />
       <g aria-label="Money flow">
         {layout.arrows.map((arrow, index) => (
           <ArrowPath
@@ -1001,9 +1186,15 @@ export function MapSvg({
           { kind: 'income' },
           onElementClick,
         )}
+        className={onChange ? 'map-draggable' : undefined}
+        onPointerDown={
+          onChange
+            ? beginDrag('income', 'move', layout.income)
+            : undefined
+        }
       >
         <IncomePanel
-          data={data}
+          data={displayData}
           onElementClick={onElementClick}
           placed={layout.income}
         />
@@ -1014,10 +1205,16 @@ export function MapSvg({
           { kind: 'need' },
           onElementClick,
         )}
+        className={onChange ? 'map-draggable' : undefined}
+        onPointerDown={
+          onChange
+            ? beginDrag('need', 'move', layout.need)
+            : undefined
+        }
       >
         <NeedCard
           onElementClick={onElementClick}
-          value={data.monthlyNeed}
+          value={displayData.monthlyNeed}
           placed={layout.need}
         />
       </g>
@@ -1032,6 +1229,12 @@ export function MapSvg({
                 { kind: 'account', id: placed.account.id },
                 onElementClick,
               )}
+              className={onChange ? 'map-draggable' : undefined}
+              onPointerDown={
+                onChange
+                  ? beginDrag(placed.account.id, 'move', placed)
+                  : undefined
+              }
             >
               {highlightId === placed.account.id && (
                 <rect
@@ -1059,19 +1262,46 @@ export function MapSvg({
                   placed={placed}
                 />
               )}
+              {onChange && (
+                <rect
+                  aria-label={`Resize ${accountDisplayName(
+                    placed.account,
+                  )}`}
+                  className="map-resize-handle"
+                  height={16}
+                  rx={3}
+                  width={16}
+                  x={placed.x + placed.w - 20}
+                  y={placed.y + placed.h - 20}
+                  onPointerDown={beginDrag(
+                    placed.account.id,
+                    'resize',
+                    placed,
+                  )}
+                />
+              )}
             </g>
           )
         })}
       </g>
       {asNeeded && (
-        <AsNeededLabel
-          arrow={asNeeded}
-          amount={data.asNeededAmount}
-          onElementClick={onElementClick}
-        />
+        <g
+          className={onChange ? 'map-draggable' : undefined}
+          onPointerDown={
+            onChange
+              ? beginDrag('asNeededChip', 'move')
+              : undefined
+          }
+        >
+          <AsNeededLabel
+            arrow={asNeeded}
+            amount={displayData.asNeededAmount}
+            onElementClick={onElementClick}
+          />
+        </g>
       )}
       <Footnotes
-        footnotes={data.footnotes}
+        footnotes={displayData.footnotes}
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
       />
