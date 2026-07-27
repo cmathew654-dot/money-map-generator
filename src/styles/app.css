@@ -197,6 +197,10 @@ summary:focus-visible {
   outline-offset: 3px;
 }
 
+.map-page svg [role='button']:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .map-page svg .map-editable-text {
   cursor: text;
 }
