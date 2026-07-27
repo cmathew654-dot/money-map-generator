@@ -517,7 +517,6 @@ summary:focus-visible {
   font-size: 19px;
   line-height: 1;
   transform-origin: center;
-  transition: transform 120ms ease;
 }
 
 .account-card[open] > .account-summary::before {
@@ -840,6 +839,28 @@ summary:focus-visible {
 
 .wizard-start-over {
   padding: 7px 10px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .account-summary::before {
+    transition: transform 120ms ease;
+  }
+
+  .wizard-step-content,
+  .wizard-done-content {
+    animation: quiet-enter 160ms ease-out both;
+  }
+
+  .toast {
+    animation: quiet-enter 160ms ease-out both;
+  }
+
+  @keyframes quiet-enter {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
 }
 
 @media (max-width: 900px) {
