@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { money } from '../model/format'
 import type {
   Account,
@@ -124,51 +124,57 @@ function IncomeSection({
       <h2>Income</h2>
       <div className="row-list">
         {data.incomeSources.map((source, index) => (
-          <div className="compact-row income-row" key={index}>
-            <TextField
-              label="Label"
-              value={source.label}
-              onChange={(label) => updateSource(index, { ...source, label })}
-            />
-            <MoneyField
-              label="Amount"
-              value={source.amount}
-              onChange={(amount) =>
-                updateSource(index, { ...source, amount })
-              }
-            />
-            <label className="form-field period-field">
-              <span>Period</span>
-              <select
-                value={source.period}
-                onChange={(event) =>
-                  updateSource(index, {
-                    ...source,
-                    period: event.target.value as 'mo' | 'yr',
-                  })
+          <div className="stacked-row income-row" key={index}>
+            <div className="stacked-row-heading">
+              <TextField
+                label="Label"
+                value={source.label}
+                onChange={(label) =>
+                  updateSource(index, { ...source, label })
                 }
-              >
-                <option value="mo">mo</option>
-                <option value="yr">yr</option>
-              </select>
-            </label>
-            <TextField
-              label="Qualifier"
-              value={source.qualifier ?? ''}
-              onChange={(qualifier) =>
-                updateSource(index, { ...source, qualifier })
-              }
-            />
-            <RemoveButton
-              label={`Remove income source ${index + 1}`}
-              onClick={() =>
-                setSources(
-                  data.incomeSources.filter(
-                    (_, itemIndex) => itemIndex !== index,
-                  ),
-                )
-              }
-            />
+              />
+              <RemoveButton
+                label={`Remove income source ${index + 1}`}
+                onClick={() =>
+                  setSources(
+                    data.incomeSources.filter(
+                      (_, itemIndex) => itemIndex !== index,
+                    ),
+                  )
+                }
+              />
+            </div>
+            <div className="income-row-fields">
+              <MoneyField
+                label="Amount"
+                value={source.amount}
+                onChange={(amount) =>
+                  updateSource(index, { ...source, amount })
+                }
+              />
+              <label className="form-field period-field">
+                <span>Period</span>
+                <select
+                  value={source.period}
+                  onChange={(event) =>
+                    updateSource(index, {
+                      ...source,
+                      period: event.target.value as 'mo' | 'yr',
+                    })
+                  }
+                >
+                  <option value="mo">mo</option>
+                  <option value="yr">yr</option>
+                </select>
+              </label>
+              <TextField
+                label="Qualifier"
+                value={source.qualifier ?? ''}
+                onChange={(qualifier) =>
+                  updateSource(index, { ...source, qualifier })
+                }
+              />
+            </div>
           </div>
         ))}
       </div>
@@ -221,37 +227,41 @@ function PositionRows({
     <div className="nested-list">
       <h4>Positions</h4>
       {positions.map((position, index) => (
-        <div className="compact-row nested-row" key={index}>
-          <TextField
-            label="Label"
-            value={position.label}
-            onChange={(label) =>
-              onChange(
-                positions.map((item, itemIndex) =>
-                  itemIndex === index ? { ...item, label } : item,
-                ),
-              )
-            }
-          />
-          <MoneyField
-            label="Value"
-            value={position.value}
-            onChange={(value) =>
-              onChange(
-                positions.map((item, itemIndex) =>
-                  itemIndex === index ? { ...item, value } : item,
-                ),
-              )
-            }
-          />
-          <RemoveButton
-            label={`Remove position ${index + 1}`}
-            onClick={() =>
-              onChange(
-                positions.filter((_, itemIndex) => itemIndex !== index),
-              )
-            }
-          />
+        <div className="stacked-row nested-row" key={index}>
+          <div className="stacked-row-heading">
+            <TextField
+              label="Label"
+              value={position.label}
+              onChange={(label) =>
+                onChange(
+                  positions.map((item, itemIndex) =>
+                    itemIndex === index ? { ...item, label } : item,
+                  ),
+                )
+              }
+            />
+            <RemoveButton
+              label={`Remove position ${index + 1}`}
+              onClick={() =>
+                onChange(
+                  positions.filter((_, itemIndex) => itemIndex !== index),
+                )
+              }
+            />
+          </div>
+          <div className="nested-row-fields">
+            <MoneyField
+              label="Value"
+              value={position.value}
+              onChange={(value) =>
+                onChange(
+                  positions.map((item, itemIndex) =>
+                    itemIndex === index ? { ...item, value } : item,
+                  ),
+                )
+              }
+            />
+          </div>
         </div>
       ))}
       <button
@@ -276,48 +286,52 @@ function SubAccountRows({
     <div className="nested-list">
       <h4>Sub-accounts</h4>
       {subAccounts.map((subAccount, index) => (
-        <div className="compact-row subaccount-row" key={index}>
-          <TextField
-            label="Label"
-            value={subAccount.label}
-            onChange={(label) =>
-              onChange(
-                subAccounts.map((item, itemIndex) =>
-                  itemIndex === index ? { ...item, label } : item,
-                ),
-              )
-            }
-          />
-          <TextField
-            label="Caption"
-            value={subAccount.caption ?? ''}
-            onChange={(caption) =>
-              onChange(
-                subAccounts.map((item, itemIndex) =>
-                  itemIndex === index ? { ...item, caption } : item,
-                ),
-              )
-            }
-          />
-          <MoneyField
-            label="Value"
-            value={subAccount.value}
-            onChange={(value) =>
-              onChange(
-                subAccounts.map((item, itemIndex) =>
-                  itemIndex === index ? { ...item, value } : item,
-                ),
-              )
-            }
-          />
-          <RemoveButton
-            label={`Remove sub-account ${index + 1}`}
-            onClick={() =>
-              onChange(
-                subAccounts.filter((_, itemIndex) => itemIndex !== index),
-              )
-            }
-          />
+        <div className="stacked-row subaccount-row" key={index}>
+          <div className="stacked-row-heading">
+            <TextField
+              label="Label"
+              value={subAccount.label}
+              onChange={(label) =>
+                onChange(
+                  subAccounts.map((item, itemIndex) =>
+                    itemIndex === index ? { ...item, label } : item,
+                  ),
+                )
+              }
+            />
+            <RemoveButton
+              label={`Remove sub-account ${index + 1}`}
+              onClick={() =>
+                onChange(
+                  subAccounts.filter((_, itemIndex) => itemIndex !== index),
+                )
+              }
+            />
+          </div>
+          <div className="subaccount-row-fields">
+            <TextField
+              label="Caption"
+              value={subAccount.caption ?? ''}
+              onChange={(caption) =>
+                onChange(
+                  subAccounts.map((item, itemIndex) =>
+                    itemIndex === index ? { ...item, caption } : item,
+                  ),
+                )
+              }
+            />
+            <MoneyField
+              label="Value"
+              value={subAccount.value}
+              onChange={(value) =>
+                onChange(
+                  subAccounts.map((item, itemIndex) =>
+                    itemIndex === index ? { ...item, value } : item,
+                  ),
+                )
+              }
+            />
+          </div>
         </div>
       ))}
       <button
@@ -338,78 +352,102 @@ function SubAccountRows({
 
 function AccountCard({
   account,
-  index,
+  initiallyOpen,
   onChange,
   onRemove,
 }: {
   account: Account
-  index: number
+  initiallyOpen: boolean
   onChange(account: Account): void
   onRemove(): void
 }) {
+  const detailsRef = useRef<HTMLDetailsElement>(null)
+  const didSetInitialOpen = useRef(false)
+
+  useEffect(() => {
+    if (didSetInitialOpen.current) return
+    didSetInitialOpen.current = true
+    if (initiallyOpen && detailsRef.current) {
+      detailsRef.current.open = true
+    }
+  }, [initiallyOpen])
+
   return (
-    <article className={`account-card bucket-${account.bucket}`}>
-      <div className="account-card-heading">
-        <h3>Account {index + 1}</h3>
+    <details
+      className={`account-card bucket-${account.bucket}`}
+      ref={detailsRef}
+    >
+      <summary className="account-summary">
+        <span aria-hidden="true" className="account-swatch" />
+        <span className="account-summary-label">
+          {account.label || 'Untitled account'}
+        </span>
+        <span className="account-summary-value">{money(account.value)}</span>
+      </summary>
+      <div className="account-body">
         <button className="text-button" type="button" onClick={onRemove}>
           Remove account
         </button>
-      </div>
-      <div className="field-grid">
-        <label className="form-field">
-          <span>Bucket</span>
-          <select
-            value={account.bucket}
+        <div className="account-fields">
+          <label className="form-field">
+            <span>Bucket</span>
+            <select
+              value={account.bucket}
+              onChange={(event) =>
+                onChange({
+                  ...account,
+                  bucket: event.target.value as Bucket,
+                })
+              }
+            >
+              {bucketOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <TextField
+            label="Label"
+            value={account.label}
+            onChange={(label) => onChange({ ...account, label })}
+          />
+          <MoneyField
+            label="Value"
+            value={account.value}
+            onChange={(value) => onChange({ ...account, value })}
+          />
+          <TextField
+            label="Caption"
+            value={account.caption ?? ''}
+            onChange={(caption) => onChange({ ...account, caption })}
+          />
+        </div>
+        <label className="checkbox-field">
+          <input
+            checked={account.inWaterfall}
+            type="checkbox"
             onChange={(event) =>
-              onChange({ ...account, bucket: event.target.value as Bucket })
+              onChange({ ...account, inWaterfall: event.target.checked })
             }
-          >
-            {bucketOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          />
+          In refill chain
         </label>
-        <TextField
-          label="Label"
-          value={account.label}
-          onChange={(label) => onChange({ ...account, label })}
+        <PositionRows
+          positions={account.positions ?? []}
+          onChange={(positions) => onChange({ ...account, positions })}
         />
-        <MoneyField
-          label="Value"
-          value={account.value}
-          onChange={(value) => onChange({ ...account, value })}
-        />
-        <TextField
-          label="Caption"
-          value={account.caption ?? ''}
-          onChange={(caption) => onChange({ ...account, caption })}
+        <SubAccountRows
+          subAccounts={account.subAccounts ?? []}
+          onChange={(subAccounts) => onChange({ ...account, subAccounts })}
         />
       </div>
-      <label className="checkbox-field">
-        <input
-          checked={account.inWaterfall}
-          type="checkbox"
-          onChange={(event) =>
-            onChange({ ...account, inWaterfall: event.target.checked })
-          }
-        />
-        In refill chain
-      </label>
-      <PositionRows
-        positions={account.positions ?? []}
-        onChange={(positions) => onChange({ ...account, positions })}
-      />
-      <SubAccountRows
-        subAccounts={account.subAccounts ?? []}
-        onChange={(subAccounts) => onChange({ ...account, subAccounts })}
-      />
-    </article>
+    </details>
   )
 }
 
 function AccountsSection({ data, onChange }: FormProps) {
+  const [newAccountId, setNewAccountId] = useState<string | null>(null)
   const setAccounts = (accounts: Account[]) =>
     onChange({ ...data, accounts })
   return (
@@ -418,7 +456,7 @@ function AccountsSection({ data, onChange }: FormProps) {
       {data.accounts.map((account, index) => (
         <AccountCard
           account={account}
-          index={index}
+          initiallyOpen={account.id === newAccountId}
           key={account.id}
           onChange={(next) =>
             setAccounts(
@@ -437,18 +475,20 @@ function AccountsSection({ data, onChange }: FormProps) {
       <button
         className="add-button"
         type="button"
-        onClick={() =>
+        onClick={() => {
+          const id = newId('account')
+          setNewAccountId(id)
           setAccounts([
             ...data.accounts,
             {
-              id: newId('account'),
+              id,
               bucket: 'afterTax',
               label: '',
               value: null,
               inWaterfall: false,
             },
           ])
-        }
+        }}
       >
         + Add account
       </button>
@@ -470,38 +510,42 @@ function FootnotesSection({ data, onChange }: FormProps) {
     <section className="form-section">
       <h2>Footnotes</h2>
       {data.footnotes.map((footnote, index) => (
-        <div className="compact-row footnote-row" key={index}>
-          <TextField
-            label="Label"
-            value={footnote.label}
-            onChange={(label) =>
-              updateFootnote(index, { ...footnote, label })
-            }
-          />
-          <MoneyField
-            label="Gross"
-            value={footnote.gross}
-            onChange={(gross) =>
-              updateFootnote(index, { ...footnote, gross })
-            }
-          />
-          <MoneyField
-            label="Net"
-            value={footnote.net}
-            onChange={(net) =>
-              updateFootnote(index, { ...footnote, net })
-            }
-          />
-          <RemoveButton
-            label={`Remove footnote ${index + 1}`}
-            onClick={() =>
-              setFootnotes(
-                data.footnotes.filter(
-                  (_, itemIndex) => itemIndex !== index,
-                ),
-              )
-            }
-          />
+        <div className="stacked-row footnote-row" key={index}>
+          <div className="stacked-row-heading">
+            <TextField
+              label="Label"
+              value={footnote.label}
+              onChange={(label) =>
+                updateFootnote(index, { ...footnote, label })
+              }
+            />
+            <RemoveButton
+              label={`Remove footnote ${index + 1}`}
+              onClick={() =>
+                setFootnotes(
+                  data.footnotes.filter(
+                    (_, itemIndex) => itemIndex !== index,
+                  ),
+                )
+              }
+            />
+          </div>
+          <div className="footnote-row-fields">
+            <MoneyField
+              label="Gross"
+              value={footnote.gross}
+              onChange={(gross) =>
+                updateFootnote(index, { ...footnote, gross })
+              }
+            />
+            <MoneyField
+              label="Net"
+              value={footnote.net}
+              onChange={(net) =>
+                updateFootnote(index, { ...footnote, net })
+              }
+            />
+          </div>
         </div>
       ))}
       <button
@@ -532,37 +576,45 @@ export function Form({ data, onChange }: FormProps) {
     <form className="client-form" onSubmit={(event) => event.preventDefault()}>
       <section className="form-section">
         <h2>Client</h2>
-        <div className="field-grid">
-          <TextField
-            label="Title"
-            value={data.client.title}
-            onChange={(title) => updateClient({ title })}
-          />
-          <TextField
-            label="Year"
-            value={data.client.year}
-            onChange={(year) => updateClient({ year })}
-          />
-          <label className="form-field">
-            <span>Variant</span>
-            <select
-              value={data.client.variant}
-              onChange={(event) =>
-                updateClient({
-                  variant: event.target.value as 'annual' | 'postNote',
-                })
-              }
-            >
-              <option value="annual">Annual</option>
-              <option value="postNote">Post Note</option>
-            </select>
-          </label>
-          {data.client.variant === 'postNote' && (
+        <div className="client-fields">
+          <div className="client-title-row">
             <TextField
-              label="Post Note Label"
-              value={data.client.postNoteLabel ?? ''}
-              onChange={(postNoteLabel) => updateClient({ postNoteLabel })}
+              label="Title"
+              value={data.client.title}
+              onChange={(title) => updateClient({ title })}
             />
+          </div>
+          <div className="client-meta-row">
+            <TextField
+              label="Year"
+              value={data.client.year}
+              onChange={(year) => updateClient({ year })}
+            />
+            <label className="form-field">
+              <span>Variant</span>
+              <select
+                value={data.client.variant}
+                onChange={(event) =>
+                  updateClient({
+                    variant: event.target.value as 'annual' | 'postNote',
+                  })
+                }
+              >
+                <option value="annual">Annual</option>
+                <option value="postNote">Post Note</option>
+              </select>
+            </label>
+          </div>
+          {data.client.variant === 'postNote' && (
+            <div className="client-post-note-row">
+              <TextField
+                label="Post Note Label"
+                value={data.client.postNoteLabel ?? ''}
+                onChange={(postNoteLabel) =>
+                  updateClient({ postNoteLabel })
+                }
+              />
+            </div>
           )}
         </div>
       </section>
