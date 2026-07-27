@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   addClient,
+  clearedClient,
   deleteClient,
   duplicateClient,
   emptyHistory,
@@ -65,6 +66,7 @@ type AppDialog =
   | { kind: 'delete'; clientId: string; name: string }
   | { kind: 'error'; title: string; message: string }
   | { kind: 'resetLayout' }
+  | { kind: 'clearMap'; clientId: string; name: string }
 
 function initialBook(): MoneyMapFile {
   try {
@@ -439,6 +441,26 @@ export default function App() {
     addToast('Layout reset')
   }
 
+  const confirmClearMap = (clientId: string) => {
+    const current = snapshotRef.current
+    const client = current.book.clients.find((item) => item.id === clientId)
+    if (!client) {
+      setDialog(null)
+      return
+    }
+    commitSnapshot(
+      {
+        book: updateClient(current.book, clientId, clearedClient(client)),
+        activeClientId: clientId,
+      },
+      null,
+    )
+    setMapTextEdit(null)
+    resetWizard()
+    setDialog(null)
+    addToast('Map cleared — Undo brings it back')
+  }
+
   const confirmDelete = (clientId: string) => {
     const nextBook = deleteClient(snapshotRef.current.book, clientId)
     commitSnapshot(
@@ -667,15 +689,37 @@ export default function App() {
         </Menu>
         <div className="header-spacer" />
         <div className="header-payoff-actions">
-          {hasLayoutOverrides && (
-            <button
-              className="quiet-button"
-              type="button"
+          <Menu
+            ariaLabel="Reset menu"
+            trigger={
+              <>
+                <span>Reset</span>
+                <span aria-hidden="true" className="menu-caret">
+                  ▾
+                </span>
+              </>
+            }
+            triggerClassName="reset-menu-trigger"
+          >
+            <MenuItem
+              disabled={!hasLayoutOverrides}
               onClick={() => setDialog({ kind: 'resetLayout' })}
             >
-              Reset layout
-            </button>
-          )}
+              Reset arrangement
+            </MenuItem>
+            <MenuItem
+              danger
+              onClick={() =>
+                setDialog({
+                  kind: 'clearMap',
+                  clientId: activeClient.id,
+                  name: activeClient.client.title || 'Untitled',
+                })
+              }
+            >
+              Clear map…
+            </MenuItem>
+          </Menu>
           <button
             className="quiet-button"
             type="button"
@@ -827,6 +871,21 @@ export default function App() {
           onConfirm={handleResetLayout}
         >
           Restore the generated layout for this client?
+        </Dialog>
+      )}
+      {dialog?.kind === 'clearMap' && (
+        <Dialog
+          confirmLabel="Clear map"
+          danger
+          open
+          title="Clear map"
+          onClose={() => setDialog(null)}
+          onConfirm={() => confirmClearMap(dialog.clientId)}
+        >
+          Clear the map for {dialog.name}? This removes all accounts, income
+          sources, monthly need, draw amount, after-tax income, footnotes, and
+          arrangement. The client stays in your book. One Undo brings
+          everything back.
         </Dialog>
       )}
       <Toast messages={toasts} onDismiss={dismissToast} />

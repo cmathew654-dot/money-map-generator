@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   addClient,
+  clearedClient,
   deleteClient,
   duplicateClient,
   newBook,
   parseBook,
   updateClient,
 } from '../src/model/book'
+import { layoutMap } from '../src/layout/layout'
 import {
   blankClient,
   SAMPLE_CALLOWAY,
@@ -107,6 +109,42 @@ describe('book operations', () => {
     expect(updated.clients[0]).toBe(replacement)
     expect(updated.clients[1]).toBe(book.clients[1])
     expect(book.clients[0].client.title).toBe('Jordan & Dana Whitfield')
+  })
+
+  it('clears map content while preserving identity, profile, and showMath', () => {
+    const source = structuredClone(SAMPLE_WHITFIELD)
+    source.client.variant = 'postNote'
+    source.client.postNoteLabel = 'April 2026'
+    source.showMath = false
+    source.layoutOverrides = {
+      income: { dx: 24, dy: -12 },
+    }
+
+    const cleared = clearedClient(source)
+
+    expect(cleared).toEqual({
+      id: source.id,
+      client: source.client,
+      showMath: false,
+      incomeSources: [],
+      afterTaxIncome: null,
+      monthlyNeed: null,
+      asNeededAmount: null,
+      accounts: [],
+      footnotes: [],
+    })
+    expect(cleared.client).not.toBe(source.client)
+    expect(cleared.layoutOverrides).toBeUndefined()
+    expect(source.accounts).not.toEqual([])
+    expect(source.layoutOverrides).toBeDefined()
+  })
+
+  it('lays out and validates a cleared client', () => {
+    const book = newBook()
+    book.clients[0] = clearedClient(book.clients[0])
+
+    expect(() => layoutMap(book.clients[0])).not.toThrow()
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
   })
 })
 

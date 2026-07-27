@@ -109,6 +109,21 @@ function makeBlankClient(title = ''): MoneyMapData {
   return client
 }
 
+export function clearedClient(data: MoneyMapData): MoneyMapData {
+  const cleared: MoneyMapData = {
+    id: data.id,
+    client: { ...data.client },
+    incomeSources: [],
+    afterTaxIncome: null,
+    monthlyNeed: null,
+    asNeededAmount: null,
+    accounts: [],
+    footnotes: [],
+  }
+  if (data.showMath !== undefined) cleared.showMath = data.showMath
+  return cleared
+}
+
 export function newBook(): MoneyMapFile {
   return {
     fileType: 'money-map-book',
