@@ -138,6 +138,36 @@ summary:focus-visible {
   background: #fcfcfa;
 }
 
+.form-mode-toggle {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 12px 20px 5px;
+  background: #fcfcfa;
+}
+
+.form-mode-toggle button {
+  padding: 5px 9px;
+  border-color: transparent;
+  background: transparent;
+  color: #5b6663;
+  font-size: 12px;
+}
+
+.form-mode-toggle button:hover {
+  background: #f1f3f0;
+  color: #1c2422;
+}
+
+.form-mode-toggle button.is-active {
+  border-color: #1c2422;
+  background: #fcfcfa;
+  color: #1c2422;
+}
+
 .preview-pane {
   display: grid;
   min-width: 0;
@@ -519,6 +549,145 @@ summary:focus-visible {
   margin-bottom: 14px;
 }
 
+.wizard {
+  display: flex;
+  min-height: calc(100% - 46px);
+  flex-direction: column;
+  padding-top: 8px;
+}
+
+.wizard-header {
+  padding: 10px 0 18px;
+  border-bottom: 1px solid #dde1dc;
+}
+
+.wizard-header h1,
+.wizard-done h1 {
+  margin: 3px 0 14px;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.wizard-step-count {
+  margin: 0;
+  color: #5b6663;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wizard-progress {
+  display: flex;
+  gap: 9px;
+}
+
+.wizard-dot {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #dde1dc;
+  border-radius: 50%;
+  background: #fcfcfa;
+}
+
+.wizard-dot.is-done {
+  border-color: #1c2422;
+  background: #1c2422;
+}
+
+.wizard-dot.is-current {
+  border-color: #1c2422;
+  background: #fcfcfa;
+}
+
+.wizard-step-content {
+  flex: 1;
+}
+
+.wizard .form-section {
+  padding: 24px 0;
+  border-bottom: 0;
+}
+
+.wizard .form-section > h2 {
+  display: none;
+}
+
+.wizard-subtitle {
+  margin: 22px 0 -10px;
+  color: #5b6663;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wizard .accounts-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard .account-preset-row {
+  order: -1;
+  margin: 0 0 18px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid #dde1dc;
+}
+
+.wizard .account-preset-label {
+  flex-basis: 100%;
+}
+
+.wizard-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  min-height: 70px;
+  align-items: center;
+  margin-top: auto;
+  padding: 12px 0;
+  border-top: 1px solid #dde1dc;
+  background: #fcfcfa;
+}
+
+.wizard-back {
+  border-color: transparent;
+  background: transparent;
+}
+
+.wizard-next {
+  min-width: 128px;
+  min-height: 44px;
+  margin-left: auto;
+  border-color: #1c2422;
+  background: #1c2422;
+  color: #fcfcfa;
+  font-weight: 600;
+}
+
+.wizard-next:hover {
+  background: #2a3230;
+}
+
+.wizard-done {
+  padding: 54px 20px 36px;
+}
+
+.wizard-done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wizard-done-actions button {
+  background: transparent;
+}
+
+.wizard-start-over {
+  align-self: flex-start;
+  margin-top: 22px;
+}
+
 @media (max-width: 900px) {
   .app-shell {
     min-width: 1000px;
@@ -529,6 +698,11 @@ summary:focus-visible {
   }
 
   .client-form {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .form-mode-toggle {
     padding-right: 14px;
     padding-left: 14px;
   }

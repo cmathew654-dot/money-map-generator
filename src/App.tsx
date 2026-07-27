@@ -16,12 +16,19 @@ import {
 } from './export/export'
 import { Form } from './form/Form'
 import {
+  Wizard,
+  wizardStepNumberForMapTarget,
+} from './form/Wizard'
+import {
   MapSvg,
   type MapElementTarget,
 } from './render/MapSvg'
 import './styles/print.css'
 
 const STORAGE_KEY = 'money-map-book:v1'
+const FORM_MODE_STORAGE_KEY = 'money-map-form-mode:v1'
+
+type FormMode = 'guided' | 'full'
 
 function initialBook(): MoneyMapFile {
   try {
@@ -32,11 +39,24 @@ function initialBook(): MoneyMapFile {
   }
 }
 
+function initialFormMode(): FormMode {
+  try {
+    return localStorage.getItem(FORM_MODE_STORAGE_KEY) === 'full'
+      ? 'full'
+      : 'guided'
+  } catch {
+    return 'guided'
+  }
+}
+
 export default function App() {
   const [book, setBook] = useState<MoneyMapFile>(initialBook)
+  const [formMode, setFormMode] = useState<FormMode>(initialFormMode)
   const [activeClientId, setActiveClientId] = useState(
     () => book.clients[0].id,
   )
+  const [wizardStep, setWizardStep] = useState(0)
+  const [wizardDone, setWizardDone] = useState(false)
   const [focusRequest, setFocusRequest] = useState<{
     id: string
     at: number
@@ -60,16 +80,34 @@ export default function App() {
     return () => window.clearTimeout(timeout)
   }, [book])
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(FORM_MODE_STORAGE_KEY, formMode)
+    } catch {
+      // The selected mode remains usable for this session.
+    }
+  }, [formMode])
+
+  const resetWizard = () => {
+    setWizardStep(0)
+    setWizardDone(false)
+  }
+
+  const selectClient = (id: string) => {
+    setActiveClientId(id)
+    resetWizard()
+  }
+
   const handleNew = () => {
     const result = addClient(book)
     setBook(result.book)
-    setActiveClientId(result.id)
+    selectClient(result.id)
   }
 
   const handleDuplicate = () => {
     const result = duplicateClient(book, activeClient.id)
     setBook(result.book)
-    setActiveClientId(result.id)
+    selectClient(result.id)
   }
 
   const handleDelete = () => {
@@ -78,14 +116,14 @@ export default function App() {
     }
     const nextBook = deleteClient(book, activeClient.id)
     setBook(nextBook)
-    setActiveClientId(nextBook.clients[0].id)
+    selectClient(nextBook.clients[0].id)
   }
 
   const handleLoad = async (file: File) => {
     try {
       const nextBook = await loadBookFromFile(file)
       setBook(nextBook)
-      setActiveClientId(nextBook.clients[0].id)
+      selectClient(nextBook.clients[0].id)
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'The book could not be loaded.'
@@ -116,6 +154,13 @@ export default function App() {
   }
 
   const handleMapElementClick = (target: MapElementTarget) => {
+    if (formMode === 'guided') {
+      const stepNumber = wizardStepNumberForMapTarget(target.kind)
+      if (stepNumber !== null) {
+        setWizardStep(stepNumber - 1)
+        setWizardDone(false)
+      }
+    }
     const id = target.kind === 'account' ? target.id : target.kind
     if (!id) return
     focusRequestCounter.current += 1
@@ -130,7 +175,7 @@ export default function App() {
           aria-label="Active client"
           className="client-select"
           value={activeClient.id}
-          onChange={(event) => setActiveClientId(event.target.value)}
+          onChange={(event) => selectClient(event.target.value)}
         >
           {book.clients.map((client) => (
             <option key={client.id} value={client.id}>
@@ -174,16 +219,54 @@ export default function App() {
       </header>
       <div className="workspace">
         <aside className="form-pane" aria-label="Client editor">
-          <Form
-            data={activeClient}
-            focusRequest={focusRequest}
-            onChange={(next) =>
-              setBook((current) =>
-                updateClient(current, activeClient.id, next),
-              )
-            }
-            onHoverAccount={setHighlightId}
-          />
+          <div className="form-mode-toggle" aria-label="Form mode">
+            <button
+              aria-pressed={formMode === 'guided'}
+              className={formMode === 'guided' ? 'is-active' : ''}
+              type="button"
+              onClick={() => setFormMode('guided')}
+            >
+              Guide me
+            </button>
+            <button
+              aria-pressed={formMode === 'full'}
+              className={formMode === 'full' ? 'is-active' : ''}
+              type="button"
+              onClick={() => setFormMode('full')}
+            >
+              Full form
+            </button>
+          </div>
+          {formMode === 'guided' ? (
+            <Wizard
+              currentStep={wizardStep}
+              data={activeClient}
+              done={wizardDone}
+              focusRequest={focusRequest}
+              onChange={(next) =>
+                setBook((current) =>
+                  updateClient(current, activeClient.id, next),
+                )
+              }
+              onCurrentStepChange={setWizardStep}
+              onDoneChange={setWizardDone}
+              onExportPng={() => void handleExportPng()}
+              onFullForm={() => setFormMode('full')}
+              onHoverAccount={setHighlightId}
+              onPrint={() => window.print()}
+            />
+          ) : (
+            <Form
+              data={activeClient}
+              focusRequest={focusRequest}
+              onChange={(next) =>
+                setBook((current) =>
+                  updateClient(current, activeClient.id, next),
+                )
+              }
+              onHoverAccount={setHighlightId}
+            />
+          )}
         </aside>
         <section className="preview-pane" aria-label="Money Map preview">
           <div className="map-page">
