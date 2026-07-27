@@ -448,6 +448,43 @@ summary:focus-visible {
   background: #59645f;
 }
 
+.account-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.account-preset-label {
+  color: #5b6663;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.account-preset-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-color: #dde1dc;
+  border-radius: 999px;
+  background: transparent;
+  color: #5b6663;
+  font-size: 12px;
+}
+
+.account-preset-button:hover {
+  background: #f1f3f0;
+  color: #1c2422;
+}
+
+.account-preset-button .account-swatch {
+  flex: 0 0 auto;
+}
+
 .checkbox-field {
   display: flex;
   align-items: center;

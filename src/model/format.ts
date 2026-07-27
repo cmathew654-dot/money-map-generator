@@ -2,6 +2,21 @@
 
 export const BLANK = '~$ ______'
 
+/** Parse advisor-friendly dollar input, including k/m shorthand. */
+export function parseMoneyInput(text: string): number | null {
+  const normalized = text.trim().replace(/[$,\s]/g, '')
+  const match = normalized.match(
+    /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([km])?$/i,
+  )
+  if (!match) return null
+
+  const value = Number(match[1])
+  const suffix = match[2]?.toLowerCase()
+  const multiplier = suffix === 'k' ? 1_000 : suffix === 'm' ? 1_000_000 : 1
+  const result = value * multiplier
+  return Number.isFinite(result) ? result : null
+}
+
 /** $1,600,000 — approximate marker optional. */
 export function money(value: number | null, opts?: { approx?: boolean }): string {
   if (value === null || Number.isNaN(value)) return BLANK

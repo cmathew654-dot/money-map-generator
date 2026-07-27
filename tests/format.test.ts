@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { BLANK, money, moneyPer, wrap } from '../src/model/format'
+import {
+  BLANK,
+  money,
+  moneyPer,
+  parseMoneyInput,
+  wrap,
+} from '../src/model/format'
+
+describe('parseMoneyInput', () => {
+  it.each([
+    ['85k', 85_000],
+    ['1.2M', 1_200_000],
+    ['$2,450,000', 2_450_000],
+    ['.5m', 500_000],
+    ['abc', null],
+    ['', null],
+  ])('parses %j as %s', (text, expected) => {
+    expect(parseMoneyInput(text)).toBe(expected)
+  })
+})
 
 describe('money', () => {
   it('groups and rounds dollar values', () => {

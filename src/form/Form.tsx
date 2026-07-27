@@ -3,9 +3,10 @@ import {
   useEffect,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
   type Ref,
 } from 'react'
-import { money } from '../model/format'
+import { money, parseMoneyInput } from '../model/format'
 import type {
   Account,
   Bucket,
@@ -40,12 +41,68 @@ const bucketOptions: { value: Bucket; label: string }[] = [
   { value: 'note', label: 'Note card' },
 ]
 
-function parseMoney(raw: string): number | null {
-  const stripped = raw.replace(/[$,\s]/g, '')
-  if (stripped === '') return null
-  const value = Number(stripped)
-  return Number.isFinite(value) ? value : null
-}
+const accountPresets: {
+  chipLabel: string
+  account: Omit<Account, 'id' | 'value'>
+}[] = [
+  {
+    chipLabel: 'Short-Term',
+    account: {
+      bucket: 'shortTerm',
+      label: 'Short-Term Funds',
+      caption: "2-3 years' worth of income needs",
+      inWaterfall: true,
+    },
+  },
+  {
+    chipLabel: 'Trust',
+    account: {
+      bucket: 'afterTax',
+      label: 'Trust Account',
+      inWaterfall: true,
+    },
+  },
+  {
+    chipLabel: 'IRA',
+    account: {
+      bucket: 'taxDeferred',
+      label: 'IRA',
+      inWaterfall: true,
+    },
+  },
+  {
+    chipLabel: 'Roth',
+    account: {
+      bucket: 'taxPreferred',
+      label: 'Roth IRA',
+      inWaterfall: false,
+    },
+  },
+  {
+    chipLabel: 'Cash',
+    account: {
+      bucket: 'cash',
+      label: 'Cash at Bank',
+      inWaterfall: false,
+    },
+  },
+  {
+    chipLabel: 'Charitable',
+    account: {
+      bucket: 'charitable',
+      label: 'Donor-Advised Fund',
+      inWaterfall: false,
+    },
+  },
+  {
+    chipLabel: 'Note',
+    account: {
+      bucket: 'note',
+      label: 'Note',
+      inWaterfall: false,
+    },
+  },
+]
 
 function MoneyField({ label, value, onChange }: MoneyFieldProps) {
   const [focused, setFocused] = useState(false)
@@ -60,11 +117,11 @@ function MoneyField({ label, value, onChange }: MoneyFieldProps) {
         placeholder="~$ ______"
         type="text"
         value={focused ? raw : value === null ? '' : money(value)}
-        onBlur={() => setFocused(false)}
-        onChange={(event) => {
-          setRaw(event.target.value)
-          onChange(parseMoney(event.target.value))
+        onBlur={() => {
+          onChange(parseMoneyInput(raw))
+          setFocused(false)
         }}
+        onChange={(event) => setRaw(event.target.value)}
         onFocus={() => {
           setRaw(value === null ? '' : String(value))
           setFocused(true)
@@ -542,26 +599,31 @@ function AccountsSection({
           }
         />
       ))}
-      <button
-        className="add-button"
-        type="button"
-        onClick={() => {
-          const id = newId('account')
-          setNewAccountId(id)
-          setAccounts([
-            ...data.accounts,
-            {
-              id,
-              bucket: 'afterTax',
-              label: '',
-              value: null,
-              inWaterfall: false,
-            },
-          ])
-        }}
-      >
-        + Add account
-      </button>
+      <div className="account-preset-row" aria-label="Add account">
+        <span className="account-preset-label">Add:</span>
+        {accountPresets.map((preset) => (
+          <button
+            className={`account-preset-button bucket-${preset.account.bucket}`}
+            key={preset.chipLabel}
+            type="button"
+            onClick={() => {
+              const id = newId('account')
+              setNewAccountId(id)
+              setAccounts([
+                ...data.accounts,
+                {
+                  id,
+                  ...preset.account,
+                  value: null,
+                },
+              ])
+            }}
+          >
+            <span aria-hidden="true" className="account-swatch" />
+            {preset.chipLabel}
+          </button>
+        ))}
+      </div>
     </section>
   )
 }
@@ -661,8 +723,32 @@ export function Form({
     })
   }, [focusRequest])
 
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLFormElement>) => {
+    if (
+      event.key !== 'Enter' ||
+      !(event.target instanceof HTMLInputElement) ||
+      event.target.type !== 'text'
+    ) {
+      return
+    }
+
+    const inputs = Array.from(
+      event.currentTarget.querySelectorAll<HTMLInputElement>(
+        'input:not([type="hidden"]):not([disabled])',
+      ),
+    ).filter((input) => input.getClientRects().length > 0)
+    const nextInput = inputs[inputs.indexOf(event.target) + 1]
+    if (!nextInput) return
+    event.preventDefault()
+    nextInput.focus()
+  }
+
   return (
-    <form className="client-form" onSubmit={(event) => event.preventDefault()}>
+    <form
+      className="client-form"
+      onKeyDown={handleKeyDown}
+      onSubmit={(event) => event.preventDefault()}
+    >
       <section className="form-section">
         <h2>Client</h2>
         <div className="client-fields">
