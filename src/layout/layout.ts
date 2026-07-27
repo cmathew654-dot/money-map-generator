@@ -46,8 +46,13 @@ export const CAP_CONTENT_GAP = 21
 const WATERFALL_MIN_Y = 128
 const WATERFALL_CLEARANCE = 30
 const AS_NEEDED_LABEL_WIDTH = 260
-const AS_NEEDED_LABEL_HEIGHT = 38
+const AS_NEEDED_LABEL_HEIGHT = 34
 const AS_NEEDED_LABEL_CLEARANCE = 10
+const AS_NEEDED_START_FRACTIONS = [0.72, 0.77, 0.82, 0.87, 0.92, 0.95]
+const AS_NEEDED_LABEL_TS = [
+  0.4, 0.35, 0.45, 0.3, 0.5, 0.25, 0.55, 0.2, 0.6, 0.15, 0.65, 0.7,
+  0.75, 0.8,
+]
 
 const COLUMNS: Column[] = [
   { x: 390, y: 150, w: 250, buckets: ['shortTerm', 'cash', 'note'] },
@@ -264,90 +269,149 @@ function incomeArrow(income: Placed, need: Placed): Arrow {
   }
 }
 
-function labelOverlapsAccount(
-  labelAt: { x: number; y: number },
-  account: PlacedAccount,
+function boxesIntersect(
+  first: Placed,
+  second: Placed,
 ): boolean {
-  const halfWidth = AS_NEEDED_LABEL_WIDTH / 2
-  const halfHeight = AS_NEEDED_LABEL_HEIGHT / 2
-
   return (
-    labelAt.x + halfWidth + AS_NEEDED_LABEL_CLEARANCE > account.x &&
-    labelAt.x - halfWidth - AS_NEEDED_LABEL_CLEARANCE <
-      account.x + account.w &&
-    labelAt.y + halfHeight + AS_NEEDED_LABEL_CLEARANCE > account.y &&
-    labelAt.y - halfHeight - AS_NEEDED_LABEL_CLEARANCE <
-      account.y + account.h
+    first.x < second.x + second.w &&
+    first.x + first.w > second.x &&
+    first.y < second.y + second.h &&
+    first.y + first.h > second.y
   )
+}
+
+function segmentIntersectsBox(
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+  box: Placed,
+): boolean {
+  let entry = 0
+  let exit = 1
+
+  for (const [origin, delta, minimum, maximum] of [
+    [start.x, end.x - start.x, box.x, box.x + box.w],
+    [start.y, end.y - start.y, box.y, box.y + box.h],
+  ]) {
+    if (delta === 0) {
+      if (origin <= minimum || origin >= maximum) return false
+      continue
+    }
+    const first = (minimum - origin) / delta
+    const second = (maximum - origin) / delta
+    entry = Math.max(entry, Math.min(first, second))
+    exit = Math.min(exit, Math.max(first, second))
+  }
+
+  return entry < exit && exit > 0 && entry < 1
+}
+
+function labelBox(labelAt: { x: number; y: number }): Placed {
+  return {
+    x:
+      labelAt.x -
+      AS_NEEDED_LABEL_WIDTH / 2 -
+      AS_NEEDED_LABEL_CLEARANCE,
+    y:
+      labelAt.y -
+      AS_NEEDED_LABEL_HEIGHT / 2 -
+      AS_NEEDED_LABEL_CLEARANCE,
+    w: AS_NEEDED_LABEL_WIDTH + AS_NEEDED_LABEL_CLEARANCE * 2,
+    h: AS_NEEDED_LABEL_HEIGHT + AS_NEEDED_LABEL_CLEARANCE * 2,
+  }
+}
+
+function pointOnQuadratic(
+  start: { x: number; y: number },
+  control: { x: number; y: number },
+  end: { x: number; y: number },
+  t: number,
+): { x: number; y: number } {
+  const oneMinusT = 1 - t
+  return {
+    x:
+      oneMinusT ** 2 * start.x +
+      2 * oneMinusT * t * control.x +
+      t ** 2 * end.x,
+    y:
+      oneMinusT ** 2 * start.y +
+      2 * oneMinusT * t * control.y +
+      t ** 2 * end.y,
+  }
 }
 
 function clearAsNeededLabel(
   labelAt: { x: number; y: number },
-  accounts: PlacedAccount[],
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+  obstacles: Placed[],
 ): { x: number; y: number } {
-  const collidingAtCurve = accounts.filter((account) =>
-    labelOverlapsAccount(labelAt, account),
-  )
-  const raised = {
-    x: labelAt.x,
-    y: Math.min(
-      labelAt.y,
-      ...collidingAtCurve.map(
-        (account) =>
-          account.y -
-          AS_NEEDED_LABEL_CLEARANCE -
-          AS_NEEDED_LABEL_HEIGHT / 2,
-      ),
-    ),
-  }
-  const collidingAfterRaise = accounts.filter((account) =>
-    labelOverlapsAccount(raised, account),
-  )
+  const clears = (candidate: { x: number; y: number }) =>
+    obstacles.every(
+      (obstacle) => !boxesIntersect(labelBox(candidate), obstacle),
+    )
+  if (clears(labelAt)) return labelAt
 
-  return {
-    x: Math.min(
-      raised.x,
-      ...collidingAfterRaise.map(
-        (account) =>
-          account.x -
-          AS_NEEDED_LABEL_CLEARANCE -
-          AS_NEEDED_LABEL_WIDTH / 2,
-      ),
-    ),
-    y: raised.y,
+  const length = Math.hypot(end.x - start.x, end.y - start.y)
+  const upwardNormal = {
+    x: -(end.y - start.y) / length,
+    y: (end.x - start.x) / length,
+  }
+  let offset = 8
+  while (true) {
+    const candidate = {
+      x: labelAt.x + upwardNormal.x * offset,
+      y: labelAt.y + upwardNormal.y * offset,
+    }
+    if (clears(candidate)) return candidate
+    offset += 8
   }
 }
 
 function asNeededArrow(
   shortTerm: PlacedAccount,
   need: Placed,
-  accounts: PlacedAccount[],
+  obstacles: Placed[],
 ): Arrow {
-  const start = {
-    x: shortTerm.x,
-    y: shortTerm.y + shortTerm.h * 0.72,
-  }
   const end = {
     x: need.x + need.w + 6,
     y: need.y + need.h * 0.45,
+  }
+  let start = {
+    x: shortTerm.x,
+    y: shortTerm.y + shortTerm.h * AS_NEEDED_START_FRACTIONS.at(-1)!,
+  }
+  for (const fraction of AS_NEEDED_START_FRACTIONS) {
+    const candidate = {
+      x: shortTerm.x,
+      y: shortTerm.y + shortTerm.h * fraction,
+    }
+    if (
+      obstacles.every(
+        (obstacle) => !segmentIntersectsBox(candidate, end, obstacle),
+      )
+    ) {
+      start = candidate
+      break
+    }
   }
   const control = {
     x: (start.x + end.x) / 2,
     y: (start.y + end.y) / 2 + 40,
   }
-  const t = 0.4
-  const oneMinusT = 1 - t
-  const labelOnCurve = {
-    x:
-      oneMinusT * oneMinusT * start.x +
-      2 * oneMinusT * t * control.x +
-      t * t * end.x,
-    y:
-      oneMinusT * oneMinusT * start.y +
-      2 * oneMinusT * t * control.y +
-      t * t * end.y,
+  let labelAt = pointOnQuadratic(start, control, end, 0.4)
+  for (const t of AS_NEEDED_LABEL_TS) {
+    const candidate = pointOnQuadratic(start, control, end, t)
+    if (
+      obstacles.every(
+        (obstacle) => !boxesIntersect(labelBox(candidate), obstacle),
+      )
+    ) {
+      labelAt = candidate
+      break
+    }
   }
-  const labelAt = clearAsNeededLabel(labelOnCurve, accounts)
+  labelAt = clearAsNeededLabel(labelAt, start, end, obstacles)
 
   return {
     kind: 'asNeeded',
@@ -377,7 +441,11 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
   )
-  if (shortTerm) arrows.push(asNeededArrow(shortTerm, need, accounts))
+  if (shortTerm) {
+    arrows.push(
+      asNeededArrow(shortTerm, need, [income, need, ...accounts]),
+    )
+  }
 
   return {
     artboard: ARTBOARD,

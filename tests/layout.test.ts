@@ -4,6 +4,7 @@ import { newBook } from '../src/model/book'
 import {
   blankClient,
   SAMPLE_CALLOWAY,
+  SAMPLE_VENKAT,
   SAMPLE_WHITFIELD,
 } from '../src/model/samples'
 import type { Account, MoneyMapData } from '../src/model/types'
@@ -40,6 +41,43 @@ function pathNumbers(path: string): number[] {
   return [...path.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) =>
     Number(match[0]),
   )
+}
+
+function boxesIntersect(
+  first: { x: number; y: number; w: number; h: number },
+  second: { x: number; y: number; w: number; h: number },
+): boolean {
+  return (
+    first.x < second.x + second.w &&
+    first.x + first.w > second.x &&
+    first.y < second.y + second.h &&
+    first.y + first.h > second.y
+  )
+}
+
+function segmentIntersectsBox(
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+  box: { x: number; y: number; w: number; h: number },
+): boolean {
+  let entry = 0
+  let exit = 1
+
+  for (const [origin, delta, minimum, maximum] of [
+    [start.x, end.x - start.x, box.x, box.x + box.w],
+    [start.y, end.y - start.y, box.y, box.y + box.h],
+  ]) {
+    if (delta === 0) {
+      if (origin <= minimum || origin >= maximum) return false
+      continue
+    }
+    const first = (minimum - origin) / delta
+    const second = (maximum - origin) / delta
+    entry = Math.max(entry, Math.min(first, second))
+    exit = Math.min(exit, Math.max(first, second))
+  }
+
+  return entry < exit && exit > 0 && entry < 1
 }
 
 describe('layoutMap', () => {
@@ -167,42 +205,43 @@ describe('layoutMap', () => {
       layout.need.y + layout.need.h * 0.45,
     ])
 
-    const [startX, startY, controlX, controlY, endX, endY] =
-      asNeededPath
-    const t = 0.4
-    const oneMinusT = 1 - t
-    const labelX =
-      oneMinusT ** 2 * startX +
-      2 * oneMinusT * t * controlX +
-      t ** 2 * endX
-    const labelY =
-      oneMinusT ** 2 * startY +
-      2 * oneMinusT * t * controlY +
-      t ** 2 * endY
-    expect(asNeeded.labelAt?.x).toBeLessThanOrEqual(labelX)
-    expect(asNeeded.labelAt?.y).toBeLessThanOrEqual(labelY)
+    const [, startY] = asNeededPath
+    expect(asNeeded.labelAt).toBeDefined()
     expect(startY).toBe(shortTerm.y + shortTerm.h * 0.72)
   })
 
-  it('keeps the Calloway as-needed chip clear of every account', () => {
-    const layout = layoutMap(SAMPLE_CALLOWAY)
-    const labelAt = layout.arrows.find(
+  it.each([
+    ['Whitfield', SAMPLE_WHITFIELD],
+    ['Calloway', SAMPLE_CALLOWAY],
+    ['Venkat', SAMPLE_VENKAT],
+    ['blank client', blankClient()],
+  ])('keeps the %s as-needed chip and segment clear', (_label, data) => {
+    const layout = layoutMap(data)
+    const asNeeded = layout.arrows.find(
       (arrow) => arrow.kind === 'asNeeded',
-    )!.labelAt!
-    const clearance = 10
+    )!
+    const labelAt = asNeeded.labelAt!
     const labelBox = {
-      x: labelAt.x - 260 / 2 - clearance,
-      y: labelAt.y - 34 / 2 - clearance,
-      w: 260 + clearance * 2,
-      h: 34 + clearance * 2,
+      x: labelAt.x - 260 / 2 - 10,
+      y: labelAt.y - 34 / 2 - 10,
+      w: 260 + 20,
+      h: 34 + 20,
     }
-    const intersects = (account: PlacedAccount) =>
-      labelBox.x < account.x + account.w &&
-      labelBox.x + labelBox.w > account.x &&
-      labelBox.y < account.y + account.h &&
-      labelBox.y + labelBox.h > account.y
+    const obstacles = [layout.income, layout.need, ...layout.accounts]
+    const path = pathNumbers(asNeeded.d)
+    const start = { x: path[0], y: path[1] }
+    const end = { x: path.at(-2)!, y: path.at(-1)! }
 
-    expect(layout.accounts.filter(intersects)).toEqual([])
+    expect(
+      obstacles.filter((obstacle) =>
+        boxesIntersect(labelBox, obstacle),
+      ),
+    ).toEqual([])
+    expect(
+      [layout.income, ...layout.accounts].filter((obstacle) =>
+        segmentIntersectsBox(start, end, obstacle),
+      ),
+    ).toEqual([])
   })
 
   it('uses the specified fixed panel and footnote slots', () => {
