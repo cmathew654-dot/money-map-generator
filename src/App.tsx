@@ -15,7 +15,10 @@ import {
   saveBookToFile,
 } from './export/export'
 import { Form } from './form/Form'
-import { MapSvg } from './render/MapSvg'
+import {
+  MapSvg,
+  type MapElementTarget,
+} from './render/MapSvg'
 import './styles/print.css'
 
 const STORAGE_KEY = 'money-map-book:v1'
@@ -34,6 +37,12 @@ export default function App() {
   const [activeClientId, setActiveClientId] = useState(
     () => book.clients[0].id,
   )
+  const [focusRequest, setFocusRequest] = useState<{
+    id: string
+    at: number
+  }>()
+  const [highlightId, setHighlightId] = useState<string | null>(null)
+  const focusRequestCounter = useRef(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const activeClient =
@@ -106,6 +115,13 @@ export default function App() {
     }
   }
 
+  const handleMapElementClick = (target: MapElementTarget) => {
+    const id = target.kind === 'account' ? target.id : target.kind
+    if (!id) return
+    focusRequestCounter.current += 1
+    setFocusRequest({ id, at: focusRequestCounter.current })
+  }
+
   return (
     <main className="app-shell">
       <header className="app-header">
@@ -160,16 +176,22 @@ export default function App() {
         <aside className="form-pane" aria-label="Client editor">
           <Form
             data={activeClient}
+            focusRequest={focusRequest}
             onChange={(next) =>
               setBook((current) =>
                 updateClient(current, activeClient.id, next),
               )
             }
+            onHoverAccount={setHighlightId}
           />
         </aside>
         <section className="preview-pane" aria-label="Money Map preview">
           <div className="map-page">
-            <MapSvg data={activeClient} />
+            <MapSvg
+              data={activeClient}
+              highlightId={highlightId}
+              onElementClick={handleMapElementClick}
+            />
           </div>
         </section>
       </div>

@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Ref,
+} from 'react'
 import { money } from '../model/format'
 import type {
   Account,
@@ -14,6 +20,8 @@ import { newId } from '../model/types'
 interface FormProps {
   data: MoneyMapData
   onChange(next: MoneyMapData): void
+  focusRequest?: { id: string; at: number }
+  onHoverAccount?: (id: string | null) => void
 }
 
 interface MoneyFieldProps {
@@ -70,15 +78,18 @@ function TextField({
   label,
   value,
   onChange,
+  inputRef,
 }: {
   label: string
   value: string
   onChange(value: string): void
+  inputRef?: Ref<HTMLInputElement>
 }) {
   return (
     <label className="form-field">
       <span>{label}</span>
       <input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -109,7 +120,10 @@ function RemoveButton({
 function IncomeSection({
   data,
   onChange,
-}: FormProps) {
+  sectionRef,
+}: Pick<FormProps, 'data' | 'onChange'> & {
+  sectionRef?: Ref<HTMLElement>
+}) {
   const setSources = (incomeSources: IncomeSource[]) =>
     onChange({ ...data, incomeSources })
   const updateSource = (index: number, source: IncomeSource) =>
@@ -120,7 +134,7 @@ function IncomeSection({
     )
 
   return (
-    <section className="form-section">
+    <section className="form-section" ref={sectionRef}>
       <h2>Income</h2>
       <div className="row-list">
         {data.incomeSources.map((source, index) => (
@@ -353,15 +367,23 @@ function SubAccountRows({
 function AccountCard({
   account,
   initiallyOpen,
+  onHoverAccount,
+  registerFocusRefs,
   onChange,
   onRemove,
 }: {
   account: Account
   initiallyOpen: boolean
+  onHoverAccount?: (id: string | null) => void
+  registerFocusRefs(
+    id: string,
+    refs: AccountFocusRefs | null,
+  ): void
   onChange(account: Account): void
   onRemove(): void
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null)
+  const labelInputRef = useRef<HTMLInputElement>(null)
   const didSetInitialOpen = useRef(false)
 
   useEffect(() => {
@@ -372,9 +394,20 @@ function AccountCard({
     }
   }, [initiallyOpen])
 
+  useEffect(() => {
+    if (!detailsRef.current || !labelInputRef.current) return
+    registerFocusRefs(account.id, {
+      details: detailsRef.current,
+      labelInput: labelInputRef.current,
+    })
+    return () => registerFocusRefs(account.id, null)
+  }, [account.id, registerFocusRefs])
+
   return (
     <details
       className={`account-card bucket-${account.bucket}`}
+      onMouseEnter={() => onHoverAccount?.(account.id)}
+      onMouseLeave={() => onHoverAccount?.(null)}
       ref={detailsRef}
     >
       <summary className="account-summary">
@@ -408,6 +441,7 @@ function AccountCard({
             </select>
           </label>
           <TextField
+            inputRef={labelInputRef}
             label="Label"
             value={account.label}
             onChange={(label) => onChange({ ...account, label })}
@@ -446,10 +480,44 @@ function AccountCard({
   )
 }
 
-function AccountsSection({ data, onChange }: FormProps) {
+interface AccountFocusRefs {
+  details: HTMLDetailsElement
+  labelInput: HTMLInputElement
+}
+
+function AccountsSection({
+  data,
+  focusRequest,
+  onChange,
+  onHoverAccount,
+}: FormProps) {
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
+  const focusRefs = useRef(new Map<string, AccountFocusRefs>())
+  const registerFocusRefs = useCallback(
+    (id: string, refs: AccountFocusRefs | null) => {
+      if (refs) {
+        focusRefs.current.set(id, refs)
+      } else {
+        focusRefs.current.delete(id)
+      }
+    },
+    [],
+  )
   const setAccounts = (accounts: Account[]) =>
     onChange({ ...data, accounts })
+
+  useEffect(() => {
+    if (!focusRequest) return
+    const refs = focusRefs.current.get(focusRequest.id)
+    if (!refs) return
+    refs.details.open = true
+    refs.details.scrollIntoView({
+      block: 'center',
+      behavior: 'smooth',
+    })
+    refs.labelInput.focus()
+  }, [focusRequest])
+
   return (
     <section className="form-section">
       <h2>Accounts</h2>
@@ -458,6 +526,8 @@ function AccountsSection({ data, onChange }: FormProps) {
           account={account}
           initiallyOpen={account.id === newAccountId}
           key={account.id}
+          onHoverAccount={onHoverAccount}
+          registerFocusRefs={registerFocusRefs}
           onChange={(next) =>
             setAccounts(
               data.accounts.map((item, itemIndex) =>
@@ -567,10 +637,29 @@ function FootnotesSection({ data, onChange }: FormProps) {
   )
 }
 
-export function Form({ data, onChange }: FormProps) {
+export function Form({
+  data,
+  focusRequest,
+  onChange,
+  onHoverAccount,
+}: FormProps) {
+  const incomeSectionRef = useRef<HTMLElement>(null)
   const updateClient = (
     client: Partial<MoneyMapData['client']>,
   ) => onChange({ ...data, client: { ...data.client, ...client } })
+
+  useEffect(() => {
+    if (
+      !focusRequest ||
+      (focusRequest.id !== 'income' && focusRequest.id !== 'need')
+    ) {
+      return
+    }
+    incomeSectionRef.current?.scrollIntoView({
+      block: 'center',
+      behavior: 'smooth',
+    })
+  }, [focusRequest])
 
   return (
     <form className="client-form" onSubmit={(event) => event.preventDefault()}>
@@ -618,8 +707,17 @@ export function Form({ data, onChange }: FormProps) {
           )}
         </div>
       </section>
-      <IncomeSection data={data} onChange={onChange} />
-      <AccountsSection data={data} onChange={onChange} />
+      <IncomeSection
+        data={data}
+        onChange={onChange}
+        sectionRef={incomeSectionRef}
+      />
+      <AccountsSection
+        data={data}
+        focusRequest={focusRequest}
+        onChange={onChange}
+        onHoverAccount={onHoverAccount}
+      />
       <FootnotesSection data={data} onChange={onChange} />
     </form>
   )

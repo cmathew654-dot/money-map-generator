@@ -1,4 +1,8 @@
-import { useId } from 'react'
+import {
+  useId,
+  type KeyboardEvent,
+  type SVGProps,
+} from 'react'
 import { CAP_CONTENT_GAP, layoutMap } from '../layout/layout'
 import type {
   Arrow,
@@ -28,6 +32,39 @@ import {
 
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
 const SUB_ACCOUNT_CAP_CONTENT_GAP = 14
+
+export interface MapElementTarget {
+  kind: 'account' | 'income' | 'need'
+  id?: string
+}
+
+interface MapSvgProps {
+  data: MoneyMapData
+  onElementClick?: (target: MapElementTarget) => void
+  highlightId?: string | null
+}
+
+function interactiveGroupProps(
+  label: string,
+  target: MapElementTarget,
+  onElementClick?: (target: MapElementTarget) => void,
+): SVGProps<SVGGElement> {
+  if (!onElementClick) return {}
+
+  const activate = () => onElementClick(target)
+  return {
+    'aria-label': label,
+    onClick: activate,
+    onKeyDown: (event: KeyboardEvent<SVGGElement>) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      event.preventDefault()
+      activate()
+    },
+    role: 'button',
+    style: { cursor: 'pointer' },
+    tabIndex: 0,
+  }
+}
 
 function mastheadLabel(data: MoneyMapData): string {
   if (data.client.variant === 'postNote') {
@@ -694,7 +731,11 @@ function FootnoteLine({
   )
 }
 
-export function MapSvg({ data }: { data: MoneyMapData }) {
+export function MapSvg({
+  data,
+  onElementClick,
+  highlightId,
+}: MapSvgProps) {
   const markerId = `flow-arrowhead-${useId().replaceAll(':', '')}`
   const layout = layoutMap(data)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
@@ -740,22 +781,59 @@ export function MapSvg({ data }: { data: MoneyMapData }) {
           />
         ))}
       </g>
-      <IncomePanel data={data} placed={layout.income} />
-      <NeedCard value={data.monthlyNeed} placed={layout.need} />
-      <g aria-label="Accounts">
-        {layout.accounts.map((placed, index) =>
-          placed.account.bucket === 'note' ? (
-            <NoteCard
-              key={`${placed.account.id}-${index}`}
-              placed={placed}
-            />
-          ) : (
-            <Cylinder
-              key={`${placed.account.id}-${index}`}
-              placed={placed}
-            />
-          ),
+      <g
+        {...interactiveGroupProps(
+          'Income sources',
+          { kind: 'income' },
+          onElementClick,
         )}
+      >
+        <IncomePanel data={data} placed={layout.income} />
+      </g>
+      <g
+        {...interactiveGroupProps(
+          'Monthly income need',
+          { kind: 'need' },
+          onElementClick,
+        )}
+      >
+        <NeedCard value={data.monthlyNeed} placed={layout.need} />
+      </g>
+      <g aria-label="Accounts">
+        {layout.accounts.map((placed, index) => {
+          const style = BUCKETS[placed.account.bucket]
+          return (
+            <g
+              key={`${placed.account.id}-${index}`}
+              {...interactiveGroupProps(
+                placed.account.label || 'Untitled account',
+                { kind: 'account', id: placed.account.id },
+                onElementClick,
+              )}
+            >
+              {highlightId === placed.account.id && (
+                <rect
+                  data-highlight-halo={placed.account.id}
+                  fill="none"
+                  height={placed.h + 12}
+                  opacity={0.35}
+                  pointerEvents="none"
+                  rx={18}
+                  stroke={style.stroke}
+                  strokeWidth={4}
+                  width={placed.w + 12}
+                  x={placed.x - 6}
+                  y={placed.y - 6}
+                />
+              )}
+              {placed.account.bucket === 'note' ? (
+                <NoteCard placed={placed} />
+              ) : (
+                <Cylinder placed={placed} />
+              )}
+            </g>
+          )
+        })}
       </g>
       {asNeeded && (
         <AsNeededLabel arrow={asNeeded} amount={data.asNeededAmount} />
