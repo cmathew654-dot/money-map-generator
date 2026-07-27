@@ -250,9 +250,9 @@ describe('layoutMap', () => {
 
     for (const layout of [sample, blank]) {
       expect(layout.income.x).toBe(48)
-      expect(layout.income.y).toBe(150)
+      expect(layout.income.y).toBe(170)
       expect(layout.income.w).toBe(280)
-      expect(layout.need).toEqual({ x: 48, y: 680, w: 250, h: 170 })
+      expect(layout.need).toEqual({ x: 48, y: 700, w: 250, h: 170 })
       expect(layout.footnotesAt).toEqual({ x: 390, y: 930 })
     }
   })

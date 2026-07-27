@@ -55,11 +55,11 @@ const AS_NEEDED_LABEL_TS = [
 ]
 
 const COLUMNS: Column[] = [
-  { x: 390, y: 150, w: 250, buckets: ['shortTerm', 'cash', 'note'] },
-  { x: 700, y: 190, w: 260, buckets: ['afterTax'] },
+  { x: 390, y: 200, w: 250, buckets: ['shortTerm', 'cash', 'note'] },
+  { x: 700, y: 240, w: 260, buckets: ['afterTax'] },
   {
     x: 1020,
-    y: 150,
+    y: 200,
     w: 260,
     buckets: ['taxDeferred', 'taxPreferred', 'charitable'],
   },
@@ -428,11 +428,11 @@ function asNeededArrow(
 export function layoutMap(data: MoneyMapData): MapLayout {
   const income: Placed = {
     x: 48,
-    y: 150,
+    y: 170,
     w: 280,
     h: 44 + data.incomeSources.length * 40 + 14 + 46 + 24,
   }
-  const need: Placed = { x: 48, y: 680, w: 250, h: 170 }
+  const need: Placed = { x: 48, y: 700, w: 250, h: 170 }
   const accounts = COLUMNS.flatMap((column) => placeColumn(data, column))
   const arrows = [
     ...waterfallArrows(accounts),
