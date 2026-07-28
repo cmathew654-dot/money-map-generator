@@ -23,6 +23,7 @@ import {
 import {
   adjustMapTextFontSize,
   applyMapTextEdit,
+  applyMapTextFontSize,
   mapTextEditFsInfo,
   mapTextEditRawValue,
   type MapTextEditTarget,
@@ -37,6 +38,30 @@ describe('applyMapTextEdit', () => {
     expect(adjustMapTextFontSize(28, 1, 28)).toBe(28)
     expect(adjustMapTextFontSize(40, 1, 40)).toBe(40)
     expect(adjustMapTextFontSize(40, -1, 40)).toBe(39)
+  })
+
+  it('previews and stores note font size on the note record at 9/40', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [
+        {
+          id: 'sized-note',
+          text: 'Size this note.',
+          x: 520,
+          y: 480,
+          fs: 20,
+        },
+      ],
+    }
+    const target = { kind: 'noteText' as const, noteId: 'sized-note' }
+
+    expect(mapTextEditFsInfo(data, target)).toEqual({
+      fallback: 20,
+      max: 40,
+    })
+    expect(applyMapTextFontSize(data, target, 2).notes?.[0].fs).toBe(9)
+    expect(applyMapTextFontSize(data, target, 80).notes?.[0].fs).toBe(40)
+    expect(data.notes[0].fs).toBe(20)
   })
 
   it.each([

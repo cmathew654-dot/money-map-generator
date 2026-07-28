@@ -100,6 +100,7 @@ export interface MapNote {
   y: number
   w?: number
   bg?: boolean
+  fs?: number
 }
 
 export const ACCOUNT_TEXT_ROLES = ['label', 'caption', 'value'] as const

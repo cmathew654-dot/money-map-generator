@@ -133,6 +133,7 @@ describe('book operations', () => {
         y: 510,
         w: 420,
         bg: true,
+        fs: 20,
       },
     ]
 
@@ -146,6 +147,7 @@ describe('book operations', () => {
         y: 510,
         w: 420,
         bg: true,
+        fs: 20,
       },
     ])
     expect(copy.notes?.[0].id).not.toBe(source.notes[0].id)
@@ -270,6 +272,19 @@ describe('book operations', () => {
     expect(source.layoutOverrides).toBeDefined()
   })
 
+  it('preserves note font sizes when resetting the arrangement', () => {
+    const source = structuredClone(SAMPLE_WHITFIELD)
+    source.notes = [
+      { id: 'sized-note', text: 'Keep me large.', x: 500, y: 500, fs: 20 },
+    ]
+    source.layoutOverrides = { income: { dx: 24 } }
+
+    const reset = resetArrangement(source)
+
+    expect(reset.notes?.[0].fs).toBe(20)
+    expect(reset.layoutOverrides).toBeUndefined()
+  })
+
   it('lays out and validates a cleared client', () => {
     const book = newBook()
     book.clients[0] = clearedClient(book.clients[0])
@@ -303,6 +318,43 @@ describe('parseBook', () => {
 
     expect(parseBook(JSON.stringify(book))).toEqual(book)
   })
+
+  it('round-trips an optional finite map note font size', () => {
+    const book = newBook()
+    book.clients[0].notes = [
+      {
+        id: 'sized-note',
+        text: 'Review beneficiary designations.',
+        x: 520,
+        y: 480,
+        fs: 20,
+      },
+    ]
+
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, '20'])(
+    'rejects an invalid map note font size %s',
+    (fs) => {
+      const book = newBook() as unknown as {
+        clients: { notes?: Record<string, unknown>[] }[]
+      }
+      book.clients[0].notes = [
+        {
+          id: 'invalid-note',
+          text: 'Invalid size',
+          x: 520,
+          y: 480,
+          fs,
+        },
+      ]
+
+      expect(() => parseBook(JSON.stringify(book))).toThrow(
+        'Client 1 has invalid map notes.',
+      )
+    },
+  )
 
   it.each([
     ['malformed role', 'text:managed-ira-jordan:subtitle', { fs: 16 }],

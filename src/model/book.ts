@@ -593,6 +593,8 @@ function validateClient(value: unknown, index: number): void {
           !Number.isFinite(note.y) ||
           (note.w !== undefined &&
             (typeof note.w !== 'number' || !Number.isFinite(note.w))) ||
+          (note.fs !== undefined &&
+            (typeof note.fs !== 'number' || !Number.isFinite(note.fs))) ||
           (note.bg !== undefined && typeof note.bg !== 'boolean'),
       )
     ) {

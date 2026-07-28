@@ -283,6 +283,34 @@ describe('layoutMap', () => {
     expect(maximum.lines).toEqual(fitLines(text, NOTE_MAX_WIDTH, TYPE.note))
   })
 
+  it('wraps a note at its font size and grows its solid block', () => {
+    const text =
+      'A larger annotation should wrap sooner and grow its solid background block.'
+    const data = blankClient()
+    data.notes = [
+      { id: 'default-note', text, x: 100, y: 200, w: 240, bg: true },
+      {
+        id: 'large-note',
+        text,
+        x: 100,
+        y: 500,
+        w: 240,
+        bg: true,
+        fs: 20,
+      },
+    ]
+
+    const [defaultNote, largeNote] = layoutMap(data).notes
+
+    expect(defaultNote.lines).toEqual(fitLines(text, 240, TYPE.note))
+    expect(largeNote.lines).toEqual(fitLines(text, 240, 20))
+    expect(largeNote.lines.length).toBeGreaterThan(defaultNote.lines.length)
+    expect(largeNote.lineAdvance).toBeCloseTo(
+      21 * (20 / TYPE.note),
+    )
+    expect(largeNote.h).toBeGreaterThan(defaultNote.h)
+  })
+
   it('grows an account so a long tagged value remains on one line', () => {
     const data = blankClient()
     data.accounts = [

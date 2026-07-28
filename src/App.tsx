@@ -61,12 +61,12 @@ import {
 } from './render/MapSvg'
 import {
   restoreGeneratedArrows,
-  withOverride,
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import {
   applyMapTextEdit,
+  applyMapTextFontSize,
   adjustMapTextFontSize,
   mapTextEditFsInfo,
   mapTextEditRawValue,
@@ -116,9 +116,13 @@ function mapTextEditFontState(
 ): Pick<ActiveMapTextEdit, 'fontSize' | 'fontSizeMax'> {
   const fsInfo = mapTextEditFsInfo(data, target)
   if (!fsInfo) return {}
+  const storedFontSize =
+    fsInfo.key === undefined
+      ? fsInfo.fallback
+      : data.layoutOverrides?.[fsInfo.key]?.fs ?? fsInfo.fallback
   return {
     fontSize: adjustMapTextFontSize(
-      data.layoutOverrides?.[fsInfo.key]?.fs ?? fsInfo.fallback,
+      storedFontSize,
       0,
       fsInfo.max,
     ),
@@ -193,9 +197,11 @@ export default function App() {
     ) {
       return activeClient
     }
-    return withOverride(activeClient, fsInfo.key, {
-      fs: mapTextEdit.fontSize,
-    })
+    return applyMapTextFontSize(
+      activeClient,
+      mapTextEdit.target,
+      mapTextEdit.fontSize,
+    )
   })()
 
   useEffect(() => {
@@ -793,8 +799,9 @@ export default function App() {
     const scale = svgRect.width / ARTBOARD.width
     const x = (ARTBOARD.width - NOTE_WIDTH) / 2
     const y = ARTBOARD.height / 2
+    const target = { kind: 'noteText' as const, noteId: newId('note'), x, y }
     setMapTextEdit({
-      target: { kind: 'noteText', noteId: newId('note'), x, y },
+      target,
       rect: {
         left: svgRect.left + x * scale,
         top: svgRect.top + y * scale,
@@ -802,6 +809,7 @@ export default function App() {
         height: 28 * scale,
       },
       rawValue: '',
+      ...mapTextEditFontState(activeClient, target),
     })
   }
 
@@ -1137,10 +1145,10 @@ export default function App() {
                     mapTextEdit.fontSize !== undefined &&
                     fsInfo
                   ) {
-                    nextClient = withOverride(
+                    nextClient = applyMapTextFontSize(
                       nextClient,
-                      fsInfo.key,
-                      { fs: mapTextEdit.fontSize },
+                      mapTextEdit.target,
+                      mapTextEdit.fontSize,
                     )
                   }
                   if (nextClient !== activeClient) {

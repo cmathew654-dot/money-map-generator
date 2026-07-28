@@ -76,7 +76,7 @@ export function accountTextRoleForTarget(
 }
 
 export interface MapTextEditFsInfo {
-  key: string
+  key?: string
   fallback: number
   max: number
 }
@@ -142,6 +142,13 @@ export function mapTextEditFsInfo(
         fallback: TYPE.legend,
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
+    case 'noteText':
+      return {
+        fallback:
+          _data.notes?.find((note) => note.id === target.noteId)?.fs ??
+          TYPE.note,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
     default:
       return null
   }
@@ -156,6 +163,38 @@ export function adjustMapTextFontSize(
     max,
     Math.max(MIN_MAP_TEXT_FONT_SIZE, fontSize + change),
   )
+}
+
+export function applyMapTextFontSize(
+  data: MoneyMapData,
+  target: MapTextEditTarget,
+  fontSize: number,
+): MoneyMapData {
+  const fsInfo = mapTextEditFsInfo(data, target)
+  if (!fsInfo) return data
+  const fs = adjustMapTextFontSize(fontSize, 0, fsInfo.max)
+  if (fsInfo.key) {
+    const previous = data.layoutOverrides?.[fsInfo.key] ?? {}
+    return {
+      ...data,
+      layoutOverrides: {
+        ...data.layoutOverrides,
+        [fsInfo.key]: { ...previous, fs },
+      },
+    }
+  }
+  if (
+    target.kind !== 'noteText' ||
+    !data.notes?.some((note) => note.id === target.noteId)
+  ) {
+    return data
+  }
+  return {
+    ...data,
+    notes: data.notes.map((note) =>
+      note.id === target.noteId ? { ...note, fs } : note,
+    ),
+  }
 }
 
 export function mapTextEditRawValue(

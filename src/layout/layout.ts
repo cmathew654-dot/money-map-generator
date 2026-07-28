@@ -17,7 +17,9 @@ import {
   accountTextOverrideKey,
   isMigratedFlowId,
   MAX_ACCOUNT_TEXT_FONT_SIZE,
+  MAX_MAP_TEXT_FONT_SIZE,
   MIN_ACCOUNT_TEXT_FONT_SIZE,
+  MIN_MAP_TEXT_FONT_SIZE,
 } from '../model/types'
 import {
   clamp,
@@ -51,6 +53,8 @@ export interface PlacedAccount extends Placed {
 }
 
 export interface PlacedNote extends Placed {
+  fontSize: number
+  lineAdvance: number
   lines: string[]
   note: MapNote
 }
@@ -1463,13 +1467,19 @@ function placedNotes(notes: MapNote[] | undefined): PlacedNote[] {
       NOTE_MIN_WIDTH,
       NOTE_MAX_WIDTH,
     )
-    const lines = fitLines(note.text, width, TYPE.note)
-    const h = Math.max(TYPE.note, lines.length * NOTE_LEADING)
+    const fontSize = clamp(
+      note.fs ?? TYPE.note,
+      MIN_MAP_TEXT_FONT_SIZE,
+      MAX_MAP_TEXT_FONT_SIZE,
+    )
+    const lineAdvance = NOTE_LEADING * (fontSize / TYPE.note)
+    const lines = fitLines(note.text, width, fontSize)
+    const h = Math.max(fontSize, lines.length * lineAdvance)
     const placed = clampRectToBounds(
       { x: note.x, y: note.y, w: width, h },
       OVERRIDE_BOUNDS,
     )
-    return { ...placed, lines, note }
+    return { ...placed, fontSize, lineAdvance, lines, note }
   })
 }
 

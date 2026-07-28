@@ -12,7 +12,6 @@ import {
   hexagonInset,
   layoutMap,
   nearestOutlineT,
-  NOTE_LEADING,
   OVERRIDE_BOUNDS,
   pointOnOutline,
   visibleGeneratedArrowKinds,
@@ -1490,15 +1489,15 @@ function NoteBlock({
         }`}
         fill={placed.note.bg ? INK : MUTED}
         fontFamily={FONT_SERIF}
-        fontSize={TYPE.note}
+        fontSize={placed.fontSize}
         x={placed.x}
-        y={placed.y + TYPE.note}
+        y={placed.y + placed.fontSize}
       >
         {placed.lines.map((line, index) => (
           <tspan
             key={`${line}-${index}`}
             x={placed.x}
-            dy={index === 0 ? 0 : NOTE_LEADING}
+            dy={index === 0 ? 0 : placed.lineAdvance}
           >
             {line}
           </tspan>
