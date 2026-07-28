@@ -14,7 +14,7 @@ describe('WIZARD_STEPS', () => {
       'income',
       'accounts',
       'need',
-      'footnotes',
+      'notes',
     ])
   })
 
@@ -42,7 +42,7 @@ describe('WIZARD_STEPS', () => {
       'Income',
       'Accounts',
       'Need',
-      'Footnotes',
+      'Notes',
     ])
     expect(
       buttons.map((button) => button.props['aria-current']),

@@ -3,9 +3,9 @@ import type { MapElementTarget } from '../render/MapSvg'
 import {
   AccountsSection,
   ClientSection,
-  FootnotesSection,
   IncomeSection,
   NeedSection,
+  NotesSection,
   handleFormKeyDown,
   type FormProps,
 } from './Form'
@@ -36,9 +36,9 @@ export const WIZARD_STEPS = [
     mapTargets: ['need'],
   },
   {
-    id: 'footnotes',
-    label: 'Footnotes',
-    title: 'Footnotes (optional)',
+    id: 'notes',
+    label: 'Notes',
+    title: 'Notes',
     mapTargets: [],
   },
 ] as const
@@ -148,15 +148,8 @@ export function Wizard({
             presetLabel="Tap to add:"
           />
         )
-      case 'footnotes':
-        return (
-          <>
-            <p className="wizard-subtitle">
-              Skip this unless the plan states required distributions.
-            </p>
-            <FootnotesSection data={data} onChange={onChange} />
-          </>
-        )
+      case 'notes':
+        return <NotesSection data={data} onChange={onChange} />
     }
   }
 

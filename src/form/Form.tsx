@@ -27,6 +27,8 @@ import {
   accountShape,
   newId,
 } from '../model/types'
+import { NOTE_WIDTH } from '../layout/layout'
+import { ARTBOARD } from '../render/tokens'
 
 export interface FormProps {
   data: MoneyMapData
@@ -96,6 +98,36 @@ export function yearSelectOptions(
   return options.includes(storedValue)
     ? options
     : [storedValue, ...options]
+}
+
+export function appendBlankNote(data: MoneyMapData): MoneyMapData {
+  return {
+    ...data,
+    notes: [
+      ...(data.notes ?? []),
+      {
+        id: newId('note'),
+        text: '',
+        x: (ARTBOARD.width - NOTE_WIDTH) / 2,
+        y: ARTBOARD.height / 2,
+      },
+    ],
+  }
+}
+
+export function updateNoteText(
+  data: MoneyMapData,
+  id: string,
+  text: string,
+): MoneyMapData {
+  if (!data.notes?.some((note) => note.id === id)) return data
+
+  return {
+    ...data,
+    notes: data.notes.map((note) =>
+      note.id === id ? { ...note, text } : note,
+    ),
+  }
 }
 
 function monthSelectOptions(storedValue: string): string[] {
@@ -232,39 +264,33 @@ export function NeedSection({
   sectionRef?: Ref<HTMLElement>
 }) {
   const fields = (
-    <>
-      <div>
-        <div className="value-tag-fields">
-          <MoneyField
-            label="Monthly Income Need"
-            value={data.monthlyNeed}
-            onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
-          />
-          <TextField
-            label="Tag"
-            placeholder="e.g. est., + RMD"
-            value={data.needTag ?? ''}
-            onChange={(needTag) => onChange({ ...data, needTag })}
-          />
-        </div>
-        <p className="help-text">
-          The red number — what the household must cover each month.
-        </p>
-      </div>
-      <div className="wide-field">
-        <MoneyField
-          label="Draw from Short-Term Bucket"
-          value={data.asNeededAmount}
-          onChange={(asNeededAmount) =>
-            onChange({ ...data, asNeededAmount })
-          }
-        />
-        <p className="help-text">
-          Optional monthly draw — appears on the arrow from the short-term
-          bucket.
-        </p>
-      </div>
-    </>
+    <div className="value-tag-fields need-fields">
+      <MoneyField
+        label="Monthly Income Need"
+        value={data.monthlyNeed}
+        onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
+      />
+      <TextField
+        label="Tag"
+        placeholder="e.g. est., + RMD"
+        value={data.needTag ?? ''}
+        onChange={(needTag) => onChange({ ...data, needTag })}
+      />
+      <p className="help-text">
+        The red number — what the household must cover each month.
+      </p>
+      <MoneyField
+        label="Draw from Short-Term Bucket"
+        value={data.asNeededAmount}
+        onChange={(asNeededAmount) =>
+          onChange({ ...data, asNeededAmount })
+        }
+      />
+      <p className="help-text">
+        Optional monthly draw — appears on the arrow from the short-term
+        bucket.
+      </p>
+    </div>
   )
 
   if (embedded) return fields
@@ -272,7 +298,8 @@ export function NeedSection({
   return (
     <section className="form-section" ref={sectionRef}>
       <h2>Need</h2>
-      <div className="field-grid">{fields}</div>
+      {fields}
+      <FinePrintSection data={data} onChange={onChange} />
     </section>
   )
 }
@@ -790,7 +817,10 @@ export function AccountsSection({
   )
 }
 
-export function FootnotesSection({ data, onChange }: FormProps) {
+export function FinePrintSection({
+  data,
+  onChange,
+}: Pick<FormProps, 'data' | 'onChange'>) {
   const setFootnotes = (footnotes: Footnote[]) =>
     onChange({ ...data, footnotes })
   const updateFootnote = (index: number, footnote: Footnote) =>
@@ -801,8 +831,11 @@ export function FootnotesSection({ data, onChange }: FormProps) {
     )
 
   return (
-    <section className="form-section">
-      <h2>Footnotes</h2>
+    <div className="nested-list fine-print-section">
+      <h3>Fine print</h3>
+      <p className="wizard-subtitle">
+        Skip fine print unless the plan states required distributions.
+      </p>
       {data.footnotes.map((footnote, index) => (
         <div className="stacked-row footnote-row" key={index}>
           <div className="stacked-row-heading">
@@ -814,7 +847,7 @@ export function FootnotesSection({ data, onChange }: FormProps) {
               }
             />
             <RemoveButton
-              label={`Remove footnote ${index + 1}`}
+              label={`Remove fine print line ${index + 1}`}
               onClick={() =>
                 setFootnotes(
                   data.footnotes.filter(
@@ -852,11 +885,74 @@ export function FootnotesSection({ data, onChange }: FormProps) {
           ])
         }
       >
-        + Add footnote
+        + Add fine print line
       </button>
       <p className="help-text">
         Net renders in green — after withholding.
       </p>
+    </div>
+  )
+}
+
+export function NotesSection({
+  data,
+  onChange,
+}: Pick<FormProps, 'data' | 'onChange'>) {
+  const textareaRefs = useRef<
+    Record<string, HTMLTextAreaElement | null>
+  >({})
+  const pendingFocus = useRef<string | null>(null)
+  const notes = data.notes ?? []
+
+  useEffect(() => {
+    const id = pendingFocus.current
+    if (!id) return
+    textareaRefs.current[id]?.focus()
+    pendingFocus.current = null
+  }, [notes.length])
+
+  return (
+    <section className="form-section">
+      <h2>Notes</h2>
+      <div className="row-list">
+        {notes.map((note, index) => (
+          <div className="stacked-row note-row" key={note.id}>
+            <textarea
+              aria-label={`Note ${index + 1}`}
+              data-note-id={note.id}
+              ref={(element) => {
+                textareaRefs.current[note.id] = element
+              }}
+              rows={2}
+              value={note.text}
+              onChange={(event) =>
+                onChange(updateNoteText(data, note.id, event.target.value))
+              }
+            />
+            <RemoveButton
+              label={`Remove note ${index + 1}`}
+              onClick={() =>
+                onChange({
+                  ...data,
+                  notes: notes.filter((item) => item.id !== note.id),
+                })
+              }
+            />
+          </div>
+        ))}
+      </div>
+      <button
+        className="add-button"
+        type="button"
+        onClick={() => {
+          const next = appendBlankNote(data)
+          const nextNotes = next.notes ?? []
+          pendingFocus.current = nextNotes[nextNotes.length - 1]?.id ?? null
+          onChange(next)
+        }}
+      >
+        + Add note
+      </button>
     </section>
   )
 }
@@ -1016,7 +1112,7 @@ export function Form({
         onChange={onChange}
         sectionRef={needSectionRef}
       />
-      <FootnotesSection data={data} onChange={onChange} />
+      <NotesSection data={data} onChange={onChange} />
     </form>
   )
 }

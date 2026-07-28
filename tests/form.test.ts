@@ -4,7 +4,11 @@ import { describe, expect, it } from 'vitest'
 import {
   ClientSection,
   IncomeSection,
+  NeedSection,
+  NotesSection,
   addIncomeSource,
+  appendBlankNote,
+  updateNoteText,
   yearSelectOptions,
 } from '../src/form/Form'
 import { blankClient } from '../src/model/samples'
@@ -87,5 +91,73 @@ describe('client date selects', () => {
       '<option value="April 2026" selected="">April 2026</option>',
     )
     expect(data.client.postNoteLabel).toBe('April 2026')
+  })
+})
+
+describe('need fine print', () => {
+  it('nests the renamed fine print controls in Need', () => {
+    const data = blankClient()
+    data.footnotes = [{ label: '', gross: null, net: null }]
+
+    const markup = renderToStaticMarkup(
+      createElement(NeedSection, {
+        data,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('Fine print')
+    expect(markup).toContain('+ Add fine print line')
+    expect(markup).toContain('Remove fine print line 1')
+    expect(markup).not.toContain('Footnotes')
+    expect(markup).not.toContain('+ Add footnote')
+  })
+})
+
+describe('map note form helpers', () => {
+  it('appends centered blank notes with unique ids', () => {
+    const data = blankClient()
+    const first = appendBlankNote(data)
+    const second = appendBlankNote(first)
+
+    expect(first.notes).toHaveLength(1)
+    expect(first.notes?.[0]).toMatchObject({
+      text: '',
+      x: 540,
+      y: 510,
+    })
+    expect(second.notes).toHaveLength(2)
+    expect(second.notes?.[1].id).not.toBe(first.notes?.[0].id)
+    expect(data.notes).toBeUndefined()
+  })
+
+  it('updates matching text and is a no-op for an unknown id', () => {
+    const data = appendBlankNote(blankClient())
+    const id = data.notes?.[0].id ?? ''
+    const updated = updateNoteText(data, id, 'Call out this detail')
+
+    expect(updated.notes?.[0].text).toBe('Call out this detail')
+    expect(updateNoteText(updated, 'missing-note', 'ignored')).toBe(
+      updated,
+    )
+  })
+
+  it('renders a two-row textarea and filters the selected note on delete', () => {
+    const first = appendBlankNote(blankClient())
+    const data = appendBlankNote(first)
+    const removedId = data.notes?.[0].id
+    const remaining = data.notes?.filter((note) => note.id !== removedId)
+
+    const markup = renderToStaticMarkup(
+      createElement(NotesSection, {
+        data,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('rows="2"')
+    expect(markup).toContain('+ Add note')
+    expect(markup).toContain('Remove note 1')
+    expect(remaining).toEqual([data.notes?.[1]])
   })
 })
