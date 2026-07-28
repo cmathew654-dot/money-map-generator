@@ -80,6 +80,38 @@ describe('book operations', () => {
     expect(source.client.year).toBe('2026')
   })
 
+  it('duplicates custom arrows with fresh ids and remapped accounts', () => {
+    const original = newBook()
+    const source = original.clients[0]
+    source.customArrows = [
+      {
+        id: 'custom-one',
+        sourceId: source.accounts[0].id,
+        targetId: source.accounts[1].id,
+      },
+      {
+        id: 'custom-two',
+        sourceId: 'income',
+        targetId: source.accounts[0].id,
+      },
+    ]
+    const result = duplicateClient(original, source.id)
+    const copy = result.book.clients.at(-1)!
+
+    expect(copy.customArrows).toHaveLength(2)
+    expect(copy.customArrows?.map((arrow) => arrow.id)).not.toEqual(
+      source.customArrows.map((arrow) => arrow.id),
+    )
+    expect(copy.customArrows?.[0]).toMatchObject({
+      sourceId: copy.accounts[0].id,
+      targetId: copy.accounts[1].id,
+    })
+    expect(copy.customArrows?.[1]).toMatchObject({
+      sourceId: 'income',
+      targetId: copy.accounts[0].id,
+    })
+  })
+
   it('rejects duplication of an unknown client', () => {
     expect(() => duplicateClient(newBook(), 'missing')).toThrow(
       'Client to duplicate was not found.',
@@ -187,6 +219,36 @@ describe('parseBook', () => {
     expect(parsed.clients[0].layoutOverrides).toBeUndefined()
     expect(parsed.clients[0].accounts[0].shape).toBeUndefined()
     expect(parsed.clients[0].showMath).toBeUndefined()
+  })
+
+  it('accepts absent or well-formed custom arrows', () => {
+    const legacy = newBook()
+    expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
+
+    legacy.clients[0].customArrows = [
+      {
+        id: 'custom-one',
+        sourceId: 'income',
+        targetId: legacy.clients[0].accounts[0].id,
+      },
+    ]
+    expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
+  })
+
+  it.each([
+    {},
+    [{ id: 1, sourceId: 'income', targetId: 'need' }],
+    [{ id: 'arrow', sourceId: 2, targetId: 'need' }],
+    [{ id: 'arrow', sourceId: 'income', targetId: null }],
+  ])('rejects malformed custom arrows with a human message', (customArrows) => {
+    const value = newBook() as unknown as {
+      clients: { customArrows?: unknown }[]
+    }
+    value.clients[0].customArrows = customArrows
+
+    expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'Client 1 has invalid custom arrows.',
+    )
   })
 
   it('round-trips explicit math visibility', () => {

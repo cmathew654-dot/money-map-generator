@@ -59,6 +59,12 @@ export interface Footnote {
   net: number | null // after withholding — rendered in green
 }
 
+export interface CustomArrow {
+  id: string
+  sourceId: string
+  targetId: string
+}
+
 export interface LayoutOverride {
   dx?: number
   dy?: number
@@ -88,6 +94,8 @@ export interface MoneyMapData {
   asNeededAmount: number | null // "Monthly Income as Needed" arrow label
   accounts: Account[]
   footnotes: Footnote[]
+  /** advisor-drawn connections; omitted in legacy books */
+  customArrows?: CustomArrow[]
   layoutOverrides?: Record<string, LayoutOverride>
 }
 

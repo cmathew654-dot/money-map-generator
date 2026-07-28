@@ -2,6 +2,7 @@ import type {
   LayoutOverride,
   MoneyMapData,
 } from '../model/types'
+import { newId } from '../model/types'
 
 export interface Point {
   x: number
@@ -32,6 +33,51 @@ export interface RectBounds {
 }
 
 export const DRAG_THRESHOLD_PX = 4
+
+function isArrowEndpoint(data: MoneyMapData, id: string): boolean {
+  return (
+    id === 'income' ||
+    id === 'need' ||
+    data.accounts.some((account) => account.id === id)
+  )
+}
+
+export function addCustomArrow(
+  data: MoneyMapData,
+  sourceId: string,
+  targetId: string,
+): MoneyMapData {
+  if (
+    sourceId === targetId ||
+    !isArrowEndpoint(data, sourceId) ||
+    !isArrowEndpoint(data, targetId) ||
+    data.customArrows?.some(
+      (arrow) =>
+        arrow.sourceId === sourceId && arrow.targetId === targetId,
+    )
+  ) {
+    return data
+  }
+
+  return {
+    ...data,
+    customArrows: [
+      ...(data.customArrows ?? []),
+      { id: newId('arrow'), sourceId, targetId },
+    ],
+  }
+}
+
+export function deleteCustomArrow(
+  data: MoneyMapData,
+  id: string,
+): MoneyMapData {
+  if (!data.customArrows?.some((arrow) => arrow.id === id)) return data
+  return {
+    ...data,
+    customArrows: data.customArrows.filter((arrow) => arrow.id !== id),
+  }
+}
 
 export function screenPointToArtboard(
   point: Point,

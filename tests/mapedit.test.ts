@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { accountDisplayName } from '../src/model/format'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import {
+  addCustomArrow,
+  deleteCustomArrow,
+} from '../src/render/mapInteraction'
+import {
   applyMapTextEdit,
   type MapTextEditTarget,
 } from '../src/ui/MapTextEditor'
@@ -69,5 +73,58 @@ describe('applyMapTextEdit', () => {
     )
 
     expect(cancelled).toBe(SAMPLE_WHITFIELD)
+  })
+})
+
+describe('custom arrow edits', () => {
+  it('rejects self, unknown, and duplicate connections without changes', () => {
+    const first = SAMPLE_WHITFIELD.accounts[0].id
+    const second = SAMPLE_WHITFIELD.accounts[1].id
+    const withArrow = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: [
+        { id: 'existing', sourceId: first, targetId: second },
+      ],
+    }
+
+    expect(addCustomArrow(SAMPLE_WHITFIELD, first, first)).toBe(
+      SAMPLE_WHITFIELD,
+    )
+    expect(addCustomArrow(SAMPLE_WHITFIELD, 'missing', first)).toBe(
+      SAMPLE_WHITFIELD,
+    )
+    expect(addCustomArrow(SAMPLE_WHITFIELD, first, 'missing')).toBe(
+      SAMPLE_WHITFIELD,
+    )
+    expect(addCustomArrow(withArrow, first, second)).toBe(withArrow)
+  })
+
+  it('appends a fresh custom arrow and allows reverse direction', () => {
+    const first = SAMPLE_WHITFIELD.accounts[0].id
+    const second = SAMPLE_WHITFIELD.accounts[1].id
+    const forward = addCustomArrow(SAMPLE_WHITFIELD, first, second)
+    const reverse = addCustomArrow(forward, second, first)
+
+    expect(forward).not.toBe(SAMPLE_WHITFIELD)
+    expect(forward.customArrows).toHaveLength(1)
+    expect(forward.customArrows?.[0]).toMatchObject({
+      sourceId: first,
+      targetId: second,
+    })
+    expect(forward.customArrows?.[0].id).toMatch(/^arrow-/)
+    expect(reverse.customArrows).toHaveLength(2)
+  })
+
+  it('deletes by id and leaves unknown deletes untouched', () => {
+    const withArrow = addCustomArrow(
+      SAMPLE_WHITFIELD,
+      'income',
+      'need',
+    )
+    const id = withArrow.customArrows![0].id
+    const deleted = deleteCustomArrow(withArrow, id)
+
+    expect(deleted.customArrows).toEqual([])
+    expect(deleteCustomArrow(withArrow, 'missing')).toBe(withArrow)
   })
 })

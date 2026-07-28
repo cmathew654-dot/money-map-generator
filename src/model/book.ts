@@ -96,10 +96,20 @@ export function redoHistory(history: BookHistory): {
 function withFreshIds(data: MoneyMapData): MoneyMapData {
   const copy = structuredClone(data)
   copy.id = newId('client')
-  copy.accounts = copy.accounts.map((account) => ({
-    ...account,
-    id: newId('account'),
-  }))
+  const accountIds = new Map<string, string>()
+  copy.accounts = copy.accounts.map((account) => {
+    const id = newId('account')
+    accountIds.set(account.id, id)
+    return { ...account, id }
+  })
+  if (copy.customArrows) {
+    copy.customArrows = copy.customArrows.map((arrow) => ({
+      ...arrow,
+      id: newId('arrow'),
+      sourceId: accountIds.get(arrow.sourceId) ?? arrow.sourceId,
+      targetId: accountIds.get(arrow.targetId) ?? arrow.targetId,
+    }))
+  }
   return copy
 }
 
@@ -287,6 +297,20 @@ function validateClient(value: unknown, index: number): void {
         ))
     ) {
       throw new Error(`Client ${index + 1} has an invalid account shape.`)
+    }
+  }
+  if (value.customArrows !== undefined) {
+    if (
+      !Array.isArray(value.customArrows) ||
+      value.customArrows.some(
+        (arrow) =>
+          !isRecord(arrow) ||
+          typeof arrow.id !== 'string' ||
+          typeof arrow.sourceId !== 'string' ||
+          typeof arrow.targetId !== 'string',
+      )
+    ) {
+      throw new Error(`Client ${index + 1} has invalid custom arrows.`)
     }
   }
   validateLayoutOverrides(value.layoutOverrides, index)
