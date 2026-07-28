@@ -114,6 +114,7 @@ export function Wizard({
   onFullForm,
   onHoverAccount,
   onPrint,
+  vocabulary,
 }: WizardProps) {
   const step = WIZARD_STEPS[currentStep] ?? WIZARD_STEPS[0]
   const printButtonRef = useRef<HTMLButtonElement>(null)
@@ -134,6 +135,7 @@ export function Wizard({
             data={data}
             includeNeed={false}
             onChange={onChange}
+            vocabulary={vocabulary}
           />
         )
       case 'need':
@@ -146,6 +148,7 @@ export function Wizard({
             onChange={onChange}
             onHoverAccount={onHoverAccount}
             presetLabel="Tap to add:"
+            vocabulary={vocabulary}
           />
         )
       case 'notes':
