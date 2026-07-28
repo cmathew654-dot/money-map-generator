@@ -156,6 +156,13 @@ export function crossedDragThreshold(
   return Math.hypot(current.x - start.x, current.y - start.y) >= threshold
 }
 
+export function accountTextPointerAction(
+  start: Point,
+  current: Point,
+): 'edit' | 'move' {
+  return crossedDragThreshold(start, current) ? 'move' : 'edit'
+}
+
 export function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
 }

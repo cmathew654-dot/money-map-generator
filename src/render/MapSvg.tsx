@@ -33,6 +33,7 @@ import {
 import { gapLine, runwayLine } from '../model/math'
 import type {
   AccountShape,
+  AccountTextRole,
   Footnote,
   IncomeSource,
   LayoutOverride,
@@ -40,6 +41,7 @@ import type {
 } from '../model/types'
 import {
   accountShape,
+  accountTextOverrideKey,
   nextAccountShape,
 } from '../model/types'
 import type {
@@ -48,6 +50,7 @@ import type {
 } from '../ui/MapTextEditor'
 import {
   addCustomArrow,
+  accountTextPointerAction,
   clampRectToBounds,
   crossedDragThreshold,
   deleteCustomArrow,
@@ -115,6 +118,7 @@ type DragMode =
   | 'arrowEnd'
   | 'connect'
   | 'noteMove'
+  | 'textMove'
 
 interface DragSession {
   active: boolean
@@ -162,6 +166,7 @@ function interactiveGroupProps(
 function editableTextProps(
   edit: MapTextEditTarget,
   onElementClick?: (target: MapElementTarget) => void,
+  onPointerDown?: (event: PointerEvent<SVGElement>) => void,
 ): SVGProps<SVGTextElement | SVGTSpanElement> {
   if (!onElementClick) return {}
 
@@ -175,6 +180,7 @@ function editableTextProps(
   }
   return {
     className: 'map-editable-text',
+    onPointerDown,
     onClick: (
       event: MouseEvent<SVGTextElement | SVGTSpanElement>,
     ) => {
@@ -565,11 +571,16 @@ function SubAccountDrum({
 
 function AccountContent({
   onElementClick,
+  onTextPointerDown,
   placed,
   runway,
   verticallyCenterTag = false,
 }: {
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: (
+    accountId: string,
+    role: AccountTextRole,
+  ) => (event: PointerEvent<SVGElement>) => void
   placed: PlacedAccount
   runway: string | null
   verticallyCenterTag?: boolean
@@ -601,23 +612,24 @@ function AccountContent({
         {style.tag.toUpperCase()}
       </text>
       <text
-        x={x + w / 2}
+        x={x + w / 2 + text.titleX}
         y={y + text.titleY}
         fill={INK}
         fontFamily={FONT_SERIF}
-        fontSize={TYPE.accountTitle}
+        fontSize={text.titleFontSize}
         fontWeight={600}
         textAnchor="middle"
         {...editableTextProps(
           { kind: 'accountLabel', accountId: account.id },
           onElementClick,
+          onTextPointerDown?.(account.id, 'label'),
         )}
       >
         {titleLines.map((line, index) => (
           <tspan
             key={`${line}-${index}`}
-            x={x + w / 2}
-            dy={index === 0 ? 0 : LEADING.accountTitle}
+            x={x + w / 2 + text.titleX}
+            dy={index === 0 ? 0 : text.titleLeading}
           >
             {line}
           </tspan>
@@ -625,18 +637,23 @@ function AccountContent({
       </text>
       {text.captionY !== undefined && (
         <text
-          x={x + w / 2}
+          x={x + w / 2 + text.captionX}
           y={y + text.captionY}
           fill={MUTED}
           fontFamily={FONT_SANS}
-          fontSize={TYPE.caption}
+          fontSize={text.captionFontSize}
           textAnchor="middle"
+          {...editableTextProps(
+            { kind: 'accountCaption', accountId: account.id },
+            onElementClick,
+            onTextPointerDown?.(account.id, 'caption'),
+          )}
         >
           {captionLines.map((line, index) => (
             <tspan
               key={`${line}-${index}`}
-              x={x + w / 2}
-              dy={index === 0 ? 0 : LEADING.caption}
+              x={x + w / 2 + text.captionX}
+              dy={index === 0 ? 0 : text.captionLeading}
             >
               {line}
             </tspan>
@@ -680,21 +697,20 @@ function AccountContent({
         )
       })}
       <text
-        x={x + w / 2}
+        x={x + w / 2 + text.valueX}
         y={y + text.valueY}
         fill={INK}
         fontFamily={FONT_SERIF}
-        fontSize={TYPE.value}
+        fontSize={text.valueFontSize}
         fontWeight={600}
         textAnchor="middle"
+        {...editableTextProps(
+          { kind: 'accountValue', accountId: account.id },
+          onElementClick,
+          onTextPointerDown?.(account.id, 'value'),
+        )}
       >
-        <tspan
-          style={numericStyle}
-          {...editableTextProps(
-            { kind: 'accountValue', accountId: account.id },
-            onElementClick,
-          )}
-        >
+        <tspan style={numericStyle}>
           {money(account.value)}
         </tspan>
         {account.valueTag && (
@@ -737,11 +753,16 @@ function AccountContent({
 
 function FlatAccount({
   onElementClick,
+  onTextPointerDown,
   placed,
   runway,
   shape,
 }: {
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: (
+    accountId: string,
+    role: AccountTextRole,
+  ) => (event: PointerEvent<SVGElement>) => void
   placed: PlacedAccount
   runway: string | null
   shape: Exclude<AccountShape, 'drum'>
@@ -773,6 +794,7 @@ function FlatAccount({
       )}
       <AccountContent
         onElementClick={onElementClick}
+        onTextPointerDown={onTextPointerDown}
         placed={placed}
         runway={runway}
       />
@@ -817,10 +839,15 @@ function ShapeFlipGlyph({
 
 function Cylinder({
   onElementClick,
+  onTextPointerDown,
   placed,
   runway,
 }: {
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: (
+    accountId: string,
+    role: AccountTextRole,
+  ) => (event: PointerEvent<SVGElement>) => void
   placed: PlacedAccount
   runway: string | null
 }) {
@@ -850,6 +877,7 @@ function Cylinder({
       />
       <AccountContent
         onElementClick={onElementClick}
+        onTextPointerDown={onTextPointerDown}
         placed={placed}
         runway={runway}
         verticallyCenterTag
@@ -1405,7 +1433,10 @@ export function MapSvg({
     const currentScreen = { x: event.clientX, y: event.clientY }
     if (
       !session.active &&
-      !crossedDragThreshold(session.startScreen, currentScreen)
+      (session.mode === 'textMove'
+        ? accountTextPointerAction(session.startScreen, currentScreen) ===
+          'edit'
+        : !crossedDragThreshold(session.startScreen, currentScreen))
     ) {
       return
     }
@@ -1572,6 +1603,11 @@ export function MapSvg({
     }
     onChange?.(session.latestData)
   }
+
+  const beginAccountTextDrag = (
+    accountId: string,
+    role: AccountTextRole,
+  ) => beginDrag(accountTextOverrideKey(accountId, role), 'textMove')
 
   return (
     <svg
@@ -1768,12 +1804,18 @@ export function MapSvg({
               {shape === 'drum' ? (
                 <Cylinder
                   onElementClick={onElementClick}
+                  onTextPointerDown={
+                    onChange ? beginAccountTextDrag : undefined
+                  }
                   placed={placed}
                   runway={runway}
                 />
               ) : (
                 <FlatAccount
                   onElementClick={onElementClick}
+                  onTextPointerDown={
+                    onChange ? beginAccountTextDrag : undefined
+                  }
                   placed={placed}
                   runway={runway}
                   shape={shape}

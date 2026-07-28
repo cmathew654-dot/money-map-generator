@@ -1,11 +1,18 @@
 import { useRef, useState, type CSSProperties, type RefObject } from 'react'
 import { parseMoneyInput } from '../model/format'
-import type { MoneyMapData } from '../model/types'
+import type { AccountTextRole, MoneyMapData } from '../model/types'
+import {
+  accountTextOverrideKey,
+  MAX_ACCOUNT_TEXT_FONT_SIZE,
+  MIN_ACCOUNT_TEXT_FONT_SIZE,
+} from '../model/types'
 import { addMapNote } from '../render/mapInteraction'
+import { TYPE } from '../render/tokens'
 
 export type MapTextEditTarget =
   | { kind: 'accountValue'; accountId: string }
   | { kind: 'accountLabel'; accountId: string }
+  | { kind: 'accountCaption'; accountId: string }
   | { kind: 'incomeAmount'; incomeIndex: number }
   | { kind: 'monthlyNeed' }
   | { kind: 'asNeededAmount' }
@@ -22,6 +29,44 @@ export interface ActiveMapTextEdit {
   target: MapTextEditTarget
   rect: MapTextEditRect
   rawValue: string
+  fontSize?: number
+  fontSizeChanged?: boolean
+}
+
+export function accountTextRoleForTarget(
+  target: MapTextEditTarget,
+): AccountTextRole | null {
+  if (target.kind === 'accountLabel') return 'label'
+  if (target.kind === 'accountCaption') return 'caption'
+  if (target.kind === 'accountValue') return 'value'
+  return null
+}
+
+export function adjustAccountTextFontSize(
+  fontSize: number,
+  change: number,
+): number {
+  return Math.min(
+    MAX_ACCOUNT_TEXT_FONT_SIZE,
+    Math.max(MIN_ACCOUNT_TEXT_FONT_SIZE, fontSize + change),
+  )
+}
+
+export function mapTextEditFontSize(
+  data: MoneyMapData,
+  target: MapTextEditTarget,
+): number | undefined {
+  const role = accountTextRoleForTarget(target)
+  if (!role || !('accountId' in target)) return undefined
+  const fallback =
+    role === 'label'
+      ? TYPE.accountTitle
+      : role === 'caption'
+        ? TYPE.caption
+        : TYPE.value
+  const override =
+    data.layoutOverrides?.[accountTextOverrideKey(target.accountId, role)]
+  return adjustAccountTextFontSize(override?.fs ?? fallback, 0)
 }
 
 export function mapTextEditRawValue(
@@ -38,6 +83,11 @@ export function mapTextEditRawValue(
       return (
         data.accounts.find((account) => account.id === target.accountId)
           ?.label ?? ''
+      )
+    case 'accountCaption':
+      return (
+        data.accounts.find((account) => account.id === target.accountId)
+          ?.caption ?? ''
       )
     case 'incomeAmount':
       return String(data.incomeSources[target.incomeIndex]?.amount ?? '')
@@ -56,12 +106,19 @@ export function applyMapTextEdit(
   rawValue: string | null,
 ): MoneyMapData {
   if (rawValue === null) return data
-  if (target.kind === 'accountLabel') {
-    const label = rawValue.trim()
+  if (
+    target.kind === 'accountLabel' ||
+    target.kind === 'accountCaption'
+  ) {
+    const text = rawValue.trim()
     return {
       ...data,
       accounts: data.accounts.map((account) =>
-        account.id === target.accountId ? { ...account, label } : account,
+        account.id === target.accountId
+          ? target.kind === 'accountLabel'
+            ? { ...account, label: text }
+            : { ...account, caption: text }
+          : account,
       ),
     }
   }
@@ -108,6 +165,7 @@ export function applyMapTextEdit(
 
 function editorLabel(target: MapTextEditTarget): string {
   if (target.kind === 'accountLabel') return 'Edit account label'
+  if (target.kind === 'accountCaption') return 'Edit account caption'
   if (target.kind === 'incomeAmount') return 'Edit income source amount'
   if (target.kind === 'monthlyNeed') return 'Edit monthly income need'
   if (target.kind === 'asNeededAmount') return 'Edit as-needed draw amount'
@@ -120,17 +178,20 @@ export function MapTextEditor({
   containerRef,
   onCancel,
   onCommit,
+  onFontSizeChange,
 }: {
   edit: ActiveMapTextEdit
   containerRef: RefObject<HTMLElement | null>
   onCancel(): void
   onCommit(rawValue: string): void
+  onFontSizeChange?(fontSize: number): void
 }) {
   const [rawValue, setRawValue] = useState(edit.rawValue)
   const finished = useRef(false)
   const container = containerRef.current
   const containerRect = container?.getBoundingClientRect()
-  const width = Math.max(edit.rect.width + 16, 104)
+  const hasFontSize = edit.fontSize !== undefined
+  const width = Math.max(edit.rect.width + 16, 104) + (hasFontSize ? 70 : 0)
   const height = Math.max(edit.rect.height + 10, 32)
   const style: CSSProperties = {
     left:
@@ -153,38 +214,73 @@ export function MapTextEditor({
   }
 
   return (
-    <input
-      autoFocus
-      aria-label={editorLabel(edit.target)}
+    <div
       className={`map-text-editor${
         edit.target.kind === 'noteText' ? ' is-note' : ''
       }`}
-      inputMode={
-        edit.target.kind === 'accountLabel' ||
-        edit.target.kind === 'noteText'
-          ? 'text'
-          : 'decimal'
-      }
-      placeholder={edit.target.kind === 'noteText' ? 'Add a note…' : undefined}
       style={style}
-      type="text"
-      value={rawValue}
-      onBlur={() => finish(() => onCommit(rawValue))}
-      onChange={(event) => setRawValue(event.target.value)}
-      onFocus={(event) => event.currentTarget.select()}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault()
-          finish(() => onCommit(rawValue))
-        } else if (event.key === 'Escape') {
-          event.preventDefault()
-          finish(
-            edit.target.kind === 'noteText'
-              ? () => onCommit(rawValue)
-              : onCancel,
-          )
+    >
+      <input
+        autoFocus
+        aria-label={editorLabel(edit.target)}
+        className="map-text-editor-input"
+        inputMode={
+          edit.target.kind === 'accountLabel' ||
+          edit.target.kind === 'accountCaption' ||
+          edit.target.kind === 'noteText'
+            ? 'text'
+            : 'decimal'
         }
-      }}
-    />
+        placeholder={edit.target.kind === 'noteText' ? 'Add a note…' : undefined}
+        type="text"
+        value={rawValue}
+        onBlur={() => finish(() => onCommit(rawValue))}
+        onChange={(event) => setRawValue(event.target.value)}
+        onFocus={(event) => event.currentTarget.select()}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            finish(() => onCommit(rawValue))
+          } else if (event.key === 'Escape') {
+            event.preventDefault()
+            finish(
+              edit.target.kind === 'noteText'
+                ? () => onCommit(rawValue)
+                : onCancel,
+            )
+          }
+        }}
+      />
+      {edit.fontSize !== undefined && (
+        <div className="map-text-size-controls" aria-label="Font size">
+          <button
+            aria-label="Decrease font size"
+            disabled={edit.fontSize <= MIN_ACCOUNT_TEXT_FONT_SIZE}
+            type="button"
+            onClick={() =>
+              onFontSizeChange?.(
+                adjustAccountTextFontSize(edit.fontSize!, -1),
+              )
+            }
+            onPointerDown={(event) => event.preventDefault()}
+          >
+            A−
+          </button>
+          <button
+            aria-label="Increase font size"
+            disabled={edit.fontSize >= MAX_ACCOUNT_TEXT_FONT_SIZE}
+            type="button"
+            onClick={() =>
+              onFontSizeChange?.(
+                adjustAccountTextFontSize(edit.fontSize!, 1),
+              )
+            }
+            onPointerDown={(event) => event.preventDefault()}
+          >
+            A+
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

@@ -5,12 +5,14 @@ import { accountDisplayName } from '../src/model/format'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import {
   addCustomArrow,
+  accountTextPointerAction,
   addMapNote,
   deleteCustomArrow,
   deleteMapNote,
 } from '../src/render/mapInteraction'
 import { MapSvg } from '../src/render/MapSvg'
 import {
+  adjustAccountTextFontSize,
   applyMapTextEdit,
   type MapTextEditTarget,
 } from '../src/ui/MapTextEditor'
@@ -18,6 +20,20 @@ import {
 const accountId = 'managed-ira-jordan'
 
 describe('applyMapTextEdit', () => {
+  it('clamps account text font-size steps at 9 and 28', () => {
+    expect(adjustAccountTextFontSize(9, -1)).toBe(9)
+    expect(adjustAccountTextFontSize(9, 1)).toBe(10)
+    expect(adjustAccountTextFontSize(28, 1)).toBe(28)
+    expect(adjustAccountTextFontSize(28, -1)).toBe(27)
+  })
+
+  it('decides edit versus move at the account text drag threshold', () => {
+    const start = { x: 20, y: 30 }
+
+    expect(accountTextPointerAction(start, { x: 23, y: 32 })).toBe('edit')
+    expect(accountTextPointerAction(start, { x: 24, y: 30 })).toBe('move')
+  })
+
   it.each([
     [{ kind: 'accountValue', accountId }, 'account'],
     [{ kind: 'incomeAmount', incomeIndex: 0 }, 'income'],
@@ -68,6 +84,18 @@ describe('applyMapTextEdit', () => {
     ).toBe('Retirement IRA')
     expect(account.label).toBe('')
     expect(accountDisplayName(account)).toBe('Tax-Deferred · unnamed')
+  })
+
+  it('edits an account caption in place', () => {
+    const updated = applyMapTextEdit(
+      SAMPLE_WHITFIELD,
+      { kind: 'accountCaption', accountId },
+      '  Updated allocation note  ',
+    )
+
+    expect(
+      updated.accounts.find((item) => item.id === accountId)?.caption,
+    ).toBe('Updated allocation note')
   })
 
   it('returns the untouched model when an edit is cancelled', () => {

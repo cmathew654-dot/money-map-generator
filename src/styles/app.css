@@ -826,23 +826,58 @@ summary:focus-visible {
 .map-text-editor {
   position: absolute;
   z-index: 3;
+  display: flex;
   box-sizing: border-box;
   min-width: 0;
+  align-items: stretch;
   margin: 0;
   border: 2px solid #1e7a4a;
   border-radius: 5px;
-  padding: 2px 7px;
+  padding: 2px;
   background: #fff;
   box-shadow: 0 2px 8px rgb(28 36 34 / 20%);
+}
+
+.map-text-editor-input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  padding: 0 5px;
+  background: transparent;
   color: #1c2422;
   font: 600 15px/1.2 'Literata', Georgia, serif;
   text-align: center;
 }
 
-.map-text-editor.is-note {
+.map-text-editor.is-note .map-text-editor-input {
   color: #5b6663;
   font-weight: 400;
   text-align: left;
+}
+
+.map-text-size-controls {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.map-text-size-controls button {
+  min-width: 30px;
+  border: 0;
+  border-radius: 3px;
+  padding: 0 3px;
+  background: #eef7f1;
+  color: #1e7a4a;
+  font: 700 12px/1 'Public Sans', 'Segoe UI', sans-serif;
+}
+
+.map-text-size-controls button:hover:not(:disabled) {
+  background: #dceee3;
+}
+
+.map-text-size-controls button:disabled {
+  color: #98aaa2;
 }
 
 .client-form {

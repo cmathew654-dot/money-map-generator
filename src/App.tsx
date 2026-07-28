@@ -11,6 +11,7 @@ import {
   parseBook,
   pushHistory,
   redoHistory,
+  resetArrangement,
   undoHistory,
   updateClient,
   type BookHistory,
@@ -32,7 +33,7 @@ import {
   type FileStoreApi,
 } from './model/filestore'
 import type { Bucket, MoneyMapFile } from './model/types'
-import { newId } from './model/types'
+import { accountTextOverrideKey, newId } from './model/types'
 import { NOTE_WIDTH } from './layout/layout'
 import {
   exportPng,
@@ -49,10 +50,13 @@ import {
   MapSvg,
   type MapElementTarget,
 } from './render/MapSvg'
+import { withOverride } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import {
   applyMapTextEdit,
+  accountTextRoleForTarget,
+  mapTextEditFontSize,
   mapTextEditRawValue,
   MapTextEditor,
   type ActiveMapTextEdit,
@@ -142,6 +146,23 @@ export default function App() {
     book.clients[0]
   const hasLayoutOverrides =
     Object.keys(activeClient.layoutOverrides ?? {}).length > 0
+  const previewClient = (() => {
+    if (
+      !mapTextEdit?.fontSizeChanged ||
+      mapTextEdit.fontSize === undefined ||
+      !('accountId' in mapTextEdit.target)
+    ) {
+      return activeClient
+    }
+    const role = accountTextRoleForTarget(mapTextEdit.target)
+    return role
+      ? withOverride(
+          activeClient,
+          accountTextOverrideKey(mapTextEdit.target.accountId, role),
+          { fs: mapTextEdit.fontSize },
+        )
+      : activeClient
+  })()
 
   useEffect(() => {
     setMapZoom('fit')
@@ -485,9 +506,7 @@ export default function App() {
   }
 
   const handleResetLayout = () => {
-    const nextClient = { ...activeClient }
-    delete nextClient.layoutOverrides
-    handleClientChange(nextClient)
+    handleClientChange(resetArrangement(activeClient))
     setDialog(null)
     addToast('Layout reset')
   }
@@ -584,6 +603,7 @@ export default function App() {
         target: target.edit,
         rect: target.rect,
         rawValue: mapTextEditRawValue(activeClient, target.edit),
+        fontSize: mapTextEditFontSize(activeClient, target.edit),
       })
       return
     }
@@ -655,6 +675,10 @@ export default function App() {
         target: { kind: 'accountLabel', accountId: account.id },
         rect: { left, top, width, height },
         rawValue: '',
+        fontSize: mapTextEditFontSize(nextClient, {
+          kind: 'accountLabel',
+          accountId: account.id,
+        }),
       })
     })
   }
@@ -938,7 +962,7 @@ export default function App() {
                 }
               >
                 <MapSvg
-                  data={activeClient}
+                  data={previewClient}
                   highlightId={presentMode ? undefined : highlightId}
                   onChange={presentMode ? undefined : handleMapChange}
                   onElementClick={
@@ -954,16 +978,39 @@ export default function App() {
                 key={JSON.stringify(mapTextEdit.target)}
                 onCancel={() => setMapTextEdit(null)}
                 onCommit={(rawValue) => {
-                  const nextClient = applyMapTextEdit(
+                  let nextClient = applyMapTextEdit(
                     activeClient,
                     mapTextEdit.target,
                     rawValue,
                   )
+                  const role = accountTextRoleForTarget(mapTextEdit.target)
+                  if (
+                    mapTextEdit.fontSizeChanged &&
+                    mapTextEdit.fontSize !== undefined &&
+                    role &&
+                    'accountId' in mapTextEdit.target
+                  ) {
+                    nextClient = withOverride(
+                      nextClient,
+                      accountTextOverrideKey(
+                        mapTextEdit.target.accountId,
+                        role,
+                      ),
+                      { fs: mapTextEdit.fontSize },
+                    )
+                  }
                   if (nextClient !== activeClient) {
                     handleClientChange(nextClient)
                   }
                   setMapTextEdit(null)
                 }}
+                onFontSizeChange={(fontSize) =>
+                  setMapTextEdit((current) =>
+                    current
+                      ? { ...current, fontSize, fontSizeChanged: true }
+                      : current,
+                  )
+                }
               />
             )}
           </div>
