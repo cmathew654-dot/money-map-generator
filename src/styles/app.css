@@ -751,14 +751,14 @@ summary:focus-visible {
 }
 
 .app-shell.is-presenting .map-scroller {
-  overflow: hidden;
-  padding: 16px;
+  overflow: auto;
+  padding: 8px;
 }
 
-.app-shell.is-presenting .map-page {
+.app-shell.is-presenting .map-page:not(.is-zoomed) {
   width: min(
-    calc(100vw - 32px),
-    calc((100vh - 32px) * 1.294117647)
+    calc(100vw - 16px),
+    calc((100vh - 16px) * 1.294117647)
   );
   max-width: none;
 }
@@ -766,6 +766,18 @@ summary:focus-visible {
 .app-shell.is-presenting .map-page svg {
   pointer-events: none;
   user-select: none;
+}
+
+.present-zoom {
+  position: fixed;
+  z-index: 10;
+  right: 16px;
+  bottom: 16px;
+}
+
+.present-zoom .zoom-cluster {
+  background: rgb(252 252 250 / 86%);
+  backdrop-filter: blur(4px);
 }
 
 .map-chrome {

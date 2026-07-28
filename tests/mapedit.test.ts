@@ -15,20 +15,43 @@ import {
 } from '../src/render/mapInteraction'
 import { MapSvg } from '../src/render/MapSvg'
 import {
-  adjustAccountTextFontSize,
+  adjustMapTextFontSize,
   applyMapTextEdit,
+  mapTextEditFsInfo,
+  mapTextEditRawValue,
   type MapTextEditTarget,
 } from '../src/ui/MapTextEditor'
 
 const accountId = 'managed-ira-jordan'
 
 describe('applyMapTextEdit', () => {
-  it('clamps account text font-size steps at 9 and 28', () => {
-    expect(adjustAccountTextFontSize(9, -1)).toBe(9)
-    expect(adjustAccountTextFontSize(9, 1)).toBe(10)
-    expect(adjustAccountTextFontSize(28, 1)).toBe(28)
-    expect(adjustAccountTextFontSize(28, -1)).toBe(27)
+  it('clamps map text font-size steps at 9 and each target maximum', () => {
+    expect(adjustMapTextFontSize(9, -1, 28)).toBe(9)
+    expect(adjustMapTextFontSize(9, 1, 28)).toBe(10)
+    expect(adjustMapTextFontSize(28, 1, 28)).toBe(28)
+    expect(adjustMapTextFontSize(40, 1, 40)).toBe(40)
+    expect(adjustMapTextFontSize(40, -1, 40)).toBe(39)
   })
+
+  it.each([
+    [
+      { kind: 'accountLabel', accountId },
+      { key: `text:${accountId}:label`, fallback: 18, max: 28 },
+    ],
+    [
+      { kind: 'monthlyNeed' },
+      { key: 'text:need:value', fallback: 30, max: 40 },
+    ],
+    [
+      { kind: 'legendText' },
+      { key: 'text:legend:label', fallback: 11, max: 40 },
+    ],
+  ] as [MapTextEditTarget, { key: string; fallback: number; max: number }][])(
+    'maps the %s target to its font-size override',
+    (target, expected) => {
+      expect(mapTextEditFsInfo(SAMPLE_WHITFIELD, target)).toEqual(expected)
+    },
+  )
 
   it('decides edit versus move at the account text drag threshold', () => {
     const start = { x: 20, y: 30 }
@@ -40,6 +63,7 @@ describe('applyMapTextEdit', () => {
   it.each([
     [{ kind: 'accountValue', accountId }, 'account'],
     [{ kind: 'incomeAmount', incomeIndex: 0 }, 'income'],
+    [{ kind: 'afterTaxIncome' }, 'afterTax'],
     [{ kind: 'monthlyNeed' }, 'need'],
     [{ kind: 'asNeededAmount' }, 'draw'],
   ] as [MapTextEditTarget, string][])(
@@ -51,6 +75,7 @@ describe('applyMapTextEdit', () => {
         account: updated.accounts.find((account) => account.id === accountId)!
           .value,
         income: updated.incomeSources[0].amount,
+        afterTax: updated.afterTaxIncome,
         need: updated.monthlyNeed,
         draw: updated.asNeededAmount,
       }
@@ -110,6 +135,21 @@ describe('applyMapTextEdit', () => {
 
     expect(cancelled).toBe(SAMPLE_WHITFIELD)
   })
+
+  it.each([
+    { kind: 'incomeHeader' },
+    { kind: 'needLabel' },
+    { kind: 'footnoteText' },
+    { kind: 'legendText' },
+  ] as MapTextEditTarget[])(
+    'keeps size-only %s edits out of the data model',
+    (target) => {
+      expect(mapTextEditRawValue(SAMPLE_WHITFIELD, target)).toBe('')
+      expect(applyMapTextEdit(SAMPLE_WHITFIELD, target, 'ignored')).toBe(
+        SAMPLE_WHITFIELD,
+      )
+    },
+  )
 
   it('commits a trimmed flow label and clears it with blank text', () => {
     const arrowId = SAMPLE_WHITFIELD.customArrows![0].id
@@ -297,6 +337,45 @@ describe('noninteractive map rendering', () => {
     expect(markup).not.toContain('map-interactive')
     expect(markup).not.toContain('map-editable-text')
     expect(markup).not.toContain('data-connect-id')
+  })
+
+  it('renders fixed-element overrides and proportional income row sizes', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      footnotes: [
+        ...SAMPLE_WHITFIELD.footnotes,
+        { label: 'Dana 2026 RMD', gross: 80_000, net: 61_000 },
+      ],
+      layoutOverrides: {
+        'text:income:header': { fs: 19 },
+        'text:income:row': { fs: 20 },
+        'text:income:total': { fs: 21 },
+        'text:need:label': { fs: 22 },
+        'text:need:value': { fs: 40 },
+        'text:footnotes:line': { fs: 18 },
+        'text:legend:label': { fs: 16 },
+      },
+    }
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    expect(markup).toMatch(/font-size="19"[^>]*>INCOME SOURCES/)
+    expect(markup).toMatch(
+      /font-size="18\.571428571428573"[^>]*>Social Security/,
+    )
+    expect(markup).toMatch(/font-size="20"[^>]*><tspan>\$2,400 mo\./)
+    expect(markup).toMatch(/font-size="17\.142857142857142"[^>]*>Gross/)
+    expect(markup).toMatch(/font-size="21"[^>]*>\$5,900/)
+    expect(markup).toMatch(/font-size="22"[^>]*>MONTHLY INCOME NEED/)
+    expect(markup).toMatch(/font-size="40"[^>]*><tspan[^>]*>\$15,000/)
+    expect(markup).toContain(
+      'y="930" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
+    )
+    expect(markup).toContain(
+      'y="960.8571428571429" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
+    )
+    expect(markup).toContain(
+      'data-legend-kind="asNeeded"><line x1="164.4288"',
+    )
   })
 
   it('keeps editor chrome in the interactive render path', () => {

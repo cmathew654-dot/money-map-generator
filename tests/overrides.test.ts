@@ -155,13 +155,18 @@ describe('map interaction helpers', () => {
   it('round-trips finite text overrides and rejects a non-finite font size', () => {
     const book = newBook()
     const key = `text:${IRA_ID}:value`
+    const fixedKey = 'text:legend:label'
     book.clients[0].layoutOverrides = {
       [key]: { dx: 14, dy: -9, fs: 27 },
+      [fixedKey]: { dx: 100, dy: -40, fs: 18 },
     }
 
     expect(
       parseBook(JSON.stringify(book)).clients[0].layoutOverrides?.[key],
     ).toEqual({ dx: 14, dy: -9, fs: 27 })
+    expect(
+      parseBook(JSON.stringify(book)).clients[0].layoutOverrides?.[fixedKey],
+    ).toEqual({ dx: 100, dy: -40, fs: 18 })
 
     const infiniteFontSize = JSON.stringify(book).replace(
       '"fs":27',

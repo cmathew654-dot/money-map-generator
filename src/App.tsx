@@ -39,8 +39,8 @@ import {
   type FileReadResult,
   type FileStoreApi,
 } from './model/filestore'
-import type { Bucket, MoneyMapFile } from './model/types'
-import { accountTextOverrideKey, newId } from './model/types'
+import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
+import { newId } from './model/types'
 import { NOTE_WIDTH } from './layout/layout'
 import {
   exportPng,
@@ -65,11 +65,12 @@ import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import {
   applyMapTextEdit,
-  accountTextRoleForTarget,
-  mapTextEditFontSize,
+  adjustMapTextFontSize,
+  mapTextEditFsInfo,
   mapTextEditRawValue,
   MapTextEditor,
   type ActiveMapTextEdit,
+  type MapTextEditTarget,
 } from './ui/MapTextEditor'
 import { Mark } from './ui/Mark'
 import { Menu, MenuItem, MenuSeparator } from './ui/Menu'
@@ -104,6 +105,22 @@ function initialFormMode(): FormMode {
       : 'guided'
   } catch {
     return 'guided'
+  }
+}
+
+function mapTextEditFontState(
+  data: MoneyMapData,
+  target: MapTextEditTarget,
+): Pick<ActiveMapTextEdit, 'fontSize' | 'fontSizeMax'> {
+  const fsInfo = mapTextEditFsInfo(data, target)
+  if (!fsInfo) return {}
+  return {
+    fontSize: adjustMapTextFontSize(
+      data.layoutOverrides?.[fsInfo.key]?.fs ?? fsInfo.fallback,
+      0,
+      fsInfo.max,
+    ),
+    fontSizeMax: fsInfo.max,
   }
 }
 
@@ -163,21 +180,19 @@ export default function App() {
     Object.keys(activeClient.layoutOverrides ?? {}).length > 0
   const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
   const previewClient = (() => {
+    const fsInfo = mapTextEdit
+      ? mapTextEditFsInfo(activeClient, mapTextEdit.target)
+      : null
     if (
       !mapTextEdit?.fontSizeChanged ||
       mapTextEdit.fontSize === undefined ||
-      !('accountId' in mapTextEdit.target)
+      !fsInfo
     ) {
       return activeClient
     }
-    const role = accountTextRoleForTarget(mapTextEdit.target)
-    return role
-      ? withOverride(
-          activeClient,
-          accountTextOverrideKey(mapTextEdit.target.accountId, role),
-          { fs: mapTextEdit.fontSize },
-        )
-      : activeClient
+    return withOverride(activeClient, fsInfo.key, {
+      fs: mapTextEdit.fontSize,
+    })
   })()
 
   useEffect(() => {
@@ -490,6 +505,7 @@ export default function App() {
   const handlePresent = async () => {
     setMapTextEdit(null)
     setShapePopoverOpen(false)
+    setMapZoom('fit')
     setPresentMode(true)
     const shell = appShellRef.current
     if (!shell?.requestFullscreen) return
@@ -640,7 +656,7 @@ export default function App() {
         target: target.edit,
         rect: target.rect,
         rawValue: mapTextEditRawValue(activeClient, target.edit),
-        fontSize: mapTextEditFontSize(activeClient, target.edit),
+        ...mapTextEditFontState(activeClient, target.edit),
       })
       return
     }
@@ -759,7 +775,7 @@ export default function App() {
         target: { kind: 'accountLabel', accountId: account.id },
         rect: { left, top, width, height },
         rawValue: '',
-        fontSize: mapTextEditFontSize(nextClient, {
+        ...mapTextEditFontState(nextClient, {
           kind: 'accountLabel',
           accountId: account.id,
         }),
@@ -785,6 +801,37 @@ export default function App() {
       rawValue: '',
     })
   }
+
+  const zoomControls = (
+    <div className="zoom-cluster" aria-label="Map zoom">
+      <button
+        aria-label="Zoom out"
+        disabled={mapZoom === 50}
+        type="button"
+        onClick={() => changeZoom(-10)}
+      >
+        −
+      </button>
+      <output aria-label="Zoom level">
+        {mapZoom === 'fit' ? `${fitZoom}%` : `${mapZoom}%`}
+      </output>
+      <button
+        aria-label="Zoom in"
+        disabled={mapZoom === 200}
+        type="button"
+        onClick={() => changeZoom(10)}
+      >
+        +
+      </button>
+      <button
+        aria-pressed={mapZoom === 'fit'}
+        type="button"
+        onClick={() => setMapZoom('fit')}
+      >
+        Fit
+      </button>
+    </div>
+  )
 
   return (
     <main
@@ -1076,19 +1123,18 @@ export default function App() {
                     mapTextEdit.target,
                     rawValue,
                   )
-                  const role = accountTextRoleForTarget(mapTextEdit.target)
+                  const fsInfo = mapTextEditFsInfo(
+                    activeClient,
+                    mapTextEdit.target,
+                  )
                   if (
                     mapTextEdit.fontSizeChanged &&
                     mapTextEdit.fontSize !== undefined &&
-                    role &&
-                    'accountId' in mapTextEdit.target
+                    fsInfo
                   ) {
                     nextClient = withOverride(
                       nextClient,
-                      accountTextOverrideKey(
-                        mapTextEdit.target.accountId,
-                        role,
-                      ),
+                      fsInfo.key,
                       { fs: mapTextEdit.fontSize },
                     )
                   }
@@ -1136,38 +1182,14 @@ export default function App() {
                   </div>
                 )}
               </div>
-              <div className="zoom-cluster" aria-label="Map zoom">
-                <button
-                  aria-label="Zoom out"
-                  disabled={mapZoom === 50}
-                  type="button"
-                  onClick={() => changeZoom(-10)}
-                >
-                  −
-                </button>
-                <output aria-label="Zoom level">
-                  {mapZoom === 'fit' ? `${fitZoom}%` : `${mapZoom}%`}
-                </output>
-                <button
-                  aria-label="Zoom in"
-                  disabled={mapZoom === 200}
-                  type="button"
-                  onClick={() => changeZoom(10)}
-                >
-                  +
-                </button>
-                <button
-                  aria-pressed={mapZoom === 'fit'}
-                  type="button"
-                  onClick={() => setMapZoom('fit')}
-                >
-                  Fit
-                </button>
-              </div>
+              {zoomControls}
             </div>
           )}
           {presentMode && (
-            <div className="present-hint">Esc to exit</div>
+            <>
+              <div className="present-zoom">{zoomControls}</div>
+              <div className="present-hint">Esc to exit</div>
+            </>
           )}
         </section>
       </div>
@@ -1219,7 +1241,7 @@ export default function App() {
           onConfirm={() => confirmClearMap(dialog.clientId)}
         >
           Clear the map for {dialog.name}? This removes all accounts, income
-          sources, monthly need, draw amount, after-tax income, footnotes, and
+          sources, monthly need, draw amount, after-tax income, fine print, and
           arrangement. The client stays in your book. One Undo brings
           everything back.
         </Dialog>

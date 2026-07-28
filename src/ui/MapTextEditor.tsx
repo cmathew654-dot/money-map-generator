@@ -1,10 +1,18 @@
-import { useRef, useState, type CSSProperties, type RefObject } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from 'react'
 import { parseMoneyInput } from '../model/format'
 import type { AccountTextRole, MoneyMapData } from '../model/types'
 import {
   accountTextOverrideKey,
   MAX_ACCOUNT_TEXT_FONT_SIZE,
-  MIN_ACCOUNT_TEXT_FONT_SIZE,
+  MAX_MAP_TEXT_FONT_SIZE,
+  MIN_MAP_TEXT_FONT_SIZE,
+  mapTextOverrideKey,
 } from '../model/types'
 import { addMapNote } from '../render/mapInteraction'
 import { TYPE } from '../render/tokens'
@@ -13,8 +21,13 @@ export type MapTextEditTarget =
   | { kind: 'accountValue'; accountId: string }
   | { kind: 'accountLabel'; accountId: string }
   | { kind: 'accountCaption'; accountId: string }
+  | { kind: 'incomeHeader' }
   | { kind: 'incomeAmount'; incomeIndex: number }
+  | { kind: 'afterTaxIncome' }
+  | { kind: 'needLabel' }
   | { kind: 'monthlyNeed' }
+  | { kind: 'footnoteText' }
+  | { kind: 'legendText' }
   | { kind: 'asNeededAmount' }
   | { kind: 'flowLabel'; arrowId: string }
   | { kind: 'noteText'; noteId: string; x?: number; y?: number }
@@ -31,7 +44,26 @@ export interface ActiveMapTextEdit {
   rect: MapTextEditRect
   rawValue: string
   fontSize?: number
+  fontSizeMax?: number
   fontSizeChanged?: boolean
+}
+
+type SizeOnlyMapTextEditTarget = Extract<
+  MapTextEditTarget,
+  {
+    kind: 'incomeHeader' | 'needLabel' | 'footnoteText' | 'legendText'
+  }
+>
+
+function isSizeOnlyTarget(
+  target: MapTextEditTarget,
+): target is SizeOnlyMapTextEditTarget {
+  return (
+    target.kind === 'incomeHeader' ||
+    target.kind === 'needLabel' ||
+    target.kind === 'footnoteText' ||
+    target.kind === 'legendText'
+  )
 }
 
 export function accountTextRoleForTarget(
@@ -43,31 +75,87 @@ export function accountTextRoleForTarget(
   return null
 }
 
-export function adjustAccountTextFontSize(
-  fontSize: number,
-  change: number,
-): number {
-  return Math.min(
-    MAX_ACCOUNT_TEXT_FONT_SIZE,
-    Math.max(MIN_ACCOUNT_TEXT_FONT_SIZE, fontSize + change),
-  )
+export interface MapTextEditFsInfo {
+  key: string
+  fallback: number
+  max: number
 }
 
-export function mapTextEditFontSize(
-  data: MoneyMapData,
+export function mapTextEditFsInfo(
+  _data: MoneyMapData,
   target: MapTextEditTarget,
-): number | undefined {
-  const role = accountTextRoleForTarget(target)
-  if (!role || !('accountId' in target)) return undefined
-  const fallback =
-    role === 'label'
-      ? TYPE.accountTitle
-      : role === 'caption'
-        ? TYPE.caption
-        : TYPE.value
-  const override =
-    data.layoutOverrides?.[accountTextOverrideKey(target.accountId, role)]
-  return adjustAccountTextFontSize(override?.fs ?? fallback, 0)
+): MapTextEditFsInfo | null {
+  const accountRole = accountTextRoleForTarget(target)
+  if (accountRole && 'accountId' in target) {
+    return {
+      key: accountTextOverrideKey(target.accountId, accountRole),
+      fallback:
+        accountRole === 'label'
+          ? TYPE.accountTitle
+          : accountRole === 'caption'
+            ? TYPE.caption
+            : TYPE.value,
+      max: MAX_ACCOUNT_TEXT_FONT_SIZE,
+    }
+  }
+
+  switch (target.kind) {
+    case 'incomeHeader':
+      return {
+        key: mapTextOverrideKey('income', 'header'),
+        fallback: TYPE.panelHeader,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    case 'incomeAmount':
+      return {
+        key: mapTextOverrideKey('income', 'row'),
+        fallback: TYPE.incomeValue,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    case 'afterTaxIncome':
+      return {
+        key: mapTextOverrideKey('income', 'total'),
+        fallback: TYPE.incomeTotalValue,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    case 'needLabel':
+      return {
+        key: mapTextOverrideKey('need', 'label'),
+        fallback: TYPE.needLabel,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    case 'monthlyNeed':
+      return {
+        key: mapTextOverrideKey('need', 'value'),
+        fallback: TYPE.needValue,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    case 'footnoteText':
+      return {
+        key: mapTextOverrideKey('footnotes', 'line'),
+        fallback: TYPE.footnote,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    case 'legendText':
+      return {
+        key: mapTextOverrideKey('legend', 'label'),
+        fallback: TYPE.legend,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    default:
+      return null
+  }
+}
+
+export function adjustMapTextFontSize(
+  fontSize: number,
+  change: number,
+  max: number,
+): number {
+  return Math.min(
+    max,
+    Math.max(MIN_MAP_TEXT_FONT_SIZE, fontSize + change),
+  )
 }
 
 export function mapTextEditRawValue(
@@ -92,6 +180,8 @@ export function mapTextEditRawValue(
       )
     case 'incomeAmount':
       return String(data.incomeSources[target.incomeIndex]?.amount ?? '')
+    case 'afterTaxIncome':
+      return String(data.afterTaxIncome ?? '')
     case 'monthlyNeed':
       return String(data.monthlyNeed ?? '')
     case 'asNeededAmount':
@@ -103,6 +193,11 @@ export function mapTextEditRawValue(
       )
     case 'noteText':
       return data.notes?.find((note) => note.id === target.noteId)?.text ?? ''
+    case 'incomeHeader':
+    case 'needLabel':
+    case 'footnoteText':
+    case 'legendText':
+      return ''
   }
 }
 
@@ -112,6 +207,7 @@ export function applyMapTextEdit(
   rawValue: string | null,
 ): MoneyMapData {
   if (rawValue === null) return data
+  if (isSizeOnlyTarget(target)) return data
   if (
     target.kind === 'accountLabel' ||
     target.kind === 'accountCaption'
@@ -181,6 +277,8 @@ export function applyMapTextEdit(
           index === target.incomeIndex ? { ...source, amount: value } : source,
         ),
       }
+    case 'afterTaxIncome':
+      return { ...data, afterTaxIncome: value }
     case 'monthlyNeed':
       return { ...data, monthlyNeed: value }
     case 'asNeededAmount':
@@ -191,8 +289,13 @@ export function applyMapTextEdit(
 function editorLabel(target: MapTextEditTarget): string {
   if (target.kind === 'accountLabel') return 'Edit account label'
   if (target.kind === 'accountCaption') return 'Edit account caption'
+  if (target.kind === 'incomeHeader') return 'Resize income heading'
   if (target.kind === 'incomeAmount') return 'Edit income source amount'
+  if (target.kind === 'afterTaxIncome') return 'Edit after-tax income'
+  if (target.kind === 'needLabel') return 'Resize monthly income need label'
   if (target.kind === 'monthlyNeed') return 'Edit monthly income need'
+  if (target.kind === 'footnoteText') return 'Resize fine print'
+  if (target.kind === 'legendText') return 'Resize flow legend'
   if (target.kind === 'asNeededAmount') return 'Edit as-needed draw amount'
   if (target.kind === 'flowLabel') return 'Edit flow label'
   if (target.kind === 'noteText') return 'Edit map note'
@@ -214,10 +317,15 @@ export function MapTextEditor({
 }) {
   const [rawValue, setRawValue] = useState(edit.rawValue)
   const finished = useRef(false)
+  const sizeControlsRef = useRef<HTMLDivElement>(null)
   const container = containerRef.current
   const containerRect = container?.getBoundingClientRect()
   const hasFontSize = edit.fontSize !== undefined
-  const width = Math.max(edit.rect.width + 16, 104) + (hasFontSize ? 70 : 0)
+  const sizeOnly = isSizeOnlyTarget(edit.target)
+  const fontSizeMax = edit.fontSizeMax ?? MAX_ACCOUNT_TEXT_FONT_SIZE
+  const width = sizeOnly
+    ? 78
+    : Math.max(edit.rect.width + 16, 104) + (hasFontSize ? 70 : 0)
   const height = Math.max(edit.rect.height + 10, 32)
   const style: CSSProperties = {
     left:
@@ -239,6 +347,10 @@ export function MapTextEditor({
     action()
   }
 
+  useEffect(() => {
+    if (sizeOnly) sizeControlsRef.current?.focus()
+  }, [sizeOnly])
+
   return (
     <div
       className={`map-text-editor${
@@ -246,51 +358,85 @@ export function MapTextEditor({
           ? ' is-note'
           : edit.target.kind === 'flowLabel'
             ? ' is-flow'
-            : ''
+            : sizeOnly
+              ? ' is-size-only'
+              : ''
       }`}
       style={style}
     >
-      <input
-        autoFocus
-        aria-label={editorLabel(edit.target)}
-        className="map-text-editor-input"
-        inputMode={
-          edit.target.kind === 'accountLabel' ||
-          edit.target.kind === 'accountCaption' ||
-          edit.target.kind === 'flowLabel' ||
-          edit.target.kind === 'noteText'
-            ? 'text'
-            : 'decimal'
-        }
-        placeholder={edit.target.kind === 'noteText' ? 'Add a note…' : undefined}
-        type="text"
-        value={rawValue}
-        onBlur={() => finish(() => onCommit(rawValue))}
-        onChange={(event) => setRawValue(event.target.value)}
-        onFocus={(event) => event.currentTarget.select()}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault()
-            finish(() => onCommit(rawValue))
-          } else if (event.key === 'Escape') {
-            event.preventDefault()
-            finish(
-              edit.target.kind === 'noteText'
-                ? () => onCommit(rawValue)
-                : onCancel,
-            )
+      {!sizeOnly && (
+        <input
+          autoFocus
+          aria-label={editorLabel(edit.target)}
+          className="map-text-editor-input"
+          inputMode={
+            edit.target.kind === 'accountLabel' ||
+            edit.target.kind === 'accountCaption' ||
+            edit.target.kind === 'flowLabel' ||
+            edit.target.kind === 'noteText'
+              ? 'text'
+              : 'decimal'
           }
-        }}
-      />
+          placeholder={
+            edit.target.kind === 'noteText' ? 'Add a note…' : undefined
+          }
+          type="text"
+          value={rawValue}
+          onBlur={() => finish(() => onCommit(rawValue))}
+          onChange={(event) => setRawValue(event.target.value)}
+          onFocus={(event) => event.currentTarget.select()}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              finish(() => onCommit(rawValue))
+            } else if (event.key === 'Escape') {
+              event.preventDefault()
+              finish(
+                edit.target.kind === 'noteText'
+                  ? () => onCommit(rawValue)
+                  : onCancel,
+              )
+            }
+          }}
+        />
+      )}
       {edit.fontSize !== undefined && (
-        <div className="map-text-size-controls" aria-label="Font size">
+        <div
+          ref={sizeControlsRef}
+          aria-label={sizeOnly ? editorLabel(edit.target) : 'Font size'}
+          className="map-text-size-controls"
+          role={sizeOnly ? 'group' : undefined}
+          tabIndex={sizeOnly ? 0 : undefined}
+          onBlur={(event) => {
+            if (
+              !sizeOnly ||
+              event.currentTarget.contains(event.relatedTarget as Node | null)
+            ) {
+              return
+            }
+            finish(() => onCommit(rawValue))
+          }}
+          onKeyDown={(event) => {
+            if (!sizeOnly) return
+            if (event.key === 'Escape') {
+              event.preventDefault()
+              finish(onCancel)
+            } else if (
+              event.key === 'Enter' &&
+              event.target === event.currentTarget
+            ) {
+              event.preventDefault()
+              finish(() => onCommit(rawValue))
+            }
+          }}
+        >
           <button
             aria-label="Decrease font size"
-            disabled={edit.fontSize <= MIN_ACCOUNT_TEXT_FONT_SIZE}
+            disabled={edit.fontSize <= MIN_MAP_TEXT_FONT_SIZE}
             type="button"
             onClick={() =>
               onFontSizeChange?.(
-                adjustAccountTextFontSize(edit.fontSize!, -1),
+                adjustMapTextFontSize(edit.fontSize!, -1, fontSizeMax),
               )
             }
             onPointerDown={(event) => event.preventDefault()}
@@ -299,11 +445,11 @@ export function MapTextEditor({
           </button>
           <button
             aria-label="Increase font size"
-            disabled={edit.fontSize >= MAX_ACCOUNT_TEXT_FONT_SIZE}
+            disabled={edit.fontSize >= fontSizeMax}
             type="button"
             onClick={() =>
               onFontSizeChange?.(
-                adjustAccountTextFontSize(edit.fontSize!, 1),
+                adjustMapTextFontSize(edit.fontSize!, 1, fontSizeMax),
               )
             }
             onPointerDown={(event) => event.preventDefault()}

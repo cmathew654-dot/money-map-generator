@@ -25,6 +25,7 @@ import type {
   PlacedNote,
   SubAccountLayout,
 } from '../layout/layout'
+import { textWidth } from '../layout/textfit'
 import {
   accountDisplayName,
   mastheadPeriodLabel,
@@ -38,11 +39,16 @@ import type {
   Footnote,
   IncomeSource,
   LayoutOverride,
+  MapTextElement,
+  MapTextElementRole,
   MoneyMapData,
 } from '../model/types'
 import {
+  MAX_MAP_TEXT_FONT_SIZE,
+  MIN_MAP_TEXT_FONT_SIZE,
   accountShape,
   accountTextOverrideKey,
+  mapTextOverrideKey,
   nextAccountShape,
 } from '../model/types'
 import type {
@@ -83,6 +89,21 @@ import {
 } from './tokens'
 
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
+
+function fixedTextFs(
+  data: MoneyMapData,
+  element: MapTextElement,
+  role: MapTextElementRole,
+  fallback: number,
+): number {
+  const override = data.layoutOverrides?.[
+    mapTextOverrideKey(element, role)
+  ]?.fs
+  return Math.min(
+    MAX_MAP_TEXT_FONT_SIZE,
+    Math.max(MIN_MAP_TEXT_FONT_SIZE, override ?? fallback),
+  )
+}
 
 function hexagonPath(x: number, y: number, w: number, h: number): string {
   const inset = hexagonInset(w, h)
@@ -241,12 +262,14 @@ function Masthead({ data }: { data: MoneyMapData }) {
 }
 
 function IncomeRow({
+  fontSize,
   index,
   onElementClick,
   source,
   x,
   y,
 }: {
+  fontSize: number
   index: number
   onElementClick?: (target: MapElementTarget) => void
   source: IncomeSource
@@ -260,7 +283,7 @@ function IncomeRow({
         y={y}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={TYPE.incomeLabel}
+        fontSize={fontSize * (13 / 14)}
       >
         {source.label}
       </text>
@@ -269,7 +292,7 @@ function IncomeRow({
         y={y + 18}
         fill={INK}
         fontFamily={FONT_SERIF}
-        fontSize={TYPE.incomeValue}
+        fontSize={fontSize}
         fontWeight={600}
         style={numericStyle}
       >
@@ -286,7 +309,7 @@ function IncomeRow({
             dx={7}
             fill={MUTED}
             fontFamily={FONT_SANS}
-            fontSize={TYPE.incomeQualifier}
+            fontSize={fontSize * (12 / 14)}
             fontWeight={400}
           >
             {source.qualifier}
@@ -308,6 +331,19 @@ function IncomePanel({
 }) {
   const dividerY =
     placed.y + 44 + data.incomeSources.length * 40 + 4
+  const headerFs = fixedTextFs(
+    data,
+    'income',
+    'header',
+    TYPE.panelHeader,
+  )
+  const rowFs = fixedTextFs(data, 'income', 'row', TYPE.incomeValue)
+  const totalFs = fixedTextFs(
+    data,
+    'income',
+    'total',
+    TYPE.incomeTotalValue,
+  )
 
   return (
     <g>
@@ -326,9 +362,10 @@ function IncomePanel({
         y={placed.y + 29}
         fill={FLOW_GREEN}
         fontFamily={FONT_SANS}
-        fontSize={TYPE.panelHeader}
+        fontSize={headerFs}
         fontWeight={700}
         letterSpacing={1.7}
+        {...editableTextProps({ kind: 'incomeHeader' }, onElementClick)}
       >
         INCOME SOURCES
       </text>
@@ -342,6 +379,7 @@ function IncomePanel({
       />
       {data.incomeSources.map((source, index) => (
         <IncomeRow
+          fontSize={rowFs}
           index={index}
           key={`${source.label}-${index}`}
           onElementClick={onElementClick}
@@ -379,10 +417,11 @@ function IncomePanel({
         y={dividerY + 31}
         fill={FLOW_GREEN}
         fontFamily={FONT_SERIF}
-        fontSize={TYPE.incomeTotalValue}
+        fontSize={totalFs}
         fontWeight={600}
         textAnchor="end"
         style={numericStyle}
+        {...editableTextProps({ kind: 'afterTaxIncome' }, onElementClick)}
       >
         {money(data.afterTaxIncome)}
       </text>
@@ -391,18 +430,22 @@ function IncomePanel({
 }
 
 function NeedCard({
+  data,
   mathLine,
   onElementClick,
   tag,
   value,
   placed,
 }: {
+  data: MoneyMapData
   mathLine: string | null
   onElementClick?: (target: MapElementTarget) => void
   tag?: string
   value: number | null
   placed: Placed
 }) {
+  const labelFs = fixedTextFs(data, 'need', 'label', TYPE.needLabel)
+  const valueFs = fixedTextFs(data, 'need', 'value', TYPE.needValue)
   return (
     <g>
       <rect
@@ -420,10 +463,11 @@ function NeedCard({
         y={placed.y + 58}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={TYPE.needLabel}
+        fontSize={labelFs}
         fontWeight={700}
         letterSpacing={1.8}
         textAnchor="middle"
+        {...editableTextProps({ kind: 'needLabel' }, onElementClick)}
       >
         MONTHLY INCOME NEED
       </text>
@@ -432,7 +476,7 @@ function NeedCard({
         y={placed.y + 111}
         fill={NEED_RED}
         fontFamily={FONT_SERIF}
-        fontSize={TYPE.needValue}
+        fontSize={valueFs}
         fontWeight={600}
         textAnchor="middle"
       >
@@ -1172,11 +1216,15 @@ function AsNeededLabel({
 }
 
 function FootnoteLine({
+  fontSize,
   footnote,
+  onElementClick,
   x,
   y,
 }: {
+  fontSize: number
   footnote: Footnote
+  onElementClick?: (target: MapElementTarget) => void
   x: number
   y: number
 }) {
@@ -1186,8 +1234,9 @@ function FootnoteLine({
       y={y}
       fill={INK}
       fontFamily={FONT_SANS}
-      fontSize={TYPE.footnote}
+      fontSize={fontSize}
       textAnchor="middle"
+      {...editableTextProps({ kind: 'footnoteText' }, onElementClick)}
     >
       {footnote.label}:{' '}
       <tspan
@@ -1212,15 +1261,26 @@ function FootnoteLine({
 }
 
 function Footnotes({
+  data,
   footnotes,
+  onElementClick,
   x,
   y,
 }: {
+  data: MoneyMapData
   footnotes: Footnote[]
+  onElementClick?: (target: MapElementTarget) => void
   x: number
   y: number
 }) {
   if (footnotes.length === 0) return null
+  const fontSize = fixedTextFs(
+    data,
+    'footnotes',
+    'line',
+    TYPE.footnote,
+  )
+  const lineAdvance = 24 * (fontSize / TYPE.footnote)
   return (
     <g aria-label="Footnotes">
       <line
@@ -1232,10 +1292,12 @@ function Footnotes({
       />
       {footnotes.map((footnote, index) => (
         <FootnoteLine
+          fontSize={fontSize}
           key={`${footnote.label}-${index}`}
           footnote={footnote}
+          onElementClick={onElementClick}
           x={x}
-          y={y + index * 24}
+          y={y + index * lineAdvance}
         />
       ))}
     </g>
@@ -1246,22 +1308,26 @@ const LEGEND_Y = 966
 const LEGEND_ITEMS: {
   kind: 'income' | 'asNeeded'
   label: string
-  width: number
 }[] = [
-  { kind: 'income', label: 'Income', width: 83 },
-  { kind: 'asNeeded', label: 'Draw as needed', width: 124 },
+  { kind: 'income', label: 'Income' },
+  { kind: 'asNeeded', label: 'Draw as needed' },
 ]
 
 function FlowLegend({
   arrows,
+  data,
   markerId,
+  onElementClick,
 }: {
   arrows: Arrow[]
+  data: MoneyMapData
   markerId: string
+  onElementClick?: (target: MapElementTarget) => void
 }) {
   const visible = visibleGeneratedArrowKinds(arrows)
   if (visible.length === 0) return null
   const present = new Set(visible)
+  const fontSize = fixedTextFs(data, 'legend', 'label', TYPE.legend)
   let x = 48
 
   return (
@@ -1269,7 +1335,7 @@ function FlowLegend({
       {LEGEND_ITEMS.filter((item) => present.has(item.kind)).map(
         (item) => {
           const itemX = x
-          x += item.width
+          x += textWidth(item.label, fontSize) + 32 + 16
           const asNeeded = item.kind === 'asNeeded'
           return (
             <g key={item.kind} data-legend-kind={item.kind}>
@@ -1291,7 +1357,11 @@ function FlowLegend({
                 y={LEGEND_Y}
                 fill={MUTED}
                 fontFamily={FONT_SANS}
-                fontSize={TYPE.legend}
+                fontSize={fontSize}
+                {...editableTextProps(
+                  { kind: 'legendText' },
+                  onElementClick,
+                )}
               >
                 {item.label}
               </text>
@@ -1814,6 +1884,7 @@ export function MapSvg({
         }
       >
         <NeedCard
+          data={displayData}
           mathLine={gapLine(
             displayData.monthlyNeed,
             displayData.afterTaxIncome,
@@ -2116,11 +2187,18 @@ export function MapSvg({
         ))}
       </g>
       <Footnotes
+        data={displayData}
         footnotes={displayData.footnotes}
+        onElementClick={onElementClick}
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
       />
-      <FlowLegend arrows={layout.arrows} markerId={legendMarkerId} />
+      <FlowLegend
+        arrows={layout.arrows}
+        data={displayData}
+        markerId={legendMarkerId}
+        onElementClick={onElementClick}
+      />
     </svg>
   )
 }
