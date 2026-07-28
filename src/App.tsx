@@ -612,6 +612,17 @@ export default function App() {
     )
   }
 
+  const handleMapChange = (next: typeof activeClient) => {
+    const current = snapshotRef.current
+    commitSnapshot(
+      {
+        book: updateClient(current.book, next.id, next),
+        activeClientId: next.id,
+      },
+      null,
+    )
+  }
+
   const changeZoom = (change: number) => {
     setMapZoom((current) => {
       const level =
@@ -929,7 +940,7 @@ export default function App() {
                 <MapSvg
                   data={activeClient}
                   highlightId={presentMode ? undefined : highlightId}
-                  onChange={presentMode ? undefined : handleClientChange}
+                  onChange={presentMode ? undefined : handleMapChange}
                   onElementClick={
                     presentMode ? undefined : handleMapElementClick
                   }

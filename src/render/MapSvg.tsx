@@ -1199,6 +1199,10 @@ function NoteBlock({
   onElementClick?: (target: MapElementTarget) => void
   placed: PlacedNote
 }) {
+  const editProps = editableTextProps(
+    { kind: 'noteText', noteId: placed.note.id },
+    onElementClick,
+  )
   return (
     <>
       <rect
@@ -1209,16 +1213,15 @@ function NoteBlock({
         y={placed.y}
       />
       <text
-        className="map-note-text"
+        {...editProps}
+        className={`map-note-text${
+          editProps.className ? ` ${editProps.className}` : ''
+        }`}
         fill={MUTED}
         fontFamily={FONT_SERIF}
         fontSize={TYPE.note}
         x={placed.x}
         y={placed.y + TYPE.note}
-        {...editableTextProps(
-          { kind: 'noteText', noteId: placed.note.id },
-          onElementClick,
-        )}
       >
         {placed.lines.map((line, index) => (
           <tspan
@@ -1710,33 +1713,6 @@ export function MapSvg({
           />
         )}
       </g>
-      <g aria-label="Map notes">
-        {layout.notes.map((placed) => (
-          <g
-            className={onChange ? 'map-draggable map-note' : 'map-note'}
-            key={placed.note.id}
-            onPointerDown={
-              onChange
-                ? beginDrag(
-                    placed.note.id,
-                    'noteMove',
-                    placed,
-                  )
-                : undefined
-            }
-          >
-            <NoteBlock
-              onDelete={
-                onChange
-                  ? () => onChange(deleteMapNote(data, placed.note.id))
-                  : undefined
-              }
-              onElementClick={onElementClick}
-              placed={placed}
-            />
-          </g>
-        ))}
-      </g>
       <g aria-label="Accounts">
         {layout.accounts.map((placed, index) => {
           const style = BUCKETS[placed.account.bucket]
@@ -1971,6 +1947,33 @@ export function MapSvg({
           />
         </g>
       )}
+      <g aria-label="Map notes">
+        {layout.notes.map((placed) => (
+          <g
+            className={onChange ? 'map-draggable map-note' : 'map-note'}
+            key={placed.note.id}
+            onPointerDown={
+              onChange
+                ? beginDrag(
+                    placed.note.id,
+                    'noteMove',
+                    placed,
+                  )
+                : undefined
+            }
+          >
+            <NoteBlock
+              onDelete={
+                onChange
+                  ? () => onChange(deleteMapNote(data, placed.note.id))
+                  : undefined
+              }
+              onElementClick={onElementClick}
+              placed={placed}
+            />
+          </g>
+        ))}
+      </g>
       <Footnotes
         footnotes={displayData.footnotes}
         x={layout.footnotesAt.x}
