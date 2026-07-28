@@ -35,6 +35,7 @@ export interface FormProps {
 }
 
 interface MoneyFieldProps {
+  inputRef?: Ref<HTMLInputElement>
   label: string
   value: number | null
   onChange(value: number | null): void
@@ -113,6 +114,25 @@ const accountPresets: {
   },
 ]
 
+const incomePresets = [
+  { chipLabel: 'Social Security', label: 'Social Security' },
+  { chipLabel: 'Pension', label: 'Pension' },
+  { chipLabel: 'Salary / Wages', label: 'Salary / Wages' },
+  { chipLabel: 'Rental Income', label: 'Rental Income' },
+  { chipLabel: 'Annuity', label: 'Annuity' },
+  { chipLabel: 'Something else', label: '' },
+]
+
+export function addIncomeSource(
+  incomeSources: IncomeSource[],
+  label: string,
+): IncomeSource[] {
+  return [
+    ...incomeSources,
+    { label, amount: null, period: 'mo' },
+  ]
+}
+
 const shapeLabels: Record<AccountShape, string> = {
   drum: 'Drum',
   card: 'Card',
@@ -149,7 +169,12 @@ function ShapeGlyph({ shape }: { shape: AccountShape }) {
   )
 }
 
-function MoneyField({ label, value, onChange }: MoneyFieldProps) {
+function MoneyField({
+  inputRef,
+  label,
+  value,
+  onChange,
+}: MoneyFieldProps) {
   const [focused, setFocused] = useState(false)
   const [raw, setRaw] = useState('')
 
@@ -160,6 +185,7 @@ function MoneyField({ label, value, onChange }: MoneyFieldProps) {
         className="money-input"
         inputMode="decimal"
         placeholder="~$ ______"
+        ref={inputRef}
         type="text"
         value={focused ? raw : value === null ? '' : money(value)}
         onBlur={() => {
@@ -281,6 +307,12 @@ export function IncomeSection({
   sectionRef?: Ref<HTMLElement>
   includeNeed?: boolean
 }) {
+  const labelInputs = useRef<(HTMLInputElement | null)[]>([])
+  const amountInputs = useRef<(HTMLInputElement | null)[]>([])
+  const pendingFocus = useRef<{
+    field: 'amount' | 'label'
+    index: number
+  } | null>(null)
   const setSources = (incomeSources: IncomeSource[]) =>
     onChange({ ...data, incomeSources })
   const updateSource = (index: number, source: IncomeSource) =>
@@ -290,6 +322,15 @@ export function IncomeSection({
       ),
     )
 
+  useEffect(() => {
+    const request = pendingFocus.current
+    if (!request) return
+    const inputs =
+      request.field === 'amount' ? amountInputs : labelInputs
+    inputs.current[request.index]?.focus()
+    pendingFocus.current = null
+  }, [data.incomeSources.length])
+
   return (
     <section className="form-section" ref={sectionRef}>
       <h2>Income</h2>
@@ -298,7 +339,10 @@ export function IncomeSection({
           <div className="stacked-row income-row" key={index}>
             <div className="stacked-row-heading">
               <TextField
-                label="Label"
+                inputRef={(element) => {
+                  labelInputs.current[index] = element
+                }}
+                label="Income source"
                 value={source.label}
                 onChange={(label) =>
                   updateSource(index, { ...source, label })
@@ -317,6 +361,9 @@ export function IncomeSection({
             </div>
             <div className="income-row-fields">
               <MoneyField
+                inputRef={(element) => {
+                  amountInputs.current[index] = element
+                }}
                 label="Amount"
                 value={source.amount}
                 onChange={(amount) =>
@@ -339,7 +386,8 @@ export function IncomeSection({
                 </select>
               </label>
               <TextField
-                label="Qualifier"
+                label="Shown as"
+                placeholder="e.g. Gross, After-Tax"
                 value={source.qualifier ?? ''}
                 onChange={(qualifier) =>
                   updateSource(index, { ...source, qualifier })
@@ -352,18 +400,28 @@ export function IncomeSection({
       {data.incomeSources.length === 0 && (
         <p className="empty-state">No income sources yet.</p>
       )}
-      <button
-        className="add-button"
-        type="button"
-        onClick={() =>
-          setSources([
-            ...data.incomeSources,
-            { label: '', amount: null, period: 'mo' },
-          ])
-        }
-      >
-        + Add income source
-      </button>
+      <div className="account-preset-row" aria-label="Add income source">
+        <span className="account-preset-label">Add:</span>
+        {incomePresets.map((preset) => (
+          <button
+            className="account-preset-button"
+            key={preset.chipLabel}
+            type="button"
+            onClick={() => {
+              const index = data.incomeSources.length
+              pendingFocus.current = {
+                field: preset.label ? 'amount' : 'label',
+                index,
+              }
+              setSources(
+                addIncomeSource(data.incomeSources, preset.label),
+              )
+            }}
+          >
+            {preset.chipLabel}
+          </button>
+        ))}
+      </div>
       <div className="field-grid income-totals">
         <MoneyField
           label="After-Tax Income"
@@ -617,7 +675,7 @@ function AccountCard({
           </label>
           <TextField
             inputRef={labelInputRef}
-            label="Label"
+            label="Account name"
             value={account.label}
             onChange={(label) => onChange({ ...account, label })}
           />
