@@ -64,6 +64,13 @@ input {
   background: #fcfcfa;
 }
 
+.client-form input,
+.client-form select,
+.client-form textarea {
+  border-color: #c9cfc9;
+  background: #ffffff;
+}
+
 button {
   padding: 6px 10px;
   cursor: pointer;
