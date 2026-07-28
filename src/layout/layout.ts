@@ -1012,32 +1012,53 @@ function labelBox(labelAt: { x: number; y: number }): Placed {
   }
 }
 
+function chipStaysInBounds(labelAt: Point): boolean {
+  const halfWidth = AS_NEEDED_CHIP_WIDTH / 2
+  const halfHeight = AS_NEEDED_CHIP_HEIGHT / 2
+  return (
+    labelAt.x - halfWidth >= PAGE_MARGIN &&
+    labelAt.x + halfWidth <= ARTBOARD.width - PAGE_MARGIN &&
+    labelAt.y - halfHeight >= MASTHEAD_RULE_Y &&
+    labelAt.y + halfHeight <= ARTBOARD.height - PAGE_MARGIN
+  )
+}
+
 function clearAsNeededLabel(
   labelAt: { x: number; y: number },
   start: { x: number; y: number },
+  control: { x: number; y: number },
   end: { x: number; y: number },
   obstacles: Placed[],
 ): { x: number; y: number } {
   const clears = (candidate: { x: number; y: number }) =>
+    chipStaysInBounds(candidate) &&
     obstacles.every(
       (obstacle) => !boxesIntersect(labelBox(candidate), obstacle),
     )
-  if (clears(labelAt)) return labelAt
-
-  const length = Math.hypot(end.x - start.x, end.y - start.y)
-  const upwardNormal = {
-    x: -(end.y - start.y) / length,
-    y: (end.x - start.x) / length,
-  }
-  let offset = 8
-  while (true) {
-    const candidate = {
-      x: labelAt.x + upwardNormal.x * offset,
-      y: labelAt.y + upwardNormal.y * offset,
-    }
+  for (const t of AS_NEEDED_LABEL_TS) {
+    const candidate = pointOnQuadratic(start, control, end, t)
     if (clears(candidate)) return candidate
-    offset += 8
   }
+
+  for (let offset = 8; offset <= ARTBOARD.height; offset += 8) {
+    for (const t of AS_NEEDED_LABEL_TS) {
+      const pathPoint = pointOnQuadratic(start, control, end, t)
+      const tangent = {
+        x: 2 * ((1 - t) * (control.x - start.x) + t * (end.x - control.x)),
+        y: 2 * ((1 - t) * (control.y - start.y) + t * (end.y - control.y)),
+      }
+      const length = Math.hypot(tangent.x, tangent.y) || 1
+      const normal = { x: -tangent.y / length, y: tangent.x / length }
+      for (const direction of [-1, 1]) {
+        const candidate = {
+          x: pathPoint.x + normal.x * offset * direction,
+          y: pathPoint.y + normal.y * offset * direction,
+        }
+        if (clears(candidate)) return candidate
+      }
+    }
+  }
+  return labelAt
 }
 
 function asNeededArrow(
@@ -1057,19 +1078,13 @@ function asNeededArrow(
     sourceId: shortTerm.account.id,
   })
   const { start, control, end } = arrow
-  let labelAt = pointOnQuadratic(start, control, end, 0.4)
-  for (const t of AS_NEEDED_LABEL_TS) {
-    const candidate = pointOnQuadratic(start, control, end, t)
-    if (
-      obstacles.every(
-        (obstacle) => !boxesIntersect(labelBox(candidate), obstacle),
-      )
-    ) {
-      labelAt = candidate
-      break
-    }
-  }
-  labelAt = clearAsNeededLabel(labelAt, start, end, obstacles)
+  const labelAt = clearAsNeededLabel(
+    pointOnQuadratic(start, control, end, 0.4),
+    start,
+    control,
+    end,
+    obstacles,
+  )
 
   return {
     ...arrow,

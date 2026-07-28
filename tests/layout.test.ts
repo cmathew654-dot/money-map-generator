@@ -83,6 +83,25 @@ function boxesIntersect(
   )
 }
 
+function expectAsNeededChipClear(data: MoneyMapData) {
+  const layout = layoutMap(data)
+  const labelAt = layout.arrows.find(
+    (arrow) => arrow.kind === 'asNeeded',
+  )!.labelAt!
+  const chip = {
+    x: labelAt.x - 250 / 2,
+    y: labelAt.y - 38 / 2,
+    w: 250,
+    h: 38,
+  }
+
+  expect(
+    [layout.income, layout.need, ...layout.accounts].filter(
+      (obstacle) => boxesIntersect(chip, obstacle),
+    ),
+  ).toEqual([])
+}
+
 function segmentIntersectsBox(
   start: { x: number; y: number },
   end: { x: number; y: number },
@@ -658,6 +677,40 @@ describe('layoutMap', () => {
     expect(
       Math.hypot(labelAt.x - start.x, labelAt.y - start.y),
     ).toBeGreaterThanOrEqual(60)
+  })
+
+  it.each([
+    ['Whitfield', SAMPLE_WHITFIELD],
+    ['Calloway', SAMPLE_CALLOWAY],
+    ['Venkat', SAMPLE_VENKAT],
+  ])('keeps the default %s as-needed chip clear', (_label, data) => {
+    expectAsNeededChipClear(data)
+  })
+
+  it('keeps the default as-needed chip clear of a tall income panel', () => {
+    const stress: MoneyMapData = {
+      ...SAMPLE_WHITFIELD,
+      id: 'tall-income-stress',
+      client: {
+        ...SAMPLE_WHITFIELD.client,
+        variant: 'postNote',
+        postNoteLabel: 'April 2026',
+      },
+      incomeSources: [
+        { label: 'Social Security', amount: 2400, period: 'mo' },
+        { label: 'Pension', amount: 1900, period: 'mo' },
+        { label: 'Rental Income', amount: null, period: 'mo' },
+        { label: 'Annuity', amount: null, period: 'mo' },
+        { label: 'Other Income', amount: null, period: 'mo' },
+      ],
+      accounts: SAMPLE_WHITFIELD.accounts.filter((account) =>
+        ['shortTerm', 'cash', 'afterTax', 'taxDeferred'].includes(
+          account.bucket,
+        ),
+      ),
+    }
+
+    expectAsNeededChipClear(stress)
   })
 
   it.each([
