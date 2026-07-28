@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  ACCOUNT_PRESETS,
+  accountDefaultsFor,
   addClient,
+  appendBlankAccount,
+  blankAccountFor,
   clearedClient,
   deleteClient,
   duplicateClient,
@@ -340,5 +344,66 @@ describe('account shapes', () => {
       'drum',
     ])
     expect(ACCOUNT_SHAPES).toEqual(['drum', 'card', 'rect', 'pill'])
+  })
+})
+
+describe('account bucket defaults', () => {
+  it.each([
+    ['shortTerm', 'drum', true],
+    ['afterTax', 'drum', true],
+    ['taxDeferred', 'drum', true],
+    ['taxPreferred', 'drum', false],
+    ['charitable', 'drum', false],
+    ['cash', 'drum', false],
+    ['note', 'card', false],
+  ] satisfies [Bucket, string, boolean][])(
+    'shares the %s defaults with the form preset',
+    (bucket, shape, inWaterfall) => {
+      const defaults = accountDefaultsFor(bucket)
+      const preset = ACCOUNT_PRESETS.find(
+        (item) => item.bucket === bucket,
+      )
+
+      expect(defaults).toEqual({ bucket, shape, inWaterfall })
+      expect(preset).toMatchObject(defaults)
+    },
+  )
+
+  it('creates blank accounts with fresh ids and no caption', () => {
+    const first = blankAccountFor('cash')
+    const second = blankAccountFor('cash')
+
+    expect(first).toEqual({
+      id: expect.stringMatching(/^account-/),
+      bucket: 'cash',
+      shape: 'drum',
+      label: '',
+      value: null,
+      inWaterfall: false,
+    })
+    expect(second.id).not.toBe(first.id)
+    expect(first).not.toHaveProperty('caption')
+  })
+
+  it('appends exactly one blank account without touching existing accounts', () => {
+    const original = SAMPLE_WHITFIELD
+    const existingAccounts = original.accounts
+    const appended = appendBlankAccount(original, 'note')
+
+    expect(appended.accounts).toHaveLength(existingAccounts.length + 1)
+    expect(appended.accounts.slice(0, -1)).toEqual(existingAccounts)
+    expect(
+      appended.accounts.slice(0, -1).every(
+        (account, index) => account === existingAccounts[index],
+      ),
+    ).toBe(true)
+    expect(appended.accounts.at(-1)).toMatchObject({
+      bucket: 'note',
+      shape: 'card',
+      label: '',
+      value: null,
+      inWaterfall: false,
+    })
+    expect(original.accounts).toBe(existingAccounts)
   })
 })

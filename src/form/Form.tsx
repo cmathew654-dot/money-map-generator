@@ -11,6 +11,7 @@ import {
   money,
   parseMoneyInput,
 } from '../model/format'
+import { ACCOUNT_PRESETS } from '../model/book'
 import type {
   Account,
   AccountShape,
@@ -49,69 +50,6 @@ const bucketOptions: { value: Bucket; label: string }[] = [
   { value: 'charitable', label: 'Charitable' },
   { value: 'cash', label: 'Cash' },
   { value: 'note', label: 'Note' },
-]
-
-const accountPresets: {
-  chipLabel: string
-  account: Omit<Account, 'id' | 'value'>
-}[] = [
-  {
-    chipLabel: 'Short-Term',
-    account: {
-      bucket: 'shortTerm',
-      label: 'Short-Term Funds',
-      caption: "2-3 years' worth of income needs",
-      inWaterfall: true,
-    },
-  },
-  {
-    chipLabel: 'Trust',
-    account: {
-      bucket: 'afterTax',
-      label: 'Trust Account',
-      inWaterfall: true,
-    },
-  },
-  {
-    chipLabel: 'IRA',
-    account: {
-      bucket: 'taxDeferred',
-      label: 'IRA',
-      inWaterfall: true,
-    },
-  },
-  {
-    chipLabel: 'Roth',
-    account: {
-      bucket: 'taxPreferred',
-      label: 'Roth IRA',
-      inWaterfall: false,
-    },
-  },
-  {
-    chipLabel: 'Cash',
-    account: {
-      bucket: 'cash',
-      label: 'Cash at Bank',
-      inWaterfall: false,
-    },
-  },
-  {
-    chipLabel: 'Charitable',
-    account: {
-      bucket: 'charitable',
-      label: 'Donor-Advised Fund',
-      inWaterfall: false,
-    },
-  },
-  {
-    chipLabel: 'Note',
-    account: {
-      bucket: 'note',
-      label: 'Note',
-      inWaterfall: false,
-    },
-  },
 ]
 
 const incomePresets = [
@@ -817,20 +755,21 @@ export function AccountsSection({
       ))}
       <div className="account-preset-row" aria-label="Add account">
         <span className="account-preset-label">{presetLabel}</span>
-        {accountPresets.map((preset) => (
+        {ACCOUNT_PRESETS.map((preset) => (
           <button
-            className={`account-preset-button bucket-${preset.account.bucket}`}
+            className={`account-preset-button bucket-${preset.bucket}`}
             key={preset.chipLabel}
             type="button"
             onClick={() => {
+              const { chipLabel: _chipLabel, ...account } = preset
               const id = newId('account')
               setNewAccountId(id)
               setAccounts([
                 ...data.accounts,
                 {
                   id,
-                  ...preset.account,
                   value: null,
+                  ...account,
                 },
               ])
             }}

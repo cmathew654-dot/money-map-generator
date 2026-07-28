@@ -4,11 +4,92 @@ import {
   SAMPLE_VENKAT,
   SAMPLE_WHITFIELD,
 } from './samples'
-import type { MoneyMapData, MoneyMapFile } from './types'
+import type {
+  Account,
+  AccountShape,
+  Bucket,
+  MoneyMapData,
+  MoneyMapFile,
+} from './types'
 import { ACCOUNT_SHAPES, newId } from './types'
 
 export const HISTORY_LIMIT = 50
 export const HISTORY_COALESCE_MS = 800
+
+const BUCKET_DEFAULTS: Record<
+  Bucket,
+  { shape: AccountShape; inWaterfall: boolean }
+> = {
+  shortTerm: { shape: 'drum', inWaterfall: true },
+  afterTax: { shape: 'drum', inWaterfall: true },
+  taxDeferred: { shape: 'drum', inWaterfall: true },
+  taxPreferred: { shape: 'drum', inWaterfall: false },
+  charitable: { shape: 'drum', inWaterfall: false },
+  cash: { shape: 'drum', inWaterfall: false },
+  note: { shape: 'card', inWaterfall: false },
+}
+
+export function accountDefaultsFor(bucket: Bucket) {
+  return { bucket, ...BUCKET_DEFAULTS[bucket] }
+}
+
+export const ACCOUNT_PRESETS = [
+  {
+    chipLabel: 'Short-Term',
+    label: 'Short-Term Funds',
+    caption: "2-3 years' worth of income needs",
+    ...accountDefaultsFor('shortTerm'),
+  },
+  {
+    chipLabel: 'Trust',
+    label: 'Trust Account',
+    ...accountDefaultsFor('afterTax'),
+  },
+  {
+    chipLabel: 'IRA',
+    label: 'IRA',
+    ...accountDefaultsFor('taxDeferred'),
+  },
+  {
+    chipLabel: 'Roth',
+    label: 'Roth IRA',
+    ...accountDefaultsFor('taxPreferred'),
+  },
+  {
+    chipLabel: 'Cash',
+    label: 'Cash at Bank',
+    ...accountDefaultsFor('cash'),
+  },
+  {
+    chipLabel: 'Charitable',
+    label: 'Donor-Advised Fund',
+    ...accountDefaultsFor('charitable'),
+  },
+  {
+    chipLabel: 'Note',
+    label: 'Note',
+    ...accountDefaultsFor('note'),
+  },
+] satisfies (Omit<Account, 'id' | 'value'> & { chipLabel: string })[]
+
+export function blankAccountFor(bucket: Bucket): Account {
+  return {
+    id: newId('account'),
+    label: '',
+    value: null,
+    ...accountDefaultsFor(bucket),
+  }
+}
+
+export function appendBlankAccount(
+  data: MoneyMapData,
+  bucket: Bucket,
+): MoneyMapData {
+  return {
+    ...data,
+    accounts: [...data.accounts, blankAccountFor(bucket)],
+  }
+}
 
 export interface BookSnapshot {
   book: MoneyMapFile
