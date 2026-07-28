@@ -622,18 +622,37 @@ summary:focus-visible {
 }
 
 .preview-pane {
-  display: grid;
   min-width: 0;
-  overflow: auto;
-  place-items: center;
   position: relative;
-  padding: 24px;
+  overflow: hidden;
   background: #eceeea;
+}
+
+.map-scroller {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 24px;
+}
+
+.map-stage {
+  display: grid;
+  min-width: 100%;
+  min-height: 100%;
+  place-items: center;
+}
+
+.map-stage.is-zoomed {
+  width: max-content;
 }
 
 .map-page {
   width: min(100%, calc((100vh - 100px) * 1.294117647));
   max-width: 1320px;
+}
+
+.map-page.is-zoomed {
+  max-width: none;
 }
 
 .map-page svg {
@@ -656,6 +675,9 @@ summary:focus-visible {
 
 .app-shell.is-presenting .preview-pane {
   height: 100vh;
+}
+
+.app-shell.is-presenting .map-scroller {
   overflow: hidden;
   padding: 16px;
 }
@@ -666,6 +688,85 @@ summary:focus-visible {
     calc((100vh - 32px) * 1.294117647)
   );
   max-width: none;
+}
+
+.app-shell.is-presenting .map-page svg {
+  pointer-events: none;
+  user-select: none;
+}
+
+.map-chrome {
+  position: absolute;
+  z-index: 5;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.shape-quick-add {
+  position: relative;
+}
+
+.shape-quick-add > button,
+.zoom-cluster {
+  border: 1px solid #c9cfc9;
+  background: #fcfcfa;
+  box-shadow: 0 2px 9px rgb(28 36 34 / 14%);
+}
+
+.shape-popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: flex;
+  width: 264px;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 9px;
+  border: 1px solid #c9cfc9;
+  border-radius: 6px;
+  background: #fcfcfa;
+  box-shadow: 0 5px 18px rgb(28 36 34 / 14%);
+}
+
+.zoom-cluster {
+  display: grid;
+  overflow: hidden;
+  border-radius: 4px;
+  grid-template-columns: 32px 52px 32px 38px;
+}
+
+.zoom-cluster button {
+  min-width: 0;
+  border-width: 0 0 0 1px;
+  border-radius: 0;
+  padding: 6px 5px;
+  background: transparent;
+}
+
+.zoom-cluster button:first-child {
+  border-left: 0;
+}
+
+.zoom-cluster button:hover {
+  background: #f1f3f0;
+}
+
+.zoom-cluster button[aria-pressed='true'] {
+  background: #e7ede8;
+  color: #1e7a4a;
+  font-weight: 700;
+}
+
+.zoom-cluster output {
+  display: grid;
+  border-left: 1px solid #dde1dc;
+  color: #5b6663;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  place-items: center;
 }
 
 .present-hint {

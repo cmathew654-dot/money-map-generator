@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  ACCOUNT_PRESETS,
   addClient,
+  appendBlankAccount,
   clearedClient,
   deleteClient,
   duplicateClient,
@@ -29,7 +31,7 @@ import {
   type FileReadResult,
   type FileStoreApi,
 } from './model/filestore'
-import type { MoneyMapFile } from './model/types'
+import type { Bucket, MoneyMapFile } from './model/types'
 import {
   exportPng,
   loadBookFromFile,
@@ -45,6 +47,7 @@ import {
   MapSvg,
   type MapElementTarget,
 } from './render/MapSvg'
+import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import {
   applyMapTextEdit,
@@ -62,6 +65,7 @@ const FORM_MODE_STORAGE_KEY = 'money-map-form-mode:v1'
 
 type FormMode = 'guided' | 'full'
 type FileSaveStatus = 'saved' | 'saving'
+type MapZoom = 'fit' | number
 type AppDialog =
   | { kind: 'delete'; clientId: string; name: string }
   | { kind: 'error'; title: string; message: string }
@@ -112,6 +116,9 @@ export default function App() {
   const [fileSaveStatus, setFileSaveStatus] =
     useState<FileSaveStatus>('saved')
   const [presentMode, setPresentMode] = useState(false)
+  const [mapZoom, setMapZoom] = useState<MapZoom>('fit')
+  const [fitZoom, setFitZoom] = useState(100)
+  const [shapePopoverOpen, setShapePopoverOpen] = useState(false)
   const [fileStoreSupported] = useState(() =>
     supportsFileStore(window as unknown as FileStoreApi),
   )
@@ -123,7 +130,9 @@ export default function App() {
   const historyRef = useRef(history)
   const appShellRef = useRef<HTMLElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const previewPaneRef = useRef<HTMLElement>(null)
+  const previewPaneRef = useRef<HTMLDivElement>(null)
+  const mapPageRef = useRef<HTMLDivElement>(null)
+  const shapePopoverRef = useRef<HTMLDivElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const { book, activeClientId } = snapshot
   const activeClient =
@@ -131,6 +140,44 @@ export default function App() {
     book.clients[0]
   const hasLayoutOverrides =
     Object.keys(activeClient.layoutOverrides ?? {}).length > 0
+
+  useEffect(() => {
+    setMapZoom('fit')
+    setShapePopoverOpen(false)
+  }, [activeClient.id])
+
+  useEffect(() => {
+    if (!shapePopoverOpen) return
+    const closeOnPointerDown = (event: globalThis.PointerEvent) => {
+      if (!shapePopoverRef.current?.contains(event.target as Node)) {
+        setShapePopoverOpen(false)
+      }
+    }
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setShapePopoverOpen(false)
+    }
+    window.addEventListener('pointerdown', closeOnPointerDown)
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      window.removeEventListener('pointerdown', closeOnPointerDown)
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [shapePopoverOpen])
+
+  useEffect(() => {
+    if (mapZoom !== 'fit' || !mapPageRef.current) return
+    const page = mapPageRef.current
+    const updateFitZoom = () =>
+      setFitZoom(
+        Math.round(
+          (page.getBoundingClientRect().width / ARTBOARD.width) * 100,
+        ),
+      )
+    updateFitZoom()
+    const observer = new ResizeObserver(updateFitZoom)
+    observer.observe(page)
+    return () => observer.disconnect()
+  }, [mapZoom])
 
   const showSnapshot = useCallback((next: BookSnapshot) => {
     snapshotRef.current = next
@@ -386,6 +433,8 @@ export default function App() {
   }
 
   const handlePresent = async () => {
+    setMapTextEdit(null)
+    setShapePopoverOpen(false)
     setPresentMode(true)
     const shell = appShellRef.current
     if (!shell?.requestFullscreen) return
@@ -559,6 +608,42 @@ export default function App() {
       },
       next.id,
     )
+  }
+
+  const changeZoom = (change: number) => {
+    setMapZoom((current) => {
+      const level =
+        current === 'fit'
+          ? Math.round(fitZoom / 10) * 10
+          : current
+      return Math.min(200, Math.max(50, level + change))
+    })
+  }
+
+  const handleQuickAdd = (bucket: Bucket) => {
+    const nextClient = appendBlankAccount(activeClient, bucket)
+    const account = nextClient.accounts.at(-1)!
+    const current = snapshotRef.current
+    commitSnapshot(
+      {
+        book: updateClient(current.book, activeClient.id, nextClient),
+        activeClientId: activeClient.id,
+      },
+      null,
+    )
+    setShapePopoverOpen(false)
+    window.requestAnimationFrame(() => {
+      const label = previewPaneRef.current?.querySelector<SVGGraphicsElement>(
+        `[data-account-id="${account.id}"] .map-editable-text`,
+      )
+      if (!label) return
+      const { left, top, width, height } = label.getBoundingClientRect()
+      setMapTextEdit({
+        target: { kind: 'accountLabel', accountId: account.id },
+        rect: { left, top, width, height },
+        rawValue: '',
+      })
+    })
   }
 
   return (
@@ -800,35 +885,110 @@ export default function App() {
           )}
         </aside>
         <section
-          ref={previewPaneRef}
           className="preview-pane"
           aria-label="Money Map preview"
         >
-          <div className="map-page">
-            <MapSvg
-              data={activeClient}
-              highlightId={highlightId}
-              onChange={handleClientChange}
-              onElementClick={handleMapElementClick}
-            />
+          <div ref={previewPaneRef} className="map-scroller">
+            <div
+              className={`map-stage${
+                mapZoom === 'fit' ? '' : ' is-zoomed'
+              }`}
+            >
+              <div
+                ref={mapPageRef}
+                className={`map-page${
+                  mapZoom === 'fit' ? '' : ' is-zoomed'
+                }`}
+                style={
+                  mapZoom === 'fit'
+                    ? undefined
+                    : { width: ARTBOARD.width * (mapZoom / 100) }
+                }
+              >
+                <MapSvg
+                  data={activeClient}
+                  highlightId={presentMode ? undefined : highlightId}
+                  onChange={presentMode ? undefined : handleClientChange}
+                  onElementClick={
+                    presentMode ? undefined : handleMapElementClick
+                  }
+                />
+              </div>
+            </div>
+            {mapTextEdit && !presentMode && (
+              <MapTextEditor
+                containerRef={previewPaneRef}
+                edit={mapTextEdit}
+                key={JSON.stringify(mapTextEdit.target)}
+                onCancel={() => setMapTextEdit(null)}
+                onCommit={(rawValue) => {
+                  handleClientChange(
+                    applyMapTextEdit(
+                      activeClient,
+                      mapTextEdit.target,
+                      rawValue,
+                    ),
+                  )
+                  setMapTextEdit(null)
+                }}
+              />
+            )}
           </div>
-          {mapTextEdit && (
-            <MapTextEditor
-              containerRef={previewPaneRef}
-              edit={mapTextEdit}
-              key={JSON.stringify(mapTextEdit.target)}
-              onCancel={() => setMapTextEdit(null)}
-              onCommit={(rawValue) => {
-                handleClientChange(
-                  applyMapTextEdit(
-                    activeClient,
-                    mapTextEdit.target,
-                    rawValue,
-                  ),
-                )
-                setMapTextEdit(null)
-              }}
-            />
+          {!presentMode && (
+            <div className="map-chrome">
+              <div ref={shapePopoverRef} className="shape-quick-add">
+                <button
+                  aria-expanded={shapePopoverOpen}
+                  type="button"
+                  onClick={() => setShapePopoverOpen((open) => !open)}
+                >
+                  + Shape
+                </button>
+                {shapePopoverOpen && (
+                  <div className="shape-popover" aria-label="Add blank shape">
+                    {ACCOUNT_PRESETS.map((preset) => (
+                      <button
+                        className={`account-preset-button bucket-${preset.bucket}`}
+                        key={preset.bucket}
+                        type="button"
+                        onClick={() => handleQuickAdd(preset.bucket)}
+                      >
+                        <span aria-hidden="true" className="account-swatch" />
+                        {preset.chipLabel}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="zoom-cluster" aria-label="Map zoom">
+                <button
+                  aria-label="Zoom out"
+                  disabled={mapZoom === 50}
+                  type="button"
+                  onClick={() => changeZoom(-10)}
+                >
+                  −
+                </button>
+                <output aria-label="Zoom level">
+                  {mapZoom === 'fit' ? `${fitZoom}%` : `${mapZoom}%`}
+                </output>
+                <button
+                  aria-label="Zoom in"
+                  disabled={mapZoom === 200}
+                  type="button"
+                  onClick={() => changeZoom(10)}
+                >
+                  +
+                </button>
+                <button
+                  aria-pressed={mapZoom === 'fit'}
+                  type="button"
+                  onClick={() => setMapZoom('fit')}
+                >
+                  Fit
+                </button>
+              </div>
+            </div>
           )}
           {presentMode && (
             <div className="present-hint">Esc to exit</div>

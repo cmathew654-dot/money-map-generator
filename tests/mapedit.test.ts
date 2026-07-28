@@ -1,3 +1,5 @@
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { accountDisplayName } from '../src/model/format'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
@@ -5,6 +7,7 @@ import {
   addCustomArrow,
   deleteCustomArrow,
 } from '../src/render/mapInteraction'
+import { MapSvg } from '../src/render/MapSvg'
 import {
   applyMapTextEdit,
   type MapTextEditTarget,
@@ -126,5 +129,51 @@ describe('custom arrow edits', () => {
 
     expect(deleted.customArrows).toEqual([])
     expect(deleteCustomArrow(withArrow, 'missing')).toBe(withArrow)
+  })
+})
+
+describe('noninteractive map rendering', () => {
+  const editorChrome = [
+    'map-arrow-delete',
+    'map-arrow-editor',
+    'map-arrow-handle',
+    'map-connect-handle',
+    'map-resize-handle',
+    'map-rotate-handle',
+    'map-shape-flip',
+  ]
+
+  it('emits zero editor chrome nodes without edit callbacks', () => {
+    const markup = renderToStaticMarkup(
+      createElement(MapSvg, { data: SAMPLE_WHITFIELD }),
+    )
+
+    for (const className of editorChrome) {
+      expect(markup).not.toContain(className)
+    }
+    expect(markup).not.toContain('map-interactive')
+    expect(markup).not.toContain('map-editable-text')
+    expect(markup).not.toContain('data-connect-id')
+  })
+
+  it('keeps editor chrome in the interactive render path', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: [
+        { id: 'test-arrow', sourceId: 'income', targetId: 'need' },
+      ],
+    }
+    const markup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data,
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('map-interactive')
+    for (const className of editorChrome) {
+      expect(markup).toContain(className)
+    }
   })
 })
