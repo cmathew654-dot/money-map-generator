@@ -8,6 +8,7 @@ import type {
   Account,
   AccountShape,
   Bucket,
+  CustomArrow,
   MoneyMapData,
   MoneyMapFile,
 } from './types'
@@ -15,24 +16,29 @@ import {
   ACCOUNT_SHAPES,
   ACCOUNT_TEXT_ROLES,
   accountTextOverrideKey,
+  isMigratedFlowId,
+  migratedFlowId,
   newId,
 } from './types'
 
 export const HISTORY_LIMIT = 50
 export const HISTORY_COALESCE_MS = 800
 
-const BUCKET_DEFAULTS: Record<
-  Bucket,
-  { shape: AccountShape; inWaterfall: boolean }
-> = {
-  shortTerm: { shape: 'drum', inWaterfall: true },
-  afterTax: { shape: 'drum', inWaterfall: true },
-  taxDeferred: { shape: 'drum', inWaterfall: true },
-  taxPreferred: { shape: 'drum', inWaterfall: false },
-  charitable: { shape: 'drum', inWaterfall: false },
-  cash: { shape: 'drum', inWaterfall: false },
-  note: { shape: 'card', inWaterfall: false },
+const BUCKET_DEFAULTS: Record<Bucket, { shape: AccountShape }> = {
+  shortTerm: { shape: 'drum' },
+  afterTax: { shape: 'drum' },
+  taxDeferred: { shape: 'drum' },
+  taxPreferred: { shape: 'drum' },
+  charitable: { shape: 'drum' },
+  cash: { shape: 'drum' },
+  note: { shape: 'card' },
 }
+
+const LEGACY_WATERFALL_ORDER: Bucket[] = [
+  'taxDeferred',
+  'afterTax',
+  'shortTerm',
+]
 
 export function accountDefaultsFor(bucket: Bucket) {
   return { bucket, ...BUCKET_DEFAULTS[bucket] }
@@ -83,6 +89,82 @@ export function blankAccountFor(bucket: Bucket): Account {
     label: '',
     value: null,
     ...accountDefaultsFor(bucket),
+  }
+}
+
+function uniqueMigratedFlowId(
+  sourceId: string,
+  usedIds: Set<string>,
+): string {
+  const base = migratedFlowId(sourceId)
+  let id = base
+  let suffix = 2
+  while (usedIds.has(id)) {
+    id = `${base}:${suffix}`
+    suffix += 1
+  }
+  usedIds.add(id)
+  return id
+}
+
+export function migrateClient(data: MoneyMapData): MoneyMapData {
+  const existingArrows = data.customArrows ?? []
+  const normalizedArrows = existingArrows.map((arrow) =>
+    arrow.style === undefined
+      ? { ...arrow, style: 'solid' as const }
+      : arrow,
+  )
+  const hasLegacyChain = data.accounts.some(
+    (account) => account.inWaterfall === true,
+  )
+
+  if (!hasLegacyChain) {
+    return normalizedArrows.some(
+      (arrow, index) => arrow !== existingArrows[index],
+    )
+      ? { ...data, customArrows: normalizedArrows }
+      : data
+  }
+
+  const chain = LEGACY_WATERFALL_ORDER.flatMap((bucket) =>
+    data.accounts.filter(
+      (account) =>
+        account.bucket === bucket && account.inWaterfall === true,
+    ),
+  )
+  const usedIds = new Set(normalizedArrows.map((arrow) => arrow.id))
+  const migratedArrows: CustomArrow[] = []
+  const layoutOverrides = { ...(data.layoutOverrides ?? {}) }
+
+  for (let index = 0; index < chain.length - 1; index += 1) {
+    const source = chain[index]
+    const target = chain[index + 1]
+    const id = uniqueMigratedFlowId(source.id, usedIds)
+    migratedArrows.push({
+      id,
+      sourceId: source.id,
+      targetId: target.id,
+      style: 'dotted',
+    })
+
+    const legacyKey = `arrow:waterfall:${source.id}`
+    const flowKey = `arrow:custom:${id}`
+    if (layoutOverrides[legacyKey]) {
+      layoutOverrides[flowKey] = layoutOverrides[legacyKey]
+      delete layoutOverrides[legacyKey]
+    }
+  }
+
+  return {
+    ...data,
+    accounts: data.accounts.map((account) => ({
+      ...account,
+      inWaterfall: false,
+    })),
+    customArrows: [...migratedArrows, ...normalizedArrows],
+    ...(Object.keys(layoutOverrides).length > 0
+      ? { layoutOverrides }
+      : { layoutOverrides: undefined }),
   }
 }
 
@@ -213,7 +295,9 @@ function withFreshIds(data: MoneyMapData): MoneyMapData {
   if (copy.customArrows) {
     copy.customArrows = copy.customArrows.map((arrow) => ({
       ...arrow,
-      id: newId('arrow'),
+      id: isMigratedFlowId(arrow.id)
+        ? migratedFlowId(accountIds.get(arrow.sourceId) ?? arrow.sourceId)
+        : newId('arrow'),
       sourceId: accountIds.get(arrow.sourceId) ?? arrow.sourceId,
       targetId: accountIds.get(arrow.targetId) ?? arrow.targetId,
     }))
@@ -447,6 +531,12 @@ function validateClient(value: unknown, index: number): void {
     ) {
       throw new Error(`Client ${index + 1} has an invalid account value tag.`)
     }
+    if (
+      account.inWaterfall !== undefined &&
+      typeof account.inWaterfall !== 'boolean'
+    ) {
+      throw new Error(`Client ${index + 1} has an invalid legacy flow flag.`)
+    }
   }
   if (value.customArrows !== undefined) {
     if (
@@ -456,11 +546,25 @@ function validateClient(value: unknown, index: number): void {
           !isRecord(arrow) ||
           typeof arrow.id !== 'string' ||
           typeof arrow.sourceId !== 'string' ||
-          typeof arrow.targetId !== 'string',
+          typeof arrow.targetId !== 'string' ||
+          (arrow.style !== undefined &&
+            arrow.style !== 'dotted' &&
+            arrow.style !== 'dashed' &&
+            arrow.style !== 'solid') ||
+          (arrow.label !== undefined && typeof arrow.label !== 'string'),
       )
     ) {
       throw new Error(`Client ${index + 1} has invalid custom arrows.`)
     }
+  }
+  if (
+    value.hiddenArrows !== undefined &&
+    (!Array.isArray(value.hiddenArrows) ||
+      value.hiddenArrows.some(
+        (kind) => kind !== 'income' && kind !== 'asNeeded',
+      ))
+  ) {
+    throw new Error(`Client ${index + 1} has invalid hidden arrows.`)
   }
   if (value.notes !== undefined) {
     if (
@@ -516,5 +620,9 @@ export function parseBook(json: string): MoneyMapFile {
     throw new Error('The Money Map book must contain at least one client.')
   }
   value.clients.forEach(validateClient)
-  return value as unknown as MoneyMapFile
+  const book = value as unknown as MoneyMapFile
+  return {
+    ...book,
+    clients: book.clients.map(migrateClient),
+  }
 }

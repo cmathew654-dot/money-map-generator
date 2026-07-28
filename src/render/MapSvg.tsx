@@ -15,6 +15,7 @@ import {
   NOTE_LEADING,
   OVERRIDE_BOUNDS,
   pointOnOutline,
+  visibleGeneratedArrowKinds,
 } from '../layout/layout'
 import type {
   Arrow,
@@ -53,8 +54,10 @@ import {
   accountTextPointerAction,
   clampRectToBounds,
   crossedDragThreshold,
+  cycleCustomArrowStyle,
   deleteCustomArrow,
   deleteMapNote,
+  hideGeneratedArrow,
   moveMapNote,
   snapRotation,
   screenDeltaToArtboard,
@@ -895,22 +898,54 @@ function ArrowPath({
   customMarkerId: string
   markerId: string
 }) {
-  const waterfall = arrow.kind === 'waterfall'
   const asNeeded = arrow.kind === 'asNeeded'
   const custom = arrow.kind === 'custom'
+  const style = custom ? (arrow.style ?? 'solid') : undefined
+  const dotted = style === 'dotted'
+  const dashed = style === 'dashed' || asNeeded
+  const solidFlow = custom && style === 'solid'
   return (
     <path
       data-arrow-kind={arrow.kind}
+      data-arrow-style={style}
       d={arrow.d}
       fill="none"
-      markerEnd={`url(#${custom ? customMarkerId : markerId})`}
-      stroke={custom ? INK : FLOW_GREEN}
-      strokeDasharray={
-        waterfall ? '0.1 9' : asNeeded ? '7 6' : undefined
-      }
-      strokeLinecap={waterfall ? 'round' : 'butt'}
-      strokeWidth={waterfall ? 3.5 : 2}
+      markerEnd={`url(#${solidFlow ? customMarkerId : markerId})`}
+      stroke={solidFlow ? INK : FLOW_GREEN}
+      strokeDasharray={dotted ? '0.1 9' : dashed ? '7 6' : undefined}
+      strokeLinecap={dotted ? 'round' : 'butt'}
+      strokeWidth={dotted ? 3.5 : 2}
     />
+  )
+}
+
+function FlowArrowLabel({
+  arrow,
+  onElementClick,
+}: {
+  arrow: Arrow
+  onElementClick?: (target: MapElementTarget) => void
+}) {
+  if (!arrow.id || !arrow.label || !arrow.labelAt) return null
+  return (
+    <text
+      x={arrow.labelAt.x}
+      y={arrow.labelAt.y + TYPE.arrowLabel / 3}
+      fill={INK}
+      fontFamily={FONT_SANS}
+      fontSize={TYPE.arrowLabel}
+      textAnchor="middle"
+      {...editableTextProps(
+        { kind: 'flowLabel', arrowId: arrow.id },
+        onElementClick,
+        (event) => event.stopPropagation(),
+      )}
+      className={`map-flow-label${
+        onElementClick ? ' map-editable-text' : ''
+      }`}
+    >
+      {arrow.label}
+    </text>
   )
 }
 
@@ -920,6 +955,8 @@ function ArrowEditor({
   markerId,
   onBeginDrag,
   onDelete,
+  onElementClick,
+  onStyleCycle,
 }: {
   arrow: Arrow
   customMarkerId: string
@@ -929,6 +966,8 @@ function ArrowEditor({
     outline?: OutlineElement,
   ) => (event: PointerEvent<SVGElement>) => void
   onDelete?: () => void
+  onElementClick?: (target: MapElementTarget) => void
+  onStyleCycle?: () => void
 }) {
   const midpoint = {
     x:
@@ -960,6 +999,7 @@ function ArrowEditor({
         fill="none"
         onPointerDown={onBeginDrag('arrowBow')}
       />
+      <FlowArrowLabel arrow={arrow} onElementClick={onElementClick} />
       {[
         ['arrowStart', arrow.start],
         ['arrowBow', midpoint],
@@ -977,7 +1017,7 @@ function ArrowEditor({
       ))}
       {onDelete && (
         <g
-          aria-label="Delete custom arrow"
+          aria-label={`Delete ${arrow.kind === 'custom' ? 'flow' : arrow.kind} arrow`}
           className="map-arrow-delete"
           role="button"
           tabIndex={0}
@@ -999,6 +1039,51 @@ function ArrowEditor({
             ×
           </text>
         </g>
+      )}
+      {onStyleCycle && (
+        <g
+          aria-label={`Change flow style from ${arrow.style ?? 'solid'}`}
+          className="map-arrow-style"
+          role="button"
+          tabIndex={0}
+          transform={`translate(${midpoint.x - 23} ${midpoint.y - 21})`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onStyleCycle()
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return
+            event.preventDefault()
+            event.stopPropagation()
+            onStyleCycle()
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <rect x={-11} y={-8} width={22} height={16} rx={8} />
+          <text dy={4} textAnchor="middle">
+            {arrow.style === 'dotted'
+              ? '···'
+              : arrow.style === 'dashed'
+                ? '– –'
+                : '—'}
+          </text>
+        </g>
+      )}
+      {arrow.kind === 'custom' && !arrow.label && arrow.id && (
+        <text
+          x={midpoint.x}
+          y={midpoint.y + 29}
+          aria-label="Add flow label"
+          textAnchor="middle"
+          {...editableTextProps(
+            { kind: 'flowLabel', arrowId: arrow.id },
+            onElementClick,
+            (event) => event.stopPropagation(),
+          )}
+          className="map-arrow-label-add map-editable-text"
+        >
+          aa
+        </text>
       )}
     </g>
   )
@@ -1159,11 +1244,10 @@ function Footnotes({
 
 const LEGEND_Y = 966
 const LEGEND_ITEMS: {
-  kind: Arrow['kind']
+  kind: 'income' | 'asNeeded'
   label: string
   width: number
 }[] = [
-  { kind: 'waterfall', label: 'Refills', width: 84 },
   { kind: 'income', label: 'Income', width: 83 },
   { kind: 'asNeeded', label: 'Draw as needed', width: 124 },
 ]
@@ -1175,7 +1259,9 @@ function FlowLegend({
   arrows: Arrow[]
   markerId: string
 }) {
-  const present = new Set(arrows.map((arrow) => arrow.kind))
+  const visible = visibleGeneratedArrowKinds(arrows)
+  if (visible.length === 0) return null
+  const present = new Set(visible)
   let x = 48
 
   return (
@@ -1184,7 +1270,6 @@ function FlowLegend({
         (item) => {
           const itemX = x
           x += item.width
-          const waterfall = item.kind === 'waterfall'
           const asNeeded = item.kind === 'asNeeded'
           return (
             <g key={item.kind} data-legend-kind={item.kind}>
@@ -1196,10 +1281,10 @@ function FlowLegend({
                 markerEnd={`url(#${markerId})`}
                 stroke={FLOW_GREEN}
                 strokeDasharray={
-                  waterfall ? '0.1 9' : asNeeded ? '7 6' : undefined
+                  asNeeded ? '7 6' : undefined
                 }
-                strokeLinecap={waterfall ? 'round' : 'butt'}
-                strokeWidth={waterfall ? 3.5 : 2}
+                strokeLinecap="butt"
+                strokeWidth={2}
               />
               <text
                 x={itemX + 32}
@@ -1908,19 +1993,19 @@ export function MapSvg({
         {layout.arrows.map((arrow, index) => {
           if (!onChange) {
             return (
-              <ArrowPath
-                key={`${arrow.kind}-${index}`}
-                arrow={arrow}
-                customMarkerId={customMarkerId}
-                markerId={markerId}
-              />
+              <g key={`${arrow.kind}-${arrow.id ?? index}`}>
+                <ArrowPath
+                  arrow={arrow}
+                  customMarkerId={customMarkerId}
+                  markerId={markerId}
+                />
+                <FlowArrowLabel arrow={arrow} />
+              </g>
             )
           }
           const key =
-            arrow.kind === 'waterfall'
-              ? `arrow:waterfall:${arrow.sourceId}`
-              : arrow.kind === 'custom'
-                ? `arrow:custom:${arrow.id}`
+            arrow.kind === 'custom'
+              ? `arrow:custom:${arrow.id}`
               : `arrow:${arrow.kind}`
           const source =
             arrow.kind === 'custom'
@@ -1946,6 +2031,7 @@ export function MapSvg({
               arrow={arrow}
               customMarkerId={customMarkerId}
               markerId={markerId}
+              onElementClick={onElementClick}
               onBeginDrag={(mode) =>
                 beginDrag(
                   key,
@@ -1958,6 +2044,19 @@ export function MapSvg({
               onDelete={
                 arrow.kind === 'custom' && arrow.id
                   ? () => onChange(deleteCustomArrow(data, arrow.id!))
+                  : arrow.kind === 'income' || arrow.kind === 'asNeeded'
+                    ? () =>
+                        onChange(
+                          hideGeneratedArrow(
+                            data,
+                            arrow.kind as 'income' | 'asNeeded',
+                          ),
+                        )
+                    : undefined
+              }
+              onStyleCycle={
+                arrow.kind === 'custom' && arrow.id
+                  ? () => onChange(cycleCustomArrowStyle(data, arrow.id!))
                   : undefined
               }
             />

@@ -6,6 +6,7 @@ import type {
   AccountTextRole,
   Bucket,
   CustomArrow,
+  GeneratedArrowKind,
   LayoutOverride,
   MapNote,
   MoneyMapData,
@@ -14,6 +15,7 @@ import type {
 import {
   accountShape,
   accountTextOverrideKey,
+  isMigratedFlowId,
   MAX_ACCOUNT_TEXT_FONT_SIZE,
   MIN_ACCOUNT_TEXT_FONT_SIZE,
 } from '../model/types'
@@ -85,7 +87,7 @@ export interface AccountTextLayout {
 }
 
 export interface Arrow {
-  kind: 'waterfall' | 'income' | 'asNeeded' | 'custom'
+  kind: 'income' | 'asNeeded' | 'custom'
   id?: string
   d: string
   start: { x: number; y: number }
@@ -99,6 +101,8 @@ export interface Arrow {
   labelAt?: { x: number; y: number }
   sourceId?: string
   targetId?: string
+  style?: CustomArrow['style']
+  label?: string
 }
 
 export interface MapLayout {
@@ -134,7 +138,7 @@ export const CAP_CONTENT_GAP = 21
 export const SHAPE_TEXT_PADDING = 20
 export const NOTE_WIDTH = 240
 export const NOTE_LEADING = 21
-const WATERFALL_MIN_Y = 128
+const MIGRATED_FLOW_MIN_Y = 128
 const AS_NEEDED_LABEL_WIDTH = 260
 const AS_NEEDED_LABEL_HEIGHT = 34
 const AS_NEEDED_LABEL_CLEARANCE = 10
@@ -159,8 +163,6 @@ const COLUMNS: Column[] = [
     buckets: ['taxDeferred', 'taxPreferred', 'charitable'],
   },
 ]
-
-const WATERFALL_ORDER: Bucket[] = ['taxDeferred', 'afterTax', 'shortTerm']
 
 const ROLE_GAP = 6
 const SUB_ACCOUNT_GAP = 8
@@ -971,6 +973,7 @@ function routedArrow({
   preferredStartT,
   preferredEndT,
   preferAbove = false,
+  minimumY = MASTHEAD_RULE_Y,
   sourceId,
   targetId,
 }: {
@@ -982,6 +985,7 @@ function routedArrow({
   preferredStartT?: number
   preferredEndT?: number
   preferAbove?: boolean
+  minimumY?: number
   sourceId?: string
   targetId?: string
 }): Arrow {
@@ -1048,7 +1052,7 @@ function routedArrow({
       candidateControl,
       end,
       obstacles,
-      kind === 'waterfall' ? WATERFALL_MIN_Y : MASTHEAD_RULE_Y,
+      minimumY,
     )
     if (
       penalty < bestPenalty ||
@@ -1083,40 +1087,6 @@ function routedArrow({
   }
 }
 
-function waterfallArrows(
-  accounts: PlacedAccount[],
-  overrides?: Record<string, LayoutOverride>,
-  preserveGeneratedCaps = true,
-): Arrow[] {
-  const chain = WATERFALL_ORDER.flatMap((bucket) =>
-    accounts
-      .filter(
-        (placed) =>
-          placed.account.bucket === bucket && placed.account.inWaterfall,
-      )
-      .sort((a, b) => a.y - b.y),
-  )
-
-  return chain.slice(0, -1).map((source, index) => {
-    const target = chain[index + 1]
-    const capT = preserveGeneratedCaps ? topCapT() : undefined
-    return routedArrow({
-      kind: 'waterfall',
-      source,
-      target,
-      obstacles: accounts.filter(
-        (placed) => placed !== source && placed !== target,
-      ),
-      override: overrides?.[`arrow:waterfall:${source.account.id}`],
-      preferredStartT: isDrum(source) ? capT : undefined,
-      preferredEndT: isDrum(target) ? capT : undefined,
-      preferAbove: preserveGeneratedCaps,
-      sourceId: source.account.id,
-      targetId: target.account.id,
-    })
-  })
-}
-
 function incomeArrow(
   income: Placed,
   need: Placed,
@@ -1147,29 +1117,69 @@ function customArrowLayouts(
     ),
   ])
   const obstacles = [income, need, ...accounts]
+  const migratedAccountIds = new Set(
+    (customArrows ?? []).flatMap((record) =>
+      isMigratedFlowId(record.id)
+        ? [record.sourceId, record.targetId]
+        : [],
+    ),
+  )
+  const preserveMigratedCaps = [...migratedAccountIds].every((id) => {
+    const override = overrides?.[id]
+    return (
+      override?.dx === undefined &&
+      override?.dy === undefined &&
+      override?.w === undefined &&
+      override?.h === undefined &&
+      override?.rot === undefined
+    )
+  })
 
   return (customArrows ?? []).flatMap((record) => {
     const source = elements.get(record.sourceId)
     const target = elements.get(record.targetId)
     if (!source || !target) return []
 
+    const migrated = isMigratedFlowId(record.id)
+    const capT = migrated && preserveMigratedCaps ? topCapT() : undefined
+    const arrow = routedArrow({
+      kind: 'custom',
+      source,
+      target,
+      obstacles: obstacles.filter(
+        (element) => element !== source && element !== target,
+      ),
+      override: overrides?.[`arrow:custom:${record.id}`],
+      preferredStartT: isDrum(source) ? capT : undefined,
+      preferredEndT: isDrum(target) ? capT : undefined,
+      preferAbove: migrated && preserveMigratedCaps,
+      minimumY: migrated
+        ? MIGRATED_FLOW_MIN_Y
+        : MASTHEAD_RULE_Y,
+      sourceId: record.sourceId,
+      targetId: record.targetId,
+    })
     return [
       {
-        ...routedArrow({
-          kind: 'custom',
-          source,
-          target,
-          obstacles: obstacles.filter(
-            (element) => element !== source && element !== target,
-          ),
-          override: overrides?.[`arrow:custom:${record.id}`],
-          sourceId: record.sourceId,
-          targetId: record.targetId,
-        }),
+        ...arrow,
         id: record.id,
+        style: record.style ?? 'solid',
+        label: record.label,
+        labelAt: record.label
+          ? pointOnQuadratic(arrow.start, arrow.control, arrow.end, 0.5)
+          : undefined,
       },
     ]
   })
+}
+
+export function visibleGeneratedArrowKinds(
+  arrows: Arrow[],
+): GeneratedArrowKind[] {
+  const present = new Set(arrows.map((arrow) => arrow.kind))
+  return (['income', 'asNeeded'] as const).filter((kind) =>
+    present.has(kind),
+  )
 }
 
 function boxesIntersect(
@@ -1308,11 +1318,18 @@ function boundsForPoints(
 function arrowBounds(arrow: Arrow): Placed[] {
   const bounds = [boundsForPoints(pathCoordinates(arrow.d))]
   if (arrow.labelAt) {
+    const isFlowLabel = arrow.kind === 'custom' && arrow.label
+    const width = isFlowLabel
+      ? textWidth(arrow.label!, TYPE.arrowLabel) + 12
+      : AS_NEEDED_CHIP_WIDTH
+    const height = isFlowLabel
+      ? TYPE.arrowLabel + 8
+      : AS_NEEDED_CHIP_HEIGHT
     bounds.push({
-      x: arrow.labelAt.x - AS_NEEDED_CHIP_WIDTH / 2,
-      y: arrow.labelAt.y - AS_NEEDED_CHIP_HEIGHT / 2,
-      w: AS_NEEDED_CHIP_WIDTH,
-      h: AS_NEEDED_CHIP_HEIGHT,
+      x: arrow.labelAt.x - width / 2,
+      y: arrow.labelAt.y - height / 2,
+      w: width,
+      h: height,
     })
   }
   return bounds
@@ -1677,36 +1694,22 @@ function arrowsForFinalGeometry(
   customArrows: CustomArrow[] | undefined,
   overrides: Record<string, LayoutOverride> | undefined,
   chipOverride: LayoutOverride | undefined,
+  hiddenArrows: GeneratedArrowKind[] | undefined,
 ): Arrow[] {
-  const preserveGeneratedCaps = accounts
-    .filter((placed) => placed.account.inWaterfall)
-    .every((placed) => {
-      const override = overrides?.[placed.account.id]
-      return (
-        override?.dx === undefined &&
-        override?.dy === undefined &&
-        override?.w === undefined &&
-        override?.h === undefined &&
-        override?.rot === undefined
-      )
-    })
-  const arrows = [
-    ...waterfallArrows(
-      accounts,
-      overrides,
-      preserveGeneratedCaps,
-    ),
-    incomeArrow(
+  const hidden = new Set(hiddenArrows)
+  const arrows: Arrow[] = []
+  if (!hidden.has('income')) {
+    arrows.push(incomeArrow(
       income,
       need,
       accounts,
       overrides?.['arrow:income'],
-    ),
-  ]
+    ))
+  }
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
   )
-  if (shortTerm) {
+  if (shortTerm && !hidden.has('asNeeded')) {
     arrows.push(
       applyAsNeededChipOverride(
         asNeededArrow(
@@ -1743,14 +1746,15 @@ function baseLayout(data: MoneyMapData): MapLayout {
     h: 170,
   }
   const accounts = COLUMNS.flatMap((column) => placeColumn(data, column))
-  const arrows = [
-    ...waterfallArrows(accounts),
-    incomeArrow(income, need, accounts),
-  ]
+  const hidden = new Set(data.hiddenArrows)
+  const arrows: Arrow[] = []
+  if (!hidden.has('income')) {
+    arrows.push(incomeArrow(income, need, accounts))
+  }
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
   )
-  if (shortTerm) {
+  if (shortTerm && !hidden.has('asNeeded')) {
     arrows.push(
       asNeededArrow(shortTerm, need, [income, need, ...accounts]),
     )
@@ -1810,6 +1814,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     data.customArrows,
     data.layoutOverrides,
     data.layoutOverrides?.asNeededChip,
+    data.hiddenArrows,
   )
   const finalBounds = contentBounds({
     income,

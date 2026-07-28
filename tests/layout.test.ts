@@ -6,6 +6,7 @@ import {
   MIN_ACCOUNT_WIDTH,
   pointOnOutline,
   rotatePoint,
+  visibleGeneratedArrowKinds,
   type PlacedAccount,
 } from '../src/layout/layout'
 import { fitLines, textWidth } from '../src/layout/textfit'
@@ -19,7 +20,7 @@ import {
 } from '../src/model/samples'
 import type { Account, MoneyMapData } from '../src/model/types'
 import type { AccountShape } from '../src/model/types'
-import { accountShape } from '../src/model/types'
+import { accountShape, isMigratedFlowId } from '../src/model/types'
 import { TYPE } from '../src/render/tokens'
 
 function expectInsideArtboard(data: MoneyMapData) {
@@ -446,21 +447,21 @@ describe('layoutMap', () => {
     expectColumnGaps(layoutMap(data).accounts)
   })
 
-  it('connects the waterfall from tax-deferred to after-tax to short-term', () => {
+  it('connects migrated flows from tax-deferred to after-tax to short-term', () => {
     const layout = layoutMap(SAMPLE_WHITFIELD)
-    const waterfall = layout.arrows.filter(
-      (arrow) => arrow.kind === 'waterfall',
+    const flows = layout.arrows.filter(
+      (arrow) => arrow.id && isMigratedFlowId(arrow.id),
     )
     const byId = new Map(
       layout.accounts.map((placed) => [placed.account.id, placed]),
     )
     const chainIds = [
-      waterfall[0].sourceId,
-      ...waterfall.map((arrow) => arrow.targetId),
+      flows[0].sourceId,
+      ...flows.map((arrow) => arrow.targetId),
     ]
     const chain = chainIds.map((id) => byId.get(id ?? '')!)
 
-    expect(waterfall).toHaveLength(2)
+    expect(flows).toHaveLength(2)
     expect(chain.map((placed) => placed.account.bucket)).toEqual([
       'taxDeferred',
       'afterTax',
@@ -634,16 +635,18 @@ describe('layoutMap', () => {
     },
   )
 
-  it('keeps generated Whitfield waterfalls cap-to-cap with an apex above both caps', () => {
+  it('keeps migrated dotted flows cap-to-cap with an apex above both caps', () => {
     const layout = layoutMap(SAMPLE_WHITFIELD)
     const byId = new Map(
       layout.accounts.map((placed) => [placed.account.id, placed]),
     )
-    const waterfall = layout.arrows.filter(
-      (arrow) => arrow.kind === 'waterfall',
+    const migrated = layout.arrows.filter(
+      (arrow) => arrow.id && isMigratedFlowId(arrow.id),
     )
 
-    for (const arrow of waterfall) {
+    for (const arrow of migrated) {
+      expect(arrow.kind).toBe('custom')
+      expect(arrow.style).toBe('dotted')
       const source = byId.get(arrow.sourceId ?? '')!
       const target = byId.get(arrow.targetId ?? '')!
       const midpoint = pointOnQuadratic(
@@ -664,20 +667,20 @@ describe('layoutMap', () => {
     }
   })
 
-  it('caps every sample waterfall arc near its connected drum tops', () => {
-    let waterfallCount = 0
+  it('caps every sample migrated flow near its connected drum tops', () => {
+    let migratedCount = 0
 
     for (const client of newBook().clients) {
       const layout = layoutMap(client)
       const byId = new Map(
         layout.accounts.map((placed) => [placed.account.id, placed]),
       )
-      const waterfall = layout.arrows.filter(
-        (arrow) => arrow.kind === 'waterfall',
+      const migrated = layout.arrows.filter(
+        (arrow) => arrow.id && isMigratedFlowId(arrow.id),
       )
-      waterfallCount += waterfall.length
+      migratedCount += migrated.length
 
-      for (const arrow of waterfall) {
+      for (const arrow of migrated) {
         expect(arrow.d).not.toContain('NaN')
         const coordinates = pathNumbers(arrow.d)
         expect(coordinates.length).toBeGreaterThan(0)
@@ -697,7 +700,7 @@ describe('layoutMap', () => {
       }
     }
 
-    expect(waterfallCount).toBeGreaterThan(0)
+    expect(migratedCount).toBeGreaterThan(0)
   })
 
   it('keeps the content-light cash drum compact', () => {
@@ -878,8 +881,8 @@ describe('layoutMap', () => {
     const base = layoutMap(data)
     const layoutOverrides = Object.fromEntries(
       base.arrows.map((arrow) => [
-        arrow.kind === 'waterfall'
-          ? `arrow:waterfall:${arrow.sourceId}`
+        arrow.kind === 'custom'
+          ? `arrow:custom:${arrow.id}`
           : `arrow:${arrow.kind}`,
         {
           bow: arrow.bow * 0.9,
@@ -933,7 +936,7 @@ describe('layoutMap', () => {
     const sourceId = data.accounts[0].id
     const targetId = data.accounts.at(-1)!.id
     data.customArrows = [
-      { id: 'custom-clear', sourceId, targetId },
+      { id: 'custom-clear', sourceId, targetId, style: 'solid' },
     ]
     data.layoutOverrides = {
       [targetId]: { rot: 30 },
@@ -986,7 +989,12 @@ describe('layoutMap', () => {
     const sourceId = data.accounts[0].id
     const targetId = data.accounts[1].id
     data.customArrows = [
-      { id: 'custom-overridden', sourceId, targetId },
+      {
+        id: 'custom-overridden',
+        sourceId,
+        targetId,
+        style: 'dashed',
+      },
     ]
     data.layoutOverrides = {
       'arrow:custom:custom-overridden': {
@@ -1013,16 +1021,22 @@ describe('layoutMap', () => {
   })
 
   it('drops dangling custom arrows and preserves generated legend inputs', () => {
-    const baselineKinds = layoutMap(SAMPLE_WHITFIELD).arrows.map(
-      (arrow) => arrow.kind,
-    )
+    const baselineKinds = layoutMap(SAMPLE_WHITFIELD).arrows
+      .filter((arrow) => arrow.kind !== 'custom')
+      .map((arrow) => arrow.kind)
     const data = structuredClone(SAMPLE_WHITFIELD)
     data.customArrows = [
-      { id: 'dangling', sourceId: 'missing', targetId: 'need' },
+      {
+        id: 'dangling',
+        sourceId: 'missing',
+        targetId: 'need',
+        style: 'dotted',
+      },
       {
         id: 'valid',
         sourceId: 'income',
         targetId: data.accounts[0].id,
+        style: 'solid',
       },
     ]
 
@@ -1043,15 +1057,51 @@ describe('layoutMap', () => {
     const layout = layoutMap(blankClient())
 
     expect(layout.accounts).toEqual([])
-    expect(
-      layout.arrows.filter((arrow) => arrow.kind === 'waterfall'),
-    ).toEqual([])
+    expect(layout.arrows.filter((arrow) => arrow.kind === 'custom')).toEqual(
+      [],
+    )
     expect(
       layout.arrows.filter((arrow) => arrow.kind === 'asNeeded'),
     ).toEqual([])
     expect(
       layout.arrows.filter((arrow) => arrow.kind === 'income'),
     ).toHaveLength(1)
+  })
+
+  it('does not generate flow arrows from legacy flags without migration', () => {
+    const data = structuredClone(SAMPLE_WHITFIELD)
+    data.customArrows = []
+    data.accounts.forEach((account) => {
+      account.inWaterfall = true
+    })
+
+    const layout = layoutMap(data)
+
+    expect(layout.arrows.filter((arrow) => arrow.kind === 'custom')).toEqual(
+      [],
+    )
+  })
+
+  it('omits hidden generated arrows and exposes truthful legend inputs', () => {
+    const incomeHidden = layoutMap({
+      ...SAMPLE_WHITFIELD,
+      hiddenArrows: ['income'],
+    })
+    const allHidden = layoutMap({
+      ...SAMPLE_WHITFIELD,
+      hiddenArrows: ['income', 'asNeeded'],
+    })
+
+    expect(
+      incomeHidden.arrows.some((arrow) => arrow.kind === 'income'),
+    ).toBe(false)
+    expect(visibleGeneratedArrowKinds(incomeHidden.arrows)).toEqual([
+      'asNeeded',
+    ])
+    expect(
+      allHidden.arrows.some((arrow) => arrow.kind === 'asNeeded'),
+    ).toBe(false)
+    expect(visibleGeneratedArrowKinds(allHidden.arrows)).toEqual([])
   })
 
   it.each([

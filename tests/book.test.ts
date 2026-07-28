@@ -8,6 +8,7 @@ import {
   clearedClient,
   deleteClient,
   duplicateClient,
+  migrateClient,
   newBook,
   parseBook,
   resetArrangement,
@@ -93,11 +94,13 @@ describe('book operations', () => {
         id: 'custom-one',
         sourceId: source.accounts[0].id,
         targetId: source.accounts[1].id,
+        style: 'dotted',
       },
       {
         id: 'custom-two',
         sourceId: 'income',
         targetId: source.accounts[0].id,
+        style: 'solid',
       },
     ]
     const result = duplicateClient(original, source.id)
@@ -105,7 +108,7 @@ describe('book operations', () => {
 
     expect(copy.customArrows).toHaveLength(2)
     expect(copy.customArrows?.map((arrow) => arrow.id)).not.toEqual(
-      source.customArrows.map((arrow) => arrow.id),
+      source.customArrows!.map((arrow) => arrow.id),
     )
     expect(copy.customArrows?.[0]).toMatchObject({
       sourceId: copy.accounts[0].id,
@@ -317,9 +320,97 @@ describe('parseBook', () => {
         id: 'custom-one',
         sourceId: 'income',
         targetId: legacy.clients[0].accounts[0].id,
+        style: 'dashed',
       },
     ]
     expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
+  })
+
+  it('normalizes legacy style-absent arrows to their shipped solid look', () => {
+    const legacy = newBook()
+    legacy.clients[0].customArrows = [
+      {
+        id: 'legacy-solid',
+        sourceId: 'income',
+        targetId: 'need',
+      } as never,
+    ]
+
+    const parsed = parseBook(JSON.stringify(legacy))
+
+    expect(parsed.clients[0].customArrows?.[0].style).toBe('solid')
+  })
+
+  it('validates hidden generated arrows', () => {
+    const book = newBook()
+    book.clients[0].hiddenArrows = ['income', 'asNeeded']
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+
+    const invalid = newBook() as unknown as {
+      clients: { hiddenArrows?: unknown }[]
+    }
+    invalid.clients[0].hiddenArrows = ['waterfall']
+    expect(() => parseBook(JSON.stringify(invalid))).toThrow(
+      'Client 1 has invalid hidden arrows.',
+    )
+  })
+
+  it('migrates a legacy three-account chain once and transfers overrides', () => {
+    const legacy = {
+      ...blankClient(),
+      accounts: [
+        {
+          id: 'short',
+          bucket: 'shortTerm' as const,
+          label: 'Short',
+          value: 100,
+          inWaterfall: true,
+        },
+        {
+          id: 'ira',
+          bucket: 'taxDeferred' as const,
+          label: 'IRA',
+          value: 300,
+          inWaterfall: true,
+        },
+        {
+          id: 'trust',
+          bucket: 'afterTax' as const,
+          label: 'Trust',
+          value: 200,
+          inWaterfall: true,
+        },
+      ],
+      layoutOverrides: {
+        'arrow:waterfall:ira': { bow: 44, startT: 0.2 },
+      },
+    }
+
+    const once = migrateClient(legacy)
+    const twice = migrateClient(once)
+
+    expect(twice).toEqual(once)
+    expect(once.accounts.every((account) => !account.inWaterfall)).toBe(true)
+    expect(once.customArrows).toEqual([
+      {
+        id: 'migrated-flow:ira',
+        sourceId: 'ira',
+        targetId: 'trust',
+        style: 'dotted',
+      },
+      {
+        id: 'migrated-flow:trust',
+        sourceId: 'trust',
+        targetId: 'short',
+        style: 'dotted',
+      },
+    ])
+    expect(once.layoutOverrides).not.toHaveProperty(
+      'arrow:waterfall:ira',
+    )
+    expect(
+      once.layoutOverrides?.['arrow:custom:migrated-flow:ira'],
+    ).toEqual({ bow: 44, startT: 0.2 })
   })
 
   it('accepts absent or well-formed notes and value tags', () => {
@@ -480,22 +571,22 @@ describe('account shapes', () => {
 
 describe('account bucket defaults', () => {
   it.each([
-    ['shortTerm', 'drum', true],
-    ['afterTax', 'drum', true],
-    ['taxDeferred', 'drum', true],
-    ['taxPreferred', 'drum', false],
-    ['charitable', 'drum', false],
-    ['cash', 'drum', false],
-    ['note', 'card', false],
-  ] satisfies [Bucket, string, boolean][])(
+    ['shortTerm', 'drum'],
+    ['afterTax', 'drum'],
+    ['taxDeferred', 'drum'],
+    ['taxPreferred', 'drum'],
+    ['charitable', 'drum'],
+    ['cash', 'drum'],
+    ['note', 'card'],
+  ] satisfies [Bucket, string][])(
     'shares the %s defaults with the form preset',
-    (bucket, shape, inWaterfall) => {
+    (bucket, shape) => {
       const defaults = accountDefaultsFor(bucket)
       const preset = ACCOUNT_PRESETS.find(
         (item) => item.bucket === bucket,
       )
 
-      expect(defaults).toEqual({ bucket, shape, inWaterfall })
+      expect(defaults).toEqual({ bucket, shape })
       expect(preset).toMatchObject(defaults)
     },
   )
@@ -510,7 +601,6 @@ describe('account bucket defaults', () => {
       shape: 'drum',
       label: '',
       value: null,
-      inWaterfall: false,
     })
     expect(second.id).not.toBe(first.id)
     expect(first).not.toHaveProperty('caption')
@@ -533,7 +623,6 @@ describe('account bucket defaults', () => {
       shape: 'card',
       label: '',
       value: null,
-      inWaterfall: false,
     })
     expect(original.accounts).toBe(existingAccounts)
   })

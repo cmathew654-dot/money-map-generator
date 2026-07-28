@@ -16,6 +16,7 @@ export type MapTextEditTarget =
   | { kind: 'incomeAmount'; incomeIndex: number }
   | { kind: 'monthlyNeed' }
   | { kind: 'asNeededAmount' }
+  | { kind: 'flowLabel'; arrowId: string }
   | { kind: 'noteText'; noteId: string; x?: number; y?: number }
 
 export interface MapTextEditRect {
@@ -95,6 +96,11 @@ export function mapTextEditRawValue(
       return String(data.monthlyNeed ?? '')
     case 'asNeededAmount':
       return String(data.asNeededAmount ?? '')
+    case 'flowLabel':
+      return (
+        data.customArrows?.find((arrow) => arrow.id === target.arrowId)
+          ?.label ?? ''
+      )
     case 'noteText':
       return data.notes?.find((note) => note.id === target.noteId)?.text ?? ''
   }
@@ -139,6 +145,25 @@ export function applyMapTextEdit(
       ),
     }
   }
+  if (target.kind === 'flowLabel') {
+    const exists = data.customArrows?.some(
+      (arrow) => arrow.id === target.arrowId,
+    )
+    if (!exists) return data
+    const label = rawValue.trim()
+    return {
+      ...data,
+      customArrows: data.customArrows?.map((arrow) =>
+        arrow.id === target.arrowId
+          ? {
+              ...arrow,
+              ...(label ? { label } : {}),
+              ...(!label && arrow.label ? { label: undefined } : {}),
+            }
+          : arrow,
+      ),
+    }
+  }
 
   const value = parseMoneyInput(rawValue)
   switch (target.kind) {
@@ -169,6 +194,7 @@ function editorLabel(target: MapTextEditTarget): string {
   if (target.kind === 'incomeAmount') return 'Edit income source amount'
   if (target.kind === 'monthlyNeed') return 'Edit monthly income need'
   if (target.kind === 'asNeededAmount') return 'Edit as-needed draw amount'
+  if (target.kind === 'flowLabel') return 'Edit flow label'
   if (target.kind === 'noteText') return 'Edit map note'
   return 'Edit account value'
 }
@@ -216,7 +242,11 @@ export function MapTextEditor({
   return (
     <div
       className={`map-text-editor${
-        edit.target.kind === 'noteText' ? ' is-note' : ''
+        edit.target.kind === 'noteText'
+          ? ' is-note'
+          : edit.target.kind === 'flowLabel'
+            ? ' is-flow'
+            : ''
       }`}
       style={style}
     >
@@ -227,6 +257,7 @@ export function MapTextEditor({
         inputMode={
           edit.target.kind === 'accountLabel' ||
           edit.target.kind === 'accountCaption' ||
+          edit.target.kind === 'flowLabel' ||
           edit.target.kind === 'noteText'
             ? 'text'
             : 'decimal'

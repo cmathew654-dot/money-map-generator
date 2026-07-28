@@ -7,8 +7,11 @@ import {
   addCustomArrow,
   accountTextPointerAction,
   addMapNote,
+  cycleCustomArrowStyle,
   deleteCustomArrow,
   deleteMapNote,
+  hideGeneratedArrow,
+  restoreGeneratedArrows,
 } from '../src/render/mapInteraction'
 import { MapSvg } from '../src/render/MapSvg'
 import {
@@ -107,50 +110,71 @@ describe('applyMapTextEdit', () => {
 
     expect(cancelled).toBe(SAMPLE_WHITFIELD)
   })
+
+  it('commits a trimmed flow label and clears it with blank text', () => {
+    const arrowId = SAMPLE_WHITFIELD.customArrows![0].id
+    const labeled = applyMapTextEdit(
+      SAMPLE_WHITFIELD,
+      { kind: 'flowLabel', arrowId },
+      '  $2,000/mo — funds 529  ',
+    )
+    const cleared = applyMapTextEdit(
+      labeled,
+      { kind: 'flowLabel', arrowId },
+      '   ',
+    )
+
+    expect(labeled.customArrows?.[0].label).toBe(
+      '$2,000/mo — funds 529',
+    )
+    expect(cleared.customArrows?.[0].label).toBeUndefined()
+  })
 })
 
 describe('custom arrow edits', () => {
   it('rejects self, unknown, and duplicate connections without changes', () => {
+    const base = { ...SAMPLE_WHITFIELD, customArrows: [] }
     const first = SAMPLE_WHITFIELD.accounts[0].id
     const second = SAMPLE_WHITFIELD.accounts[1].id
     const withArrow = {
-      ...SAMPLE_WHITFIELD,
+      ...base,
       customArrows: [
-        { id: 'existing', sourceId: first, targetId: second },
+        {
+          id: 'existing',
+          sourceId: first,
+          targetId: second,
+          style: 'solid' as const,
+        },
       ],
     }
 
-    expect(addCustomArrow(SAMPLE_WHITFIELD, first, first)).toBe(
-      SAMPLE_WHITFIELD,
-    )
-    expect(addCustomArrow(SAMPLE_WHITFIELD, 'missing', first)).toBe(
-      SAMPLE_WHITFIELD,
-    )
-    expect(addCustomArrow(SAMPLE_WHITFIELD, first, 'missing')).toBe(
-      SAMPLE_WHITFIELD,
-    )
+    expect(addCustomArrow(base, first, first)).toBe(base)
+    expect(addCustomArrow(base, 'missing', first)).toBe(base)
+    expect(addCustomArrow(base, first, 'missing')).toBe(base)
     expect(addCustomArrow(withArrow, first, second)).toBe(withArrow)
   })
 
   it('appends a fresh custom arrow and allows reverse direction', () => {
+    const base = { ...SAMPLE_WHITFIELD, customArrows: [] }
     const first = SAMPLE_WHITFIELD.accounts[0].id
     const second = SAMPLE_WHITFIELD.accounts[1].id
-    const forward = addCustomArrow(SAMPLE_WHITFIELD, first, second)
+    const forward = addCustomArrow(base, first, second)
     const reverse = addCustomArrow(forward, second, first)
 
-    expect(forward).not.toBe(SAMPLE_WHITFIELD)
+    expect(forward).not.toBe(base)
     expect(forward.customArrows).toHaveLength(1)
     expect(forward.customArrows?.[0]).toMatchObject({
       sourceId: first,
       targetId: second,
     })
     expect(forward.customArrows?.[0].id).toMatch(/^arrow-/)
+    expect(forward.customArrows?.[0].style).toBe('dotted')
     expect(reverse.customArrows).toHaveLength(2)
   })
 
   it('deletes by id and leaves unknown deletes untouched', () => {
     const withArrow = addCustomArrow(
-      SAMPLE_WHITFIELD,
+      { ...SAMPLE_WHITFIELD, customArrows: [] },
       'income',
       'need',
     )
@@ -159,6 +183,40 @@ describe('custom arrow edits', () => {
 
     expect(deleted.customArrows).toEqual([])
     expect(deleteCustomArrow(withArrow, 'missing')).toBe(withArrow)
+  })
+
+  it('cycles flow style dot to dash to solid to dot', () => {
+    const base = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: [
+        {
+          id: 'style-target',
+          sourceId: 'income',
+          targetId: 'need',
+          style: 'dotted' as const,
+        },
+      ],
+    }
+    const dashed = cycleCustomArrowStyle(base, 'style-target')
+    const solid = cycleCustomArrowStyle(dashed, 'style-target')
+    const dotted = cycleCustomArrowStyle(solid, 'style-target')
+
+    expect(dashed.customArrows?.[0].style).toBe('dashed')
+    expect(solid.customArrows?.[0].style).toBe('solid')
+    expect(dotted.customArrows?.[0].style).toBe('dotted')
+    expect(cycleCustomArrowStyle(base, 'missing')).toBe(base)
+  })
+})
+
+describe('generated arrow edits', () => {
+  it('hides one generated arrow and restores all generated arrows', () => {
+    const hidden = hideGeneratedArrow(SAMPLE_WHITFIELD, 'income')
+    const restored = restoreGeneratedArrows(hidden)
+
+    expect(hidden.hiddenArrows).toEqual(['income'])
+    expect(hideGeneratedArrow(hidden, 'income')).toBe(hidden)
+    expect(restored.hiddenArrows).toBeUndefined()
+    expect(restoreGeneratedArrows(SAMPLE_WHITFIELD)).toBe(SAMPLE_WHITFIELD)
   })
 })
 
@@ -201,6 +259,8 @@ describe('noninteractive map rendering', () => {
     'map-arrow-delete',
     'map-arrow-editor',
     'map-arrow-handle',
+    'map-arrow-label-add',
+    'map-arrow-style',
     'map-connect-handle',
     'map-resize-handle',
     'map-rotate-handle',
@@ -214,12 +274,23 @@ describe('noninteractive map rendering', () => {
       notes: [
         { id: 'print-note', text: 'Print this annotation.', x: 520, y: 480 },
       ],
+      customArrows: SAMPLE_WHITFIELD.customArrows?.map((arrow, index) =>
+        index === 0
+          ? {
+              ...arrow,
+              style: 'solid' as const,
+              label: '$2,000/mo — funds 529',
+            }
+          : arrow,
+      ),
     }
     const markup = renderToStaticMarkup(
       createElement(MapSvg, { data }),
     )
 
     expect(markup).toContain('Print this annotation.')
+    expect(markup).toContain('$2,000/mo — funds 529')
+    expect(markup).toContain('data-arrow-style="solid"')
     for (const className of editorChrome) {
       expect(markup).not.toContain(className)
     }
@@ -235,7 +306,12 @@ describe('noninteractive map rendering', () => {
         { id: 'test-note', text: 'Printed note', x: 520, y: 480 },
       ],
       customArrows: [
-        { id: 'test-arrow', sourceId: 'income', targetId: 'need' },
+        {
+          id: 'test-arrow',
+          sourceId: 'income',
+          targetId: 'need',
+          style: 'solid' as const,
+        },
       ],
     }
     const markup = renderToStaticMarkup(

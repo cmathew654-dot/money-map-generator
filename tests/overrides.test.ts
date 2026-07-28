@@ -277,7 +277,7 @@ describe('layout overrides', () => {
     expect(bounds.y + bounds.h).toBeCloseTo(972)
   })
 
-  it('re-attaches waterfall arrows to moved and resized drums', () => {
+  it('re-attaches migrated flow arrows to moved and resized drums', () => {
     const layout = layoutMap(
       withOverrides({
         [TRUST_ID]: { dx: -90, dy: 55, w: 390, h: 280 },
@@ -288,11 +288,11 @@ describe('layout overrides', () => {
     )!
     const outgoing = layout.arrows.find(
       (arrow) =>
-        arrow.kind === 'waterfall' && arrow.sourceId === TRUST_ID,
+        arrow.kind === 'custom' && arrow.sourceId === TRUST_ID,
     )!
     const incoming = layout.arrows.find(
       (arrow) =>
-        arrow.kind === 'waterfall' && arrow.targetId === TRUST_ID,
+        arrow.kind === 'custom' && arrow.targetId === TRUST_ID,
     )!
 
     expect(outgoing.start).toEqual(
@@ -386,13 +386,13 @@ describe('layout overrides', () => {
     const startAt = { dx: -140, dy: -90 }
     const base = layoutMap(
       withOverrides({
-        [`arrow:waterfall:${TRUST_ID}`]: { startAt },
+        [`arrow:custom:migrated-flow:${TRUST_ID}`]: { startAt },
       }),
     )
     const moved = layoutMap(
       withOverrides({
         [TRUST_ID]: { dx: -70, dy: 55, w: 340, h: 260 },
-        [`arrow:waterfall:${TRUST_ID}`]: { startAt },
+        [`arrow:custom:migrated-flow:${TRUST_ID}`]: { startAt },
       }),
     )
     const baseTrust = base.accounts.find(
@@ -403,11 +403,11 @@ describe('layout overrides', () => {
     )!
     const baseArrow = base.arrows.find(
       (arrow) =>
-        arrow.kind === 'waterfall' && arrow.sourceId === TRUST_ID,
+        arrow.kind === 'custom' && arrow.sourceId === TRUST_ID,
     )!
     const movedArrow = moved.arrows.find(
       (arrow) =>
-        arrow.kind === 'waterfall' && arrow.sourceId === TRUST_ID,
+        arrow.kind === 'custom' && arrow.sourceId === TRUST_ID,
     )!
 
     expect(movedArrow.start.x - baseArrow.start.x).toBeCloseTo(

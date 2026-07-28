@@ -43,8 +43,8 @@ export interface Account {
   positions?: Position[]
   /** nested earmarked pool drawn as an inset cylinder — e.g. RMD short-term funds */
   subAccounts?: SubAccount[]
-  /** participates in the right-to-left refill chain of dotted arrows */
-  inWaterfall: boolean
+  /** accepted for legacy book migration; ignored after load */
+  inWaterfall?: boolean
 }
 
 export interface IncomeSource {
@@ -65,6 +65,20 @@ export interface CustomArrow {
   id: string
   sourceId: string
   targetId: string
+  style: 'dotted' | 'dashed' | 'solid'
+  label?: string
+}
+
+export type GeneratedArrowKind = 'income' | 'asNeeded'
+
+export const MIGRATED_FLOW_ID_PREFIX = 'migrated-flow:'
+
+export function migratedFlowId(sourceId: string): string {
+  return `${MIGRATED_FLOW_ID_PREFIX}${sourceId}`
+}
+
+export function isMigratedFlowId(id: string): boolean {
+  return id.startsWith(MIGRATED_FLOW_ID_PREFIX)
 }
 
 export interface MapNote {
@@ -120,6 +134,8 @@ export interface MoneyMapData {
   footnotes: Footnote[]
   /** advisor-drawn connections; omitted in legacy books */
   customArrows?: CustomArrow[]
+  /** generated arrows hidden by the advisor; omitted when both are visible */
+  hiddenArrows?: GeneratedArrowKind[]
   /** free text annotations in artboard coordinates; omitted in legacy books */
   notes?: MapNote[]
   layoutOverrides?: Record<string, LayoutOverride>

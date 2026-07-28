@@ -1,4 +1,5 @@
 import type {
+  GeneratedArrowKind,
   LayoutOverride,
   MapNote,
   MoneyMapData,
@@ -64,9 +65,48 @@ export function addCustomArrow(
     ...data,
     customArrows: [
       ...(data.customArrows ?? []),
-      { id: newId('arrow'), sourceId, targetId },
+      { id: newId('arrow'), sourceId, targetId, style: 'dotted' },
     ],
   }
+}
+
+export function cycleCustomArrowStyle(
+  data: MoneyMapData,
+  id: string,
+): MoneyMapData {
+  const arrow = data.customArrows?.find((item) => item.id === id)
+  if (!arrow) return data
+  const next = {
+    dotted: 'dashed',
+    dashed: 'solid',
+    solid: 'dotted',
+  } as const
+  return {
+    ...data,
+    customArrows: data.customArrows?.map((item) =>
+      item.id === id ? { ...item, style: next[item.style] } : item,
+    ),
+  }
+}
+
+export function hideGeneratedArrow(
+  data: MoneyMapData,
+  kind: GeneratedArrowKind,
+): MoneyMapData {
+  if (data.hiddenArrows?.includes(kind)) return data
+  return {
+    ...data,
+    hiddenArrows: [...(data.hiddenArrows ?? []), kind],
+  }
+}
+
+export function restoreGeneratedArrows(
+  data: MoneyMapData,
+): MoneyMapData {
+  if (!data.hiddenArrows?.length) return data
+  const restored = { ...data }
+  delete restored.hiddenArrows
+  return restored
 }
 
 export function deleteCustomArrow(

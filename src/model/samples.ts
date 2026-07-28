@@ -21,7 +21,6 @@ export const SAMPLE_WHITFIELD: MoneyMapData = {
       bucket: 'cash',
       label: 'Cash at Bank',
       value: null,
-      inWaterfall: false,
     },
     {
       id: 'short-term-funds',
@@ -29,7 +28,6 @@ export const SAMPLE_WHITFIELD: MoneyMapData = {
       label: 'Short-Term Funds',
       caption: "2-3 years' worth of income needs",
       value: 165000,
-      inWaterfall: true,
     },
     {
       id: 'managed-after-tax-trust',
@@ -41,7 +39,6 @@ export const SAMPLE_WHITFIELD: MoneyMapData = {
         { label: 'S&P 500 Index Fund', value: 380000 },
         { label: 'Municipal Bond Ladder', value: 330000 },
       ],
-      inWaterfall: true,
     },
     {
       id: 'managed-ira-jordan',
@@ -56,21 +53,32 @@ export const SAMPLE_WHITFIELD: MoneyMapData = {
           value: 240000,
         },
       ],
-      inWaterfall: true,
     },
     {
       id: 'roth-ira-dana',
       bucket: 'taxPreferred',
       label: 'Roth IRA — Dana',
       value: 85000,
-      inWaterfall: false,
     },
     {
       id: 'donor-advised-fund',
       bucket: 'charitable',
       label: 'Donor-Advised Fund',
       value: 120000,
-      inWaterfall: false,
+    },
+  ],
+  customArrows: [
+    {
+      id: 'migrated-flow:managed-ira-jordan',
+      sourceId: 'managed-ira-jordan',
+      targetId: 'managed-after-tax-trust',
+      style: 'dotted',
+    },
+    {
+      id: 'migrated-flow:managed-after-tax-trust',
+      sourceId: 'managed-after-tax-trust',
+      targetId: 'short-term-funds',
+      style: 'dotted',
     },
   ],
   footnotes: [{ label: 'Jordan 2026 RMD', gross: 96500, net: 74300 }],
@@ -113,7 +121,6 @@ export const SAMPLE_CALLOWAY: MoneyMapData = {
       bucket: 'cash',
       label: 'Cash at Home',
       value: 450000,
-      inWaterfall: false,
     },
     {
       id: 'calloway-short-term',
@@ -121,7 +128,6 @@ export const SAMPLE_CALLOWAY: MoneyMapData = {
       label: 'Short-Term Account',
       caption: "Earmarked taxes and 2-3 years' worth of income needs",
       value: 520000,
-      inWaterfall: true,
     },
     {
       id: 'calloway-trust',
@@ -129,7 +135,6 @@ export const SAMPLE_CALLOWAY: MoneyMapData = {
       label: 'Trust Account',
       caption: 'Target 70-80% Equities — Tax-Managed',
       value: 4900000,
-      inWaterfall: true,
     },
     {
       id: 'calloway-ira-marcus',
@@ -138,21 +143,18 @@ export const SAMPLE_CALLOWAY: MoneyMapData = {
       caption: 'Most Aggressive Allocation',
       value: 2650000,
       subAccounts: [{ label: 'Short-Term Account', value: 110000 }],
-      inWaterfall: true,
     },
     {
       id: 'calloway-life-insurance',
       bucket: 'taxPreferred',
       label: 'Cash-Value Life Insurance',
       value: 350000,
-      inWaterfall: false,
     },
     {
       id: 'calloway-daf',
       bucket: 'charitable',
       label: 'Donor-Advised Fund',
       value: 160000,
-      inWaterfall: false,
     },
     {
       id: 'calloway-installment-note',
@@ -160,7 +162,20 @@ export const SAMPLE_CALLOWAY: MoneyMapData = {
       label: '5-Year Installment Note',
       caption: 'Through Feb 2027 — $92K pre-tax annual',
       value: 185000,
-      inWaterfall: false,
+    },
+  ],
+  customArrows: [
+    {
+      id: 'migrated-flow:calloway-ira-marcus',
+      sourceId: 'calloway-ira-marcus',
+      targetId: 'calloway-trust',
+      style: 'dotted',
+    },
+    {
+      id: 'migrated-flow:calloway-trust',
+      sourceId: 'calloway-trust',
+      targetId: 'calloway-short-term',
+      style: 'dotted',
     },
   ],
   footnotes: [{ label: 'Marcus 2026 RMD', gross: 89000, net: 67000 }],
@@ -196,14 +211,12 @@ export const SAMPLE_VENKAT: MoneyMapData = {
       label: 'Short-Term Bucket',
       caption: "2-3 years' worth of income needs",
       value: 18000,
-      inWaterfall: true,
     },
     {
       id: 'venkat-cash',
       bucket: 'cash',
       label: 'Cash Accounts',
       value: 1450000,
-      inWaterfall: false,
     },
     {
       id: 'venkat-trust',
@@ -212,14 +225,12 @@ export const SAMPLE_VENKAT: MoneyMapData = {
       caption: 'Concentrated holding',
       value: 690000,
       positions: [{ label: 'S&P 500 Index', value: 495000 }],
-      inWaterfall: true,
     },
     {
       id: 'venkat-brokerage',
       bucket: 'afterTax',
       label: 'Brokerage — Individual Stocks',
       value: 720000,
-      inWaterfall: false,
     },
     {
       id: 'venkat-iras',
@@ -227,14 +238,26 @@ export const SAMPLE_VENKAT: MoneyMapData = {
       label: 'IRAs — Most Aggressive',
       caption: '70% Equity Allocation',
       value: 2100000,
-      inWaterfall: true,
     },
     {
       id: 'venkat-charitable',
       bucket: 'charitable',
       label: 'Family Charitable Fund',
       value: 140000,
-      inWaterfall: false,
+    },
+  ],
+  customArrows: [
+    {
+      id: 'migrated-flow:venkat-iras',
+      sourceId: 'venkat-iras',
+      targetId: 'venkat-trust',
+      style: 'dotted',
+    },
+    {
+      id: 'migrated-flow:venkat-trust',
+      sourceId: 'venkat-trust',
+      targetId: 'venkat-short-term',
+      style: 'dotted',
     },
   ],
   footnotes: [],
