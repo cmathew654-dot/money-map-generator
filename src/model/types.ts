@@ -158,6 +158,7 @@ export interface MoneyMapData {
     year: string // "2026"
     variant: 'annual' | 'postNote'
     postNoteLabel?: string // "April 2026" when variant is postNote
+    mastheadLabel?: string
   }
   incomeSources: IncomeSource[]
   afterTaxIncome: number | null // the income box total line

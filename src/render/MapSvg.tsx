@@ -232,13 +232,20 @@ function editableTextProps(
 
 function mastheadLabel(data: MoneyMapData): string {
   const period = mastheadPeriodLabel(data.client)
+  const label = data.client.mastheadLabel?.trim() || 'Money Map'
   if (data.client.variant === 'postNote') {
-    return `MONEY MAP — ${period}`
+    return `${label} — ${period}`
   }
-  return `MONEY MAP ${period}`
+  return `${label} ${period}`
 }
 
-function Masthead({ data }: { data: MoneyMapData }) {
+function Masthead({
+  data,
+  onElementClick,
+}: {
+  data: MoneyMapData
+  onElementClick?: (target: MapElementTarget) => void
+}) {
   return (
     <g>
       <text
@@ -259,6 +266,7 @@ function Masthead({ data }: { data: MoneyMapData }) {
         fontSize={TYPE.mastheadLabel}
         fontWeight={600}
         letterSpacing={2.5}
+        {...editableTextProps({ kind: 'mastheadLabel' }, onElementClick)}
       >
         {mastheadLabel(data).toUpperCase()}
       </text>
@@ -1996,7 +2004,7 @@ export function MapSvg({
         </marker>
       </defs>
 
-      <Masthead data={displayData} />
+      <Masthead data={displayData} onElementClick={onElementClick} />
       <g
         data-connect-id={onChange ? 'income' : undefined}
         {...interactiveGroupProps(

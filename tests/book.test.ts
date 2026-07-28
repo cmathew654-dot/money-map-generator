@@ -334,6 +334,24 @@ describe('parseBook', () => {
     expect(parseBook(JSON.stringify(book))).toEqual(book)
   })
 
+  it('round-trips an optional masthead label', () => {
+    const book = newBook()
+    book.clients[0].client.mastheadLabel = 'Retirement Roadmap'
+
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it('rejects a non-string masthead label', () => {
+    const book = newBook() as unknown as {
+      clients: { client: { mastheadLabel?: unknown } }[]
+    }
+    book.clients[0].client.mastheadLabel = 2026
+
+    expect(() => parseBook(JSON.stringify(book))).toThrow(
+      'Client 1 has invalid client details.',
+    )
+  })
+
   it.each([Number.NaN, Number.POSITIVE_INFINITY, '20'])(
     'rejects an invalid map note font size %s',
     (fs) => {

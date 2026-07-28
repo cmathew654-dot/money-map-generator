@@ -505,6 +505,8 @@ function validateClient(value: unknown, index: number): void {
   if (
     typeof details.title !== 'string' ||
     typeof details.year !== 'string' ||
+    (details.mastheadLabel !== undefined &&
+      typeof details.mastheadLabel !== 'string') ||
     (details.variant !== 'annual' && details.variant !== 'postNote')
   ) {
     throw new Error(`Client ${index + 1} has invalid client details.`)

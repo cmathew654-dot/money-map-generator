@@ -26,6 +26,7 @@ export type MapTextEditTarget =
   | { kind: 'afterTaxIncome' }
   | { kind: 'needLabel' }
   | { kind: 'monthlyNeed' }
+  | { kind: 'mastheadLabel' }
   | { kind: 'footnoteText' }
   | { kind: 'legendText' }
   | { kind: 'asNeededAmount' }
@@ -230,6 +231,8 @@ export function mapTextEditRawValue(
         data.customArrows?.find((arrow) => arrow.id === target.arrowId)
           ?.label ?? ''
       )
+    case 'mastheadLabel':
+      return data.client.mastheadLabel ?? 'Money Map'
     case 'noteText':
       return data.notes?.find((note) => note.id === target.noteId)?.text ?? ''
     case 'incomeHeader':
@@ -262,6 +265,20 @@ export function applyMapTextEdit(
           : account,
       ),
     }
+  }
+  if (target.kind === 'mastheadLabel') {
+    const mastheadLabel = rawValue.trim()
+    const current = data.client.mastheadLabel
+    if (
+      mastheadLabel === (current ?? 'Money Map') ||
+      (!mastheadLabel && current === undefined)
+    ) {
+      return data
+    }
+    const client = { ...data.client }
+    if (mastheadLabel) client.mastheadLabel = mastheadLabel
+    else delete client.mastheadLabel
+    return { ...data, client }
   }
   if (target.kind === 'noteText') {
     const existing = data.notes?.some((note) => note.id === target.noteId)
@@ -326,6 +343,7 @@ export function applyMapTextEdit(
 }
 
 function editorLabel(target: MapTextEditTarget): string {
+  if (target.kind === 'mastheadLabel') return 'Edit masthead label'
   if (target.kind === 'accountLabel') return 'Edit account label'
   if (target.kind === 'accountCaption') return 'Edit account caption'
   if (target.kind === 'incomeHeader') return 'Resize income heading'
@@ -411,6 +429,7 @@ export function MapTextEditor({
           inputMode={
             edit.target.kind === 'accountLabel' ||
             edit.target.kind === 'accountCaption' ||
+            edit.target.kind === 'mastheadLabel' ||
             edit.target.kind === 'flowLabel' ||
             edit.target.kind === 'noteText'
               ? 'text'

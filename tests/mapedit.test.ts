@@ -200,6 +200,29 @@ describe('applyMapTextEdit', () => {
     )
     expect(cleared.customArrows?.[0].label).toBeUndefined()
   })
+
+  it('commits a trimmed masthead label and restores the default when empty', () => {
+    expect(
+      mapTextEditRawValue(SAMPLE_WHITFIELD, { kind: 'mastheadLabel' }),
+    ).toBe('Money Map')
+
+    const custom = applyMapTextEdit(
+      SAMPLE_WHITFIELD,
+      { kind: 'mastheadLabel' },
+      '  Retirement Roadmap  ',
+    )
+    const restored = applyMapTextEdit(
+      custom,
+      { kind: 'mastheadLabel' },
+      '   ',
+    )
+
+    expect(custom.client.mastheadLabel).toBe('Retirement Roadmap')
+    expect(restored.client.mastheadLabel).toBeUndefined()
+    expect(
+      mapTextEditRawValue(restored, { kind: 'mastheadLabel' }),
+    ).toBe('Money Map')
+  })
 })
 
 describe('custom arrow edits', () => {
@@ -521,6 +544,45 @@ describe('noninteractive map rendering', () => {
     for (const className of editorChrome) {
       expect(markup).not.toContain(className)
     }
+  })
+
+  it('composes a custom masthead label for annual and mid-year maps', () => {
+    const annual = {
+      ...SAMPLE_WHITFIELD,
+      client: {
+        ...SAMPLE_WHITFIELD.client,
+        mastheadLabel: 'Retirement Roadmap',
+      },
+    }
+    const midYear = {
+      ...annual,
+      client: {
+        ...annual.client,
+        variant: 'postNote' as const,
+        postNoteLabel: 'April 2026',
+      },
+    }
+
+    const annualMarkup = renderToStaticMarkup(
+      createElement(MapSvg, { data: annual }),
+    )
+    const midYearMarkup = renderToStaticMarkup(
+      createElement(MapSvg, { data: midYear }),
+    )
+    const interactiveMarkup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data: annual,
+        onElementClick: () => undefined,
+      }),
+    )
+
+    expect(annualMarkup).toContain('RETIREMENT ROADMAP 2026')
+    expect(midYearMarkup).toContain(
+      'RETIREMENT ROADMAP — APRIL UPDATE',
+    )
+    expect(interactiveMarkup).toMatch(
+      /class="map-editable-text"[^>]*>RETIREMENT ROADMAP 2026/,
+    )
   })
 
   it('renders a migrated dotted flow without color in legacy green', () => {
