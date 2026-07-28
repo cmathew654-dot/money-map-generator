@@ -32,7 +32,7 @@
 
 :root {
   color: #1c2422;
-  background: #eceeea;
+  background: #e4e8e1;
   font-family: 'Public Sans', 'Segoe UI', sans-serif;
   font-synthesis: none;
 }
@@ -937,12 +937,15 @@ summary:focus-visible {
 }
 
 .form-section {
-  padding: 20px 0;
-  border-bottom: 1px solid #dde1dc;
+  margin: 0 0 12px;
+  padding: 16px 14px;
+  border: 1px solid #dde1dc;
+  border-radius: 10px;
+  background: #f4f6f2;
 }
 
 .form-section:last-child {
-  border-bottom: 0;
+  margin-bottom: 0;
 }
 
 .form-section > h2 {
@@ -996,6 +999,14 @@ summary:focus-visible {
   gap: 8px;
 }
 
+.value-tag-fields .form-field {
+  align-content: end;
+}
+
+.need-fields > .help-text {
+  grid-column: 1 / -1;
+}
+
 .client-meta-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1020,11 +1031,10 @@ summary:focus-visible {
 .stacked-row {
   display: grid;
   gap: 8px;
-}
-
-.stacked-row + .stacked-row {
-  padding-top: 12px;
-  border-top: 1px solid #eef0ed;
+  padding: 10px;
+  border: 1px solid #e3e7e0;
+  border-radius: 8px;
+  background: #fcfcfa;
 }
 
 .stacked-row-heading {
@@ -1045,6 +1055,29 @@ summary:focus-visible {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.note-row {
+  grid-template-columns: minmax(0, 1fr) 24px;
+  align-items: start;
+}
+
+.note-row textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.4;
+}
+
+.fine-print-section > h3 {
+  margin: 0 0 5px;
+  color: #5b6663;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .nested-row-fields {
@@ -1423,8 +1456,7 @@ summary:focus-visible {
 }
 
 .wizard .form-section {
-  padding: 24px 0;
-  border-bottom: 0;
+  margin: 16px 0;
 }
 
 .wizard .form-section > h2 {
@@ -1432,7 +1464,7 @@ summary:focus-visible {
 }
 
 .wizard-subtitle {
-  margin: 22px 0 -10px;
+  margin: 0 0 12px;
   color: #5b6663;
   font-size: 13px;
   line-height: 1.5;
