@@ -116,6 +116,26 @@ describe('book operations', () => {
     })
   })
 
+  it('duplicates map notes with fresh ids and unchanged content', () => {
+    const original = newBook()
+    const source = original.clients[0]
+    source.notes = [
+      { id: 'note-one', text: 'Keep six months liquid.', x: 420, y: 510 },
+    ]
+
+    const copy = duplicateClient(original, source.id).book.clients.at(-1)!
+
+    expect(copy.notes).toEqual([
+      {
+        id: expect.stringMatching(/^note-/),
+        text: 'Keep six months liquid.',
+        x: 420,
+        y: 510,
+      },
+    ])
+    expect(copy.notes?.[0].id).not.toBe(source.notes[0].id)
+  })
+
   it('rejects duplication of an unknown client', () => {
     expect(() => duplicateClient(newBook(), 'missing')).toThrow(
       'Client to duplicate was not found.',
@@ -152,6 +172,11 @@ describe('book operations', () => {
     source.client.variant = 'postNote'
     source.client.postNoteLabel = 'April 2026'
     source.showMath = false
+    source.needTag = 'goal'
+    source.notes = [
+      { id: 'clear-me', text: 'Remove with client data.', x: 500, y: 500 },
+    ]
+    source.accounts[0].valueTag = 'est.'
     source.layoutOverrides = {
       income: { dx: 24, dy: -12 },
     }
@@ -237,6 +262,54 @@ describe('parseBook', () => {
       },
     ]
     expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
+  })
+
+  it('accepts absent or well-formed notes and value tags', () => {
+    const legacy = newBook()
+    expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
+
+    legacy.clients[0].needTag = 'goal'
+    legacy.clients[0].accounts[0].valueTag = 'est.'
+    legacy.clients[0].notes = [
+      { id: 'note-one', text: 'Review at year end.', x: 500, y: 420 },
+    ]
+
+    expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
+  })
+
+  it.each([
+    {},
+    [{ id: 1, text: 'Note', x: 10, y: 20 }],
+    [{ id: 'note', text: null, x: 10, y: 20 }],
+    [{ id: 'note', text: 'Note', x: 'left', y: 20 }],
+    [{ id: 'note', text: 'Note', x: 10, y: null }],
+  ])('rejects malformed map notes with a human message', (notes) => {
+    const value = newBook() as unknown as {
+      clients: { notes?: unknown }[]
+    }
+    value.clients[0].notes = notes
+
+    expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'Client 1 has invalid map notes.',
+    )
+  })
+
+  it('rejects malformed value tags with human messages', () => {
+    const invalidNeed = newBook() as unknown as {
+      clients: { needTag?: unknown }[]
+    }
+    invalidNeed.clients[0].needTag = 12
+    expect(() => parseBook(JSON.stringify(invalidNeed))).toThrow(
+      'Client 1 has an invalid need tag.',
+    )
+
+    const invalidAccount = newBook() as unknown as {
+      clients: { accounts: { valueTag?: unknown }[] }[]
+    }
+    invalidAccount.clients[0].accounts[0].valueTag = false
+    expect(() => parseBook(JSON.stringify(invalidAccount))).toThrow(
+      'Client 1 has an invalid account value tag.',
+    )
   })
 
   it.each([

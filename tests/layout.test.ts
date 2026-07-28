@@ -8,7 +8,8 @@ import {
   rotatePoint,
   type PlacedAccount,
 } from '../src/layout/layout'
-import { textWidth } from '../src/layout/textfit'
+import { fitLines, textWidth } from '../src/layout/textfit'
+import { money } from '../src/model/format'
 import { newBook } from '../src/model/book'
 import {
   blankClient,
@@ -232,6 +233,50 @@ function expectAccountTextIntegrity(data: MoneyMapData) {
 }
 
 describe('layoutMap', () => {
+  it('wraps note blocks at 240 units and clamps them to override bounds', () => {
+    const data = blankClient()
+    data.notes = [
+      {
+        id: 'wrapped-note',
+        text: 'A long margin annotation should wrap predictably at the fixed note width and remain inside the printable composition bounds.',
+        x: -200,
+        y: 990,
+      },
+    ]
+
+    const note = layoutMap(data).notes[0]
+
+    expect(note.lines).toEqual(fitLines(data.notes[0].text, 240, TYPE.note))
+    expect(note.lines.length).toBeGreaterThan(1)
+    expect(
+      note.lines.every((line) => textWidth(line, TYPE.note) <= 240),
+    ).toBe(true)
+    expect(note.x).toBe(48)
+    expect(note.y + note.h).toBe(972)
+  })
+
+  it('grows an account so a long tagged value remains on one line', () => {
+    const data = blankClient()
+    data.accounts = [
+      {
+        id: 'tag-width',
+        bucket: 'cash',
+        label: 'Tagged value',
+        value: 165_000,
+        valueTag: 'estimated balance plus pending annual distribution',
+        inWaterfall: false,
+      },
+    ]
+
+    const placed = layoutMap(data).accounts[0]
+    const line = `${money(placed.account.value)} ${placed.account.valueTag}`
+
+    expect(placed.w).toBeGreaterThan(250)
+    expect(textWidth(line, TYPE.value)).toBeLessThanOrEqual(
+      placed.usableValueWidth,
+    )
+  })
+
   it.each([
     ['Whitfield', SAMPLE_WHITFIELD],
     ['Calloway', SAMPLE_CALLOWAY],

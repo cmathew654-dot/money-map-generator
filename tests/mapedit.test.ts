@@ -5,7 +5,9 @@ import { accountDisplayName } from '../src/model/format'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import {
   addCustomArrow,
+  addMapNote,
   deleteCustomArrow,
+  deleteMapNote,
 } from '../src/render/mapInteraction'
 import { MapSvg } from '../src/render/MapSvg'
 import {
@@ -132,6 +134,40 @@ describe('custom arrow edits', () => {
   })
 })
 
+describe('map note edits', () => {
+  const note = {
+    id: 'note-target',
+    text: 'Confirm the rollover timing.',
+    x: 520,
+    y: 480,
+  }
+
+  it('adds a trimmed note and treats empty text as a no-op', () => {
+    const added = addMapNote(SAMPLE_WHITFIELD, {
+      ...note,
+      text: `  ${note.text}  `,
+    })
+
+    expect(added.notes).toEqual([note])
+    expect(addMapNote(SAMPLE_WHITFIELD, { ...note, text: '   ' })).toBe(
+      SAMPLE_WHITFIELD,
+    )
+  })
+
+  it('deletes only the target note', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [
+        note,
+        { id: 'note-other', text: 'Keep this note.', x: 620, y: 560 },
+      ],
+    }
+
+    expect(deleteMapNote(data, note.id).notes).toEqual([data.notes[1]])
+    expect(deleteMapNote(data, 'missing')).toBe(data)
+  })
+})
+
 describe('noninteractive map rendering', () => {
   const editorChrome = [
     'map-arrow-delete',
@@ -141,13 +177,21 @@ describe('noninteractive map rendering', () => {
     'map-resize-handle',
     'map-rotate-handle',
     'map-shape-flip',
+    'map-note-delete',
   ]
 
   it('emits zero editor chrome nodes without edit callbacks', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [
+        { id: 'print-note', text: 'Print this annotation.', x: 520, y: 480 },
+      ],
+    }
     const markup = renderToStaticMarkup(
-      createElement(MapSvg, { data: SAMPLE_WHITFIELD }),
+      createElement(MapSvg, { data }),
     )
 
+    expect(markup).toContain('Print this annotation.')
     for (const className of editorChrome) {
       expect(markup).not.toContain(className)
     }
@@ -159,6 +203,9 @@ describe('noninteractive map rendering', () => {
   it('keeps editor chrome in the interactive render path', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
+      notes: [
+        { id: 'test-note', text: 'Printed note', x: 520, y: 480 },
+      ],
       customArrows: [
         { id: 'test-arrow', sourceId: 'income', targetId: 'need' },
       ],
