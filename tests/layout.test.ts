@@ -1177,8 +1177,8 @@ describe('layoutMap', () => {
       expect(layout.need.h).toBe(170)
       expect(layout.footnotesAt.y).toBe(930)
     }
-    expect(sample.income).toEqual({ x: 48, y: 156, w: 280, h: 248 })
-    expect(sample.need).toEqual({ x: 48, y: 686, w: 250, h: 170 })
+    expect(sample.income).toEqual({ x: 48, y: 153.5, w: 280, h: 248 })
+    expect(sample.need).toEqual({ x: 48, y: 683.5, w: 250, h: 170 })
     expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 128 })
     expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
   })

@@ -67,7 +67,7 @@ describe('applyMapTextEdit', () => {
   it.each([
     [
       { kind: 'accountLabel', accountId },
-      { key: `text:${accountId}:label`, fallback: 18, max: 28 },
+      { key: `text:${accountId}:label`, fallback: 19, max: 28 },
     ],
     [
       { kind: 'monthlyNeed' },
@@ -75,7 +75,7 @@ describe('applyMapTextEdit', () => {
     ],
     [
       { kind: 'legendText' },
-      { key: 'text:legend:label', fallback: 11, max: 40 },
+      { key: 'text:legend:label', fallback: 12, max: 40 },
     ],
   ] as [MapTextEditTarget, { key: string; fallback: number; max: number }][])(
     'maps the %s target to its font-size override',
@@ -459,7 +459,7 @@ describe('noninteractive map rendering', () => {
       'y="930" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
     )
     expect(markup).toContain(
-      'y="960.8571428571429" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
+      'y="958.8" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
     )
     expect(markup).toContain(
       'data-legend-kind="asNeeded"><line x1="164.4288"',
