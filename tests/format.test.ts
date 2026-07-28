@@ -7,6 +7,7 @@ import {
   money,
   moneyPer,
   parseMoneyInput,
+  stepMoney,
   wrap,
 } from '../src/model/format'
 
@@ -43,6 +44,40 @@ describe('parseMoneyInput', () => {
     ['', null],
   ])('parses %j as %s', (text, expected) => {
     expect(parseMoneyInput(text)).toBe(expected)
+  })
+})
+
+describe('stepMoney', () => {
+  it.each([
+    [10_000, 1, 100, 10_100],
+    [10_000, -1, 100, 9_900],
+    [10_000, 1, 1_000, 11_000],
+    [10_000, -1, 1_000, 9_000],
+    [10_000, 1, 10_000, 20_000],
+    [10_000, -1, 10_000, 0],
+  ] as const)(
+    'steps %d in direction %d on the %d tier to %d',
+    (current, direction, tier, expected) => {
+      expect(stepMoney(current, direction, tier)).toBe(expected)
+    },
+  )
+
+  it('increments before snapping off-grid values', () => {
+    expect(stepMoney(85_432, 1, 100)).toBe(85_500)
+    expect(stepMoney(85_432, -1, 1_000)).toBe(84_000)
+  })
+
+  it('starts null at zero and floors negative steps at zero', () => {
+    expect(stepMoney(null, 1, 100)).toBe(100)
+    expect(stepMoney(null, -1, 100)).toBe(0)
+    expect(stepMoney(50, -1, 100)).toBe(0)
+  })
+
+  it('accepts a parsed k/m shorthand value as its base', () => {
+    expect(stepMoney(parseMoneyInput('85k'), 1, 1_000)).toBe(86_000)
+    expect(stepMoney(parseMoneyInput('1.2m'), -1, 10_000)).toBe(
+      1_190_000,
+    )
   })
 })
 

@@ -7,9 +7,11 @@ import {
   type Ref,
 } from 'react'
 import {
+  BLANK,
   accountDisplayName,
   money,
   parseMoneyInput,
+  stepMoney,
 } from '../model/format'
 import { ACCOUNT_PRESETS } from '../model/book'
 import type {
@@ -88,6 +90,10 @@ export function addIncomeSource(
   ]
 }
 
+export function appendBlankPosition(positions: Position[]): Position[] {
+  return [...positions, { label: '', value: null }]
+}
+
 export function yearSelectOptions(
   storedValue: string,
   currentYear = new Date().getFullYear(),
@@ -128,6 +134,46 @@ export function updateNoteText(
       note.id === id ? { ...note, text } : note,
     ),
   }
+}
+
+export function isMoneyDraftDirty(
+  draft: string | null,
+  focusSnapshot: string,
+): boolean {
+  return draft !== null && draft !== focusSnapshot
+}
+
+type PendingFocusTarget = {
+  focus(): void
+}
+
+export function focusPendingTarget(
+  resolve: (() => PendingFocusTarget | null | undefined) | null,
+): boolean {
+  const target = resolve?.()
+  if (!target) return false
+  target.focus()
+  return true
+}
+
+function usePendingFocus(dependency: unknown) {
+  const pendingFocus = useRef<
+    (() => PendingFocusTarget | null | undefined) | null
+  >(null)
+  const requestFocus = useCallback(
+    (resolve: () => PendingFocusTarget | null | undefined) => {
+      pendingFocus.current = resolve
+    },
+    [],
+  )
+
+  useEffect(() => {
+    if (focusPendingTarget(pendingFocus.current)) {
+      pendingFocus.current = null
+    }
+  }, [dependency])
+
+  return requestFocus
 }
 
 function monthSelectOptions(storedValue: string): string[] {
@@ -178,30 +224,69 @@ function MoneyField({
   value,
   onChange,
 }: MoneyFieldProps) {
-  const [focused, setFocused] = useState(false)
-  const [raw, setRaw] = useState('')
+  const [draft, setDraft] = useState<string | null>(null)
+  const focusSnapshot = useRef('')
+  const commitDraft = () => {
+    if (!isMoneyDraftDirty(draft, focusSnapshot.current)) return
+    const nextDraft = draft ?? ''
+    onChange(parseMoneyInput(nextDraft))
+    focusSnapshot.current = nextDraft
+  }
 
   return (
     <label className="form-field">
       <span>{label}</span>
       <input
         className="money-input"
+        enterKeyHint="next"
         inputMode="decimal"
-        placeholder="~$ ______"
+        placeholder={BLANK}
         ref={inputRef}
         type="text"
-        value={focused ? raw : value === null ? '' : money(value)}
+        value={draft ?? (value === null ? '' : money(value))}
         onBlur={() => {
-          onChange(parseMoneyInput(raw))
-          setFocused(false)
+          commitDraft()
+          setDraft(null)
         }}
         onChange={(event) => {
-          setRaw(event.target.value)
-          onChange(parseMoneyInput(event.target.value))
+          setDraft(event.target.value)
         }}
-        onFocus={() => {
-          setRaw(value === null ? '' : String(value))
-          setFocused(true)
+        onFocus={(event) => {
+          const snapshot = value === null ? '' : String(value)
+          focusSnapshot.current = snapshot
+          setDraft(snapshot)
+          event.currentTarget.select()
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            setDraft(focusSnapshot.current)
+            return
+          }
+          if (event.key === 'Enter') {
+            commitDraft()
+            return
+          }
+          if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+            return
+          }
+
+          event.preventDefault()
+          const tier = event.altKey
+            ? 10_000
+            : event.shiftKey
+              ? 1_000
+              : 100
+          const base = parseMoneyInput(draft ?? '') ?? value ?? 0
+          const next = stepMoney(
+            base,
+            event.key === 'ArrowUp' ? 1 : -1,
+            tier,
+          )
+          const nextDraft = String(next)
+          setDraft(nextDraft)
+          onChange(next)
+          focusSnapshot.current = nextDraft
         }}
       />
     </label>
@@ -225,6 +310,7 @@ function TextField({
     <label className="form-field">
       <span>{label}</span>
       <input
+        enterKeyHint="next"
         ref={inputRef}
         placeholder={placeholder}
         type="text"
@@ -315,10 +401,7 @@ export function IncomeSection({
 }) {
   const labelInputs = useRef<(HTMLInputElement | null)[]>([])
   const amountInputs = useRef<(HTMLInputElement | null)[]>([])
-  const pendingFocus = useRef<{
-    field: 'amount' | 'label'
-    index: number
-  } | null>(null)
+  const requestFocus = usePendingFocus(data.incomeSources.length)
   const setSources = (incomeSources: IncomeSource[]) =>
     onChange({ ...data, incomeSources })
   const updateSource = (index: number, source: IncomeSource) =>
@@ -327,15 +410,6 @@ export function IncomeSection({
         itemIndex === index ? source : item,
       ),
     )
-
-  useEffect(() => {
-    const request = pendingFocus.current
-    if (!request) return
-    const inputs =
-      request.field === 'amount' ? amountInputs : labelInputs
-    inputs.current[request.index]?.focus()
-    pendingFocus.current = null
-  }, [data.incomeSources.length])
 
   return (
     <section className="form-section" ref={sectionRef}>
@@ -415,10 +489,8 @@ export function IncomeSection({
             type="button"
             onClick={() => {
               const index = data.incomeSources.length
-              pendingFocus.current = {
-                field: preset.label ? 'amount' : 'label',
-                index,
-              }
+              const inputs = preset.label ? amountInputs : labelInputs
+              requestFocus(() => inputs.current[index])
               setSources(
                 addIncomeSource(data.incomeSources, preset.label),
               )
@@ -449,6 +521,9 @@ function PositionRows({
   positions: Position[]
   onChange(positions: Position[]): void
 }) {
+  const labelInputs = useRef<(HTMLInputElement | null)[]>([])
+  const requestFocus = usePendingFocus(positions.length)
+
   return (
     <div className="nested-list">
       <h4>Positions</h4>
@@ -456,6 +531,9 @@ function PositionRows({
         <div className="stacked-row nested-row" key={index}>
           <div className="stacked-row-heading">
             <TextField
+              inputRef={(element) => {
+                labelInputs.current[index] = element
+              }}
               label="Label"
               value={position.label}
               onChange={(label) =>
@@ -493,7 +571,11 @@ function PositionRows({
       <button
         className="add-button"
         type="button"
-        onClick={() => onChange([...positions, { label: '', value: null }])}
+        onClick={() => {
+          const index = positions.length
+          requestFocus(() => labelInputs.current[index])
+          onChange(appendBlankPosition(positions))
+        }}
       >
         + Add position
       </button>
@@ -508,6 +590,9 @@ function SubAccountRows({
   subAccounts: SubAccount[]
   onChange(subAccounts: SubAccount[]): void
 }) {
+  const labelInputs = useRef<(HTMLInputElement | null)[]>([])
+  const requestFocus = usePendingFocus(subAccounts.length)
+
   return (
     <div className="nested-list">
       <h4>Sub-accounts</h4>
@@ -515,6 +600,9 @@ function SubAccountRows({
         <div className="stacked-row subaccount-row" key={index}>
           <div className="stacked-row-heading">
             <TextField
+              inputRef={(element) => {
+                labelInputs.current[index] = element
+              }}
               label="Label"
               value={subAccount.label}
               onChange={(label) =>
@@ -563,12 +651,14 @@ function SubAccountRows({
       <button
         className="add-button"
         type="button"
-        onClick={() =>
+        onClick={() => {
+          const index = subAccounts.length
+          requestFocus(() => labelInputs.current[index])
           onChange([
             ...subAccounts,
             { label: '', caption: '', value: null },
           ])
-        }
+        }}
       >
         + Add sub-account
       </button>
@@ -733,6 +823,7 @@ export function AccountsSection({
 }) {
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
   const focusRefs = useRef(new Map<string, AccountFocusRefs>())
+  const requestFocus = usePendingFocus(data.accounts.length)
   const registerFocusRefs = useCallback(
     (id: string, refs: AccountFocusRefs | null) => {
       if (refs) {
@@ -793,6 +884,7 @@ export function AccountsSection({
               const { chipLabel: _chipLabel, ...account } = preset
               const id = newId('account')
               setNewAccountId(id)
+              requestFocus(() => focusRefs.current.get(id)?.labelInput)
               setAccounts([
                 ...data.accounts,
                 {
@@ -821,6 +913,8 @@ export function FinePrintSection({
   data,
   onChange,
 }: Pick<FormProps, 'data' | 'onChange'>) {
+  const labelInputs = useRef<(HTMLInputElement | null)[]>([])
+  const requestFocus = usePendingFocus(data.footnotes.length)
   const setFootnotes = (footnotes: Footnote[]) =>
     onChange({ ...data, footnotes })
   const updateFootnote = (index: number, footnote: Footnote) =>
@@ -840,6 +934,9 @@ export function FinePrintSection({
         <div className="stacked-row footnote-row" key={index}>
           <div className="stacked-row-heading">
             <TextField
+              inputRef={(element) => {
+                labelInputs.current[index] = element
+              }}
               label="Label"
               value={footnote.label}
               onChange={(label) =>
@@ -878,12 +975,14 @@ export function FinePrintSection({
       <button
         className="add-button"
         type="button"
-        onClick={() =>
+        onClick={() => {
+          const index = data.footnotes.length
+          requestFocus(() => labelInputs.current[index])
           setFootnotes([
             ...data.footnotes,
             { label: '', gross: null, net: null },
           ])
-        }
+        }}
       >
         + Add fine print line
       </button>
@@ -901,15 +1000,8 @@ export function NotesSection({
   const textareaRefs = useRef<
     Record<string, HTMLTextAreaElement | null>
   >({})
-  const pendingFocus = useRef<string | null>(null)
   const notes = data.notes ?? []
-
-  useEffect(() => {
-    const id = pendingFocus.current
-    if (!id) return
-    textareaRefs.current[id]?.focus()
-    pendingFocus.current = null
-  }, [notes.length])
+  const requestFocus = usePendingFocus(notes.length)
 
   return (
     <section className="form-section">
@@ -947,7 +1039,8 @@ export function NotesSection({
         onClick={() => {
           const next = appendBlankNote(data)
           const nextNotes = next.notes ?? []
-          pendingFocus.current = nextNotes[nextNotes.length - 1]?.id ?? null
+          const id = nextNotes[nextNotes.length - 1]?.id
+          if (id) requestFocus(() => textareaRefs.current[id])
           onChange(next)
         }}
       >
@@ -1046,23 +1139,35 @@ export function ClientSection({
 export function handleFormKeyDown(
   event: ReactKeyboardEvent<HTMLFormElement>,
 ) {
+  const target = event.target
+  const isTextInput =
+    target instanceof HTMLInputElement && target.type === 'text'
+  const isSelect = target instanceof HTMLSelectElement
   if (
     event.key !== 'Enter' ||
-    !(event.target instanceof HTMLInputElement) ||
-    event.target.type !== 'text'
+    (!isTextInput && !isSelect)
   ) {
     return
   }
 
   const inputs = Array.from(
-    event.currentTarget.querySelectorAll<HTMLInputElement>(
-      'input:not([type="hidden"]):not([disabled])',
+    event.currentTarget.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement
+    >(
+      'input:not([type="hidden"]):not([disabled]), select:not([disabled])',
     ),
   ).filter((input) => input.getClientRects().length > 0)
-  const nextInput = inputs[inputs.indexOf(event.target) + 1]
+  const nextInput = nextEnterFocusTarget(inputs, target)
   if (!nextInput) return
   event.preventDefault()
   nextInput.focus()
+}
+
+export function nextEnterFocusTarget<T>(
+  focusables: readonly T[],
+  current: T,
+): T | undefined {
+  return focusables[focusables.indexOf(current) + 1]
 }
 
 export function Form({

@@ -56,6 +56,18 @@ export function parseMoneyInput(text: string): number | null {
   return Number.isFinite(result) ? result : null
 }
 
+export function stepMoney(
+  current: number | null,
+  direction: 1 | -1,
+  tier: 100 | 1_000 | 10_000,
+): number {
+  const base = current ?? 0
+  return Math.max(
+    0,
+    Math.round((base + direction * tier) / tier) * tier,
+  )
+}
+
 /** $1,600,000 — approximate marker optional. */
 export function money(value: number | null, opts?: { approx?: boolean }): string {
   if (value === null || Number.isNaN(value)) return BLANK
