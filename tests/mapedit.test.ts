@@ -16,7 +16,10 @@ import {
   setCustomArrowColor,
   setMapNoteBackground,
 } from '../src/render/mapInteraction'
-import { MapSvg } from '../src/render/MapSvg'
+import {
+  MapSvg,
+  resolveCustomArrowColor,
+} from '../src/render/MapSvg'
 import {
   adjustMapTextFontSize,
   applyMapTextEdit,
@@ -175,6 +178,20 @@ describe('applyMapTextEdit', () => {
 })
 
 describe('custom arrow edits', () => {
+  it.each([
+    ['dotted', undefined, 'green'],
+    ['dashed', undefined, 'green'],
+    ['solid', undefined, 'ink'],
+    ['dotted', 'blue', 'blue'],
+    ['dashed', 'gold', 'gold'],
+    ['solid', 'red', 'red'],
+  ] as const)(
+    'resolves %s flow color %s to %s',
+    (style, color, expected) => {
+      expect(resolveCustomArrowColor(style, color)).toBe(expected)
+    },
+  )
+
   it('rejects self, unknown, and duplicate connections without changes', () => {
     const base = { ...SAMPLE_WHITFIELD, customArrows: [] }
     const first = SAMPLE_WHITFIELD.accounts[0].id
@@ -481,6 +498,35 @@ describe('noninteractive map rendering', () => {
     }
   })
 
+  it('renders a migrated dotted flow without color in legacy green', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: [
+        {
+          id: 'migrated-flow:test-account',
+          sourceId: 'income',
+          targetId: SAMPLE_WHITFIELD.accounts[0].id,
+          style: 'dotted' as const,
+        },
+      ],
+    }
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+    const interactiveMarkup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data,
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+      }),
+    )
+
+    expect(markup).toMatch(
+      /data-arrow-color="green"[^>]*data-arrow-style="dotted"[^>]*marker-end="url\(#custom-arrowhead-green-[^)]+\)"[^>]*stroke="#1e7a4a"/,
+    )
+    expect(interactiveMarkup).toContain(
+      'class="map-arrow-color-ring" cx="16"',
+    )
+  })
+
   it('keeps editor chrome in the interactive render path', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
@@ -508,5 +554,6 @@ describe('noninteractive map rendering', () => {
     for (const className of editorChrome) {
       expect(markup).toContain(className)
     }
+    expect(markup).toContain('class="map-arrow-color-ring" cx="0"')
   })
 })

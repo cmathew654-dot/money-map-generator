@@ -952,7 +952,7 @@ function ArrowPath({
   const asNeeded = arrow.kind === 'asNeeded'
   const custom = arrow.kind === 'custom'
   const style = custom ? (arrow.style ?? 'solid') : undefined
-  const colorName = arrow.color ?? 'ink'
+  const colorName = resolveCustomArrowColor(style, arrow.color)
   const color = ARROW_COLORS[colorName]
   const dotted = style === 'dotted'
   const dashed = style === 'dashed' || asNeeded
@@ -974,6 +974,14 @@ function ArrowPath({
   )
 }
 
+export function resolveCustomArrowColor(
+  style: Arrow['style'],
+  color: Arrow['color'],
+): CustomArrowColor {
+  if (color) return color
+  return style === 'dotted' || style === 'dashed' ? 'green' : 'ink'
+}
+
 function FlowArrowLabel({
   arrow,
   onElementClick,
@@ -986,7 +994,11 @@ function FlowArrowLabel({
     <text
       x={arrow.labelAt.x}
       y={arrow.labelAt.y + TYPE.arrowLabel / 3}
-      fill={ARROW_COLORS[arrow.color ?? 'ink']}
+      fill={
+        ARROW_COLORS[
+          resolveCustomArrowColor(arrow.style, arrow.color)
+        ]
+      }
       fontFamily={FONT_SANS}
       fontSize={TYPE.arrowLabel}
       textAnchor="middle"
@@ -1133,7 +1145,8 @@ function ArrowEditor({
           transform={`translate(${midpoint.x - 48} ${midpoint.y + 46})`}
         >
           {CUSTOM_ARROW_COLORS.map((color, index) => {
-            const current = (arrow.color ?? 'ink') === color
+            const current =
+              resolveCustomArrowColor(arrow.style, arrow.color) === color
             return (
               <g
                 key={color}
