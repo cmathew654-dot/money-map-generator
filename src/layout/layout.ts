@@ -3,6 +3,7 @@ import { runwayLine } from '../model/math'
 import type {
   Account,
   AccountShape,
+  AccountTextRole,
   Bucket,
   CustomArrow,
   LayoutOverride,
@@ -10,7 +11,12 @@ import type {
   MoneyMapData,
   SubAccount,
 } from '../model/types'
-import { accountShape } from '../model/types'
+import {
+  accountShape,
+  accountTextOverrideKey,
+  MAX_ACCOUNT_TEXT_FONT_SIZE,
+  MIN_ACCOUNT_TEXT_FONT_SIZE,
+} from '../model/types'
 import {
   clamp,
   clampRectToBounds,
@@ -61,12 +67,20 @@ export interface SubAccountLayout {
 }
 
 export interface AccountTextLayout {
+  captionFontSize: number
+  captionLeading: number
+  captionX: number
   captionY?: number
   rowBaselines: number[]
   runwayY?: number
   subStartY: number
   tagY: number
+  titleFontSize: number
+  titleLeading: number
+  titleX: number
   titleY: number
+  valueFontSize: number
+  valueX: number
   valueY: number
 }
 
@@ -156,6 +170,39 @@ const BOTTOM_CONTENT_GAP = 8
 
 function nextRoleBaseline(baseline: number, size: number): number {
   return baseline + size + ROLE_GAP
+}
+
+type AccountTextOverrides = Partial<Record<AccountTextRole, LayoutOverride>>
+
+function accountTextOverrides(
+  overrides: Record<string, LayoutOverride> | undefined,
+  accountId: string,
+): AccountTextOverrides {
+  return {
+    label: overrides?.[accountTextOverrideKey(accountId, 'label')],
+    caption: overrides?.[accountTextOverrideKey(accountId, 'caption')],
+    value: overrides?.[accountTextOverrideKey(accountId, 'value')],
+  }
+}
+
+function accountTextFontSize(
+  overrides: AccountTextOverrides,
+  role: AccountTextRole,
+  fallback: number,
+): number {
+  return clamp(
+    overrides[role]?.fs ?? fallback,
+    MIN_ACCOUNT_TEXT_FONT_SIZE,
+    MAX_ACCOUNT_TEXT_FONT_SIZE,
+  )
+}
+
+function scaledLeading(
+  defaultLeading: number,
+  defaultFontSize: number,
+  fontSize: number,
+): number {
+  return (defaultLeading / defaultFontSize) * fontSize
 }
 
 function pillInset(width: number, height: number, y: number): number {
@@ -273,9 +320,35 @@ function accountSizing(
   width: number,
   hasRunway: boolean,
   requestedHeight = 0,
+  textOverrides: AccountTextOverrides = {},
 ): AccountSizing {
   const shape = accountShape(account)
   const capRy = Math.round(width * 0.13)
+  const titleFontSize = accountTextFontSize(
+    textOverrides,
+    'label',
+    TYPE.accountTitle,
+  )
+  const captionFontSize = accountTextFontSize(
+    textOverrides,
+    'caption',
+    TYPE.caption,
+  )
+  const valueFontSize = accountTextFontSize(
+    textOverrides,
+    'value',
+    TYPE.value,
+  )
+  const titleLeading = scaledLeading(
+    LEADING.accountTitle,
+    TYPE.accountTitle,
+    titleFontSize,
+  )
+  const captionLeading = scaledLeading(
+    LEADING.caption,
+    TYPE.caption,
+    captionFontSize,
+  )
   let height = Math.max(
     requestedHeight,
     account.bucket === 'shortTerm' ? 250 : MIN_ACCOUNT_HEIGHT,
@@ -287,49 +360,49 @@ function accountSizing(
     const titleY =
       shape === 'drum'
         ? capRy * 2 + CAP_CONTENT_GAP
-        : nextRoleBaseline(tagY, TYPE.accountTitle)
+        : nextRoleBaseline(tagY, titleFontSize)
     const usableTitleWidth = usableTextWidth(
       shape,
       width,
       height,
       titleY,
-      TYPE.accountTitle,
+      titleFontSize,
     )
     const titleLines = fitLines(
       accountDisplayName(account),
       usableTitleWidth,
-      TYPE.accountTitle,
+      titleFontSize,
     )
     const safeTitleLines =
       titleLines.length > 0 ? titleLines : ['']
     const titleLast =
       titleY +
-      (safeTitleLines.length - 1) * LEADING.accountTitle
+      (safeTitleLines.length - 1) * titleLeading
     const provisionalCaptionY = nextRoleBaseline(
       titleLast,
-      TYPE.caption,
+      captionFontSize,
     )
     const usableCaptionWidth = usableTextWidth(
       shape,
       width,
       height,
       provisionalCaptionY,
-      TYPE.caption,
+      captionFontSize,
     )
     const captionLines = account.caption
       ? fitLines(
           account.caption,
           usableCaptionWidth,
-          TYPE.caption,
+          captionFontSize,
         )
       : []
     const captionY =
       captionLines.length > 0 ? provisionalCaptionY : undefined
     let previousBaseline =
       captionY === undefined
-        ? titleLast
-        : captionY +
-          (captionLines.length - 1) * LEADING.caption
+          ? titleLast
+          : captionY +
+          (captionLines.length - 1) * captionLeading
     const rowBaselines = (account.positions ?? []).map(
       (_position, index) => {
         const baseline =
@@ -340,13 +413,13 @@ function accountSizing(
         return baseline
       },
     )
-    const valueY = nextRoleBaseline(previousBaseline, TYPE.value)
+    const valueY = nextRoleBaseline(previousBaseline, valueFontSize)
     const usableValueWidth = usableTextWidth(
       shape,
       width,
       height,
       valueY,
-      TYPE.value,
+      valueFontSize,
     )
     const runwayY = hasRunway
       ? nextRoleBaseline(valueY, TYPE.runway)
@@ -395,12 +468,20 @@ function accountSizing(
       lastBaseline,
       subAccountLayouts,
       text: {
+        captionFontSize,
+        captionLeading,
+        captionX: 0,
         captionY,
         rowBaselines,
         runwayY,
         subStartY,
         tagY,
+        titleFontSize,
+        titleLeading,
+        titleX: 0,
         titleY,
+        valueFontSize,
+        valueX: 0,
         valueY,
       },
       titleLines: safeTitleLines,
@@ -421,17 +502,35 @@ function fittedAccount(
   minimumWidth: number,
   hasRunway: boolean,
   requestedHeight = 0,
+  textOverrides: AccountTextOverrides = {},
 ): { sizing: AccountSizing; width: number } {
   let width = minimumWidth
-  let sizing = accountSizing(account, width, hasRunway, requestedHeight)
+  let sizing = accountSizing(
+    account,
+    width,
+    hasRunway,
+    requestedHeight,
+    textOverrides,
+  )
+  const valueFontSize = accountTextFontSize(
+    textOverrides,
+    'value',
+    TYPE.value,
+  )
   const required = textWidth(
     taggedMoney(account.value, account.valueTag),
-    TYPE.value,
+    valueFontSize,
   )
 
   for (let pass = 0; pass < 8 && required > sizing.usableValueWidth; pass += 1) {
     width += required - sizing.usableValueWidth + 2
-    sizing = accountSizing(account, width, hasRunway, requestedHeight)
+    sizing = accountSizing(
+      account,
+      width,
+      hasRunway,
+      requestedHeight,
+      textOverrides,
+    )
   }
   return { sizing, width }
 }
@@ -464,6 +563,8 @@ function placeColumn(data: MoneyMapData, column: Column): PlacedAccount[] {
         data.asNeededAmount,
         data.showMath !== false,
       ) !== null && account.bucket === 'shortTerm',
+      0,
+      accountTextOverrides(data.layoutOverrides, account.id),
     ),
   )
   const sizings = fitted.map((item) => item.sizing)
@@ -1365,6 +1466,7 @@ function applyAccountOverride(
   placed: PlacedAccount,
   override: LayoutOverride | undefined,
   hasRunway: boolean,
+  textOverrides: AccountTextOverrides,
 ): PlacedAccount {
   const rot = normalizeRotation(override?.rot ?? 0)
   let desiredWidth = clamp(
@@ -1382,6 +1484,7 @@ function applyAccountOverride(
     desiredWidth,
     hasRunway,
     requestedHeight,
+    textOverrides,
   )
   let sizing = fitted.sizing
   desiredWidth = fitted.width
@@ -1421,6 +1524,7 @@ function applyAccountOverride(
     desiredWidth,
     hasRunway,
     desiredHeight,
+    textOverrides,
   )
   sizing = fitted.sizing
   desiredWidth = fitted.width
@@ -1444,6 +1548,97 @@ function applyAccountOverride(
     ...clamped,
     rot,
   }
+}
+
+function accountTextBlock(
+  placed: PlacedAccount,
+  role: AccountTextRole,
+): Placed {
+  const { text } = placed
+  const lines =
+    role === 'label'
+      ? placed.titleLines
+      : role === 'caption'
+        ? placed.captionLines
+        : [taggedMoney(placed.account.value, placed.account.valueTag)]
+  const fontSize =
+    role === 'label'
+      ? text.titleFontSize
+      : role === 'caption'
+        ? text.captionFontSize
+        : text.valueFontSize
+  const leading =
+    role === 'label'
+      ? text.titleLeading
+      : role === 'caption'
+        ? text.captionLeading
+        : fontSize
+  const baseline =
+    role === 'label'
+      ? text.titleY
+      : role === 'caption'
+        ? text.captionY
+        : text.valueY
+  const width = Math.max(
+    1,
+    ...lines.map((line) => textWidth(line, fontSize)),
+  )
+  const height = fontSize + Math.max(0, lines.length - 1) * leading
+
+  return {
+    x: placed.x + placed.w / 2 - width / 2,
+    y: placed.y + (baseline ?? 0) - fontSize,
+    w: width,
+    h: height,
+  }
+}
+
+function applyAccountTextOverrides(
+  placed: PlacedAccount,
+  overrides: AccountTextOverrides,
+): PlacedAccount {
+  let text = placed.text
+
+  for (const role of ['label', 'caption', 'value'] as const) {
+    const override = overrides[role]
+    if (
+      (override?.dx === undefined && override?.dy === undefined) ||
+      (role === 'caption' && text.captionY === undefined)
+    ) {
+      continue
+    }
+    const block = accountTextBlock({ ...placed, text }, role)
+    const desired = {
+      ...block,
+      x: block.x + (override?.dx ?? 0),
+      y: block.y + (override?.dy ?? 0),
+    }
+    const clamped = clampRectToBounds(desired, OVERRIDE_BOUNDS)
+    const dx = clamped.x - block.x
+    const dy = clamped.y - block.y
+
+    if (role === 'label') {
+      text = {
+        ...text,
+        titleX: dx,
+        titleY: text.titleY + dy,
+      }
+    } else if (role === 'caption') {
+      text = {
+        ...text,
+        captionX: dx,
+        captionY: text.captionY! + dy,
+      }
+    } else {
+      text = {
+        ...text,
+        valueX: dx,
+        valueY: text.valueY + dy,
+      }
+    }
+  }
+
+  return { ...placed, text }
 }
 
 function applyAsNeededChipOverride(
@@ -1599,8 +1794,14 @@ export function layoutMap(data: MoneyMapData): MapLayout {
               data.asNeededAmount,
               data.showMath !== false,
             ) !== null,
+          accountTextOverrides(data.layoutOverrides, placed.account.id),
         )
       : placed,
+  ).map((placed) =>
+    applyAccountTextOverrides(
+      placed,
+      accountTextOverrides(data.layoutOverrides, placed.account.id),
+    ),
   )
   const arrows = arrowsForFinalGeometry(
     income,

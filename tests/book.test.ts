@@ -10,6 +10,7 @@ import {
   duplicateClient,
   newBook,
   parseBook,
+  resetArrangement,
   updateClient,
 } from '../src/model/book'
 import { layoutMap } from '../src/layout/layout'
@@ -136,6 +137,23 @@ describe('book operations', () => {
     expect(copy.notes?.[0].id).not.toBe(source.notes[0].id)
   })
 
+  it('remaps account text overrides when duplicating a client', () => {
+    const original = newBook()
+    const source = original.clients[0]
+    const sourceAccount = source.accounts[0]
+    source.layoutOverrides = {
+      [`text:${sourceAccount.id}:label`]: { fs: 23, dx: 12 },
+    }
+
+    const copy = duplicateClient(original, source.id).book.clients.at(-1)!
+    const copyKey = `text:${copy.accounts[0].id}:label`
+
+    expect(copy.layoutOverrides?.[copyKey]).toEqual({ fs: 23, dx: 12 })
+    expect(copy.layoutOverrides).not.toHaveProperty(
+      `text:${sourceAccount.id}:label`,
+    )
+  })
+
   it('rejects duplication of an unknown client', () => {
     expect(() => duplicateClient(newBook(), 'missing')).toThrow(
       'Client to duplicate was not found.',
@@ -179,6 +197,11 @@ describe('book operations', () => {
     source.accounts[0].valueTag = 'est.'
     source.layoutOverrides = {
       income: { dx: 24, dy: -12 },
+      [`text:${source.accounts[0].id}:label`]: {
+        dx: 18,
+        dy: -6,
+        fs: 22,
+      },
     }
 
     const cleared = clearedClient(source)
@@ -197,6 +220,23 @@ describe('book operations', () => {
     expect(cleared.client).not.toBe(source.client)
     expect(cleared.layoutOverrides).toBeUndefined()
     expect(source.accounts).not.toEqual([])
+    expect(source.layoutOverrides).toBeDefined()
+  })
+
+  it('resets account text overrides with the rest of the arrangement', () => {
+    const source = structuredClone(SAMPLE_WHITFIELD)
+    source.layoutOverrides = {
+      income: { dx: 24 },
+      [`text:${source.accounts[0].id}:caption`]: {
+        dx: 60,
+        dy: -30,
+        fs: 19,
+      },
+    }
+
+    const reset = resetArrangement(source)
+
+    expect(reset.layoutOverrides).toBeUndefined()
     expect(source.layoutOverrides).toBeDefined()
   })
 
@@ -221,9 +261,27 @@ describe('parseBook', () => {
       income: { dx: 24, dy: -12 },
       'managed-ira-jordan': { dx: -80, dy: 60, w: 340, h: 280 },
       asNeededChip: { dx: 30, dy: 18 },
+      [`text:${book.clients[0].accounts[0].id}:label`]: {
+        dx: 12,
+        dy: -8,
+        fs: 24,
+      },
     }
 
     expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it.each([
+    ['malformed role', 'text:managed-ira-jordan:subtitle', { fs: 16 }],
+    ['missing account', 'text:missing:label', { fs: 16 }],
+    ['font size on a shape', 'managed-ira-jordan', { fs: 16 }],
+  ])('rejects a %s text override key', (_label, key, override) => {
+    const book = newBook()
+    book.clients[0].layoutOverrides = { [key]: override }
+
+    expect(() => parseBook(JSON.stringify(book))).toThrow(
+      'Client 1 has invalid layout overrides.',
+    )
   })
 
   it('round-trips explicit account shapes', () => {

@@ -187,12 +187,16 @@ function textStressData(
 function expectAccountTextIntegrity(data: MoneyMapData) {
   for (const placed of layoutMap(data).accounts) {
     for (const line of placed.titleLines) {
-      expect(textWidth(line, TYPE.accountTitle)).toBeLessThanOrEqual(
+      expect(
+        textWidth(line, placed.text.titleFontSize),
+      ).toBeLessThanOrEqual(
         placed.usableTitleWidth,
       )
     }
     for (const line of placed.captionLines) {
-      expect(textWidth(line, TYPE.caption)).toBeLessThanOrEqual(
+      expect(
+        textWidth(line, placed.text.captionFontSize),
+      ).toBeLessThanOrEqual(
         placed.usableCaptionWidth,
       )
     }
@@ -274,6 +278,114 @@ describe('layoutMap', () => {
     expect(placed.w).toBeGreaterThan(250)
     expect(textWidth(line, TYPE.value)).toBeLessThanOrEqual(
       placed.usableValueWidth,
+    )
+  })
+
+  it('re-wraps a 24-unit label and strictly grows its account shape', () => {
+    const data = textStressData(
+      'A deliberately long retirement account label that needs several lines',
+    )
+    const base = layoutMap(data).accounts[0]
+    data.layoutOverrides = {
+      [`text:${base.account.id}:label`]: { fs: 24 },
+    }
+
+    const enlarged = layoutMap(data).accounts[0]
+
+    expect(enlarged.titleLines.length).toBeGreaterThan(
+      base.titleLines.length,
+    )
+    expect(enlarged.h).toBeGreaterThan(base.h)
+    expect(enlarged.text.titleFontSize).toBe(24)
+  })
+
+  it.each([
+    ['Whitfield', SAMPLE_WHITFIELD],
+    ['Calloway', SAMPLE_CALLOWAY],
+    ['Venkat', SAMPLE_VENKAT],
+    [
+      'long-label stress client',
+      textStressData(
+        'A deliberately oversized account label that must remain contained even when every permitted character needs careful wrapping',
+        'An oversized caption must also stay inside the shape.',
+        MIN_ACCOUNT_WIDTH,
+      ),
+    ],
+  ])(
+    'contains every unmoved oversized account text for %s',
+    (_label, source) => {
+      const data = structuredClone(source)
+      data.layoutOverrides = {
+        ...data.layoutOverrides,
+        ...Object.fromEntries(
+          data.accounts.flatMap((account) =>
+            (['label', 'caption', 'value'] as const).map((role) => [
+              `text:${account.id}:${role}`,
+              { fs: 28 },
+            ]),
+          ),
+        ),
+      }
+
+      expectAccountTextIntegrity(data)
+    },
+  )
+
+  it('keeps moved text bounds-clamped but exempts it from shape containment', () => {
+    const data = textStressData(
+      'Moved account label',
+      'Caption remains automatically placed.',
+    )
+    const base = layoutMap(data).accounts[0]
+    data.layoutOverrides = {
+      [`text:${base.account.id}:label`]: {
+        dx: 10_000,
+        dy: -10_000,
+      },
+    }
+
+    const moved = layoutMap(data).accounts[0]
+    const width = Math.max(
+      ...moved.titleLines.map((line) =>
+        textWidth(line, moved.text.titleFontSize),
+      ),
+    )
+    const left =
+      moved.x + moved.w / 2 + moved.text.titleX - width / 2
+    const top = moved.y + moved.text.titleY - moved.text.titleFontSize
+
+    expect(moved.titleLines).toEqual(base.titleLines)
+    expect(left).toBeGreaterThanOrEqual(48)
+    expect(top).toBeGreaterThanOrEqual(118)
+    expect(
+      moved.x + moved.w / 2 + moved.text.titleX,
+    ).toBeGreaterThan(moved.x + moved.w)
+  })
+
+  it('scales tagged value measurement and width at the overridden size', () => {
+    const data = blankClient()
+    data.accounts = [
+      {
+        id: 'scaled-tag-width',
+        bucket: 'cash',
+        label: 'Tagged value',
+        value: 165_000,
+        valueTag: 'estimated pending distribution',
+        inWaterfall: false,
+      },
+    ]
+    const base = layoutMap(data).accounts[0]
+    data.layoutOverrides = {
+      'text:scaled-tag-width:value': { fs: 28 },
+    }
+
+    const enlarged = layoutMap(data).accounts[0]
+    const valueLine = `${money(enlarged.account.value)} ${enlarged.account.valueTag}`
+
+    expect(enlarged.w).toBeGreaterThan(base.w)
+    expect(enlarged.text.valueFontSize).toBe(28)
+    expect(textWidth(valueLine, 28)).toBeLessThanOrEqual(
+      enlarged.usableValueWidth,
     )
   })
 

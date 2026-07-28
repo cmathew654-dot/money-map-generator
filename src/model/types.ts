@@ -74,9 +74,22 @@ export interface MapNote {
   y: number
 }
 
+export const ACCOUNT_TEXT_ROLES = ['label', 'caption', 'value'] as const
+export type AccountTextRole = (typeof ACCOUNT_TEXT_ROLES)[number]
+export const MIN_ACCOUNT_TEXT_FONT_SIZE = 9
+export const MAX_ACCOUNT_TEXT_FONT_SIZE = 28
+
+export function accountTextOverrideKey(
+  accountId: string,
+  role: AccountTextRole,
+): string {
+  return `text:${accountId}:${role}`
+}
+
 export interface LayoutOverride {
   dx?: number
   dy?: number
+  fs?: number
   w?: number
   h?: number
   rot?: number

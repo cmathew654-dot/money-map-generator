@@ -151,6 +151,26 @@ describe('map interaction helpers', () => {
       'invalid layout overrides',
     )
   })
+
+  it('round-trips finite text overrides and rejects a non-finite font size', () => {
+    const book = newBook()
+    const key = `text:${IRA_ID}:value`
+    book.clients[0].layoutOverrides = {
+      [key]: { dx: 14, dy: -9, fs: 27 },
+    }
+
+    expect(
+      parseBook(JSON.stringify(book)).clients[0].layoutOverrides?.[key],
+    ).toEqual({ dx: 14, dy: -9, fs: 27 })
+
+    const infiniteFontSize = JSON.stringify(book).replace(
+      '"fs":27',
+      '"fs":1e400',
+    )
+    expect(() => parseBook(infiniteFontSize)).toThrow(
+      'invalid layout overrides',
+    )
+  })
 })
 
 describe('layout overrides', () => {

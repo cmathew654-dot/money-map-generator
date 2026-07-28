@@ -11,7 +11,12 @@ import type {
   MoneyMapData,
   MoneyMapFile,
 } from './types'
-import { ACCOUNT_SHAPES, newId } from './types'
+import {
+  ACCOUNT_SHAPES,
+  ACCOUNT_TEXT_ROLES,
+  accountTextOverrideKey,
+  newId,
+} from './types'
 
 export const HISTORY_LIMIT = 50
 export const HISTORY_COALESCE_MS = 800
@@ -183,6 +188,28 @@ function withFreshIds(data: MoneyMapData): MoneyMapData {
     accountIds.set(account.id, id)
     return { ...account, id }
   })
+  if (copy.layoutOverrides) {
+    copy.layoutOverrides = Object.fromEntries(
+      Object.entries(copy.layoutOverrides).map(([key, override]) => {
+        const [prefix, accountId, role, ...extra] = key.split(':')
+        const remappedId = accountIds.get(accountId)
+        return prefix === 'text' &&
+          remappedId &&
+          extra.length === 0 &&
+          ACCOUNT_TEXT_ROLES.includes(
+            role as (typeof ACCOUNT_TEXT_ROLES)[number],
+          )
+          ? [
+              accountTextOverrideKey(
+                remappedId,
+                role as (typeof ACCOUNT_TEXT_ROLES)[number],
+              ),
+              override,
+            ]
+          : [key, override]
+      }),
+    )
+  }
   if (copy.customArrows) {
     copy.customArrows = copy.customArrows.map((arrow) => ({
       ...arrow,
@@ -219,6 +246,12 @@ export function clearedClient(data: MoneyMapData): MoneyMapData {
   }
   if (data.showMath !== undefined) cleared.showMath = data.showMath
   return cleared
+}
+
+export function resetArrangement(data: MoneyMapData): MoneyMapData {
+  const reset = { ...data }
+  delete reset.layoutOverrides
+  return reset
 }
 
 export function newBook(): MoneyMapFile {
@@ -290,6 +323,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function validateLayoutOverrides(
   value: unknown,
   clientIndex: number,
+  accountIds: Set<string>,
 ): void {
   if (value === undefined) return
   if (!isRecord(value)) {
@@ -298,7 +332,7 @@ function validateLayoutOverrides(
     )
   }
 
-  for (const override of Object.values(value)) {
+  for (const [key, override] of Object.entries(value)) {
     if (!isRecord(override)) {
       throw new Error(
         `Client ${clientIndex + 1} has invalid layout overrides.`,
@@ -307,6 +341,7 @@ function validateLayoutOverrides(
     for (const field of [
       'dx',
       'dy',
+      'fs',
       'w',
       'h',
       'rot',
@@ -323,6 +358,24 @@ function validateLayoutOverrides(
           `Client ${clientIndex + 1} has invalid layout overrides.`,
         )
       }
+    }
+    if (key.startsWith('text:')) {
+      const parts = key.split(':')
+      if (
+        parts.length !== 3 ||
+        !accountIds.has(parts[1]) ||
+        !ACCOUNT_TEXT_ROLES.includes(
+          parts[2] as (typeof ACCOUNT_TEXT_ROLES)[number],
+        )
+      ) {
+        throw new Error(
+          `Client ${clientIndex + 1} has invalid layout overrides.`,
+        )
+      }
+    } else if (override.fs !== undefined) {
+      throw new Error(
+        `Client ${clientIndex + 1} has invalid layout overrides.`,
+      )
     }
     for (const field of ['startAt', 'endAt'] as const) {
       const point = override[field]
@@ -426,7 +479,17 @@ function validateClient(value: unknown, index: number): void {
       throw new Error(`Client ${index + 1} has invalid map notes.`)
     }
   }
-  validateLayoutOverrides(value.layoutOverrides, index)
+  validateLayoutOverrides(
+    value.layoutOverrides,
+    index,
+    new Set(
+      accounts.flatMap((account) =>
+        isRecord(account) && typeof account.id === 'string'
+          ? [account.id]
+          : [],
+      ),
+    ),
+  )
 }
 
 export function parseBook(json: string): MoneyMapFile {
