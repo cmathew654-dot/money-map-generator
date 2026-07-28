@@ -8,6 +8,10 @@ import {
   NotesSection,
   addIncomeSource,
   appendBlankNote,
+  appendBlankPosition,
+  focusPendingTarget,
+  isMoneyDraftDirty,
+  nextEnterFocusTarget,
   updateNoteText,
   yearSelectOptions,
 } from '../src/form/Form'
@@ -52,6 +56,80 @@ describe('income source presets', () => {
     expect(markup).toContain('Social Security')
     expect(markup).toContain('Something else')
     expect(markup).not.toContain('+ Add income source')
+  })
+})
+
+describe('rapid-entry keyboard helpers', () => {
+  it('advances through a select in the Enter chain', () => {
+    const titleInput = { id: 'title' }
+    const periodSelect = { id: 'period' }
+    const shownAsInput = { id: 'shown-as' }
+    const focusables = [titleInput, periodSelect, shownAsInput]
+
+    expect(nextEnterFocusTarget(focusables, titleInput)).toBe(
+      periodSelect,
+    )
+    expect(nextEnterFocusTarget(focusables, periodSelect)).toBe(
+      shownAsInput,
+    )
+  })
+
+  it('only marks a money draft dirty when it changed after focus', () => {
+    expect(isMoneyDraftDirty(null, '85000')).toBe(false)
+    expect(isMoneyDraftDirty('85000', '85000')).toBe(false)
+    expect(isMoneyDraftDirty('85k', '85000')).toBe(true)
+    expect(isMoneyDraftDirty('', '85000')).toBe(true)
+  })
+
+  it('focuses any pending target through the shared mechanism', () => {
+    const focused: string[] = []
+    const input = { focus: () => focused.push('input') }
+    const textarea = { focus: () => focused.push('textarea') }
+
+    expect(focusPendingTarget(() => input)).toBe(true)
+    expect(focusPendingTarget(() => textarea)).toBe(true)
+    expect(focusPendingTarget(() => null)).toBe(false)
+    expect(focused).toEqual(['input', 'textarea'])
+  })
+
+  it('keeps a blur commit when Add position follows in the same gesture', () => {
+    let current = blankClient()
+    current.accounts = [
+      {
+        id: 'account-1',
+        bucket: 'afterTax',
+        label: 'Trust Account',
+        value: null,
+      },
+    ]
+    const onChange = (next: typeof current) => {
+      current = next
+    }
+
+    onChange({
+      ...current,
+      accounts: current.accounts.map((account) => ({
+        ...account,
+        value: 85_000,
+      })),
+    })
+    const accountAfterBlur = current.accounts[0]
+    onChange({
+      ...current,
+      accounts: [
+        {
+          ...accountAfterBlur,
+          positions: appendBlankPosition(
+            accountAfterBlur.positions ?? [],
+          ),
+        },
+      ],
+    })
+
+    expect(current.accounts[0].value).toBe(85_000)
+    expect(current.accounts[0].positions).toEqual([
+      { label: '', value: null },
+    ])
   })
 })
 

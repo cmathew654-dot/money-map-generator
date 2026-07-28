@@ -1160,6 +1160,47 @@ summary:focus-visible {
   font-size: 12px;
 }
 
+/* S32 — rapid entry */
+.autocomplete {
+  position: relative;
+  min-width: 0;
+}
+
+.autocomplete-list {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  max-height: 248px;
+  overflow-y: auto;
+  border: 1px solid #cbd1c9;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgb(28 36 34 / 16%);
+}
+
+.autocomplete-option {
+  padding: 7px 9px;
+  color: #303a37;
+  cursor: default;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.autocomplete-option + .autocomplete-option {
+  border-top: 1px solid #eef0ec;
+}
+
+.autocomplete-option.is-active {
+  background: #eef4ef;
+}
+
+.autocomplete-option strong {
+  color: #0e654a;
+  font-weight: 750;
+}
+
 .empty-state {
   margin: 8px 0;
   color: #5b6663;

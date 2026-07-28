@@ -1,15 +1,18 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type Ref,
 } from 'react'
 import {
+  BLANK,
   accountDisplayName,
   money,
   parseMoneyInput,
+  stepMoney,
 } from '../model/format'
 import { ACCOUNT_PRESETS } from '../model/book'
 import type {
@@ -27,14 +30,21 @@ import {
   accountShape,
   newId,
 } from '../model/types'
+import {
+  ACCOUNT_TYPE_SEEDS,
+  CARRIER_SEEDS,
+  type VocabularyTerm,
+} from '../model/vocab'
 import { NOTE_WIDTH } from '../layout/layout'
 import { ARTBOARD } from '../render/tokens'
+import { Autocomplete } from '../ui/Autocomplete'
 
 export interface FormProps {
   data: MoneyMapData
   onChange(next: MoneyMapData): void
   focusRequest?: { id: string; at: number }
   onHoverAccount?: (id: string | null) => void
+  vocabulary?: readonly VocabularyTerm[]
 }
 
 interface MoneyFieldProps {
@@ -63,6 +73,13 @@ const incomePresets = [
   { chipLabel: 'Something else', label: '' },
 ]
 
+const accountNameSeeds = [...ACCOUNT_TYPE_SEEDS, ...CARRIER_SEEDS]
+const incomeSourceSeeds = incomePresets.flatMap((preset) =>
+  preset.label ? [preset.label] : [],
+)
+const incomeQualifierSeeds = ['Gross', 'After-Tax', 'Net']
+const noSeeds: readonly string[] = []
+
 const months = [
   'January',
   'February',
@@ -86,6 +103,10 @@ export function addIncomeSource(
     ...incomeSources,
     { label, amount: null, period: 'mo' },
   ]
+}
+
+export function appendBlankPosition(positions: Position[]): Position[] {
+  return [...positions, { label: '', value: null }]
 }
 
 export function yearSelectOptions(
@@ -128,6 +149,46 @@ export function updateNoteText(
       note.id === id ? { ...note, text } : note,
     ),
   }
+}
+
+export function isMoneyDraftDirty(
+  draft: string | null,
+  focusSnapshot: string,
+): boolean {
+  return draft !== null && draft !== focusSnapshot
+}
+
+type PendingFocusTarget = {
+  focus(): void
+}
+
+export function focusPendingTarget(
+  resolve: (() => PendingFocusTarget | null | undefined) | null,
+): boolean {
+  const target = resolve?.()
+  if (!target) return false
+  target.focus()
+  return true
+}
+
+function usePendingFocus(dependency: unknown) {
+  const pendingFocus = useRef<
+    (() => PendingFocusTarget | null | undefined) | null
+  >(null)
+  const requestFocus = useCallback(
+    (resolve: () => PendingFocusTarget | null | undefined) => {
+      pendingFocus.current = resolve
+    },
+    [],
+  )
+
+  useEffect(() => {
+    if (focusPendingTarget(pendingFocus.current)) {
+      pendingFocus.current = null
+    }
+  }, [dependency])
+
+  return requestFocus
 }
 
 function monthSelectOptions(storedValue: string): string[] {
@@ -178,30 +239,79 @@ function MoneyField({
   value,
   onChange,
 }: MoneyFieldProps) {
-  const [focused, setFocused] = useState(false)
-  const [raw, setRaw] = useState('')
+  const [draft, setDraft] = useState<string | null>(null)
+  const focusSnapshot = useRef('')
+  const focusedInput = useRef<HTMLInputElement | null>(null)
+  const selectAfterRender = useRef(false)
+  const commitDraft = () => {
+    if (!isMoneyDraftDirty(draft, focusSnapshot.current)) return
+    const nextDraft = draft ?? ''
+    onChange(parseMoneyInput(nextDraft))
+    focusSnapshot.current = nextDraft
+  }
+
+  useLayoutEffect(() => {
+    if (!selectAfterRender.current) return
+    selectAfterRender.current = false
+    focusedInput.current?.select()
+  }, [draft])
 
   return (
     <label className="form-field">
       <span>{label}</span>
       <input
         className="money-input"
+        enterKeyHint="next"
         inputMode="decimal"
-        placeholder="~$ ______"
+        placeholder={BLANK}
         ref={inputRef}
         type="text"
-        value={focused ? raw : value === null ? '' : money(value)}
+        value={draft ?? (value === null ? '' : money(value))}
         onBlur={() => {
-          onChange(parseMoneyInput(raw))
-          setFocused(false)
+          commitDraft()
+          setDraft(null)
         }}
         onChange={(event) => {
-          setRaw(event.target.value)
-          onChange(parseMoneyInput(event.target.value))
+          setDraft(event.target.value)
         }}
-        onFocus={() => {
-          setRaw(value === null ? '' : String(value))
-          setFocused(true)
+        onFocus={(event) => {
+          const snapshot = value === null ? '' : String(value)
+          focusSnapshot.current = snapshot
+          focusedInput.current = event.currentTarget
+          selectAfterRender.current = true
+          setDraft(snapshot)
+          event.currentTarget.select()
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            setDraft(focusSnapshot.current)
+            return
+          }
+          if (event.key === 'Enter') {
+            commitDraft()
+            return
+          }
+          if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+            return
+          }
+
+          event.preventDefault()
+          const tier = event.altKey
+            ? 10_000
+            : event.shiftKey
+              ? 1_000
+              : 100
+          const base = parseMoneyInput(draft ?? '') ?? value ?? 0
+          const next = stepMoney(
+            base,
+            event.key === 'ArrowUp' ? 1 : -1,
+            tier,
+          )
+          const nextDraft = String(next)
+          setDraft(nextDraft)
+          onChange(next)
+          focusSnapshot.current = nextDraft
         }}
       />
     </label>
@@ -209,12 +319,17 @@ function MoneyField({
 }
 
 function TextField({
+  autocomplete,
   label,
   value,
   onChange,
   inputRef,
   placeholder,
 }: {
+  autocomplete?: {
+    bookTerms: readonly VocabularyTerm[]
+    seeds: readonly string[]
+  }
   label: string
   value: string
   onChange(value: string): void
@@ -224,13 +339,25 @@ function TextField({
   return (
     <label className="form-field">
       <span>{label}</span>
-      <input
-        ref={inputRef}
-        placeholder={placeholder}
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
+      {autocomplete ? (
+        <Autocomplete
+          bookTerms={autocomplete.bookTerms}
+          inputRef={inputRef}
+          placeholder={placeholder}
+          seeds={autocomplete.seeds}
+          value={value}
+          onChange={onChange}
+        />
+      ) : (
+        <input
+          enterKeyHint="next"
+          ref={inputRef}
+          placeholder={placeholder}
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      )}
     </label>
   )
 }
@@ -309,16 +436,15 @@ export function IncomeSection({
   onChange,
   sectionRef,
   includeNeed = true,
+  vocabulary = [],
 }: Pick<FormProps, 'data' | 'onChange'> & {
   sectionRef?: Ref<HTMLElement>
   includeNeed?: boolean
+  vocabulary?: readonly VocabularyTerm[]
 }) {
   const labelInputs = useRef<(HTMLInputElement | null)[]>([])
   const amountInputs = useRef<(HTMLInputElement | null)[]>([])
-  const pendingFocus = useRef<{
-    field: 'amount' | 'label'
-    index: number
-  } | null>(null)
+  const requestFocus = usePendingFocus(data.incomeSources.length)
   const setSources = (incomeSources: IncomeSource[]) =>
     onChange({ ...data, incomeSources })
   const updateSource = (index: number, source: IncomeSource) =>
@@ -328,15 +454,6 @@ export function IncomeSection({
       ),
     )
 
-  useEffect(() => {
-    const request = pendingFocus.current
-    if (!request) return
-    const inputs =
-      request.field === 'amount' ? amountInputs : labelInputs
-    inputs.current[request.index]?.focus()
-    pendingFocus.current = null
-  }, [data.incomeSources.length])
-
   return (
     <section className="form-section" ref={sectionRef}>
       <h2>Income</h2>
@@ -345,6 +462,10 @@ export function IncomeSection({
           <div className="stacked-row income-row" key={index}>
             <div className="stacked-row-heading">
               <TextField
+                autocomplete={{
+                  bookTerms: vocabulary,
+                  seeds: incomeSourceSeeds,
+                }}
                 inputRef={(element) => {
                   labelInputs.current[index] = element
                 }}
@@ -392,6 +513,10 @@ export function IncomeSection({
                 </select>
               </label>
               <TextField
+                autocomplete={{
+                  bookTerms: vocabulary,
+                  seeds: incomeQualifierSeeds,
+                }}
                 label="Shown as"
                 placeholder="e.g. Gross, After-Tax"
                 value={source.qualifier ?? ''}
@@ -415,10 +540,8 @@ export function IncomeSection({
             type="button"
             onClick={() => {
               const index = data.incomeSources.length
-              pendingFocus.current = {
-                field: preset.label ? 'amount' : 'label',
-                index,
-              }
+              const inputs = preset.label ? amountInputs : labelInputs
+              requestFocus(() => inputs.current[index])
               setSources(
                 addIncomeSource(data.incomeSources, preset.label),
               )
@@ -445,10 +568,15 @@ export function IncomeSection({
 function PositionRows({
   positions,
   onChange,
+  vocabulary,
 }: {
   positions: Position[]
   onChange(positions: Position[]): void
+  vocabulary: readonly VocabularyTerm[]
 }) {
+  const labelInputs = useRef<(HTMLInputElement | null)[]>([])
+  const requestFocus = usePendingFocus(positions.length)
+
   return (
     <div className="nested-list">
       <h4>Positions</h4>
@@ -456,6 +584,13 @@ function PositionRows({
         <div className="stacked-row nested-row" key={index}>
           <div className="stacked-row-heading">
             <TextField
+              autocomplete={{
+                bookTerms: vocabulary,
+                seeds: CARRIER_SEEDS,
+              }}
+              inputRef={(element) => {
+                labelInputs.current[index] = element
+              }}
               label="Label"
               value={position.label}
               onChange={(label) =>
@@ -493,7 +628,11 @@ function PositionRows({
       <button
         className="add-button"
         type="button"
-        onClick={() => onChange([...positions, { label: '', value: null }])}
+        onClick={() => {
+          const index = positions.length
+          requestFocus(() => labelInputs.current[index])
+          onChange(appendBlankPosition(positions))
+        }}
       >
         + Add position
       </button>
@@ -504,10 +643,15 @@ function PositionRows({
 function SubAccountRows({
   subAccounts,
   onChange,
+  vocabulary,
 }: {
   subAccounts: SubAccount[]
   onChange(subAccounts: SubAccount[]): void
+  vocabulary: readonly VocabularyTerm[]
 }) {
+  const labelInputs = useRef<(HTMLInputElement | null)[]>([])
+  const requestFocus = usePendingFocus(subAccounts.length)
+
   return (
     <div className="nested-list">
       <h4>Sub-accounts</h4>
@@ -515,6 +659,13 @@ function SubAccountRows({
         <div className="stacked-row subaccount-row" key={index}>
           <div className="stacked-row-heading">
             <TextField
+              autocomplete={{
+                bookTerms: vocabulary,
+                seeds: noSeeds,
+              }}
+              inputRef={(element) => {
+                labelInputs.current[index] = element
+              }}
               label="Label"
               value={subAccount.label}
               onChange={(label) =>
@@ -563,12 +714,14 @@ function SubAccountRows({
       <button
         className="add-button"
         type="button"
-        onClick={() =>
+        onClick={() => {
+          const index = subAccounts.length
+          requestFocus(() => labelInputs.current[index])
           onChange([
             ...subAccounts,
             { label: '', caption: '', value: null },
           ])
-        }
+        }}
       >
         + Add sub-account
       </button>
@@ -583,6 +736,7 @@ function AccountCard({
   registerFocusRefs,
   onChange,
   onRemove,
+  vocabulary,
 }: {
   account: Account
   initiallyOpen: boolean
@@ -593,6 +747,7 @@ function AccountCard({
   ): void
   onChange(account: Account): void
   onRemove(): void
+  vocabulary: readonly VocabularyTerm[]
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null)
   const labelInputRef = useRef<HTMLInputElement>(null)
@@ -680,6 +835,10 @@ function AccountCard({
             </select>
           </label>
           <TextField
+            autocomplete={{
+              bookTerms: vocabulary,
+              seeds: accountNameSeeds,
+            }}
             inputRef={labelInputRef}
             label="Account name"
             value={account.label}
@@ -699,6 +858,10 @@ function AccountCard({
             />
           </div>
           <TextField
+            autocomplete={{
+              bookTerms: vocabulary,
+              seeds: noSeeds,
+            }}
             label="Caption"
             value={account.caption ?? ''}
             onChange={(caption) => onChange({ ...account, caption })}
@@ -706,10 +869,12 @@ function AccountCard({
         </div>
         <PositionRows
           positions={account.positions ?? []}
+          vocabulary={vocabulary}
           onChange={(positions) => onChange({ ...account, positions })}
         />
         <SubAccountRows
           subAccounts={account.subAccounts ?? []}
+          vocabulary={vocabulary}
           onChange={(subAccounts) => onChange({ ...account, subAccounts })}
         />
       </div>
@@ -728,11 +893,13 @@ export function AccountsSection({
   onChange,
   onHoverAccount,
   presetLabel = 'Add:',
+  vocabulary = [],
 }: FormProps & {
   presetLabel?: string
 }) {
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
   const focusRefs = useRef(new Map<string, AccountFocusRefs>())
+  const requestFocus = usePendingFocus(data.accounts.length)
   const registerFocusRefs = useCallback(
     (id: string, refs: AccountFocusRefs | null) => {
       if (refs) {
@@ -768,6 +935,7 @@ export function AccountsSection({
           key={account.id}
           onHoverAccount={onHoverAccount}
           registerFocusRefs={registerFocusRefs}
+          vocabulary={vocabulary}
           onChange={(next) =>
             setAccounts(
               data.accounts.map((item, itemIndex) =>
@@ -793,6 +961,7 @@ export function AccountsSection({
               const { chipLabel: _chipLabel, ...account } = preset
               const id = newId('account')
               setNewAccountId(id)
+              requestFocus(() => focusRefs.current.get(id)?.labelInput)
               setAccounts([
                 ...data.accounts,
                 {
@@ -821,6 +990,8 @@ export function FinePrintSection({
   data,
   onChange,
 }: Pick<FormProps, 'data' | 'onChange'>) {
+  const labelInputs = useRef<(HTMLInputElement | null)[]>([])
+  const requestFocus = usePendingFocus(data.footnotes.length)
   const setFootnotes = (footnotes: Footnote[]) =>
     onChange({ ...data, footnotes })
   const updateFootnote = (index: number, footnote: Footnote) =>
@@ -840,6 +1011,9 @@ export function FinePrintSection({
         <div className="stacked-row footnote-row" key={index}>
           <div className="stacked-row-heading">
             <TextField
+              inputRef={(element) => {
+                labelInputs.current[index] = element
+              }}
               label="Label"
               value={footnote.label}
               onChange={(label) =>
@@ -878,12 +1052,14 @@ export function FinePrintSection({
       <button
         className="add-button"
         type="button"
-        onClick={() =>
+        onClick={() => {
+          const index = data.footnotes.length
+          requestFocus(() => labelInputs.current[index])
           setFootnotes([
             ...data.footnotes,
             { label: '', gross: null, net: null },
           ])
-        }
+        }}
       >
         + Add fine print line
       </button>
@@ -901,15 +1077,8 @@ export function NotesSection({
   const textareaRefs = useRef<
     Record<string, HTMLTextAreaElement | null>
   >({})
-  const pendingFocus = useRef<string | null>(null)
   const notes = data.notes ?? []
-
-  useEffect(() => {
-    const id = pendingFocus.current
-    if (!id) return
-    textareaRefs.current[id]?.focus()
-    pendingFocus.current = null
-  }, [notes.length])
+  const requestFocus = usePendingFocus(notes.length)
 
   return (
     <section className="form-section">
@@ -947,7 +1116,8 @@ export function NotesSection({
         onClick={() => {
           const next = appendBlankNote(data)
           const nextNotes = next.notes ?? []
-          pendingFocus.current = nextNotes[nextNotes.length - 1]?.id ?? null
+          const id = nextNotes[nextNotes.length - 1]?.id
+          if (id) requestFocus(() => textareaRefs.current[id])
           onChange(next)
         }}
       >
@@ -1046,23 +1216,35 @@ export function ClientSection({
 export function handleFormKeyDown(
   event: ReactKeyboardEvent<HTMLFormElement>,
 ) {
+  const target = event.target
+  const isTextInput =
+    target instanceof HTMLInputElement && target.type === 'text'
+  const isSelect = target instanceof HTMLSelectElement
   if (
     event.key !== 'Enter' ||
-    !(event.target instanceof HTMLInputElement) ||
-    event.target.type !== 'text'
+    (!isTextInput && !isSelect)
   ) {
     return
   }
 
   const inputs = Array.from(
-    event.currentTarget.querySelectorAll<HTMLInputElement>(
-      'input:not([type="hidden"]):not([disabled])',
+    event.currentTarget.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement
+    >(
+      'input:not([type="hidden"]):not([disabled]), select:not([disabled])',
     ),
   ).filter((input) => input.getClientRects().length > 0)
-  const nextInput = inputs[inputs.indexOf(event.target) + 1]
+  const nextInput = nextEnterFocusTarget(inputs, target)
   if (!nextInput) return
   event.preventDefault()
   nextInput.focus()
+}
+
+export function nextEnterFocusTarget<T>(
+  focusables: readonly T[],
+  current: T,
+): T | undefined {
+  return focusables[focusables.indexOf(current) + 1]
 }
 
 export function Form({
@@ -1070,6 +1252,7 @@ export function Form({
   focusRequest,
   onChange,
   onHoverAccount,
+  vocabulary,
 }: FormProps) {
   const incomeSectionRef = useRef<HTMLElement>(null)
   const needSectionRef = useRef<HTMLElement>(null)
@@ -1100,12 +1283,14 @@ export function Form({
         includeNeed={false}
         onChange={onChange}
         sectionRef={incomeSectionRef}
+        vocabulary={vocabulary}
       />
       <AccountsSection
         data={data}
         focusRequest={focusRequest}
         onChange={onChange}
         onHoverAccount={onHoverAccount}
+        vocabulary={vocabulary}
       />
       <NeedSection
         data={data}

@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type WheelEvent as ReactWheelEvent,
@@ -41,6 +42,7 @@ import {
 } from './model/filestore'
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
+import { buildVocabulary } from './model/vocab'
 import { NOTE_WIDTH } from './layout/layout'
 import {
   exportPng,
@@ -173,6 +175,7 @@ export default function App() {
   const shapePopoverRef = useRef<HTMLDivElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const { book, activeClientId } = snapshot
+  const vocabulary = useMemo(() => buildVocabulary(book), [book])
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
@@ -1066,6 +1069,7 @@ export default function App() {
               onFullForm={() => setFormMode('full')}
               onHoverAccount={setHighlightId}
               onPrint={() => window.print()}
+              vocabulary={vocabulary}
             />
           ) : (
             <Form
@@ -1073,6 +1077,7 @@ export default function App() {
               focusRequest={focusRequest}
               onChange={handleClientChange}
               onHoverAccount={setHighlightId}
+              vocabulary={vocabulary}
             />
           )}
         </aside>
