@@ -143,9 +143,9 @@ export function suggest(
   )
   const suggestions: VocabularySuggestion[] = []
   const addMatch = (text: string, fromBook: boolean) => {
-    const matchStart = text
-      .toLocaleLowerCase()
-      .indexOf(normalizedQuery)
+    const normalizedText = text.toLocaleLowerCase()
+    if (normalizedText === normalizedQuery) return
+    const matchStart = normalizedText.indexOf(normalizedQuery)
     if (matchStart < 0) return
     suggestions.push({
       text,

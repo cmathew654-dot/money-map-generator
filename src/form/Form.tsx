@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -240,12 +241,20 @@ function MoneyField({
 }: MoneyFieldProps) {
   const [draft, setDraft] = useState<string | null>(null)
   const focusSnapshot = useRef('')
+  const focusedInput = useRef<HTMLInputElement | null>(null)
+  const selectAfterRender = useRef(false)
   const commitDraft = () => {
     if (!isMoneyDraftDirty(draft, focusSnapshot.current)) return
     const nextDraft = draft ?? ''
     onChange(parseMoneyInput(nextDraft))
     focusSnapshot.current = nextDraft
   }
+
+  useLayoutEffect(() => {
+    if (!selectAfterRender.current) return
+    selectAfterRender.current = false
+    focusedInput.current?.select()
+  }, [draft])
 
   return (
     <label className="form-field">
@@ -268,6 +277,8 @@ function MoneyField({
         onFocus={(event) => {
           const snapshot = value === null ? '' : String(value)
           focusSnapshot.current = snapshot
+          focusedInput.current = event.currentTarget
+          selectAfterRender.current = true
           setDraft(snapshot)
           event.currentTarget.select()
         }}

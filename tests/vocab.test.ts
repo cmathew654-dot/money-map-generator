@@ -164,4 +164,21 @@ describe('suggest', () => {
     expect(suggest(bookTerms, ['Jackson Annuity'], '')).toEqual([])
     expect(suggest(bookTerms, ['Jackson Annuity'], '   ')).toEqual([])
   })
+
+  it('does not offer the exact free-text value back to the user', () => {
+    expect(
+      suggest(
+        [{ text: 'beac', frequency: 1 }],
+        ['Beacon Harbor Account'],
+        'beac',
+      ),
+    ).toEqual([
+      {
+        text: 'Beacon Harbor Account',
+        matchStart: 0,
+        matchEnd: 4,
+        fromBook: false,
+      },
+    ])
+  })
 })
