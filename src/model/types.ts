@@ -92,12 +92,32 @@ export const ACCOUNT_TEXT_ROLES = ['label', 'caption', 'value'] as const
 export type AccountTextRole = (typeof ACCOUNT_TEXT_ROLES)[number]
 export const MIN_ACCOUNT_TEXT_FONT_SIZE = 9
 export const MAX_ACCOUNT_TEXT_FONT_SIZE = 28
+export const MAP_TEXT_ELEMENTS = {
+  income: ['header', 'row', 'total'],
+  need: ['label', 'value'],
+  footnotes: ['line'],
+  legend: ['label'],
+} as const
+export type MapTextElement = keyof typeof MAP_TEXT_ELEMENTS
+export type MapTextElementRole =
+  (typeof MAP_TEXT_ELEMENTS)[MapTextElement][number]
+export const MIN_MAP_TEXT_FONT_SIZE = 9
+export const MAX_MAP_TEXT_FONT_SIZE = 40
 
 export function accountTextOverrideKey(
   accountId: string,
   role: AccountTextRole,
 ): string {
   return `text:${accountId}:${role}`
+}
+
+export function mapTextOverrideKey<
+  Element extends MapTextElement,
+>(
+  element: Element,
+  role: (typeof MAP_TEXT_ELEMENTS)[Element][number],
+): string {
+  return `text:${element}:${role}`
 }
 
 export interface LayoutOverride {

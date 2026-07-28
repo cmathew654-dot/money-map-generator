@@ -15,10 +15,12 @@ import type {
 import {
   ACCOUNT_SHAPES,
   ACCOUNT_TEXT_ROLES,
+  MAP_TEXT_ELEMENTS,
   accountTextOverrideKey,
   isMigratedFlowId,
   migratedFlowId,
   newId,
+  type MapTextElement,
 } from './types'
 
 export const HISTORY_LIMIT = 50
@@ -445,12 +447,18 @@ function validateLayoutOverrides(
     }
     if (key.startsWith('text:')) {
       const parts = key.split(':')
-      if (
-        parts.length !== 3 ||
-        !accountIds.has(parts[1]) ||
-        !ACCOUNT_TEXT_ROLES.includes(
+      const fixedRoles =
+        MAP_TEXT_ELEMENTS[parts[1] as MapTextElement]
+      const validAccountText =
+        accountIds.has(parts[1]) &&
+        ACCOUNT_TEXT_ROLES.includes(
           parts[2] as (typeof ACCOUNT_TEXT_ROLES)[number],
         )
+      const validFixedText =
+        fixedRoles?.includes(parts[2] as never) === true
+      if (
+        parts.length !== 3 ||
+        (!validAccountText && !validFixedText)
       ) {
         throw new Error(
           `Client ${clientIndex + 1} has invalid layout overrides.`,

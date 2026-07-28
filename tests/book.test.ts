@@ -157,6 +157,22 @@ describe('book operations', () => {
     )
   })
 
+  it('preserves fixed-element text overrides when duplicating a client', () => {
+    const original = newBook()
+    const source = original.clients[0]
+    source.layoutOverrides = {
+      'text:legend:label': { fs: 18, dx: 12, dy: -4 },
+    }
+
+    const copy = duplicateClient(original, source.id).book.clients.at(-1)!
+
+    expect(copy.layoutOverrides?.['text:legend:label']).toEqual({
+      fs: 18,
+      dx: 12,
+      dy: -4,
+    })
+  })
+
   it('rejects duplication of an unknown client', () => {
     expect(() => duplicateClient(newBook(), 'missing')).toThrow(
       'Client to duplicate was not found.',
@@ -269,6 +285,9 @@ describe('parseBook', () => {
         dy: -8,
         fs: 24,
       },
+      'text:legend:label': { fs: 18 },
+      'text:income:row': { fs: 20 },
+      'text:need:value': { fs: 40 },
     }
 
     expect(parseBook(JSON.stringify(book))).toEqual(book)
@@ -277,6 +296,8 @@ describe('parseBook', () => {
   it.each([
     ['malformed role', 'text:managed-ira-jordan:subtitle', { fs: 16 }],
     ['missing account', 'text:missing:label', { fs: 16 }],
+    ['fixed income role', 'text:income:bogus', { fs: 16 }],
+    ['fixed footnote role', 'text:footnotes:label', { fs: 16 }],
     ['font size on a shape', 'managed-ira-jordan', { fs: 16 }],
   ])('rejects a %s text override key', (_label, key, override) => {
     const book = newBook()
