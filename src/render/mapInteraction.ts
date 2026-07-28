@@ -1,5 +1,6 @@
 import type {
   LayoutOverride,
+  MapNote,
   MoneyMapData,
 } from '../model/types'
 import { newId } from '../model/types'
@@ -76,6 +77,44 @@ export function deleteCustomArrow(
   return {
     ...data,
     customArrows: data.customArrows.filter((arrow) => arrow.id !== id),
+  }
+}
+
+export function addMapNote(
+  data: MoneyMapData,
+  note: MapNote,
+): MoneyMapData {
+  const text = note.text.trim()
+  if (!text || data.notes?.some((item) => item.id === note.id)) return data
+  return {
+    ...data,
+    notes: [...(data.notes ?? []), { ...note, text }],
+  }
+}
+
+export function deleteMapNote(
+  data: MoneyMapData,
+  id: string,
+): MoneyMapData {
+  if (!data.notes?.some((note) => note.id === id)) return data
+  return {
+    ...data,
+    notes: data.notes.filter((note) => note.id !== id),
+  }
+}
+
+export function moveMapNote(
+  data: MoneyMapData,
+  id: string,
+  x: number,
+  y: number,
+): MoneyMapData {
+  if (!data.notes?.some((note) => note.id === id)) return data
+  return {
+    ...data,
+    notes: data.notes.map((note) =>
+      note.id === id ? { ...note, x, y } : note,
+    ),
   }
 }
 

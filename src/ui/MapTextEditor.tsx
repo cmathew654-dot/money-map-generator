@@ -1,6 +1,7 @@
 import { useRef, useState, type CSSProperties, type RefObject } from 'react'
 import { parseMoneyInput } from '../model/format'
 import type { MoneyMapData } from '../model/types'
+import { addMapNote } from '../render/mapInteraction'
 
 export type MapTextEditTarget =
   | { kind: 'accountValue'; accountId: string }
@@ -8,6 +9,7 @@ export type MapTextEditTarget =
   | { kind: 'incomeAmount'; incomeIndex: number }
   | { kind: 'monthlyNeed' }
   | { kind: 'asNeededAmount' }
+  | { kind: 'noteText'; noteId: string; x?: number; y?: number }
 
 export interface MapTextEditRect {
   left: number
@@ -43,6 +45,8 @@ export function mapTextEditRawValue(
       return String(data.monthlyNeed ?? '')
     case 'asNeededAmount':
       return String(data.asNeededAmount ?? '')
+    case 'noteText':
+      return data.notes?.find((note) => note.id === target.noteId)?.text ?? ''
   }
 }
 
@@ -58,6 +62,23 @@ export function applyMapTextEdit(
       ...data,
       accounts: data.accounts.map((account) =>
         account.id === target.accountId ? { ...account, label } : account,
+      ),
+    }
+  }
+  if (target.kind === 'noteText') {
+    const existing = data.notes?.some((note) => note.id === target.noteId)
+    if (!existing) {
+      return addMapNote(data, {
+        id: target.noteId,
+        text: rawValue,
+        x: target.x ?? 0,
+        y: target.y ?? 0,
+      })
+    }
+    return {
+      ...data,
+      notes: data.notes?.map((note) =>
+        note.id === target.noteId ? { ...note, text: rawValue } : note,
       ),
     }
   }
@@ -90,6 +111,7 @@ function editorLabel(target: MapTextEditTarget): string {
   if (target.kind === 'incomeAmount') return 'Edit income source amount'
   if (target.kind === 'monthlyNeed') return 'Edit monthly income need'
   if (target.kind === 'asNeededAmount') return 'Edit as-needed draw amount'
+  if (target.kind === 'noteText') return 'Edit map note'
   return 'Edit account value'
 }
 
@@ -134,8 +156,16 @@ export function MapTextEditor({
     <input
       autoFocus
       aria-label={editorLabel(edit.target)}
-      className="map-text-editor"
-      inputMode={edit.target.kind === 'accountLabel' ? 'text' : 'decimal'}
+      className={`map-text-editor${
+        edit.target.kind === 'noteText' ? ' is-note' : ''
+      }`}
+      inputMode={
+        edit.target.kind === 'accountLabel' ||
+        edit.target.kind === 'noteText'
+          ? 'text'
+          : 'decimal'
+      }
+      placeholder={edit.target.kind === 'noteText' ? 'Add a note…' : undefined}
       style={style}
       type="text"
       value={rawValue}
@@ -148,7 +178,11 @@ export function MapTextEditor({
           finish(() => onCommit(rawValue))
         } else if (event.key === 'Escape') {
           event.preventDefault()
-          finish(onCancel)
+          finish(
+            edit.target.kind === 'noteText'
+              ? () => onCommit(rawValue)
+              : onCancel,
+          )
         }
       }}
     />

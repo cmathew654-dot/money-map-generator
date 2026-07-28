@@ -234,11 +234,19 @@ export function NeedSection({
   const fields = (
     <>
       <div>
-        <MoneyField
-          label="Monthly Income Need"
-          value={data.monthlyNeed}
-          onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
-        />
+        <div className="value-tag-fields">
+          <MoneyField
+            label="Monthly Income Need"
+            value={data.monthlyNeed}
+            onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
+          />
+          <TextField
+            label="Tag"
+            placeholder="e.g. est., + RMD"
+            value={data.needTag ?? ''}
+            onChange={(needTag) => onChange({ ...data, needTag })}
+          />
+        </div>
         <p className="help-text">
           The red number — what the household must cover each month.
         </p>
@@ -650,11 +658,19 @@ function AccountCard({
             value={account.label}
             onChange={(label) => onChange({ ...account, label })}
           />
-          <MoneyField
-            label="Value"
-            value={account.value}
-            onChange={(value) => onChange({ ...account, value })}
-          />
+          <div className="value-tag-fields">
+            <MoneyField
+              label="Value"
+              value={account.value}
+              onChange={(value) => onChange({ ...account, value })}
+            />
+            <TextField
+              label="Tag"
+              placeholder="e.g. est., + RMD"
+              value={account.valueTag ?? ''}
+              onChange={(valueTag) => onChange({ ...account, valueTag })}
+            />
+          </div>
           <TextField
             label="Caption"
             value={account.caption ?? ''}

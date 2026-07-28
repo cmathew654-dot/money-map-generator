@@ -12,6 +12,8 @@ import {
   hexagonInset,
   layoutMap,
   nearestOutlineT,
+  NOTE_LEADING,
+  OVERRIDE_BOUNDS,
   pointOnOutline,
 } from '../layout/layout'
 import type {
@@ -19,6 +21,7 @@ import type {
   OutlineElement,
   Placed,
   PlacedAccount,
+  PlacedNote,
   SubAccountLayout,
 } from '../layout/layout'
 import {
@@ -45,8 +48,11 @@ import type {
 } from '../ui/MapTextEditor'
 import {
   addCustomArrow,
+  clampRectToBounds,
   crossedDragThreshold,
   deleteCustomArrow,
+  deleteMapNote,
+  moveMapNote,
   snapRotation,
   screenDeltaToArtboard,
   screenPointToArtboard,
@@ -108,6 +114,7 @@ type DragMode =
   | 'arrowStart'
   | 'arrowEnd'
   | 'connect'
+  | 'noteMove'
 
 interface DragSession {
   active: boolean
@@ -377,11 +384,13 @@ function IncomePanel({
 function NeedCard({
   mathLine,
   onElementClick,
+  tag,
   value,
   placed,
 }: {
   mathLine: string | null
   onElementClick?: (target: MapElementTarget) => void
+  tag?: string
   value: number | null
   placed: Placed
 }) {
@@ -417,10 +426,18 @@ function NeedCard({
         fontSize={TYPE.needValue}
         fontWeight={600}
         textAnchor="middle"
-        style={numericStyle}
-        {...editableTextProps({ kind: 'monthlyNeed' }, onElementClick)}
       >
-        {money(value)}
+        <tspan
+          style={numericStyle}
+          {...editableTextProps({ kind: 'monthlyNeed' }, onElementClick)}
+        >
+          {money(value)}
+        </tspan>
+        {tag && (
+          <tspan fill={MUTED} fontStyle="italic" fontWeight={400}>
+            {` ${tag}`}
+          </tspan>
+        )}
       </text>
       {mathLine && (
         <text
@@ -670,13 +687,21 @@ function AccountContent({
         fontSize={TYPE.value}
         fontWeight={600}
         textAnchor="middle"
-        style={numericStyle}
-        {...editableTextProps(
-          { kind: 'accountValue', accountId: account.id },
-          onElementClick,
-        )}
       >
-        {money(account.value)}
+        <tspan
+          style={numericStyle}
+          {...editableTextProps(
+            { kind: 'accountValue', accountId: account.id },
+            onElementClick,
+          )}
+        >
+          {money(account.value)}
+        </tspan>
+        {account.valueTag && (
+          <tspan fill={MUTED} fontStyle="italic" fontWeight={400}>
+            {` ${account.valueTag}`}
+          </tspan>
+        )}
       </text>
       {runway && (
         <text
@@ -1165,6 +1190,84 @@ function FlowLegend({
   )
 }
 
+function NoteBlock({
+  onDelete,
+  onElementClick,
+  placed,
+}: {
+  onDelete?: () => void
+  onElementClick?: (target: MapElementTarget) => void
+  placed: PlacedNote
+}) {
+  return (
+    <>
+      <rect
+        fill="transparent"
+        height={placed.h}
+        width={placed.w}
+        x={placed.x}
+        y={placed.y}
+      />
+      <text
+        className="map-note-text"
+        fill={MUTED}
+        fontFamily={FONT_SERIF}
+        fontSize={TYPE.note}
+        x={placed.x}
+        y={placed.y + TYPE.note}
+        {...editableTextProps(
+          { kind: 'noteText', noteId: placed.note.id },
+          onElementClick,
+        )}
+      >
+        {placed.lines.map((line, index) => (
+          <tspan
+            key={`${line}-${index}`}
+            x={placed.x}
+            dy={index === 0 ? 0 : NOTE_LEADING}
+          >
+            {line}
+          </tspan>
+        ))}
+      </text>
+      {onDelete && (
+        <g
+          aria-label="Delete note"
+          className="map-note-delete"
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            event.stopPropagation()
+            onDelete()
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return
+            event.preventDefault()
+            event.stopPropagation()
+            onDelete()
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <rect
+            height={20}
+            rx={10}
+            width={20}
+            x={placed.x + placed.w - 20}
+            y={placed.y - 4}
+          />
+          <text
+            textAnchor="middle"
+            x={placed.x + placed.w - 10}
+            y={placed.y + 11}
+          >
+            ×
+          </text>
+        </g>
+      )}
+    </>
+  )
+}
+
 export function MapSvg({
   data,
   onElementClick,
@@ -1333,6 +1436,20 @@ export function MapSvg({
       },
       session.inverseScreenCtm,
     )
+    if (session.mode === 'noteMove' && session.startPlaced) {
+      const clamped = clampRectToBounds(
+        {
+          ...session.startPlaced,
+          x: session.startPlaced.x + delta.x,
+          y: session.startPlaced.y + delta.y,
+        },
+        OVERRIDE_BOUNDS,
+      )
+      const nextData = moveMapNote(data, session.key, clamped.x, clamped.y)
+      session.latestData = nextData
+      setPreviewData(nextData)
+      return
+    }
     let patch: LayoutOverride
     if (session.mode === 'resize' && session.startPlaced) {
       const rotation = placedRotation(session.startPlaced)
@@ -1580,6 +1697,7 @@ export function MapSvg({
             displayData.showMath !== false,
           )}
           onElementClick={onElementClick}
+          tag={displayData.needTag}
           value={displayData.monthlyNeed}
           placed={layout.need}
         />
@@ -1591,6 +1709,33 @@ export function MapSvg({
             placed={layout.need}
           />
         )}
+      </g>
+      <g aria-label="Map notes">
+        {layout.notes.map((placed) => (
+          <g
+            className={onChange ? 'map-draggable map-note' : 'map-note'}
+            key={placed.note.id}
+            onPointerDown={
+              onChange
+                ? beginDrag(
+                    placed.note.id,
+                    'noteMove',
+                    placed,
+                  )
+                : undefined
+            }
+          >
+            <NoteBlock
+              onDelete={
+                onChange
+                  ? () => onChange(deleteMapNote(data, placed.note.id))
+                  : undefined
+              }
+              onElementClick={onElementClick}
+              placed={placed}
+            />
+          </g>
+        ))}
       </g>
       <g aria-label="Accounts">
         {layout.accounts.map((placed, index) => {

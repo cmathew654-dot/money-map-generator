@@ -466,6 +466,33 @@ summary:focus-visible {
   pointer-events: none;
 }
 
+.map-page svg .map-note-delete {
+  opacity: 0;
+  cursor: pointer;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.map-page svg .map-note-delete rect {
+  fill: #fcfcfa;
+  stroke: #5b6663;
+  stroke-width: 1;
+}
+
+.map-page svg .map-note-delete text {
+  fill: #5b6663;
+  font: 16px/1 sans-serif;
+  pointer-events: none;
+}
+
+.map-page svg .map-note:hover > .map-note-delete,
+.map-page svg .map-note:focus-within > .map-note-delete,
+.map-page svg .map-note-delete:hover,
+.map-page svg .map-note-delete:focus {
+  opacity: 1;
+  pointer-events: all;
+}
+
 .map-page svg .map-arrow-editor:hover > .map-arrow-handle,
 .map-page svg .map-arrow-editor:focus > .map-arrow-handle,
 .map-page svg .map-arrow-editor:focus-within > .map-arrow-handle,
@@ -709,6 +736,7 @@ summary:focus-visible {
   position: relative;
 }
 
+.map-chrome > button,
 .shape-quick-add > button,
 .zoom-cluster {
   border: 1px solid #c9cfc9;
@@ -811,6 +839,12 @@ summary:focus-visible {
   text-align: center;
 }
 
+.map-text-editor.is-note {
+  color: #5b6663;
+  font-weight: 400;
+  text-align: left;
+}
+
 .client-form {
   padding: 4px 20px 36px;
 }
@@ -867,6 +901,12 @@ summary:focus-visible {
 .account-fields {
   display: grid;
   gap: 12px;
+}
+
+.value-tag-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(96px, 0.48fr);
+  gap: 8px;
 }
 
 .client-meta-row {

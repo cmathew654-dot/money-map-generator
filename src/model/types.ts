@@ -35,6 +35,8 @@ export interface Account {
   shape?: AccountShape
   label: string
   value: number | null
+  /** short qualifier rendered beside the value, e.g. "est." */
+  valueTag?: string
   /** small line under the label — allocation notes, "2-3 years' worth…" */
   caption?: string
   /** ruled label/value rows inside the cylinder — holdings of note */
@@ -65,6 +67,13 @@ export interface CustomArrow {
   targetId: string
 }
 
+export interface MapNote {
+  id: string
+  text: string
+  x: number
+  y: number
+}
+
 export interface LayoutOverride {
   dx?: number
   dy?: number
@@ -91,11 +100,15 @@ export interface MoneyMapData {
   incomeSources: IncomeSource[]
   afterTaxIncome: number | null // the income box total line
   monthlyNeed: number | null // the red number
+  /** short qualifier rendered beside the monthly need */
+  needTag?: string
   asNeededAmount: number | null // "Monthly Income as Needed" arrow label
   accounts: Account[]
   footnotes: Footnote[]
   /** advisor-drawn connections; omitted in legacy books */
   customArrows?: CustomArrow[]
+  /** free text annotations in artboard coordinates; omitted in legacy books */
+  notes?: MapNote[]
   layoutOverrides?: Record<string, LayoutOverride>
 }
 

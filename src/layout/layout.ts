@@ -1,4 +1,4 @@
-import { accountDisplayName } from '../model/format'
+import { accountDisplayName, money } from '../model/format'
 import { runwayLine } from '../model/math'
 import type {
   Account,
@@ -6,6 +6,7 @@ import type {
   Bucket,
   CustomArrow,
   LayoutOverride,
+  MapNote,
   MoneyMapData,
   SubAccount,
 } from '../model/types'
@@ -16,7 +17,7 @@ import {
   normalizeRotation,
 } from '../render/mapInteraction'
 import { LEADING, TYPE } from '../render/tokens'
-import { fitLines } from './textfit'
+import { fitLines, textWidth } from './textfit'
 
 export interface Placed {
   x: number
@@ -38,6 +39,12 @@ export interface PlacedAccount extends Placed {
   titleLines: string[]
   usableCaptionWidth: number
   usableTitleWidth: number
+  usableValueWidth: number
+}
+
+export interface PlacedNote extends Placed {
+  lines: string[]
+  note: MapNote
 }
 
 export interface SubAccountLayout {
@@ -85,6 +92,7 @@ export interface MapLayout {
   income: Placed
   need: Placed
   accounts: PlacedAccount[]
+  notes: PlacedNote[]
   arrows: Arrow[]
   contentBounds: Placed
   footnotesAt: { x: number; y: number }
@@ -110,6 +118,8 @@ export const MIN_ACCOUNT_HEIGHT = 120
 export const MIN_ACCOUNT_WIDTH = 180
 export const CAP_CONTENT_GAP = 21
 export const SHAPE_TEXT_PADDING = 20
+export const NOTE_WIDTH = 240
+export const NOTE_LEADING = 21
 const WATERFALL_MIN_Y = 128
 const AS_NEEDED_LABEL_WIDTH = 260
 const AS_NEEDED_LABEL_HEIGHT = 34
@@ -251,6 +261,11 @@ interface AccountSizing {
   titleLines: string[]
   usableCaptionWidth: number
   usableTitleWidth: number
+  usableValueWidth: number
+}
+
+function taggedMoney(value: number | null, tag: string | undefined): string {
+  return `${money(value)}${tag ? ` ${tag}` : ''}`
 }
 
 function accountSizing(
@@ -326,6 +341,13 @@ function accountSizing(
       },
     )
     const valueY = nextRoleBaseline(previousBaseline, TYPE.value)
+    const usableValueWidth = usableTextWidth(
+      shape,
+      width,
+      height,
+      valueY,
+      TYPE.value,
+    )
     const runwayY = hasRunway
       ? nextRoleBaseline(valueY, TYPE.runway)
       : undefined
@@ -384,6 +406,7 @@ function accountSizing(
       titleLines: safeTitleLines,
       usableCaptionWidth,
       usableTitleWidth,
+      usableValueWidth,
     }
 
     if (Math.abs(requiredHeight - height) < 0.01) break
@@ -391,6 +414,26 @@ function accountSizing(
   }
 
   return sizing!
+}
+
+function fittedAccount(
+  account: Account,
+  minimumWidth: number,
+  hasRunway: boolean,
+  requestedHeight = 0,
+): { sizing: AccountSizing; width: number } {
+  let width = minimumWidth
+  let sizing = accountSizing(account, width, hasRunway, requestedHeight)
+  const required = textWidth(
+    taggedMoney(account.value, account.valueTag),
+    TYPE.value,
+  )
+
+  for (let pass = 0; pass < 8 && required > sizing.usableValueWidth; pass += 1) {
+    width += required - sizing.usableValueWidth + 2
+    sizing = accountSizing(account, width, hasRunway, requestedHeight)
+  }
+  return { sizing, width }
 }
 
 function orderForColumn(accounts: Account[], buckets: Bucket[]): Account[] {
@@ -412,8 +455,8 @@ function placeColumn(data: MoneyMapData, column: Column): PlacedAccount[] {
   const accounts = orderForColumn(data.accounts, column.buckets)
   if (accounts.length === 0) return []
 
-  const sizings = accounts.map((account) =>
-    accountSizing(
+  const fitted = accounts.map((account) =>
+    fittedAccount(
       account,
       column.w,
       runwayLine(
@@ -423,6 +466,7 @@ function placeColumn(data: MoneyMapData, column: Column): PlacedAccount[] {
       ) !== null && account.bucket === 'shortTerm',
     ),
   )
+  const sizings = fitted.map((item) => item.sizing)
   const heights = sizings.map((sizing) => sizing.h)
   let gap = DEFAULT_GAP
   const available = STACK_BOTTOM - column.y
@@ -442,7 +486,7 @@ function placeColumn(data: MoneyMapData, column: Column): PlacedAccount[] {
       ...sizing,
       x: column.x,
       y,
-      w: column.w,
+      w: fitted[index].width,
       rot: 0,
     }
     y += heights[index] + gap
@@ -1283,11 +1327,23 @@ function centerComposition(
   }
 }
 
-const OVERRIDE_BOUNDS = {
+export const OVERRIDE_BOUNDS = {
   left: PAGE_MARGIN,
   top: MASTHEAD_RULE_Y,
   right: ARTBOARD.width - PAGE_MARGIN,
   bottom: ARTBOARD.height - PAGE_MARGIN,
+}
+
+function placedNotes(notes: MapNote[] | undefined): PlacedNote[] {
+  return (notes ?? []).map((note) => {
+    const lines = fitLines(note.text, NOTE_WIDTH, TYPE.note)
+    const h = Math.max(TYPE.note, lines.length * NOTE_LEADING)
+    const placed = clampRectToBounds(
+      { x: note.x, y: note.y, w: NOTE_WIDTH, h },
+      OVERRIDE_BOUNDS,
+    )
+    return { ...placed, lines, note }
+  })
 }
 
 function applyPlacedOverride<T extends Placed>(
@@ -1321,12 +1377,14 @@ function applyAccountOverride(
     MIN_ACCOUNT_HEIGHT,
     OVERRIDE_BOUNDS.bottom - OVERRIDE_BOUNDS.top,
   )
-  let sizing = accountSizing(
+  let fitted = fittedAccount(
     placed.account,
     desiredWidth,
     hasRunway,
     requestedHeight,
   )
+  let sizing = fitted.sizing
+  desiredWidth = fitted.width
   let desiredHeight = sizing.h
   const radians = (rot * Math.PI) / 180
   const cosine = Math.abs(Math.cos(radians))
@@ -1358,12 +1416,14 @@ function applyAccountOverride(
   )
   desiredWidth = MIN_ACCOUNT_WIDTH + extraWidth * sizeScale
   desiredHeight = MIN_ACCOUNT_HEIGHT + extraHeight * sizeScale
-  sizing = accountSizing(
+  fitted = fittedAccount(
     placed.account,
     desiredWidth,
     hasRunway,
     desiredHeight,
   )
+  sizing = fitted.sizing
+  desiredWidth = fitted.width
   desiredHeight = sizing.h
   const desired = {
     x: placed.x + (override?.dx ?? 0),
@@ -1477,7 +1537,16 @@ function baseLayout(data: MoneyMapData): MapLayout {
     w: 280,
     h: 44 + data.incomeSources.length * 40 + 14 + 46 + 24,
   }
-  const need: Placed = { x: 48, y: 700, w: 250, h: 170 }
+  const need: Placed = {
+    x: 48,
+    y: 700,
+    w: Math.max(
+      250,
+      textWidth(taggedMoney(data.monthlyNeed, data.needTag), TYPE.needValue) +
+        40,
+    ),
+    h: 170,
+  }
   const accounts = COLUMNS.flatMap((column) => placeColumn(data, column))
   const arrows = [
     ...waterfallArrows(accounts),
@@ -1501,6 +1570,7 @@ function baseLayout(data: MoneyMapData): MapLayout {
       income,
       need,
       accounts,
+      notes: [],
       arrows,
       footnotesAt: { x: 390, y: 930 },
     },
@@ -1552,6 +1622,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     income,
     need,
     accounts,
+    notes: placedNotes(data.notes),
     arrows,
     contentBounds: finalBounds,
     footnotesAt: {

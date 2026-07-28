@@ -32,6 +32,8 @@ import {
   type FileStoreApi,
 } from './model/filestore'
 import type { Bucket, MoneyMapFile } from './model/types'
+import { newId } from './model/types'
+import { NOTE_WIDTH } from './layout/layout'
 import {
   exportPng,
   loadBookFromFile,
@@ -646,6 +648,25 @@ export default function App() {
     })
   }
 
+  const handleAddNote = () => {
+    const svg = mapPageRef.current?.querySelector('svg')
+    if (!svg) return
+    const svgRect = svg.getBoundingClientRect()
+    const scale = svgRect.width / ARTBOARD.width
+    const x = (ARTBOARD.width - NOTE_WIDTH) / 2
+    const y = ARTBOARD.height / 2
+    setMapTextEdit({
+      target: { kind: 'noteText', noteId: newId('note'), x, y },
+      rect: {
+        left: svgRect.left + x * scale,
+        top: svgRect.top + y * scale,
+        width: NOTE_WIDTH * scale,
+        height: 28 * scale,
+      },
+      rawValue: '',
+    })
+  }
+
   return (
     <main
       ref={appShellRef}
@@ -922,13 +943,14 @@ export default function App() {
                 key={JSON.stringify(mapTextEdit.target)}
                 onCancel={() => setMapTextEdit(null)}
                 onCommit={(rawValue) => {
-                  handleClientChange(
-                    applyMapTextEdit(
-                      activeClient,
-                      mapTextEdit.target,
-                      rawValue,
-                    ),
+                  const nextClient = applyMapTextEdit(
+                    activeClient,
+                    mapTextEdit.target,
+                    rawValue,
                   )
+                  if (nextClient !== activeClient) {
+                    handleClientChange(nextClient)
+                  }
                   setMapTextEdit(null)
                 }}
               />
@@ -936,6 +958,9 @@ export default function App() {
           </div>
           {!presentMode && (
             <div className="map-chrome">
+              <button type="button" onClick={handleAddNote}>
+                + Note
+              </button>
               <div ref={shapePopoverRef} className="shape-quick-add">
                 <button
                   aria-expanded={shapePopoverOpen}

@@ -191,6 +191,12 @@ function withFreshIds(data: MoneyMapData): MoneyMapData {
       targetId: accountIds.get(arrow.targetId) ?? arrow.targetId,
     }))
   }
+  if (copy.notes) {
+    copy.notes = copy.notes.map((note) => ({
+      ...note,
+      id: newId('note'),
+    }))
+  }
   return copy
 }
 
@@ -368,6 +374,9 @@ function validateClient(value: unknown, index: number): void {
   ) {
     throw new Error(`Client ${index + 1} has invalid math visibility.`)
   }
+  if (value.needTag !== undefined && typeof value.needTag !== 'string') {
+    throw new Error(`Client ${index + 1} has an invalid need tag.`)
+  }
   const accounts = value.accounts as unknown[]
   for (const account of accounts) {
     if (
@@ -378,6 +387,12 @@ function validateClient(value: unknown, index: number): void {
         ))
     ) {
       throw new Error(`Client ${index + 1} has an invalid account shape.`)
+    }
+    if (
+      account.valueTag !== undefined &&
+      typeof account.valueTag !== 'string'
+    ) {
+      throw new Error(`Client ${index + 1} has an invalid account value tag.`)
     }
   }
   if (value.customArrows !== undefined) {
@@ -392,6 +407,23 @@ function validateClient(value: unknown, index: number): void {
       )
     ) {
       throw new Error(`Client ${index + 1} has invalid custom arrows.`)
+    }
+  }
+  if (value.notes !== undefined) {
+    if (
+      !Array.isArray(value.notes) ||
+      value.notes.some(
+        (note) =>
+          !isRecord(note) ||
+          typeof note.id !== 'string' ||
+          typeof note.text !== 'string' ||
+          typeof note.x !== 'number' ||
+          !Number.isFinite(note.x) ||
+          typeof note.y !== 'number' ||
+          !Number.isFinite(note.y),
+      )
+    ) {
+      throw new Error(`Client ${index + 1} has invalid map notes.`)
     }
   }
   validateLayoutOverrides(value.layoutOverrides, index)

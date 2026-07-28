@@ -85,6 +85,7 @@ export const TYPE = {
   accountTitle: 18,
   accountTag: 11.5,
   caption: 13.5,
+  note: 15,
   value: 24,
   subAccountTitle: 12.5,
   subAccountCaption: 10.5,
