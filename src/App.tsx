@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type WheelEvent as ReactWheelEvent,
+} from 'react'
 import {
   ACCOUNT_PRESETS,
   addClient,
@@ -50,7 +57,10 @@ import {
   MapSvg,
   type MapElementTarget,
 } from './render/MapSvg'
-import { withOverride } from './render/mapInteraction'
+import {
+  restoreGeneratedArrows,
+  withOverride,
+} from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import {
@@ -138,6 +148,11 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewPaneRef = useRef<HTMLDivElement>(null)
   const mapPageRef = useRef<HTMLDivElement>(null)
+  const pendingZoomAnchorRef = useRef<{
+    anchor: { x: number; y: number }
+    pointer: { x: number; y: number }
+    scroller: HTMLDivElement
+  } | null>(null)
   const shapePopoverRef = useRef<HTMLDivElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const { book, activeClientId } = snapshot
@@ -146,6 +161,7 @@ export default function App() {
     book.clients[0]
   const hasLayoutOverrides =
     Object.keys(activeClient.layoutOverrides ?? {}).length > 0
+  const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
   const previewClient = (() => {
     if (
       !mapTextEdit?.fontSizeChanged ||
@@ -200,6 +216,22 @@ export default function App() {
     const observer = new ResizeObserver(updateFitZoom)
     observer.observe(page)
     return () => observer.disconnect()
+  }, [mapZoom])
+
+  useLayoutEffect(() => {
+    const pending = pendingZoomAnchorRef.current
+    const page = mapPageRef.current
+    if (!pending || !page) return
+    pendingZoomAnchorRef.current = null
+    const nextRect = page.getBoundingClientRect()
+    pending.scroller.scrollLeft +=
+      nextRect.left +
+      pending.anchor.x * nextRect.width -
+      pending.pointer.x
+    pending.scroller.scrollTop +=
+      nextRect.top +
+      pending.anchor.y * nextRect.height -
+      pending.pointer.y
   }, [mapZoom])
 
   const showSnapshot = useCallback((next: BookSnapshot) => {
@@ -511,6 +543,11 @@ export default function App() {
     addToast('Layout reset')
   }
 
+  const handleRestoreGeneratedArrows = () => {
+    handleMapChange(restoreGeneratedArrows(activeClient))
+    addToast('Generated arrows restored')
+  }
+
   const confirmClearMap = (clientId: string) => {
     const current = snapshotRef.current
     const client = current.book.clients.find((item) => item.id === clientId)
@@ -644,6 +681,24 @@ export default function App() {
   }
 
   const changeZoom = (change: number) => {
+    const scroller = previewPaneRef.current
+    const page = mapPageRef.current
+    if (scroller && page) {
+      const scrollerRect = scroller.getBoundingClientRect()
+      const pointer = {
+        x: scrollerRect.left + scrollerRect.width / 2,
+        y: scrollerRect.top + scrollerRect.height / 2,
+      }
+      const pageRect = page.getBoundingClientRect()
+      pendingZoomAnchorRef.current = {
+        anchor: {
+          x: (pointer.x - pageRect.left) / pageRect.width,
+          y: (pointer.y - pageRect.top) / pageRect.height,
+        },
+        pointer,
+        scroller,
+      }
+    }
     setMapZoom((current) => {
       const level =
         current === 'fit'
@@ -651,6 +706,35 @@ export default function App() {
           : current
       return Math.min(200, Math.max(50, level + change))
     })
+  }
+
+  const handleMapWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+    if ((!event.ctrlKey && !event.metaKey) || event.deltaY === 0) return
+    event.preventDefault()
+    const currentLevel =
+      mapZoom === 'fit' ? Math.round(fitZoom / 10) * 10 : mapZoom
+    const nextLevel = Math.min(
+      200,
+      Math.max(50, currentLevel + (event.deltaY < 0 ? 10 : -10)),
+    )
+    if (nextLevel === currentLevel && mapZoom !== 'fit') return
+
+    const scroller = event.currentTarget
+    const page = mapPageRef.current
+    if (!page) {
+      setMapZoom(nextLevel)
+      return
+    }
+    const pageRect = page.getBoundingClientRect()
+    pendingZoomAnchorRef.current = {
+      anchor: {
+        x: (event.clientX - pageRect.left) / pageRect.width,
+        y: (event.clientY - pageRect.top) / pageRect.height,
+      },
+      pointer: { x: event.clientX, y: event.clientY },
+      scroller,
+    }
+    setMapZoom(nextLevel)
   }
 
   const handleQuickAdd = (bucket: Bucket) => {
@@ -848,6 +932,11 @@ export default function App() {
             >
               Reset arrangement
             </MenuItem>
+            {hasHiddenArrows && (
+              <MenuItem onClick={handleRestoreGeneratedArrows}>
+                Restore generated arrows
+              </MenuItem>
+            )}
             <MenuItem
               danger
               onClick={() =>
@@ -944,7 +1033,11 @@ export default function App() {
           className="preview-pane"
           aria-label="Money Map preview"
         >
-          <div ref={previewPaneRef} className="map-scroller">
+          <div
+            ref={previewPaneRef}
+            className="map-scroller"
+            onWheel={handleMapWheel}
+          >
             <div
               className={`map-stage${
                 mapZoom === 'fit' ? '' : ' is-zoomed'

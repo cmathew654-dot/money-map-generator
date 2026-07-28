@@ -454,6 +454,41 @@ summary:focus-visible {
   transition: opacity 120ms ease;
 }
 
+.map-page svg .map-arrow-style,
+.map-page svg .map-arrow-label-add {
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.map-page svg .map-arrow-style rect,
+.map-page svg .map-arrow-label-add {
+  fill: #fcfcfa;
+  stroke: #1c2422;
+  stroke-width: 1.25;
+}
+
+.map-page svg .map-arrow-style text {
+  fill: #1c2422;
+  font: 11px/1 sans-serif;
+  pointer-events: none;
+}
+
+.map-page svg .map-arrow-label-add {
+  fill: #1c2422;
+  paint-order: stroke;
+  stroke: #fcfcfa;
+  stroke-width: 7px;
+  font: 700 12px/1 sans-serif;
+}
+
+.map-page svg .map-flow-label {
+  paint-order: stroke;
+  stroke: #fcfcfa;
+  stroke-linejoin: round;
+  stroke-width: 6px;
+}
+
 .map-page svg .map-arrow-delete circle {
   fill: #fcfcfa;
   stroke: #1c2422;
@@ -501,7 +536,17 @@ summary:focus-visible {
 .map-page svg .map-arrow-editor:focus > .map-arrow-delete,
 .map-page svg .map-arrow-editor:focus-within > .map-arrow-delete,
 .map-page svg .map-arrow-delete:hover,
-.map-page svg .map-arrow-delete:focus {
+.map-page svg .map-arrow-delete:focus,
+.map-page svg .map-arrow-editor:hover > .map-arrow-style,
+.map-page svg .map-arrow-editor:focus > .map-arrow-style,
+.map-page svg .map-arrow-editor:focus-within > .map-arrow-style,
+.map-page svg .map-arrow-style:hover,
+.map-page svg .map-arrow-style:focus,
+.map-page svg .map-arrow-editor:hover > .map-arrow-label-add,
+.map-page svg .map-arrow-editor:focus > .map-arrow-label-add,
+.map-page svg .map-arrow-editor:focus-within > .map-arrow-label-add,
+.map-page svg .map-arrow-label-add:hover,
+.map-page svg .map-arrow-label-add:focus {
   opacity: 1;
 }
 
@@ -671,6 +716,7 @@ summary:focus-visible {
 
 .map-stage.is-zoomed {
   width: max-content;
+  padding: 50vh 50vw;
 }
 
 .map-page {
@@ -854,6 +900,12 @@ summary:focus-visible {
   color: #5b6663;
   font-weight: 400;
   text-align: left;
+}
+
+.map-text-editor.is-flow .map-text-editor-input {
+  font-family: 'Public Sans', 'Segoe UI', sans-serif;
+  font-size: 13.5px;
+  font-weight: 400;
 }
 
 .map-text-size-controls {
@@ -1283,10 +1335,6 @@ summary:focus-visible {
   color: #5b6663;
   font-size: 12px;
   line-height: 1.45;
-}
-
-.refill-chain-help {
-  margin: -6px 0 13px 22px;
 }
 
 .nested-list {

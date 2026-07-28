@@ -677,20 +677,6 @@ function AccountCard({
             onChange={(caption) => onChange({ ...account, caption })}
           />
         </div>
-        <label className="checkbox-field">
-          <input
-            checked={account.inWaterfall}
-            type="checkbox"
-            onChange={(event) =>
-              onChange({ ...account, inWaterfall: event.target.checked })
-            }
-          />
-          In refill chain
-        </label>
-        <p className="form-caption refill-chain-help">
-          Checked accounts link right-to-left with dotted Refills arrows.
-          Income and Draw-as-needed arrows draw themselves.
-        </p>
         <PositionRows
           positions={account.positions ?? []}
           onChange={(positions) => onChange({ ...account, positions })}
