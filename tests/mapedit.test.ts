@@ -11,7 +11,10 @@ import {
   deleteCustomArrow,
   deleteMapNote,
   hideGeneratedArrow,
+  resizeMapNote,
   restoreGeneratedArrows,
+  setCustomArrowColor,
+  setMapNoteBackground,
 } from '../src/render/mapInteraction'
 import { MapSvg } from '../src/render/MapSvg'
 import {
@@ -246,6 +249,26 @@ describe('custom arrow edits', () => {
     expect(dotted.customArrows?.[0].style).toBe('dotted')
     expect(cycleCustomArrowStyle(base, 'missing')).toBe(base)
   })
+
+  it('sets a semantic flow color and leaves unknown ids untouched', () => {
+    const base = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: [
+        {
+          id: 'color-target',
+          sourceId: 'income',
+          targetId: 'need',
+          style: 'solid' as const,
+        },
+      ],
+    }
+
+    expect(
+      setCustomArrowColor(base, 'color-target', 'blue').customArrows?.[0]
+        .color,
+    ).toBe('blue')
+    expect(setCustomArrowColor(base, 'missing', 'red')).toBe(base)
+  })
 })
 
 describe('generated arrow edits', () => {
@@ -292,6 +315,26 @@ describe('map note edits', () => {
     expect(deleteMapNote(data, note.id).notes).toEqual([data.notes[1]])
     expect(deleteMapNote(data, 'missing')).toBe(data)
   })
+
+  it('clamps note resize to 120/600 and ignores unknown ids', () => {
+    const data = { ...SAMPLE_WHITFIELD, notes: [note] }
+    const minimum = resizeMapNote(data, note.id, 40)
+    const maximum = resizeMapNote(minimum, note.id, 900)
+
+    expect(minimum.notes?.[0].w).toBe(120)
+    expect(maximum.notes?.[0].w).toBe(600)
+    expect(resizeMapNote(data, 'missing', 420)).toBe(data)
+  })
+
+  it('toggles a note background and ignores unknown ids', () => {
+    const data = { ...SAMPLE_WHITFIELD, notes: [note] }
+    const solid = setMapNoteBackground(data, note.id, true)
+    const transparent = setMapNoteBackground(solid, note.id, false)
+
+    expect(solid.notes?.[0].bg).toBe(true)
+    expect(transparent.notes?.[0].bg).toBe(false)
+    expect(setMapNoteBackground(data, 'missing', true)).toBe(data)
+  })
 })
 
 describe('noninteractive map rendering', () => {
@@ -301,11 +344,14 @@ describe('noninteractive map rendering', () => {
     'map-arrow-handle',
     'map-arrow-label-add',
     'map-arrow-style',
+    'map-arrow-colors',
     'map-connect-handle',
     'map-resize-handle',
     'map-rotate-handle',
     'map-shape-flip',
     'map-note-delete',
+    'map-note-background',
+    'map-note-resize',
   ]
 
   it('emits zero editor chrome nodes without edit callbacks', () => {
@@ -376,6 +422,63 @@ describe('noninteractive map rendering', () => {
     expect(markup).toContain(
       'data-legend-kind="asNeeded"><line x1="164.4288"',
     )
+  })
+
+  it('prints solid notes and semantic flow colors without editor chrome', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [
+        {
+          id: 'solid-note',
+          text: 'A note presented as a card.',
+          x: 520,
+          y: 480,
+          w: 420,
+          bg: true,
+        },
+      ],
+      customArrows: [
+        {
+          id: 'blue-flow',
+          sourceId: 'income',
+          targetId: SAMPLE_WHITFIELD.accounts[0].id,
+          style: 'solid' as const,
+          color: 'blue' as const,
+          label: 'Blue flow',
+        },
+        {
+          id: 'red-flow',
+          sourceId: SAMPLE_WHITFIELD.accounts[1].id,
+          targetId: 'need',
+          style: 'dashed' as const,
+          color: 'red' as const,
+          label: 'Red flow',
+        },
+      ],
+    }
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    expect(markup).toContain(
+      'class="map-note-card" fill="#ffffff" height="41" rx="8" stroke="#dde1dc" width="440"',
+    )
+    expect(markup).toMatch(
+      /class="map-note-text" fill="#1c2422"[^>]*>.*A note presented as a card\./,
+    )
+    expect(markup).toMatch(
+      /data-arrow-color="blue"[^>]*data-arrow-style="solid"[^>]*marker-end="url\(#custom-arrowhead-blue-[^)]+\)"[^>]*stroke="#2f6bab"/,
+    )
+    expect(markup).toMatch(
+      /data-arrow-color="red"[^>]*data-arrow-style="dashed"[^>]*marker-end="url\(#custom-arrowhead-red-[^)]+\)"[^>]*stroke="#c03a2d"[^>]*stroke-dasharray="7 6"/,
+    )
+    expect(markup).toMatch(
+      /fill="#2f6bab"[^>]*class="map-flow-label">Blue flow/,
+    )
+    expect(markup).toMatch(
+      /fill="#c03a2d"[^>]*class="map-flow-label">Red flow/,
+    )
+    for (const className of editorChrome) {
+      expect(markup).not.toContain(className)
+    }
   })
 
   it('keeps editor chrome in the interactive render path', () => {

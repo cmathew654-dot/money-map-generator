@@ -523,7 +523,15 @@ summary:focus-visible {
 .map-page svg .map-note:hover > .map-note-delete,
 .map-page svg .map-note:focus-within > .map-note-delete,
 .map-page svg .map-note-delete:hover,
-.map-page svg .map-note-delete:focus {
+.map-page svg .map-note-delete:focus,
+.map-page svg .map-note:hover > .map-note-background,
+.map-page svg .map-note:focus-within > .map-note-background,
+.map-page svg .map-note-background:hover,
+.map-page svg .map-note-background:focus,
+.map-page svg .map-note:hover > .map-note-resize,
+.map-page svg .map-note:focus-within > .map-note-resize,
+.map-page svg .map-note-resize:hover,
+.map-page svg .map-note-resize:focus {
   opacity: 1;
   pointer-events: all;
 }
@@ -546,8 +554,14 @@ summary:focus-visible {
 .map-page svg .map-arrow-editor:focus > .map-arrow-label-add,
 .map-page svg .map-arrow-editor:focus-within > .map-arrow-label-add,
 .map-page svg .map-arrow-label-add:hover,
-.map-page svg .map-arrow-label-add:focus {
+.map-page svg .map-arrow-label-add:focus,
+.map-page svg .map-arrow-editor:hover > .map-arrow-colors,
+.map-page svg .map-arrow-editor:focus > .map-arrow-colors,
+.map-page svg .map-arrow-editor:focus-within > .map-arrow-colors,
+.map-page svg .map-arrow-colors:hover,
+.map-page svg .map-arrow-colors:focus-within {
   opacity: 1;
+  pointer-events: all;
 }
 
 .map-page svg .map-arrow-editor:focus:not(:focus-visible) {
@@ -1639,4 +1653,52 @@ summary:focus-visible {
     padding-right: 14px;
     padding-left: 14px;
   }
+}
+
+/* S30 — map objects */
+.map-page svg .map-note-background,
+.map-page svg .map-note-resize,
+.map-page svg .map-arrow-colors {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.map-page svg .map-note-background {
+  cursor: pointer;
+}
+
+.map-page svg .map-note-background > rect:first-child {
+  fill: #fcfcfa;
+  stroke: #5b6663;
+  stroke-width: 1;
+}
+
+.map-page svg .map-note-background-glyph {
+  stroke: #5b6663;
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.map-page svg .map-note-resize {
+  cursor: ew-resize;
+  fill: #fcfcfa;
+  stroke: #5b6663;
+  stroke-width: 1;
+}
+
+.map-page svg .map-arrow-color-swatch {
+  cursor: pointer;
+}
+
+.map-page svg .map-arrow-color-ring {
+  fill: #fcfcfa;
+  stroke: #1c2422;
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.map-page svg.is-dragging .map-note-resize,
+.map-page svg.is-dragging .map-arrow-colors {
+  transition: none;
 }

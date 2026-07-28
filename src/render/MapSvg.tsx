@@ -36,6 +36,7 @@ import { gapLine, runwayLine } from '../model/math'
 import type {
   AccountShape,
   AccountTextRole,
+  CustomArrowColor,
   Footnote,
   IncomeSource,
   LayoutOverride,
@@ -44,6 +45,7 @@ import type {
   MoneyMapData,
 } from '../model/types'
 import {
+  CUSTOM_ARROW_COLORS,
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
   accountShape,
@@ -65,6 +67,9 @@ import {
   deleteMapNote,
   hideGeneratedArrow,
   moveMapNote,
+  resizeMapNote,
+  setCustomArrowColor,
+  setMapNoteBackground,
   snapRotation,
   screenDeltaToArtboard,
   screenPointToArtboard,
@@ -74,6 +79,7 @@ import {
   type TransformMatrix,
 } from './mapInteraction'
 import {
+  ARROW_COLORS,
   ARTBOARD,
   BUCKETS,
   FLOW_GREEN,
@@ -142,6 +148,7 @@ type DragMode =
   | 'arrowEnd'
   | 'connect'
   | 'noteMove'
+  | 'noteResize'
   | 'textMove'
 
 interface DragSession {
@@ -935,27 +942,31 @@ function Cylinder({
 
 function ArrowPath({
   arrow,
-  customMarkerId,
+  customMarkerIds,
   markerId,
 }: {
   arrow: Arrow
-  customMarkerId: string
+  customMarkerIds: Record<CustomArrowColor, string>
   markerId: string
 }) {
   const asNeeded = arrow.kind === 'asNeeded'
   const custom = arrow.kind === 'custom'
   const style = custom ? (arrow.style ?? 'solid') : undefined
+  const colorName = arrow.color ?? 'ink'
+  const color = ARROW_COLORS[colorName]
   const dotted = style === 'dotted'
   const dashed = style === 'dashed' || asNeeded
-  const solidFlow = custom && style === 'solid'
   return (
     <path
+      data-arrow-color={custom ? colorName : undefined}
       data-arrow-kind={arrow.kind}
       data-arrow-style={style}
       d={arrow.d}
       fill="none"
-      markerEnd={`url(#${solidFlow ? customMarkerId : markerId})`}
-      stroke={solidFlow ? INK : FLOW_GREEN}
+      markerEnd={`url(#${
+        custom ? customMarkerIds[colorName] : markerId
+      })`}
+      stroke={custom ? color : FLOW_GREEN}
       strokeDasharray={dotted ? '0.1 9' : dashed ? '7 6' : undefined}
       strokeLinecap={dotted ? 'round' : 'butt'}
       strokeWidth={dotted ? 3.5 : 2}
@@ -975,7 +986,7 @@ function FlowArrowLabel({
     <text
       x={arrow.labelAt.x}
       y={arrow.labelAt.y + TYPE.arrowLabel / 3}
-      fill={INK}
+      fill={ARROW_COLORS[arrow.color ?? 'ink']}
       fontFamily={FONT_SANS}
       fontSize={TYPE.arrowLabel}
       textAnchor="middle"
@@ -995,20 +1006,22 @@ function FlowArrowLabel({
 
 function ArrowEditor({
   arrow,
-  customMarkerId,
+  customMarkerIds,
   markerId,
   onBeginDrag,
+  onColorChange,
   onDelete,
   onElementClick,
   onStyleCycle,
 }: {
   arrow: Arrow
-  customMarkerId: string
+  customMarkerIds: Record<CustomArrowColor, string>
   markerId: string
   onBeginDrag: (
     mode: DragMode,
     outline?: OutlineElement,
   ) => (event: PointerEvent<SVGElement>) => void
+  onColorChange?: (color: CustomArrowColor) => void
   onDelete?: () => void
   onElementClick?: (target: MapElementTarget) => void
   onStyleCycle?: () => void
@@ -1034,7 +1047,7 @@ function ArrowEditor({
     >
       <ArrowPath
         arrow={arrow}
-        customMarkerId={customMarkerId}
+        customMarkerIds={customMarkerIds}
         markerId={markerId}
       />
       <path
@@ -1111,6 +1124,52 @@ function ArrowEditor({
                 ? '– –'
                 : '—'}
           </text>
+        </g>
+      )}
+      {onColorChange && (
+        <g
+          aria-label="Flow color"
+          className="map-arrow-colors"
+          transform={`translate(${midpoint.x - 48} ${midpoint.y + 46})`}
+        >
+          {CUSTOM_ARROW_COLORS.map((color, index) => {
+            const current = (arrow.color ?? 'ink') === color
+            return (
+              <g
+                key={color}
+                aria-label={`${color} flow color`}
+                className="map-arrow-color-swatch"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onColorChange(color)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return
+                  event.preventDefault()
+                  event.stopPropagation()
+                  onColorChange(color)
+                }}
+                onPointerDown={(event) => event.stopPropagation()}
+                role="button"
+                tabIndex={0}
+              >
+                {current && (
+                  <circle
+                    className="map-arrow-color-ring"
+                    cx={index * 16}
+                    cy={0}
+                    r={7}
+                  />
+                )}
+                <circle
+                  cx={index * 16}
+                  cy={0}
+                  fill={ARROW_COLORS[color]}
+                  r={5}
+                />
+              </g>
+            )
+          })}
         </g>
       )}
       {arrow.kind === 'custom' && !arrow.label && arrow.id && (
@@ -1374,12 +1433,16 @@ function FlowLegend({
 }
 
 function NoteBlock({
+  onBackgroundToggle,
   onDelete,
   onElementClick,
+  onResize,
   placed,
 }: {
+  onBackgroundToggle?: () => void
   onDelete?: () => void
   onElementClick?: (target: MapElementTarget) => void
+  onResize?: (event: PointerEvent<SVGElement>) => void
   placed: PlacedNote
 }) {
   const editProps = editableTextProps(
@@ -1388,6 +1451,18 @@ function NoteBlock({
   )
   return (
     <>
+      {placed.note.bg && (
+        <rect
+          className="map-note-card"
+          fill="#ffffff"
+          height={placed.h + 20}
+          rx={8}
+          stroke={HAIRLINE}
+          width={placed.w + 20}
+          x={placed.x - 10}
+          y={placed.y - 10}
+        />
+      )}
       <rect
         fill="transparent"
         height={placed.h}
@@ -1400,7 +1475,7 @@ function NoteBlock({
         className={`map-note-text${
           editProps.className ? ` ${editProps.className}` : ''
         }`}
-        fill={MUTED}
+        fill={placed.note.bg ? INK : MUTED}
         fontFamily={FONT_SERIF}
         fontSize={TYPE.note}
         x={placed.x}
@@ -1450,6 +1525,54 @@ function NoteBlock({
           </text>
         </g>
       )}
+      {onBackgroundToggle && (
+        <g
+          aria-label="Toggle note background"
+          className="map-note-background"
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            event.stopPropagation()
+            onBackgroundToggle()
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return
+            event.preventDefault()
+            event.stopPropagation()
+            onBackgroundToggle()
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <rect
+            height={20}
+            rx={10}
+            width={20}
+            x={placed.x + placed.w - 44}
+            y={placed.y - 4}
+          />
+          <rect
+            className="map-note-background-glyph"
+            fill={placed.note.bg ? INK : 'none'}
+            height={8}
+            rx={2}
+            width={10}
+            x={placed.x + placed.w - 39}
+            y={placed.y + 2}
+          />
+        </g>
+      )}
+      {onResize && (
+        <rect
+          aria-label="Resize note"
+          className="map-note-resize"
+          height={Math.max(24, placed.h)}
+          rx={4}
+          width={8}
+          x={placed.x + placed.w - 4}
+          y={placed.y}
+          onPointerDown={onResize}
+        />
+      )}
     </>
   )
 }
@@ -1462,7 +1585,12 @@ export function MapSvg({
 }: MapSvgProps) {
   const id = useId().replaceAll(':', '')
   const markerId = `flow-arrowhead-${id}`
-  const customMarkerId = `custom-arrowhead-${id}`
+  const customMarkerIds = Object.fromEntries(
+    CUSTOM_ARROW_COLORS.map((color) => [
+      color,
+      `custom-arrowhead-${color}-${id}`,
+    ]),
+  ) as Record<CustomArrowColor, string>
   const legendMarkerId = `legend-arrowhead-${id}`
   const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<DragSession | null>(null)
@@ -1635,6 +1763,16 @@ export function MapSvg({
         OVERRIDE_BOUNDS,
       )
       const nextData = moveMapNote(data, session.key, clamped.x, clamped.y)
+      session.latestData = nextData
+      setPreviewData(nextData)
+      return
+    }
+    if (session.mode === 'noteResize' && session.startPlaced) {
+      const nextData = resizeMapNote(
+        data,
+        session.key,
+        session.startPlaced.w + delta.x,
+      )
       session.latestData = nextData
       setPreviewData(nextData)
       return
@@ -1814,18 +1952,24 @@ export function MapSvg({
         >
           <path d="M 0 0 L 9 4.5 L 0 9 Z" fill={FLOW_GREEN} />
         </marker>
-        <marker
-          id={customMarkerId}
-          viewBox="0 0 9 9"
-          markerWidth={9}
-          markerHeight={9}
-          refX={8}
-          refY={4.5}
-          orient="auto"
-          markerUnits="strokeWidth"
-        >
-          <path d="M 0 0 L 9 4.5 L 0 9 Z" fill={INK} />
-        </marker>
+        {CUSTOM_ARROW_COLORS.map((color) => (
+          <marker
+            key={color}
+            id={customMarkerIds[color]}
+            viewBox="0 0 9 9"
+            markerWidth={9}
+            markerHeight={9}
+            refX={8}
+            refY={4.5}
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path
+              d="M 0 0 L 9 4.5 L 0 9 Z"
+              fill={ARROW_COLORS[color]}
+            />
+          </marker>
+        ))}
         <marker
           id={legendMarkerId}
           viewBox="0 0 7 7"
@@ -2067,7 +2211,7 @@ export function MapSvg({
               <g key={`${arrow.kind}-${arrow.id ?? index}`}>
                 <ArrowPath
                   arrow={arrow}
-                  customMarkerId={customMarkerId}
+                  customMarkerIds={customMarkerIds}
                   markerId={markerId}
                 />
                 <FlowArrowLabel arrow={arrow} />
@@ -2100,7 +2244,7 @@ export function MapSvg({
             <ArrowEditor
               key={`${arrow.kind}-${arrow.id ?? index}`}
               arrow={arrow}
-              customMarkerId={customMarkerId}
+              customMarkerIds={customMarkerIds}
               markerId={markerId}
               onElementClick={onElementClick}
               onBeginDrag={(mode) =>
@@ -2125,6 +2269,14 @@ export function MapSvg({
                         )
                     : undefined
               }
+              onColorChange={
+                arrow.kind === 'custom' && arrow.id
+                  ? (color) =>
+                      onChange(
+                        setCustomArrowColor(data, arrow.id!, color),
+                      )
+                  : undefined
+              }
               onStyleCycle={
                 arrow.kind === 'custom' && arrow.id
                   ? () => onChange(cycleCustomArrowStyle(data, arrow.id!))
@@ -2139,7 +2291,7 @@ export function MapSvg({
           className="map-connect-preview"
           d={`M ${connectPreview.start.x} ${connectPreview.start.y} L ${connectPreview.end.x} ${connectPreview.end.y}`}
           fill="none"
-          markerEnd={`url(#${customMarkerId})`}
+          markerEnd={`url(#${customMarkerIds.ink})`}
           pointerEvents="none"
         />
       )}
@@ -2175,12 +2327,33 @@ export function MapSvg({
             }
           >
             <NoteBlock
+              onBackgroundToggle={
+                onChange
+                  ? () =>
+                      onChange(
+                        setMapNoteBackground(
+                          data,
+                          placed.note.id,
+                          !placed.note.bg,
+                        ),
+                      )
+                  : undefined
+              }
               onDelete={
                 onChange
                   ? () => onChange(deleteMapNote(data, placed.note.id))
                   : undefined
               }
               onElementClick={onElementClick}
+              onResize={
+                onChange
+                  ? beginDrag(
+                      placed.note.id,
+                      'noteResize',
+                      placed,
+                    )
+                  : undefined
+              }
               placed={placed}
             />
           </g>
