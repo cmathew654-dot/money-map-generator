@@ -95,6 +95,7 @@ describe('book operations', () => {
         sourceId: source.accounts[0].id,
         targetId: source.accounts[1].id,
         style: 'dotted',
+        color: 'blue',
       },
       {
         id: 'custom-two',
@@ -113,6 +114,7 @@ describe('book operations', () => {
     expect(copy.customArrows?.[0]).toMatchObject({
       sourceId: copy.accounts[0].id,
       targetId: copy.accounts[1].id,
+      color: 'blue',
     })
     expect(copy.customArrows?.[1]).toMatchObject({
       sourceId: 'income',
@@ -124,7 +126,14 @@ describe('book operations', () => {
     const original = newBook()
     const source = original.clients[0]
     source.notes = [
-      { id: 'note-one', text: 'Keep six months liquid.', x: 420, y: 510 },
+      {
+        id: 'note-one',
+        text: 'Keep six months liquid.',
+        x: 420,
+        y: 510,
+        w: 420,
+        bg: true,
+      },
     ]
 
     const copy = duplicateClient(original, source.id).book.clients.at(-1)!
@@ -135,6 +144,8 @@ describe('book operations', () => {
         text: 'Keep six months liquid.',
         x: 420,
         y: 510,
+        w: 420,
+        bg: true,
       },
     ])
     expect(copy.notes?.[0].id).not.toBe(source.notes[0].id)
@@ -342,9 +353,32 @@ describe('parseBook', () => {
         sourceId: 'income',
         targetId: legacy.clients[0].accounts[0].id,
         style: 'dashed',
+        color: 'purple',
       },
     ]
     expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
+  })
+
+  it('loads legacy notes and arrows without S30 fields unchanged', () => {
+    const legacy = newBook()
+    legacy.clients[0].customArrows = [
+      {
+        id: 'legacy-flow',
+        sourceId: 'income',
+        targetId: 'need',
+        style: 'dashed',
+      },
+    ]
+    legacy.clients[0].notes = [
+      { id: 'legacy-note', text: 'No new fields.', x: 420, y: 510 },
+    ]
+
+    const parsed = parseBook(JSON.stringify(legacy))
+
+    expect(parsed).toEqual(legacy)
+    expect(parsed.clients[0].customArrows?.[0].color).toBeUndefined()
+    expect(parsed.clients[0].notes?.[0].w).toBeUndefined()
+    expect(parsed.clients[0].notes?.[0].bg).toBeUndefined()
   })
 
   it('normalizes legacy style-absent arrows to their shipped solid look', () => {
@@ -441,7 +475,14 @@ describe('parseBook', () => {
     legacy.clients[0].needTag = 'goal'
     legacy.clients[0].accounts[0].valueTag = 'est.'
     legacy.clients[0].notes = [
-      { id: 'note-one', text: 'Review at year end.', x: 500, y: 420 },
+      {
+        id: 'note-one',
+        text: 'Review at year end.',
+        x: 500,
+        y: 420,
+        w: 360,
+        bg: true,
+      },
     ]
 
     expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
@@ -453,6 +494,9 @@ describe('parseBook', () => {
     [{ id: 'note', text: null, x: 10, y: 20 }],
     [{ id: 'note', text: 'Note', x: 'left', y: 20 }],
     [{ id: 'note', text: 'Note', x: 10, y: null }],
+    [{ id: 'note', text: 'Note', x: 10, y: 20, w: null }],
+    [{ id: 'note', text: 'Note', x: 10, y: 20, w: 'wide' }],
+    [{ id: 'note', text: 'Note', x: 10, y: 20, bg: 'yes' }],
   ])('rejects malformed map notes with a human message', (notes) => {
     const value = newBook() as unknown as {
       clients: { notes?: unknown }[]
@@ -460,6 +504,18 @@ describe('parseBook', () => {
     value.clients[0].notes = notes
 
     expect(() => parseBook(JSON.stringify(value))).toThrow(
+      'Client 1 has invalid map notes.',
+    )
+  })
+
+  it('rejects a non-finite map note width', () => {
+    const value = newBook()
+    value.clients[0].notes = [
+      { id: 'note', text: 'Note', x: 10, y: 20, w: 360 },
+    ]
+    const json = JSON.stringify(value).replace('"w":360', '"w":1e400')
+
+    expect(() => parseBook(json)).toThrow(
       'Client 1 has invalid map notes.',
     )
   })
@@ -487,6 +543,15 @@ describe('parseBook', () => {
     [{ id: 1, sourceId: 'income', targetId: 'need' }],
     [{ id: 'arrow', sourceId: 2, targetId: 'need' }],
     [{ id: 'arrow', sourceId: 'income', targetId: null }],
+    [
+      {
+        id: 'arrow',
+        sourceId: 'income',
+        targetId: 'need',
+        style: 'solid',
+        color: 'orange',
+      },
+    ],
   ])('rejects malformed custom arrows with a human message', (customArrows) => {
     const value = newBook() as unknown as {
       clients: { customArrows?: unknown }[]

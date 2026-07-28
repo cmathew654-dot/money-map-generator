@@ -102,6 +102,7 @@ export interface Arrow {
   sourceId?: string
   targetId?: string
   style?: CustomArrow['style']
+  color?: CustomArrow['color']
   label?: string
 }
 
@@ -137,6 +138,8 @@ export const MIN_ACCOUNT_WIDTH = 180
 export const CAP_CONTENT_GAP = 21
 export const SHAPE_TEXT_PADDING = 20
 export const NOTE_WIDTH = 240
+export const NOTE_MIN_WIDTH = 120
+export const NOTE_MAX_WIDTH = 600
 export const NOTE_LEADING = 21
 const MIGRATED_FLOW_MIN_Y = 128
 const AS_NEEDED_LABEL_WIDTH = 260
@@ -1164,6 +1167,7 @@ function customArrowLayouts(
         ...arrow,
         id: record.id,
         style: record.style ?? 'solid',
+        color: record.color,
         label: record.label,
         labelAt: record.label
           ? pointOnQuadratic(arrow.start, arrow.control, arrow.end, 0.5)
@@ -1454,10 +1458,15 @@ export const OVERRIDE_BOUNDS = {
 
 function placedNotes(notes: MapNote[] | undefined): PlacedNote[] {
   return (notes ?? []).map((note) => {
-    const lines = fitLines(note.text, NOTE_WIDTH, TYPE.note)
+    const width = clamp(
+      note.w ?? NOTE_WIDTH,
+      NOTE_MIN_WIDTH,
+      NOTE_MAX_WIDTH,
+    )
+    const lines = fitLines(note.text, width, TYPE.note)
     const h = Math.max(TYPE.note, lines.length * NOTE_LEADING)
     const placed = clampRectToBounds(
-      { x: note.x, y: note.y, w: NOTE_WIDTH, h },
+      { x: note.x, y: note.y, w: width, h },
       OVERRIDE_BOUNDS,
     )
     return { ...placed, lines, note }

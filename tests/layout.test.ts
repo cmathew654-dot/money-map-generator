@@ -4,6 +4,8 @@ import {
   hexagonInset,
   layoutMap,
   MIN_ACCOUNT_WIDTH,
+  NOTE_MAX_WIDTH,
+  NOTE_MIN_WIDTH,
   pointOnOutline,
   rotatePoint,
   visibleGeneratedArrowKinds,
@@ -258,6 +260,27 @@ describe('layoutMap', () => {
     ).toBe(true)
     expect(note.x).toBe(48)
     expect(note.y + note.h).toBe(972)
+  })
+
+  it('clamps custom note widths and re-wraps to the stored width', () => {
+    const text =
+      'A custom-width note should use its own measure when wrapping text.'
+    const data = blankClient()
+    data.notes = [
+      { id: 'minimum', text, x: 100, y: 200, w: 40 },
+      { id: 'custom', text, x: 100, y: 400, w: 420 },
+      { id: 'maximum', text, x: 100, y: 600, w: 900 },
+    ]
+
+    const [minimum, custom, maximum] = layoutMap(data).notes
+
+    expect(minimum.w).toBe(NOTE_MIN_WIDTH)
+    expect(minimum.lines).toEqual(fitLines(text, NOTE_MIN_WIDTH, TYPE.note))
+    expect(custom.w).toBe(420)
+    expect(custom.lines).toEqual(fitLines(text, 420, TYPE.note))
+    expect(custom.lines.length).toBeLessThan(minimum.lines.length)
+    expect(maximum.w).toBe(NOTE_MAX_WIDTH)
+    expect(maximum.lines).toEqual(fitLines(text, NOTE_MAX_WIDTH, TYPE.note))
   })
 
   it('grows an account so a long tagged value remains on one line', () => {
@@ -994,6 +1017,7 @@ describe('layoutMap', () => {
         sourceId,
         targetId,
         style: 'dashed',
+        color: 'blue',
       },
     ]
     data.layoutOverrides = {
@@ -1017,6 +1041,7 @@ describe('layoutMap', () => {
       endT: 0.75,
       startAt: { dx: 160, dy: -40 },
       endAt: { dx: -120, dy: 55 },
+      color: 'blue',
     })
   })
 

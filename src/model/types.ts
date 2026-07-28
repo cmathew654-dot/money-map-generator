@@ -61,12 +61,24 @@ export interface Footnote {
   net: number | null // after withholding — rendered in green
 }
 
+export const CUSTOM_ARROW_COLORS = [
+  'ink',
+  'green',
+  'blue',
+  'gold',
+  'teal',
+  'purple',
+  'red',
+] as const
+export type CustomArrowColor = (typeof CUSTOM_ARROW_COLORS)[number]
+
 export interface CustomArrow {
   id: string
   sourceId: string
   targetId: string
   style: 'dotted' | 'dashed' | 'solid'
   label?: string
+  color?: CustomArrowColor
 }
 
 export type GeneratedArrowKind = 'income' | 'asNeeded'
@@ -86,6 +98,8 @@ export interface MapNote {
   text: string
   x: number
   y: number
+  w?: number
+  bg?: boolean
 }
 
 export const ACCOUNT_TEXT_ROLES = ['label', 'caption', 'value'] as const

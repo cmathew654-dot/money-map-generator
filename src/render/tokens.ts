@@ -4,6 +4,8 @@
  */
 
 /** Exact US-letter landscape ratio (11 × 8.5) so print fills the page. */
+import type { CustomArrowColor } from '../model/types'
+
 export const ARTBOARD = { width: 1320, height: 1020 }
 
 export const PAPER = '#fcfcfa'
@@ -15,6 +17,16 @@ export const HAIRLINE = '#dde1dc'
 export const NEED_RED = '#c03a2d'
 /** Income + flow green. */
 export const FLOW_GREEN = '#1e7a4a'
+
+export const ARROW_COLORS = {
+  ink: '#1c2422',
+  green: '#1e7a4a',
+  blue: '#2f6bab',
+  gold: '#b98a1e',
+  teal: '#2e8577',
+  purple: '#6b4fa0',
+  red: '#c03a2d',
+} as const satisfies Record<CustomArrowColor, string>
 
 export interface BucketStyle {
   stroke: string

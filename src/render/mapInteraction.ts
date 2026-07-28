@@ -1,4 +1,5 @@
 import type {
+  CustomArrowColor,
   GeneratedArrowKind,
   LayoutOverride,
   MapNote,
@@ -89,6 +90,20 @@ export function cycleCustomArrowStyle(
   }
 }
 
+export function setCustomArrowColor(
+  data: MoneyMapData,
+  id: string,
+  color: CustomArrowColor,
+): MoneyMapData {
+  if (!data.customArrows?.some((arrow) => arrow.id === id)) return data
+  return {
+    ...data,
+    customArrows: data.customArrows.map((arrow) =>
+      arrow.id === id ? { ...arrow, color } : arrow,
+    ),
+  }
+}
+
 export function hideGeneratedArrow(
   data: MoneyMapData,
   kind: GeneratedArrowKind,
@@ -154,6 +169,34 @@ export function moveMapNote(
     ...data,
     notes: data.notes.map((note) =>
       note.id === id ? { ...note, x, y } : note,
+    ),
+  }
+}
+
+export function resizeMapNote(
+  data: MoneyMapData,
+  id: string,
+  w: number,
+): MoneyMapData {
+  if (!data.notes?.some((note) => note.id === id)) return data
+  return {
+    ...data,
+    notes: data.notes.map((note) =>
+      note.id === id ? { ...note, w: clamp(w, 120, 600) } : note,
+    ),
+  }
+}
+
+export function setMapNoteBackground(
+  data: MoneyMapData,
+  id: string,
+  bg: boolean,
+): MoneyMapData {
+  if (!data.notes?.some((note) => note.id === id)) return data
+  return {
+    ...data,
+    notes: data.notes.map((note) =>
+      note.id === id ? { ...note, bg } : note,
     ),
   }
 }

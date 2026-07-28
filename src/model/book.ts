@@ -15,6 +15,7 @@ import type {
 import {
   ACCOUNT_SHAPES,
   ACCOUNT_TEXT_ROLES,
+  CUSTOM_ARROW_COLORS,
   MAP_TEXT_ELEMENTS,
   accountTextOverrideKey,
   isMigratedFlowId,
@@ -559,7 +560,11 @@ function validateClient(value: unknown, index: number): void {
             arrow.style !== 'dotted' &&
             arrow.style !== 'dashed' &&
             arrow.style !== 'solid') ||
-          (arrow.label !== undefined && typeof arrow.label !== 'string'),
+          (arrow.label !== undefined && typeof arrow.label !== 'string') ||
+          (arrow.color !== undefined &&
+            !CUSTOM_ARROW_COLORS.includes(
+              arrow.color as (typeof CUSTOM_ARROW_COLORS)[number],
+            )),
       )
     ) {
       throw new Error(`Client ${index + 1} has invalid custom arrows.`)
@@ -585,7 +590,10 @@ function validateClient(value: unknown, index: number): void {
           typeof note.x !== 'number' ||
           !Number.isFinite(note.x) ||
           typeof note.y !== 'number' ||
-          !Number.isFinite(note.y),
+          !Number.isFinite(note.y) ||
+          (note.w !== undefined &&
+            (typeof note.w !== 'number' || !Number.isFinite(note.w))) ||
+          (note.bg !== undefined && typeof note.bg !== 'boolean'),
       )
     ) {
       throw new Error(`Client ${index + 1} has invalid map notes.`)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  ARROW_COLORS,
   BUCKETS,
   FLOW_GREEN,
   MUTED,
@@ -38,6 +39,13 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('palette contrast contract', () => {
+  it.each(Object.entries(ARROW_COLORS))(
+    '%s flow arrow meets 3:1 on paper',
+    (_name, color) => {
+      expect(contrastRatio(color, PAPER)).toBeGreaterThanOrEqual(3)
+    },
+  )
+
   it.each(Object.entries(BUCKETS))(
     '%s tag meets 4.5:1 on its flat tint',
     (_bucket, style) => {
