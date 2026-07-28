@@ -192,7 +192,10 @@ describe('layout overrides', () => {
     expect(widened.h).toBe(300)
     expect(widened.capRy).toBe(Math.round(410 * 0.13))
     expect(minimum.w).toBe(MIN_ACCOUNT_WIDTH)
-    expect(minimum.h).toBe(MIN_ACCOUNT_HEIGHT)
+    expect(minimum.h).toBeGreaterThan(MIN_ACCOUNT_HEIGHT)
+    expect(
+      minimum.contentBottom + minimum.capRy + 8,
+    ).toBeLessThanOrEqual(minimum.h)
   })
 
   it('clamps translated and resized elements inside the page content area', () => {

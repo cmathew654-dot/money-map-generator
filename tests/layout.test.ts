@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CAP_CONTENT_GAP,
   hexagonInset,
   layoutMap,
+  MIN_ACCOUNT_WIDTH,
   pointOnOutline,
   rotatePoint,
   type PlacedAccount,
 } from '../src/layout/layout'
+import { textWidth } from '../src/layout/textfit'
 import { newBook } from '../src/model/book'
 import {
   blankClient,
@@ -15,6 +18,8 @@ import {
 } from '../src/model/samples'
 import type { Account, MoneyMapData } from '../src/model/types'
 import type { AccountShape } from '../src/model/types'
+import { accountShape } from '../src/model/types'
+import { TYPE } from '../src/render/tokens'
 
 function expectInsideArtboard(data: MoneyMapData) {
   const layout = layoutMap(data)
@@ -137,7 +142,120 @@ function singleAccountData(shape: AccountShape): MoneyMapData {
   return data
 }
 
+function textStressData(
+  label: string,
+  caption?: string,
+  width?: number,
+): MoneyMapData {
+  const data = blankClient()
+  data.accounts = [
+    {
+      id: 'text-stress',
+      bucket: 'cash',
+      label,
+      caption,
+      value: null,
+      inWaterfall: false,
+    },
+  ]
+  if (width !== undefined) {
+    data.layoutOverrides = { 'text-stress': { w: width } }
+  }
+  return data
+}
+
+function expectAccountTextIntegrity(data: MoneyMapData) {
+  for (const placed of layoutMap(data).accounts) {
+    for (const line of placed.titleLines) {
+      expect(textWidth(line, TYPE.accountTitle)).toBeLessThanOrEqual(
+        placed.usableTitleWidth,
+      )
+    }
+    for (const line of placed.captionLines) {
+      expect(textWidth(line, TYPE.caption)).toBeLessThanOrEqual(
+        placed.usableCaptionWidth,
+      )
+    }
+    for (const subLayout of placed.subAccountLayouts) {
+      for (const line of subLayout.titleLines) {
+        expect(
+          textWidth(line, TYPE.subAccountTitle),
+        ).toBeLessThanOrEqual(subLayout.usableTitleWidth)
+      }
+      for (const line of subLayout.captionLines) {
+        expect(
+          textWidth(line, TYPE.subAccountCaption),
+        ).toBeLessThanOrEqual(subLayout.usableCaptionWidth)
+      }
+      expect(subLayout.lastBaseline + 10 + 8).toBeLessThanOrEqual(
+        subLayout.h,
+      )
+    }
+
+    if (accountShape(placed.account) === 'drum') {
+      expect(placed.firstBaseline).toBeGreaterThanOrEqual(
+        placed.capRy * 2 + CAP_CONTENT_GAP,
+      )
+      expect(
+        placed.contentBottom + placed.capRy + 8,
+      ).toBeLessThanOrEqual(placed.h)
+    } else {
+      const bottomClearance =
+        accountShape(placed.account) === 'pill' ? 24 : 20
+      expect(
+        placed.contentBottom + bottomClearance,
+      ).toBeLessThanOrEqual(placed.h)
+    }
+
+    expect(placed.contentBottom).toBeLessThan(placed.h)
+    expect(placed.lastBaseline).toBeLessThan(placed.h)
+  }
+}
+
 describe('layoutMap', () => {
+  it.each([
+    ['Whitfield', SAMPLE_WHITFIELD],
+    ['Calloway', SAMPLE_CALLOWAY],
+    ['Venkat', SAMPLE_VENKAT],
+    ['60-character all-caps label', textStressData('W'.repeat(60))],
+    [
+      '90-character caption',
+      textStressData(
+        'Caption stress',
+        'A measured caption must remain fully inside its account shape. '.repeat(
+          2,
+        ).slice(0, 90),
+      ),
+    ],
+    [
+      'minimum-width override',
+      textStressData(
+        'A deliberately long account label at minimum width',
+        undefined,
+        MIN_ACCOUNT_WIDTH,
+      ),
+    ],
+  ])('keeps every %s account text line inside its shape', (_label, data) => {
+    expectAccountTextIntegrity(data)
+  })
+
+  it.each([
+    ['Whitfield', SAMPLE_WHITFIELD],
+    ['Calloway', SAMPLE_CALLOWAY],
+    ['Venkat', SAMPLE_VENKAT],
+  ])('keeps the %s content bounds inside the artboard', (_label, data) => {
+    const { artboard, contentBounds } = layoutMap(data)
+
+    expect(contentBounds.x).toBeGreaterThanOrEqual(0)
+    expect(contentBounds.y).toBeGreaterThanOrEqual(0)
+    expect(contentBounds.x + contentBounds.w).toBeLessThanOrEqual(
+      artboard.width,
+    )
+    expect(contentBounds.y + contentBounds.h).toBeLessThanOrEqual(
+      artboard.height,
+    )
+  })
+
   it.each([
     ['sample client', SAMPLE_WHITFIELD],
     ['blank client', blankClient()],
@@ -524,7 +642,6 @@ describe('layoutMap', () => {
         (Math.hypot(chord.x, chord.y) *
           Math.hypot(tangent.x, tangent.y)),
     )
-
     expect(start.x).toBeCloseTo(asNeeded.start.x, 1)
     expect(start.y).toBeCloseTo(asNeeded.start.y, 1)
     expect(end.x).toBeCloseTo(asNeeded.end.x, 1)
@@ -636,13 +753,13 @@ describe('layoutMap', () => {
       expect(layout.need.h).toBe(170)
       expect(layout.footnotesAt.y).toBe(930)
     }
-    expect(sample.income).toEqual({ x: 48, y: 154, w: 280, h: 248 })
-    expect(sample.need).toEqual({ x: 48, y: 684, w: 250, h: 170 })
+    expect(sample.income).toEqual({ x: 48, y: 156, w: 280, h: 248 })
+    expect(sample.need).toEqual({ x: 48, y: 686, w: 250, h: 170 })
     expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 128 })
     expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
   })
 
-  it('compresses a dense eight-account client without shrinking below 120', () => {
+  it('never compresses dense account shapes below their content', () => {
     const denseAccount = (id: string): Account => ({
       id,
       bucket: 'taxDeferred',
@@ -671,11 +788,13 @@ describe('layoutMap', () => {
 
     expect(layout.accounts).toHaveLength(8)
     expect(farColumn).toHaveLength(5)
-    expect(farColumn.some((account) => account.h < 159)).toBe(true)
     expect(farColumn.every((account) => account.h >= 120)).toBe(true)
     expect(
-      Math.max(...farColumn.map((account) => account.y + account.h)),
-    ).toBeLessThanOrEqual(890)
+      farColumn.every(
+        (account) =>
+          account.contentBottom + account.capRy + 8 <= account.h,
+      ),
+    ).toBe(true)
     expectColumnGaps(layout.accounts)
   })
 })
