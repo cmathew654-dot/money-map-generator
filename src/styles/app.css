@@ -398,6 +398,39 @@ summary:focus-visible {
   pointer-events: none;
 }
 
+.map-page svg .map-connect-handle {
+  opacity: 0;
+  cursor: crosshair;
+  transition: opacity 120ms ease;
+}
+
+.map-page svg .map-connect-handle circle {
+  fill: #fcfcfa;
+  stroke: #1e7a4a;
+  stroke-width: 2;
+}
+
+.map-page svg .map-connect-glyph {
+  fill: none;
+  stroke: #1e7a4a;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.map-page svg .map-connect-preview {
+  stroke: #1c2422;
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+.map-page svg.is-connecting,
+.map-page svg.is-connecting .map-draggable,
+.map-page svg.is-connecting .map-editable-text {
+  cursor: crosshair;
+}
+
 .map-page svg .map-arrow-editor {
   cursor: grab;
 }
@@ -415,10 +448,33 @@ summary:focus-visible {
   transition: opacity 120ms ease;
 }
 
+.map-page svg .map-arrow-delete {
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.map-page svg .map-arrow-delete circle {
+  fill: #fcfcfa;
+  stroke: #1c2422;
+  stroke-width: 1.5;
+}
+
+.map-page svg .map-arrow-delete text {
+  fill: #1c2422;
+  font: 16px/1 sans-serif;
+  pointer-events: none;
+}
+
 .map-page svg .map-arrow-editor:hover > .map-arrow-handle,
 .map-page svg .map-arrow-editor:focus > .map-arrow-handle,
 .map-page svg .map-arrow-editor:focus-within > .map-arrow-handle,
-.map-page svg .map-arrow-handle:hover {
+.map-page svg .map-arrow-handle:hover,
+.map-page svg .map-arrow-editor:hover > .map-arrow-delete,
+.map-page svg .map-arrow-editor:focus > .map-arrow-delete,
+.map-page svg .map-arrow-editor:focus-within > .map-arrow-delete,
+.map-page svg .map-arrow-delete:hover,
+.map-page svg .map-arrow-delete:focus {
   opacity: 1;
 }
 
@@ -438,6 +494,11 @@ summary:focus-visible {
 .map-page svg .map-draggable:focus > .map-rotate-handle,
 .map-page svg .map-draggable:focus-within > .map-rotate-handle,
 .map-page svg .map-rotate-handle:hover,
+.map-page svg .map-draggable:hover > .map-connect-handle,
+.map-page svg .map-draggable:focus > .map-connect-handle,
+.map-page svg .map-draggable:focus-within > .map-connect-handle,
+.map-page svg .map-connect-handle:hover,
+.map-page svg .map-connect-handle:focus,
 .map-page svg .map-draggable:hover > .map-shape-flip,
 .map-page svg .map-draggable:focus > .map-shape-flip,
 .map-page svg .map-draggable:focus-within > .map-shape-flip,
@@ -447,6 +508,7 @@ summary:focus-visible {
 
 .map-page svg.is-dragging .map-resize-handle,
 .map-page svg.is-dragging .map-rotate-handle,
+.map-page svg.is-dragging .map-connect-handle,
 .map-page svg.is-dragging .map-shape-flip {
   transition: none;
 }
@@ -1039,6 +1101,16 @@ summary:focus-visible {
   height: 15px;
   margin: 0;
   accent-color: #1c2422;
+}
+
+.form-caption {
+  color: #5b6663;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.refill-chain-help {
+  margin: -6px 0 13px 22px;
 }
 
 .nested-list {

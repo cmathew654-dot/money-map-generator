@@ -4,6 +4,7 @@ import type {
   Account,
   AccountShape,
   Bucket,
+  CustomArrow,
   LayoutOverride,
   MoneyMapData,
   SubAccount,
@@ -63,7 +64,8 @@ export interface AccountTextLayout {
 }
 
 export interface Arrow {
-  kind: 'waterfall' | 'income' | 'asNeeded'
+  kind: 'waterfall' | 'income' | 'asNeeded' | 'custom'
+  id?: string
   d: string
   start: { x: number; y: number }
   control: { x: number; y: number }
@@ -985,6 +987,46 @@ function incomeArrow(
   })
 }
 
+function customArrowLayouts(
+  customArrows: CustomArrow[] | undefined,
+  income: Placed,
+  need: Placed,
+  accounts: PlacedAccount[],
+  overrides?: Record<string, LayoutOverride>,
+): Arrow[] {
+  const elements = new Map<string, OutlineElement>([
+    ['income', income],
+    ['need', need],
+    ...accounts.map(
+      (placed) => [placed.account.id, placed] as [string, OutlineElement],
+    ),
+  ])
+  const obstacles = [income, need, ...accounts]
+
+  return (customArrows ?? []).flatMap((record) => {
+    const source = elements.get(record.sourceId)
+    const target = elements.get(record.targetId)
+    if (!source || !target) return []
+
+    return [
+      {
+        ...routedArrow({
+          kind: 'custom',
+          source,
+          target,
+          obstacles: obstacles.filter(
+            (element) => element !== source && element !== target,
+          ),
+          override: overrides?.[`arrow:custom:${record.id}`],
+          sourceId: record.sourceId,
+          targetId: record.targetId,
+        }),
+        id: record.id,
+      },
+    ]
+  })
+}
+
 function boxesIntersect(
   first: Placed,
   second: Placed,
@@ -1377,6 +1419,7 @@ function arrowsForFinalGeometry(
   income: Placed,
   need: Placed,
   accounts: PlacedAccount[],
+  customArrows: CustomArrow[] | undefined,
   overrides: Record<string, LayoutOverride> | undefined,
   chipOverride: LayoutOverride | undefined,
 ): Arrow[] {
@@ -1421,6 +1464,9 @@ function arrowsForFinalGeometry(
       ),
     )
   }
+  arrows.push(
+    ...customArrowLayouts(customArrows, income, need, accounts, overrides),
+  )
   return arrows
 }
 
@@ -1445,6 +1491,9 @@ function baseLayout(data: MoneyMapData): MapLayout {
       asNeededArrow(shortTerm, need, [income, need, ...accounts]),
     )
   }
+  arrows.push(
+    ...customArrowLayouts(data.customArrows, income, need, accounts),
+  )
 
   return centerComposition(
     {
@@ -1487,6 +1536,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     income,
     need,
     accounts,
+    data.customArrows,
     data.layoutOverrides,
     data.layoutOverrides?.asNeededChip,
   )

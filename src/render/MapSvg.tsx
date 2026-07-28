@@ -8,7 +8,12 @@ import {
   type PointerEvent,
   type SVGProps,
 } from 'react'
-import { hexagonInset, layoutMap } from '../layout/layout'
+import {
+  hexagonInset,
+  layoutMap,
+  nearestOutlineT,
+  pointOnOutline,
+} from '../layout/layout'
 import type {
   Arrow,
   OutlineElement,
@@ -39,7 +44,9 @@ import type {
   MapTextEditTarget,
 } from '../ui/MapTextEditor'
 import {
+  addCustomArrow,
   crossedDragThreshold,
+  deleteCustomArrow,
   snapRotation,
   screenDeltaToArtboard,
   screenPointToArtboard,
@@ -100,6 +107,7 @@ type DragMode =
   | 'arrowBow'
   | 'arrowStart'
   | 'arrowEnd'
+  | 'connect'
 
 interface DragSession {
   active: boolean
@@ -113,6 +121,7 @@ interface DragSession {
   startOutline?: OutlineElement
   startPlaced?: Placed
   startScreen: Point
+  sourceId?: string
 }
 
 function placedRotation(placed: Placed): number {
@@ -826,20 +835,23 @@ function Cylinder({
 
 function ArrowPath({
   arrow,
+  customMarkerId,
   markerId,
 }: {
   arrow: Arrow
+  customMarkerId: string
   markerId: string
 }) {
   const waterfall = arrow.kind === 'waterfall'
   const asNeeded = arrow.kind === 'asNeeded'
+  const custom = arrow.kind === 'custom'
   return (
     <path
       data-arrow-kind={arrow.kind}
       d={arrow.d}
       fill="none"
-      markerEnd={`url(#${markerId})`}
-      stroke={FLOW_GREEN}
+      markerEnd={`url(#${custom ? customMarkerId : markerId})`}
+      stroke={custom ? INK : FLOW_GREEN}
       strokeDasharray={
         waterfall ? '0.1 9' : asNeeded ? '7 6' : undefined
       }
@@ -851,15 +863,19 @@ function ArrowPath({
 
 function ArrowEditor({
   arrow,
+  customMarkerId,
   markerId,
   onBeginDrag,
+  onDelete,
 }: {
   arrow: Arrow
+  customMarkerId: string
   markerId: string
   onBeginDrag: (
     mode: DragMode,
     outline?: OutlineElement,
   ) => (event: PointerEvent<SVGElement>) => void
+  onDelete?: () => void
 }) {
   const midpoint = {
     x:
@@ -880,7 +896,11 @@ function ArrowEditor({
       role="button"
       tabIndex={0}
     >
-      <ArrowPath arrow={arrow} markerId={markerId} />
+      <ArrowPath
+        arrow={arrow}
+        customMarkerId={customMarkerId}
+        markerId={markerId}
+      />
       <path
         className="map-arrow-hit"
         d={arrow.d}
@@ -902,6 +922,66 @@ function ArrowEditor({
           onPointerDown={onBeginDrag(mode as DragMode)}
         />
       ))}
+      {onDelete && (
+        <g
+          aria-label="Delete custom arrow"
+          className="map-arrow-delete"
+          role="button"
+          tabIndex={0}
+          transform={`translate(${midpoint.x + 18} ${midpoint.y - 18})`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onDelete()
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return
+            event.preventDefault()
+            event.stopPropagation()
+            onDelete()
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <circle r={9} />
+          <text dy={4} textAnchor="middle">
+            ×
+          </text>
+        </g>
+      )}
+    </g>
+  )
+}
+
+function ConnectHandle({
+  endpointId,
+  label,
+  onBegin,
+  placed,
+}: {
+  endpointId: string
+  label: string
+  onBegin: (
+    sourceId: string,
+    source: OutlineElement,
+  ) => (event: PointerEvent<SVGElement>) => void
+  placed: OutlineElement
+}) {
+  const x = placed.x + placed.w + 22
+  const y = placed.y + placed.h / 2
+  return (
+    <g
+      aria-label={`Connect from ${label}`}
+      className="map-connect-handle"
+      role="button"
+      tabIndex={0}
+      onPointerDown={onBegin(endpointId, placed)}
+    >
+      <circle cx={x} cy={y} r={9} />
+      <path
+        className="map-connect-glyph"
+        d={`M ${x - 5} ${y} H ${x + 5} M ${x + 1} ${y - 4} L ${
+          x + 5
+        } ${y} L ${x + 1} ${y + 4}`}
+      />
     </g>
   )
 }
@@ -1093,6 +1173,7 @@ export function MapSvg({
 }: MapSvgProps) {
   const id = useId().replaceAll(':', '')
   const markerId = `flow-arrowhead-${id}`
+  const customMarkerId = `custom-arrowhead-${id}`
   const legendMarkerId = `legend-arrowhead-${id}`
   const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<DragSession | null>(null)
@@ -1100,10 +1181,23 @@ export function MapSvg({
   const [previewData, setPreviewData] = useState<MoneyMapData | null>(
     null,
   )
+  const [connectPreview, setConnectPreview] = useState<{
+    start: Point
+    end: Point
+  } | null>(null)
+  const [connecting, setConnecting] = useState(false)
   const [dragging, setDragging] = useState(false)
   const displayData = previewData ?? data
   const layout = layoutMap(displayData)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
+  const outlineForId = (endpointId: string | undefined) =>
+    endpointId === 'income'
+      ? layout.income
+      : endpointId === 'need'
+        ? layout.need
+        : layout.accounts.find(
+            (placed) => placed.account.id === endpointId,
+          )
 
   const cycleShape = (accountId: string) => {
     onChange?.({
@@ -1132,6 +1226,8 @@ export function MapSvg({
     }
     dragRef.current = null
     setDragging(false)
+    setConnecting(false)
+    setConnectPreview(null)
     setPreviewData(null)
   }
 
@@ -1173,6 +1269,30 @@ export function MapSvg({
     }
   }
 
+  const beginConnect = (
+    sourceId: string,
+    source: OutlineElement,
+  ) => (event: PointerEvent<SVGElement>) => {
+    if (!onChange || event.button !== 0) return
+    event.preventDefault()
+    event.stopPropagation()
+    const screenCtm = svgRef.current?.getScreenCTM()
+    if (!screenCtm) return
+
+    dragRef.current = {
+      active: false,
+      initialOverride: {},
+      inverseScreenCtm: screenCtm.inverse(),
+      key: '',
+      latestData: data,
+      mode: 'connect',
+      pointerId: event.pointerId,
+      sourceId,
+      startOutline: source,
+      startScreen: { x: event.clientX, y: event.clientY },
+    }
+  }
+
   const previewDrag = (event: PointerEvent<SVGSVGElement>) => {
     const session = dragRef.current
     if (!session || session.pointerId !== event.pointerId) return
@@ -1187,8 +1307,24 @@ export function MapSvg({
       session.active = true
       event.currentTarget.setPointerCapture(event.pointerId)
       setDragging(true)
+      if (session.mode === 'connect') setConnecting(true)
     }
     event.preventDefault()
+
+    if (session.mode === 'connect' && session.startOutline) {
+      const end = screenPointToArtboard(
+        currentScreen,
+        session.inverseScreenCtm,
+      )
+      setConnectPreview({
+        start: pointOnOutline(
+          session.startOutline,
+          nearestOutlineT(session.startOutline, end),
+        ),
+        end,
+      })
+      return
+    }
 
     const delta = screenDeltaToArtboard(
       {
@@ -1294,6 +1430,8 @@ export function MapSvg({
     }
     dragRef.current = null
     setDragging(false)
+    setConnecting(false)
+    setConnectPreview(null)
     if (!session.active) return
 
     event.preventDefault()
@@ -1301,6 +1439,17 @@ export function MapSvg({
     window.setTimeout(() => {
       suppressNextClickRef.current = false
     }, 0)
+    if (session.mode === 'connect' && session.sourceId) {
+      const targetId = document
+        .elementsFromPoint(event.clientX, event.clientY)
+        .map((element) => element.closest('[data-connect-id]'))
+        .find((element) => element !== null)
+        ?.getAttribute('data-connect-id')
+      if (!targetId) return
+      const nextData = addCustomArrow(data, session.sourceId, targetId)
+      if (nextData !== data) onChange?.(nextData)
+      return
+    }
     onChange?.(session.latestData)
   }
 
@@ -1310,6 +1459,7 @@ export function MapSvg({
       className={[
         onChange ? 'map-interactive' : '',
         dragging ? 'is-dragging' : '',
+        connecting ? 'is-connecting' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -1354,6 +1504,18 @@ export function MapSvg({
           <path d="M 0 0 L 9 4.5 L 0 9 Z" fill={FLOW_GREEN} />
         </marker>
         <marker
+          id={customMarkerId}
+          viewBox="0 0 9 9"
+          markerWidth={9}
+          markerHeight={9}
+          refX={8}
+          refY={4.5}
+          orient="auto"
+          markerUnits="strokeWidth"
+        >
+          <path d="M 0 0 L 9 4.5 L 0 9 Z" fill={INK} />
+        </marker>
+        <marker
           id={legendMarkerId}
           viewBox="0 0 7 7"
           markerWidth={5}
@@ -1369,6 +1531,7 @@ export function MapSvg({
 
       <Masthead data={displayData} />
       <g
+        data-connect-id={onChange ? 'income' : undefined}
         {...interactiveGroupProps(
           'Income sources',
           { kind: 'income' },
@@ -1386,8 +1549,17 @@ export function MapSvg({
           onElementClick={onElementClick}
           placed={layout.income}
         />
+        {onChange && (
+          <ConnectHandle
+            endpointId="income"
+            label="income sources"
+            onBegin={beginConnect}
+            placed={layout.income}
+          />
+        )}
       </g>
       <g
+        data-connect-id={onChange ? 'need' : undefined}
         {...interactiveGroupProps(
           'Monthly income need',
           { kind: 'need' },
@@ -1411,6 +1583,14 @@ export function MapSvg({
           value={displayData.monthlyNeed}
           placed={layout.need}
         />
+        {onChange && (
+          <ConnectHandle
+            endpointId="need"
+            label="monthly income need"
+            onBegin={beginConnect}
+            placed={layout.need}
+          />
+        )}
       </g>
       <g aria-label="Accounts">
         {layout.accounts.map((placed, index) => {
@@ -1428,6 +1608,7 @@ export function MapSvg({
             <g
               data-account-id={placed.account.id}
               data-account-shape={shape}
+              data-connect-id={onChange ? placed.account.id : undefined}
               key={`${placed.account.id}-${index}`}
               {...interactiveGroupProps(
                 accountDisplayName(placed.account),
@@ -1548,6 +1729,12 @@ export function MapSvg({
                       placed,
                     )}
                   />
+                  <ConnectHandle
+                    endpointId={placed.account.id}
+                    label={accountDisplayName(placed.account)}
+                    onBegin={beginConnect}
+                    placed={placed}
+                  />
                 </>
               )}
             </g>
@@ -1561,6 +1748,7 @@ export function MapSvg({
               <ArrowPath
                 key={`${arrow.kind}-${index}`}
                 arrow={arrow}
+                customMarkerId={customMarkerId}
                 markerId={markerId}
               />
             )
@@ -1568,25 +1756,32 @@ export function MapSvg({
           const key =
             arrow.kind === 'waterfall'
               ? `arrow:waterfall:${arrow.sourceId}`
+              : arrow.kind === 'custom'
+                ? `arrow:custom:${arrow.id}`
               : `arrow:${arrow.kind}`
           const source =
-            arrow.kind === 'income'
-              ? layout.income
-              : layout.accounts.find(
-                  (placed) =>
-                    placed.account.id === arrow.sourceId,
-                )
+            arrow.kind === 'custom'
+              ? outlineForId(arrow.sourceId)
+              : arrow.kind === 'income'
+                ? layout.income
+                : layout.accounts.find(
+                    (placed) =>
+                      placed.account.id === arrow.sourceId,
+                  )
           const target =
-            arrow.kind === 'income' || arrow.kind === 'asNeeded'
-              ? layout.need
-              : layout.accounts.find(
-                  (placed) =>
-                    placed.account.id === arrow.targetId,
-                )
+            arrow.kind === 'custom'
+              ? outlineForId(arrow.targetId)
+              : arrow.kind === 'income' || arrow.kind === 'asNeeded'
+                ? layout.need
+                : layout.accounts.find(
+                    (placed) =>
+                      placed.account.id === arrow.targetId,
+                  )
           return (
             <ArrowEditor
-              key={`${arrow.kind}-${index}`}
+              key={`${arrow.kind}-${arrow.id ?? index}`}
               arrow={arrow}
+              customMarkerId={customMarkerId}
               markerId={markerId}
               onBeginDrag={(mode) =>
                 beginDrag(
@@ -1597,10 +1792,24 @@ export function MapSvg({
                   mode === 'arrowStart' ? source : target,
                 )
               }
+              onDelete={
+                arrow.kind === 'custom' && arrow.id
+                  ? () => onChange(deleteCustomArrow(data, arrow.id!))
+                  : undefined
+              }
             />
           )
         })}
       </g>
+      {connectPreview && (
+        <path
+          className="map-connect-preview"
+          d={`M ${connectPreview.start.x} ${connectPreview.start.y} L ${connectPreview.end.x} ${connectPreview.end.y}`}
+          fill="none"
+          markerEnd={`url(#${customMarkerId})`}
+          pointerEvents="none"
+        />
+      )}
       {asNeeded && (
         <g
           className={onChange ? 'map-draggable' : undefined}

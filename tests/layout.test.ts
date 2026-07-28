@@ -771,6 +771,117 @@ describe('layoutMap', () => {
     }
   })
 
+  it('routes custom arrows between rotated element outlines with clearance', () => {
+    const data = structuredClone(SAMPLE_WHITFIELD)
+    const sourceId = data.accounts[0].id
+    const targetId = data.accounts.at(-1)!.id
+    data.customArrows = [
+      { id: 'custom-clear', sourceId, targetId },
+    ]
+    data.layoutOverrides = {
+      [targetId]: { rot: 30 },
+    }
+
+    const layout = layoutMap(data)
+    const arrow = layout.arrows.find(
+      (candidate) => candidate.id === 'custom-clear',
+    )!
+    const source = layout.accounts.find(
+      (placed) => placed.account.id === sourceId,
+    )!
+    const target = layout.accounts.find(
+      (placed) => placed.account.id === targetId,
+    )!
+    const obstacles = [
+      layout.income,
+      layout.need,
+      ...layout.accounts.filter(
+        (placed) =>
+          placed.account.id !== sourceId &&
+          placed.account.id !== targetId,
+      ),
+    ]
+    const intersections = []
+    let previous = arrow.start
+    for (let sample = 1; sample <= 32; sample += 1) {
+      const point = pointOnQuadratic(
+        arrow.start,
+        arrow.control,
+        arrow.end,
+        sample / 32,
+      )
+      intersections.push(
+        ...obstacles.filter((obstacle) =>
+          segmentIntersectsBox(previous, point, obstacle),
+        ),
+      )
+      previous = point
+    }
+
+    expect(arrow.kind).toBe('custom')
+    expect(arrow.start).toEqual(pointOnOutline(source, arrow.startT))
+    expect(arrow.end).toEqual(pointOnOutline(target, arrow.endT))
+    expect(intersections).toEqual([])
+  })
+
+  it('composes custom arrow geometry overrides under its record key', () => {
+    const data = structuredClone(SAMPLE_WHITFIELD)
+    const sourceId = data.accounts[0].id
+    const targetId = data.accounts[1].id
+    data.customArrows = [
+      { id: 'custom-overridden', sourceId, targetId },
+    ]
+    data.layoutOverrides = {
+      'arrow:custom:custom-overridden': {
+        bow: 45,
+        startT: 0.25,
+        endT: 0.75,
+        startAt: { dx: 160, dy: -40 },
+        endAt: { dx: -120, dy: 55 },
+      },
+    }
+
+    const arrow = layoutMap(data).arrows.find(
+      (candidate) => candidate.id === 'custom-overridden',
+    )!
+
+    expect(arrow).toMatchObject({
+      kind: 'custom',
+      bow: 45,
+      startT: 0.25,
+      endT: 0.75,
+      startAt: { dx: 160, dy: -40 },
+      endAt: { dx: -120, dy: 55 },
+    })
+  })
+
+  it('drops dangling custom arrows and preserves generated legend inputs', () => {
+    const baselineKinds = layoutMap(SAMPLE_WHITFIELD).arrows.map(
+      (arrow) => arrow.kind,
+    )
+    const data = structuredClone(SAMPLE_WHITFIELD)
+    data.customArrows = [
+      { id: 'dangling', sourceId: 'missing', targetId: 'need' },
+      {
+        id: 'valid',
+        sourceId: 'income',
+        targetId: data.accounts[0].id,
+      },
+    ]
+
+    const layout = layoutMap(data)
+
+    expect(
+      layout.arrows
+        .filter((arrow) => arrow.kind !== 'custom')
+        .map((arrow) => arrow.kind),
+    ).toEqual(baselineKinds)
+    expect(
+      layout.arrows.filter((arrow) => arrow.kind === 'custom'),
+    ).toHaveLength(1)
+    expect(layout.arrows.some((arrow) => arrow.id === 'dangling')).toBe(false)
+  })
+
   it('lays out a truly blank client with only the income-to-need arrow', () => {
     const layout = layoutMap(blankClient())
 

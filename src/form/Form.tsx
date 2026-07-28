@@ -733,6 +733,10 @@ function AccountCard({
           />
           In refill chain
         </label>
+        <p className="form-caption refill-chain-help">
+          Checked accounts link right-to-left with dotted Refills arrows.
+          Income and Draw-as-needed arrows draw themselves.
+        </p>
         <PositionRows
           positions={account.positions ?? []}
           onChange={(positions) => onChange({ ...account, positions })}
