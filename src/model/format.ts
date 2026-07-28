@@ -1,4 +1,4 @@
-import type { Account, Bucket } from './types'
+import type { Account, Bucket, MoneyMapData } from './types'
 
 /** Pure formatting helpers. null → the fill-in blank, by design. */
 
@@ -24,6 +24,21 @@ export function accountDisplayName(
   return account.label.trim()
     ? account.label
     : `${bucketDisplayName(account.bucket)} · unnamed`
+}
+
+export function mastheadPeriodLabel(
+  client: Pick<
+    MoneyMapData['client'],
+    'postNoteLabel' | 'variant' | 'year'
+  >,
+): string {
+  if (client.variant === 'annual') return client.year
+
+  const asOf = client.postNoteLabel
+    ?.trim()
+    .replace(/\s+\d{4}$/, '')
+    .trim()
+  return asOf ? `${asOf.toUpperCase()} UPDATE` : 'UPDATE'
 }
 
 /** Parse advisor-friendly dollar input, including k/m shorthand. */

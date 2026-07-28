@@ -3,6 +3,7 @@ import {
   BLANK,
   accountDisplayName,
   bucketDisplayName,
+  mastheadPeriodLabel,
   money,
   moneyPer,
   parseMoneyInput,
@@ -42,6 +43,38 @@ describe('parseMoneyInput', () => {
     ['', null],
   ])('parses %j as %s', (text, expected) => {
     expect(parseMoneyInput(text)).toBe(expected)
+  })
+})
+
+describe('mastheadPeriodLabel', () => {
+  it('strips a trailing year from legacy mid-year labels', () => {
+    expect(
+      mastheadPeriodLabel({
+        variant: 'postNote',
+        year: '2026',
+        postNoteLabel: 'April 2026',
+      }),
+    ).toBe('APRIL UPDATE')
+  })
+
+  it('renders month-only mid-year labels naturally', () => {
+    expect(
+      mastheadPeriodLabel({
+        variant: 'postNote',
+        year: '2026',
+        postNoteLabel: 'April',
+      }),
+    ).toBe('APRIL UPDATE')
+  })
+
+  it('leaves the annual year untouched', () => {
+    expect(
+      mastheadPeriodLabel({
+        variant: 'annual',
+        year: 'FY 2026',
+        postNoteLabel: 'April 2026',
+      }),
+    ).toBe('FY 2026')
   })
 })
 

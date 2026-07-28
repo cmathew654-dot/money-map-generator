@@ -123,6 +123,21 @@ const incomePresets = [
   { chipLabel: 'Something else', label: '' },
 ]
 
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
 export function addIncomeSource(
   incomeSources: IncomeSource[],
   label: string,
@@ -131,6 +146,24 @@ export function addIncomeSource(
     ...incomeSources,
     { label, amount: null, period: 'mo' },
   ]
+}
+
+export function yearSelectOptions(
+  storedValue: string,
+  currentYear = new Date().getFullYear(),
+): string[] {
+  const options = [-1, 0, 1].map((offset) =>
+    String(currentYear + offset),
+  )
+  return options.includes(storedValue)
+    ? options
+    : [storedValue, ...options]
+}
+
+function monthSelectOptions(storedValue: string): string[] {
+  return months.includes(storedValue)
+    ? months
+    : [storedValue, ...months]
 }
 
 const shapeLabels: Record<AccountShape, string> = {
@@ -903,11 +936,21 @@ export function ClientSection({
           />
         </div>
         <div className="client-meta-row">
-          <TextField
-            label="Year"
-            value={data.client.year}
-            onChange={(year) => updateClient({ year })}
-          />
+          <label className="form-field">
+            <span>Year</span>
+            <select
+              value={data.client.year}
+              onChange={(event) =>
+                updateClient({ year: event.target.value })
+              }
+            >
+              {yearSelectOptions(data.client.year).map((year) => (
+                <option key={year} value={year}>
+                  {year || 'Select year'}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="form-field">
             <span>Map Type</span>
             <select
@@ -925,14 +968,23 @@ export function ClientSection({
         </div>
         {data.client.variant === 'postNote' && (
           <div className="client-post-note-row">
-            <TextField
-              label="As Of"
-              placeholder="April 2026"
-              value={data.client.postNoteLabel ?? ''}
-              onChange={(postNoteLabel) =>
-                updateClient({ postNoteLabel })
-              }
-            />
+            <label className="form-field">
+              <span>As Of</span>
+              <select
+                value={data.client.postNoteLabel ?? ''}
+                onChange={(event) =>
+                  updateClient({ postNoteLabel: event.target.value })
+                }
+              >
+                {monthSelectOptions(
+                  data.client.postNoteLabel ?? '',
+                ).map((month) => (
+                  <option key={month} value={month}>
+                    {month || 'Select month'}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         )}
         <label className="checkbox-field client-math-toggle">

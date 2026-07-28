@@ -18,6 +18,7 @@ import type {
 } from '../layout/layout'
 import {
   accountDisplayName,
+  mastheadPeriodLabel,
   money,
   moneyPer,
 } from '../model/format'
@@ -178,13 +179,11 @@ function editableTextProps(
 }
 
 function mastheadLabel(data: MoneyMapData): string {
+  const period = mastheadPeriodLabel(data.client)
   if (data.client.variant === 'postNote') {
-    const asOf = data.client.postNoteLabel?.trim()
-    return asOf
-      ? `MONEY MAP — ${asOf} UPDATE`
-      : 'MONEY MAP — UPDATE'
+    return `MONEY MAP — ${period}`
   }
-  return `MONEY MAP ${data.client.year}`
+  return `MONEY MAP ${period}`
 }
 
 function Masthead({ data }: { data: MoneyMapData }) {
