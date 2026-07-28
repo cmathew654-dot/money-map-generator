@@ -8,22 +8,18 @@ import {
   type PointerEvent,
   type SVGProps,
 } from 'react'
-import {
-  CAP_CONTENT_GAP,
-  hexagonInset,
-  layoutMap,
-} from '../layout/layout'
+import { hexagonInset, layoutMap } from '../layout/layout'
 import type {
   Arrow,
   OutlineElement,
   Placed,
   PlacedAccount,
+  SubAccountLayout,
 } from '../layout/layout'
 import {
   accountDisplayName,
   money,
   moneyPer,
-  wrap,
 } from '../model/format'
 import { gapLine, runwayLine } from '../model/math'
 import type {
@@ -32,7 +28,6 @@ import type {
   IncomeSource,
   LayoutOverride,
   MoneyMapData,
-  SubAccount,
 } from '../model/types'
 import {
   accountShape,
@@ -60,6 +55,7 @@ import {
   FONT_SERIF,
   HAIRLINE,
   INK,
+  LEADING,
   MUTED,
   NEED_RED,
   PAPER,
@@ -67,7 +63,6 @@ import {
 } from './tokens'
 
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
-const SUB_ACCOUNT_CAP_CONTENT_GAP = 14
 
 function hexagonPath(x: number, y: number, w: number, h: number): string {
   const inset = hexagonInset(w, h)
@@ -80,21 +75,6 @@ function hexagonPath(x: number, y: number, w: number, h: number): string {
     `L ${x} ${y + h / 2}`,
     'Z',
   ].join(' ')
-}
-
-function wrapLengths(placed: PlacedAccount): {
-  title: number
-  caption: number
-} {
-  const baseWidth = ['shortTerm', 'cash', 'note'].includes(
-    placed.account.bucket,
-  )
-    ? 250
-    : 260
-  return {
-    title: Math.max(12, Math.round((24 * placed.w) / baseWidth)),
-    caption: Math.max(16, Math.round((30 * placed.w) / baseWidth)),
-  }
 }
 
 export type MapElementTarget =
@@ -256,7 +236,7 @@ function IncomeRow({
         y={y}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={13}
+        fontSize={TYPE.incomeLabel}
       >
         {source.label}
       </text>
@@ -265,7 +245,7 @@ function IncomeRow({
         y={y + 18}
         fill={INK}
         fontFamily={FONT_SERIF}
-        fontSize={14}
+        fontSize={TYPE.incomeValue}
         fontWeight={600}
         style={numericStyle}
       >
@@ -282,7 +262,7 @@ function IncomeRow({
             dx={7}
             fill={MUTED}
             fontFamily={FONT_SANS}
-            fontSize={12}
+            fontSize={TYPE.incomeQualifier}
             fontWeight={400}
           >
             {source.qualifier}
@@ -365,7 +345,7 @@ function IncomePanel({
         y={dividerY + 31}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={13}
+        fontSize={TYPE.incomeTotalLabel}
         fontWeight={600}
       >
         After-Tax Income
@@ -375,7 +355,7 @@ function IncomePanel({
         y={dividerY + 31}
         fill={FLOW_GREEN}
         fontFamily={FONT_SERIF}
-        fontSize={16}
+        fontSize={TYPE.incomeTotalValue}
         fontWeight={600}
         textAnchor="end"
         style={numericStyle}
@@ -440,7 +420,7 @@ function NeedCard({
           y={placed.y + 139}
           fill={MUTED}
           fontFamily={FONT_SANS}
-          fontSize={11.5}
+          fontSize={TYPE.mathNote}
           textAnchor="middle"
         >
           {mathLine}
@@ -467,28 +447,27 @@ function cylinderBody(
 }
 
 function SubAccountDrum({
-  subAccount,
+  layout,
   x,
   y,
   w,
   fill,
   stroke,
 }: {
-  subAccount: SubAccount
+  layout: SubAccountLayout
   x: number
   y: number
   w: number
   fill: string
   stroke: string
 }) {
-  const h = 88
   const capRy = 10
-  const titleY = y + capRy * 2 + SUB_ACCOUNT_CAP_CONTENT_GAP
+  const { subAccount } = layout
 
   return (
     <g>
       <path
-        d={cylinderBody(x, y, w, h, capRy)}
+        d={cylinderBody(x, y, w, layout.h, capRy)}
         fill={fill}
         stroke={stroke}
         strokeDasharray="6 5"
@@ -506,30 +485,46 @@ function SubAccountDrum({
       />
       <text
         x={x + w / 2}
-        y={titleY}
+        y={y + layout.titleY}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={12.5}
+        fontSize={TYPE.subAccountTitle}
         fontWeight={600}
         textAnchor="middle"
       >
-        {subAccount.label}
+        {layout.titleLines.map((line, index) => (
+          <tspan
+            key={`${line}-${index}`}
+            x={x + w / 2}
+            dy={index === 0 ? 0 : LEADING.subAccountTitle}
+          >
+            {line}
+          </tspan>
+        ))}
       </text>
-      {subAccount.caption && (
+      {layout.captionY !== undefined && (
         <text
           x={x + w / 2}
-          y={y + 51}
+          y={y + layout.captionY}
           fill={MUTED}
           fontFamily={FONT_SANS}
-          fontSize={10.5}
+          fontSize={TYPE.subAccountCaption}
           textAnchor="middle"
         >
-          {subAccount.caption}
+          {layout.captionLines.map((line, index) => (
+            <tspan
+              key={`${line}-${index}`}
+              x={x + w / 2}
+              dy={index === 0 ? 0 : LEADING.subAccountCaption}
+            >
+              {line}
+            </tspan>
+          ))}
         </text>
       )}
       <text
         x={x + w / 2}
-        y={y + 70}
+        y={y + layout.valueY}
         fill={INK}
         fontFamily={FONT_SERIF}
         fontSize={TYPE.subValue}
@@ -544,39 +539,32 @@ function SubAccountDrum({
 }
 
 function AccountContent({
-  captionLines,
-  captionY,
   onElementClick,
   placed,
-  rowsY,
   runway,
-  subStartY,
-  tagY,
-  titleLines,
-  titleY,
-  valueY,
   verticallyCenterTag = false,
 }: {
-  captionLines: string[]
-  captionY: number
   onElementClick?: (target: MapElementTarget) => void
   placed: PlacedAccount
-  rowsY: number
   runway: string | null
-  subStartY: number
-  tagY: number
-  titleLines: string[]
-  titleY: number
-  valueY: number
   verticallyCenterTag?: boolean
 }) {
-  const { account, x, w } = placed
+  const {
+    account,
+    captionLines,
+    subAccountLayouts,
+    text,
+    titleLines,
+    x,
+    y,
+    w,
+  } = placed
   const style = BUCKETS[account.bucket]
   return (
     <>
       <text
         x={x + w / 2}
-        y={tagY}
+        y={y + text.tagY}
         fill={style.tagColor}
         fontFamily={FONT_SANS}
         fontSize={TYPE.accountTag}
@@ -589,7 +577,7 @@ function AccountContent({
       </text>
       <text
         x={x + w / 2}
-        y={titleY}
+        y={y + text.titleY}
         fill={INK}
         fontFamily={FONT_SERIF}
         fontSize={TYPE.accountTitle}
@@ -604,16 +592,16 @@ function AccountContent({
           <tspan
             key={`${line}-${index}`}
             x={x + w / 2}
-            dy={index === 0 ? 0 : 20}
+            dy={index === 0 ? 0 : LEADING.accountTitle}
           >
             {line}
           </tspan>
         ))}
       </text>
-      {captionLines.length > 0 && (
+      {text.captionY !== undefined && (
         <text
           x={x + w / 2}
-          y={captionY}
+          y={y + text.captionY}
           fill={MUTED}
           fontFamily={FONT_SANS}
           fontSize={TYPE.caption}
@@ -623,7 +611,7 @@ function AccountContent({
             <tspan
               key={`${line}-${index}`}
               x={x + w / 2}
-              dy={index === 0 ? 0 : 15}
+              dy={index === 0 ? 0 : LEADING.caption}
             >
               {line}
             </tspan>
@@ -631,7 +619,8 @@ function AccountContent({
         </text>
       )}
       {account.positions?.map((position, index) => {
-        const rowTop = rowsY + index * 20
+        const rowBaseline = y + text.rowBaselines[index]
+        const rowTop = rowBaseline - TYPE.row - 3
         return (
           <g key={`${position.label}-${index}`}>
             <line
@@ -643,7 +632,7 @@ function AccountContent({
             />
             <text
               x={x + 20}
-              y={rowTop + 15}
+              y={rowBaseline}
               fill={INK}
               fontFamily={FONT_SANS}
               fontSize={TYPE.row}
@@ -652,7 +641,7 @@ function AccountContent({
             </text>
             <text
               x={x + w - 20}
-              y={rowTop + 15}
+              y={rowBaseline}
               fill={INK}
               fontFamily={FONT_SERIF}
               fontSize={TYPE.row}
@@ -667,7 +656,7 @@ function AccountContent({
       })}
       <text
         x={x + w / 2}
-        y={valueY}
+        y={y + text.valueY}
         fill={INK}
         fontFamily={FONT_SERIF}
         fontSize={TYPE.value}
@@ -684,26 +673,31 @@ function AccountContent({
       {runway && (
         <text
           x={x + w / 2}
-          y={valueY + 18}
+          y={y + text.runwayY!}
           fill={MUTED}
           fontFamily={FONT_SANS}
-          fontSize={11.5}
+          fontSize={TYPE.runway}
           textAnchor="middle"
         >
           {runway}
         </text>
       )}
-      {account.subAccounts?.map((subAccount, index) => (
-        <SubAccountDrum
-          key={`${subAccount.label}-${index}`}
-          subAccount={subAccount}
-          x={x + w * 0.14}
-          y={subStartY + index * 96}
-          w={w * 0.72}
-          fill={style.tint}
-          stroke={style.stroke}
-        />
-      ))}
+      {subAccountLayouts.map((layout, index) => {
+        const priorHeight = subAccountLayouts
+          .slice(0, index)
+          .reduce((sum, prior) => sum + prior.h + 8, 0)
+        return (
+          <SubAccountDrum
+            key={`${layout.subAccount.label}-${index}`}
+            layout={layout}
+            x={x + w * 0.14}
+            y={y + text.subStartY + priorHeight}
+            w={w * 0.72}
+            fill={style.tint}
+            stroke={style.stroke}
+          />
+        )
+      })}
     </>
   )
 }
@@ -722,27 +716,7 @@ function FlatAccount({
   const { account, x, y, w, h } = placed
   const style = BUCKETS[account.bucket]
   const dash = style.dashed ? '8 6' : undefined
-  const wrapAt = wrapLengths(placed)
-  const titleLines = wrap(
-    accountDisplayName(account),
-    wrapAt.title,
-  )
-  const captionLines = account.caption
-    ? wrap(account.caption, wrapAt.caption)
-    : []
-  const subAccounts = account.subAccounts ?? []
   const radius = shape === 'card' ? 12 : Math.min(w, h) / 2
-  const captionY = y + 56 + titleLines.length * 20
-  const rowsY =
-    captionLines.length > 0
-      ? captionY + captionLines.length * 15 + 11
-      : y + 58 + titleLines.length * 20
-  const lowerInset =
-    shape === 'pill' ? Math.max(12, radius * 0.32) : 12
-  const subStartY = y + h - lowerInset - subAccounts.length * 96
-  const valueY =
-    (subAccounts.length ? subStartY - 17 : y + h - 25) -
-    (runway ? 18 : 0)
   const outlineProps = {
     fill: style.tint,
     stroke: style.stroke,
@@ -765,17 +739,9 @@ function FlatAccount({
         />
       )}
       <AccountContent
-        captionLines={captionLines}
-        captionY={captionY}
         onElementClick={onElementClick}
         placed={placed}
-        rowsY={rowsY}
         runway={runway}
-        subStartY={subStartY}
-        tagY={y + 25}
-        titleLines={titleLines}
-        titleY={y + 52}
-        valueY={valueY}
       />
     </g>
   )
@@ -828,39 +794,7 @@ function Cylinder({
   const { account, x, y, w, h, capRy } = placed
   const style = BUCKETS[account.bucket]
   const dash = style.dashed ? '8 6' : undefined
-  const wrapAt = wrapLengths(placed)
-  const titleLines = wrap(accountDisplayName(account), wrapAt.title)
-  const captionLines = account.caption
-    ? wrap(account.caption, wrapAt.caption)
-    : []
   const centerX = x + w / 2
-  const tagY = y + capRy
-  const minimumTitleY = y + capRy * 2 + CAP_CONTENT_GAP
-  const subAccounts = account.subAccounts ?? []
-  const valueY =
-    (subAccounts.length
-      ? y + h - capRy - subAccounts.length * 96 - 17
-      : y + h - capRy - 18) - (runway ? 18 : 0)
-  const distributesSlack =
-    account.bucket === 'shortTerm' &&
-    !account.positions?.length &&
-    subAccounts.length === 0
-  const semanticGapCount = captionLines.length > 0 ? 3 : 2
-  const baseGapTotal = captionLines.length > 0 ? 45 : 30
-  const fixedLineSpan =
-    Math.max(0, titleLines.length - 1) * 20 +
-    Math.max(0, captionLines.length - 1) * 15
-  const sharedSlack = distributesSlack
-    ? Math.max(
-        0,
-        valueY - minimumTitleY - fixedLineSpan - baseGapTotal,
-      ) / semanticGapCount
-    : 0
-  const titleY = minimumTitleY + sharedSlack
-  const captionY =
-    titleY + titleLines.length * 20 + sharedSlack
-  const rowsY = captionY + captionLines.length * 15 + 11
-  const subStartY = y + h - capRy - subAccounts.length * 96
 
   return (
     <g>
@@ -882,17 +816,9 @@ function Cylinder({
         strokeWidth={2.5}
       />
       <AccountContent
-        captionLines={captionLines}
-        captionY={captionY}
         onElementClick={onElementClick}
         placed={placed}
-        rowsY={rowsY}
         runway={runway}
-        subStartY={subStartY}
-        tagY={tagY}
-        titleLines={titleLines}
-        titleY={titleY}
-        valueY={valueY}
         verticallyCenterTag
       />
     </g>
@@ -1148,7 +1074,7 @@ function FlowLegend({
                 y={LEGEND_Y}
                 fill={MUTED}
                 fontFamily={FONT_SANS}
-                fontSize={11}
+                fontSize={TYPE.legend}
               >
                 {item.label}
               </text>

@@ -1,9 +1,12 @@
-import { wrap } from '../model/format'
+import { accountDisplayName } from '../model/format'
+import { runwayLine } from '../model/math'
 import type {
   Account,
+  AccountShape,
   Bucket,
   LayoutOverride,
   MoneyMapData,
+  SubAccount,
 } from '../model/types'
 import { accountShape } from '../model/types'
 import {
@@ -11,6 +14,8 @@ import {
   clampRectToBounds,
   normalizeRotation,
 } from '../render/mapInteraction'
+import { LEADING, TYPE } from '../render/tokens'
+import { fitLines } from './textfit'
 
 export interface Placed {
   x: number
@@ -21,8 +26,40 @@ export interface Placed {
 
 export interface PlacedAccount extends Placed {
   account: Account
+  captionLines: string[]
   capRy: number
+  contentBottom: number
+  firstBaseline: number
+  lastBaseline: number
   rot: number
+  subAccountLayouts: SubAccountLayout[]
+  text: AccountTextLayout
+  titleLines: string[]
+  usableCaptionWidth: number
+  usableTitleWidth: number
+}
+
+export interface SubAccountLayout {
+  captionLines: string[]
+  captionY?: number
+  h: number
+  lastBaseline: number
+  subAccount: SubAccount
+  titleLines: string[]
+  titleY: number
+  usableCaptionWidth: number
+  usableTitleWidth: number
+  valueY: number
+}
+
+export interface AccountTextLayout {
+  captionY?: number
+  rowBaselines: number[]
+  runwayY?: number
+  subStartY: number
+  tagY: number
+  titleY: number
+  valueY: number
 }
 
 export interface Arrow {
@@ -70,6 +107,7 @@ const COMPRESSED_GAP = 16
 export const MIN_ACCOUNT_HEIGHT = 120
 export const MIN_ACCOUNT_WIDTH = 180
 export const CAP_CONTENT_GAP = 21
+export const SHAPE_TEXT_PADDING = 20
 const WATERFALL_MIN_Y = 128
 const AS_NEEDED_LABEL_WIDTH = 260
 const AS_NEEDED_LABEL_HEIGHT = 34
@@ -98,49 +136,259 @@ const COLUMNS: Column[] = [
 
 const WATERFALL_ORDER: Bucket[] = ['taxDeferred', 'afterTax', 'shortTerm']
 
-function accountHeight(account: Account, width: number): number {
-  const capRy = Math.round(width * 0.13)
-  const titleLines = Math.max(1, wrap(account.label, 24).length)
-  const captionLines = account.caption ? wrap(account.caption, 30).length : 0
-  const positionCount = account.positions?.length ?? 0
-  const subAccountsHeight = (account.subAccounts?.length ?? 0) * 96
-  const isContentLight =
-    account.value === null &&
-    captionLines === 0 &&
-    positionCount === 0 &&
-    subAccountsHeight === 0
-  if (isContentLight && account.bucket !== 'shortTerm') {
-    return Math.max(
-      MIN_ACCOUNT_HEIGHT,
-      capRy * 3 + CAP_CONTENT_GAP + 48,
+const ROLE_GAP = 6
+const SUB_ACCOUNT_GAP = 8
+const SUB_ACCOUNT_CAP_RY = 10
+const SUB_ACCOUNT_CAP_CONTENT_GAP = 14
+const BOTTOM_CONTENT_GAP = 8
+
+function nextRoleBaseline(baseline: number, size: number): number {
+  return baseline + size + ROLE_GAP
+}
+
+function pillInset(width: number, height: number, y: number): number {
+  const radius = Math.min(width, height) / 2
+  if (radius === 0 || (y >= radius && y <= height - radius)) return 0
+  const distance = y < radius ? radius - y : y - (height - radius)
+  return radius - Math.sqrt(Math.max(0, radius ** 2 - distance ** 2))
+}
+
+export function usableTextWidth(
+  shape: AccountShape,
+  width: number,
+  height: number,
+  baseline: number,
+  size: number,
+): number {
+  const textTop = Math.max(0, baseline - size)
+  const textBottom = Math.min(height, baseline + size * 0.22)
+  let shapeInset = 0
+
+  if (shape === 'rect') {
+    const inset = hexagonInset(width, height)
+    const insetAt = (y: number) =>
+      y < height / 2
+        ? inset * (1 - (2 * y) / height)
+        : inset * (1 - (2 * (height - y)) / height)
+    shapeInset = Math.max(insetAt(textTop), insetAt(textBottom), 0)
+  } else if (shape === 'pill') {
+    shapeInset = Math.max(
+      pillInset(width, height, textTop),
+      pillInset(width, height, textBottom),
     )
   }
 
-  const titleBaseline = capRy * 2 + CAP_CONTENT_GAP
-  let valueBaseline: number
-  if (positionCount > 0) {
-    valueBaseline =
-      titleBaseline +
-      titleLines * 20 +
-      captionLines * 15 +
-      positionCount * 20 +
-      34
-  } else if (captionLines > 0) {
-    valueBaseline =
-      titleBaseline +
-      titleLines * 20 +
-      (captionLines - 1) * 15 +
-      25
-  } else {
-    valueBaseline =
-      titleBaseline + (titleLines - 1) * 20 + 30
-  }
-  const contentHeight =
-    valueBaseline + capRy + 18 + subAccountsHeight
+  return Math.max(
+    1,
+    width - 2 * (SHAPE_TEXT_PADDING + shapeInset),
+  )
+}
 
-  if (account.bucket === 'shortTerm') return Math.max(250, contentHeight)
-  if (account.bucket === 'cash') return Math.max(120, contentHeight)
-  return Math.max(MIN_ACCOUNT_HEIGHT, contentHeight)
+function subAccountLayout(
+  subAccount: SubAccount,
+  width: number,
+): SubAccountLayout {
+  const usableWidth = Math.max(1, width - SHAPE_TEXT_PADDING * 2)
+  const titleLines = fitLines(
+    subAccount.label,
+    usableWidth,
+    TYPE.subAccountTitle,
+  )
+  const safeTitleLines = titleLines.length > 0 ? titleLines : ['']
+  const captionLines = subAccount.caption
+    ? fitLines(
+        subAccount.caption,
+        usableWidth,
+        TYPE.subAccountCaption,
+      )
+    : []
+  const titleY =
+    SUB_ACCOUNT_CAP_RY * 2 + SUB_ACCOUNT_CAP_CONTENT_GAP
+  const titleLast =
+    titleY +
+    (safeTitleLines.length - 1) * LEADING.subAccountTitle
+  const captionY =
+    captionLines.length > 0
+      ? nextRoleBaseline(titleLast, TYPE.subAccountCaption)
+      : undefined
+  const captionLast =
+    captionY === undefined
+      ? titleLast
+      : captionY +
+        (captionLines.length - 1) * LEADING.subAccountCaption
+  const valueY = nextRoleBaseline(captionLast, TYPE.subValue)
+  const lastBaseline = valueY
+  const h = Math.max(
+    88,
+    lastBaseline + SUB_ACCOUNT_CAP_RY + BOTTOM_CONTENT_GAP,
+  )
+
+  return {
+    captionLines,
+    captionY,
+    h,
+    lastBaseline,
+    subAccount,
+    titleLines: safeTitleLines,
+    titleY,
+    usableCaptionWidth: usableWidth,
+    usableTitleWidth: usableWidth,
+    valueY,
+  }
+}
+
+interface AccountSizing {
+  captionLines: string[]
+  capRy: number
+  contentBottom: number
+  firstBaseline: number
+  h: number
+  lastBaseline: number
+  subAccountLayouts: SubAccountLayout[]
+  text: AccountTextLayout
+  titleLines: string[]
+  usableCaptionWidth: number
+  usableTitleWidth: number
+}
+
+function accountSizing(
+  account: Account,
+  width: number,
+  hasRunway: boolean,
+  requestedHeight = 0,
+): AccountSizing {
+  const shape = accountShape(account)
+  const capRy = Math.round(width * 0.13)
+  let height = Math.max(
+    requestedHeight,
+    account.bucket === 'shortTerm' ? 250 : MIN_ACCOUNT_HEIGHT,
+  )
+  let sizing: AccountSizing | undefined
+
+  for (let pass = 0; pass < 8; pass += 1) {
+    const tagY = shape === 'drum' ? capRy : 25
+    const titleY =
+      shape === 'drum'
+        ? capRy * 2 + CAP_CONTENT_GAP
+        : nextRoleBaseline(tagY, TYPE.accountTitle)
+    const usableTitleWidth = usableTextWidth(
+      shape,
+      width,
+      height,
+      titleY,
+      TYPE.accountTitle,
+    )
+    const titleLines = fitLines(
+      accountDisplayName(account),
+      usableTitleWidth,
+      TYPE.accountTitle,
+    )
+    const safeTitleLines =
+      titleLines.length > 0 ? titleLines : ['']
+    const titleLast =
+      titleY +
+      (safeTitleLines.length - 1) * LEADING.accountTitle
+    const provisionalCaptionY = nextRoleBaseline(
+      titleLast,
+      TYPE.caption,
+    )
+    const usableCaptionWidth = usableTextWidth(
+      shape,
+      width,
+      height,
+      provisionalCaptionY,
+      TYPE.caption,
+    )
+    const captionLines = account.caption
+      ? fitLines(
+          account.caption,
+          usableCaptionWidth,
+          TYPE.caption,
+        )
+      : []
+    const captionY =
+      captionLines.length > 0 ? provisionalCaptionY : undefined
+    let previousBaseline =
+      captionY === undefined
+        ? titleLast
+        : captionY +
+          (captionLines.length - 1) * LEADING.caption
+    const rowBaselines = (account.positions ?? []).map(
+      (_position, index) => {
+        const baseline =
+          index === 0
+            ? nextRoleBaseline(previousBaseline, TYPE.row)
+            : previousBaseline + LEADING.row
+        previousBaseline = baseline
+        return baseline
+      },
+    )
+    const valueY = nextRoleBaseline(previousBaseline, TYPE.value)
+    const runwayY = hasRunway
+      ? nextRoleBaseline(valueY, TYPE.runway)
+      : undefined
+    previousBaseline = runwayY ?? valueY
+
+    const subWidth = width * 0.72
+    const subAccountLayouts = (account.subAccounts ?? []).map(
+      (subAccount) => subAccountLayout(subAccount, subWidth),
+    )
+    const subStartY =
+      subAccountLayouts.length > 0
+        ? previousBaseline + 12
+        : previousBaseline
+    let contentBottom = previousBaseline
+    let lastBaseline = previousBaseline
+    if (subAccountLayouts.length > 0) {
+      let subY = subStartY
+      for (const subLayout of subAccountLayouts) {
+        lastBaseline = subY + subLayout.lastBaseline
+        subY += subLayout.h + SUB_ACCOUNT_GAP
+      }
+      contentBottom = subY - SUB_ACCOUNT_GAP
+    }
+
+    const bottomClearance =
+      shape === 'drum'
+        ? capRy + BOTTOM_CONTENT_GAP
+        : shape === 'pill'
+          ? 24
+          : 20
+    const minimumHeight =
+      account.bucket === 'shortTerm' ? 250 : MIN_ACCOUNT_HEIGHT
+    const requiredHeight = Math.max(
+      requestedHeight,
+      minimumHeight,
+      contentBottom + bottomClearance,
+    )
+
+    sizing = {
+      captionLines,
+      capRy,
+      contentBottom,
+      firstBaseline: titleY,
+      h: requiredHeight,
+      lastBaseline,
+      subAccountLayouts,
+      text: {
+        captionY,
+        rowBaselines,
+        runwayY,
+        subStartY,
+        tagY,
+        titleY,
+        valueY,
+      },
+      titleLines: safeTitleLines,
+      usableCaptionWidth,
+      usableTitleWidth,
+    }
+
+    if (Math.abs(requiredHeight - height) < 0.01) break
+    height = requiredHeight
+  }
+
+  return sizing!
 }
 
 function orderForColumn(accounts: Account[], buckets: Bucket[]): Account[] {
@@ -149,41 +397,31 @@ function orderForColumn(accounts: Account[], buckets: Bucket[]): Account[] {
   )
 }
 
-function compressedHeights(
+function compressedGap(
   heights: number[],
   available: number,
-): { heights: number[]; gap: number } {
-  const gap = COMPRESSED_GAP
-  const heightBudget = available - gap * Math.max(0, heights.length - 1)
-  const minimumTotal = MIN_ACCOUNT_HEIGHT * heights.length
-  const flexibleTotal = heights.reduce(
-    (sum, height) => sum + Math.max(0, height - MIN_ACCOUNT_HEIGHT),
-    0,
-  )
-
-  if (heightBudget >= minimumTotal && flexibleTotal > 0) {
-    const scale = Math.min(
-      1,
-      (heightBudget - minimumTotal) / flexibleTotal,
-    )
-    return {
-      gap,
-      heights: heights.map(
-        (height) =>
-          MIN_ACCOUNT_HEIGHT +
-          Math.max(0, height - MIN_ACCOUNT_HEIGHT) * scale,
-      ),
-    }
-  }
-
-  return { gap, heights: heights.map(() => MIN_ACCOUNT_HEIGHT) }
+): number {
+  if (heights.length < 2) return 0
+  const remaining = available - heights.reduce((sum, height) => sum + height, 0)
+  return Math.max(8, Math.min(COMPRESSED_GAP, remaining / (heights.length - 1)))
 }
 
 function placeColumn(data: MoneyMapData, column: Column): PlacedAccount[] {
   const accounts = orderForColumn(data.accounts, column.buckets)
   if (accounts.length === 0) return []
 
-  let heights = accounts.map((account) => accountHeight(account, column.w))
+  const sizings = accounts.map((account) =>
+    accountSizing(
+      account,
+      column.w,
+      runwayLine(
+        account.value,
+        data.asNeededAmount,
+        data.showMath !== false,
+      ) !== null && account.bucket === 'shortTerm',
+    ),
+  )
+  const heights = sizings.map((sizing) => sizing.h)
   let gap = DEFAULT_GAP
   const available = STACK_BOTTOM - column.y
   const total =
@@ -191,20 +429,18 @@ function placeColumn(data: MoneyMapData, column: Column): PlacedAccount[] {
     gap * Math.max(0, accounts.length - 1)
 
   if (total > available) {
-    const compressed = compressedHeights(heights, available)
-    heights = compressed.heights
-    gap = compressed.gap
+    gap = compressedGap(heights, available)
   }
 
   let y = column.y
   return accounts.map((account, index) => {
+    const sizing = sizings[index]
     const placed = {
       account,
+      ...sizing,
       x: column.x,
       y,
       w: column.w,
-      h: heights[index],
-      capRy: Math.round(column.w * 0.13),
       rot: 0,
     }
     y += heights[index] + gap
@@ -646,7 +882,7 @@ function routedArrow({
       : clamp(override.bow, -maximumBow, maximumBow)
   const candidates =
     requestedBow === undefined
-      ? [1, -1, 1.35, -1.35, 1.7, -1.7, 2.1, -2.1].map(
+      ? [1, -1, 1.35, -1.35, 1.7, -1.7, 2.1, -2.1, 0].map(
           (scale) =>
             clamp(
               preferredSign * baseMagnitude * scale,
@@ -667,7 +903,12 @@ function routedArrow({
       obstacles,
       kind === 'waterfall' ? WATERFALL_MIN_Y : MASTHEAD_RULE_Y,
     )
-    if (penalty < bestPenalty) {
+    if (
+      penalty < bestPenalty ||
+      (candidateBow === 0 &&
+        penalty === bestPenalty &&
+        bestPenalty > 0)
+    ) {
       bow = candidateBow
       control = candidateControl
       bestPenalty = penalty
@@ -810,7 +1051,7 @@ function asNeededArrow(
     source: shortTerm,
     target: need,
     obstacles: obstacles.filter(
-      (obstacle) => obstacle !== shortTerm && obstacle !== need,
+      (obstacle) => obstacle !== shortTerm,
     ),
     override,
     sourceId: shortTerm.account.id,
@@ -927,16 +1168,22 @@ function centerComposition(
     ? FOOTNOTED_CONTENT_BOTTOM
     : OPEN_CONTENT_BOTTOM
   const verticalCenter = (MASTHEAD_RULE_Y + lowerBound) / 2
-  const dx = constrainedOffset(
-    horizontalCenter - (bounds.x + bounds.w / 2),
-    PAGE_MARGIN - bounds.x,
-    ARTBOARD.width - PAGE_MARGIN - (bounds.x + bounds.w),
-  )
-  const dy = constrainedOffset(
-    verticalCenter - (bounds.y + bounds.h / 2),
-    MASTHEAD_RULE_Y - bounds.y,
-    lowerBound - (bounds.y + bounds.h),
-  )
+  const dx =
+    Math.round(
+      constrainedOffset(
+        horizontalCenter - (bounds.x + bounds.w / 2),
+        PAGE_MARGIN - bounds.x,
+        ARTBOARD.width - PAGE_MARGIN - (bounds.x + bounds.w),
+      ) * 10,
+    ) / 10
+  const dy =
+    Math.round(
+      constrainedOffset(
+        verticalCenter - (bounds.y + bounds.h / 2),
+        MASTHEAD_RULE_Y - bounds.y,
+        lowerBound - (bounds.y + bounds.h),
+      ) * 10,
+    ) / 10
   const centered = {
     ...layout,
     income: translatePlaced(layout.income, dx, dy),
@@ -1004,6 +1251,7 @@ function applyPlacedOverride<T extends Placed>(
 function applyAccountOverride(
   placed: PlacedAccount,
   override: LayoutOverride | undefined,
+  hasRunway: boolean,
 ): PlacedAccount {
   const rot = normalizeRotation(override?.rot ?? 0)
   let desiredWidth = clamp(
@@ -1011,11 +1259,18 @@ function applyAccountOverride(
     MIN_ACCOUNT_WIDTH,
     OVERRIDE_BOUNDS.right - OVERRIDE_BOUNDS.left,
   )
-  let desiredHeight = clamp(
+  const requestedHeight = clamp(
     override?.h ?? placed.h,
     MIN_ACCOUNT_HEIGHT,
     OVERRIDE_BOUNDS.bottom - OVERRIDE_BOUNDS.top,
   )
+  let sizing = accountSizing(
+    placed.account,
+    desiredWidth,
+    hasRunway,
+    requestedHeight,
+  )
+  let desiredHeight = sizing.h
   const radians = (rot * Math.PI) / 180
   const cosine = Math.abs(Math.cos(radians))
   const sine = Math.abs(Math.sin(radians))
@@ -1046,6 +1301,13 @@ function applyAccountOverride(
   )
   desiredWidth = MIN_ACCOUNT_WIDTH + extraWidth * sizeScale
   desiredHeight = MIN_ACCOUNT_HEIGHT + extraHeight * sizeScale
+  sizing = accountSizing(
+    placed.account,
+    desiredWidth,
+    hasRunway,
+    desiredHeight,
+  )
+  desiredHeight = sizing.h
   const desired = {
     x: placed.x + (override?.dx ?? 0),
     y: placed.y + (override?.dy ?? 0),
@@ -1061,8 +1323,8 @@ function applyAccountOverride(
   }
   return {
     ...placed,
+    ...sizing,
     ...clamped,
-    capRy: Math.round(clamped.w * 0.13),
     rot,
   }
 }
@@ -1193,10 +1455,18 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     data.layoutOverrides?.need,
   )
   const accounts = base.accounts.map((placed) =>
-    applyAccountOverride(
-      placed,
-      data.layoutOverrides?.[placed.account.id],
-    ),
+    data.layoutOverrides?.[placed.account.id]
+      ? applyAccountOverride(
+          placed,
+          data.layoutOverrides[placed.account.id],
+          placed.account.bucket === 'shortTerm' &&
+            runwayLine(
+              placed.account.value,
+              data.asNeededAmount,
+              data.showMath !== false,
+            ) !== null,
+        )
+      : placed,
   )
   const arrows = arrowsForFinalGeometry(
     income,
