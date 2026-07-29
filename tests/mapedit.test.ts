@@ -17,6 +17,7 @@ import {
   setMapNoteBackground,
 } from '../src/render/mapInteraction'
 import {
+  incomeTotalLabelFontSize,
   MapSvg,
   resolveCustomArrowColor,
 } from '../src/render/MapSvg'
@@ -24,12 +25,137 @@ import {
   adjustMapTextFontSize,
   applyMapTextEdit,
   applyMapTextFontSize,
+  mapTextEditorPillPosition,
+  mapTextEditorTextStyle,
   mapTextEditFsInfo,
   mapTextEditRawValue,
   type MapTextEditTarget,
 } from '../src/ui/MapTextEditor'
 
 const accountId = 'managed-ira-jordan'
+
+describe('seamless map text editor geometry and typography', () => {
+  it('scales the after-tax label at the total-size ratio', () => {
+    expect(incomeTotalLabelFontSize(17)).toBe(13)
+    expect(incomeTotalLabelFontSize(30)).toBeCloseTo(30 * (13 / 17))
+
+    const markup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data: {
+          ...SAMPLE_WHITFIELD,
+          layoutOverrides: {
+            ...SAMPLE_WHITFIELD.layoutOverrides,
+            'text:income:total': { fs: 30 },
+          },
+        },
+      }),
+    )
+    expect(markup).toContain(
+      `font-size="${incomeTotalLabelFontSize(30)}" font-weight="600">After-Tax Income`,
+    )
+    expect(markup).toMatch(/font-size="30"[^>]*>\$5,900/)
+  })
+
+  it('places the size pill above text or flips it below near the map top', () => {
+    expect(
+      mapTextEditorPillPosition(
+        { left: 200, top: 120, width: 100, height: 20 },
+        0,
+      ),
+    ).toEqual({
+      left: 214,
+      placement: 'above',
+      top: 82,
+    })
+    expect(
+      mapTextEditorPillPosition(
+        { left: 200, top: 30, width: 100, height: 20 },
+        0,
+      ),
+    ).toEqual({
+      left: 214,
+      placement: 'below',
+      top: 58,
+    })
+  })
+
+  it.each([
+    [{ kind: 'accountLabel', accountId }, "'Literata', Georgia, serif", 19, 600],
+    [{ kind: 'accountCaption', accountId }, "'Public Sans', 'Segoe UI', sans-serif", 14.5, 400],
+    [{ kind: 'accountValue', accountId }, "'Literata', Georgia, serif", 25, 600],
+    [{ kind: 'accountRows', accountId }, "'Public Sans', 'Segoe UI', sans-serif", 14.5, 400],
+    [{ kind: 'accountSub', accountId }, "'Literata', Georgia, serif", 17, 600],
+    [{ kind: 'incomeHeader' }, "'Public Sans', 'Segoe UI', sans-serif", 17.5, 700],
+    [{ kind: 'incomeAmount', incomeIndex: 0 }, "'Literata', Georgia, serif", 15, 600],
+    [{ kind: 'afterTaxIncome' }, "'Literata', Georgia, serif", 17, 600],
+    [{ kind: 'needLabel' }, "'Public Sans', 'Segoe UI', sans-serif", 15, 700],
+    [{ kind: 'monthlyNeed' }, "'Literata', Georgia, serif", 30, 600],
+    [{ kind: 'mastheadLabel' }, "'Public Sans', 'Segoe UI', sans-serif", 14, 600],
+    [{ kind: 'footnoteText' }, "'Public Sans', 'Segoe UI', sans-serif", 15, 400],
+    [{ kind: 'asNeededAmount' }, "'Literata', Georgia, serif", 14.5, 600],
+    [{ kind: 'flowLabel', arrowId: 'flow' }, "'Public Sans', 'Segoe UI', sans-serif", 14.5, 400],
+    [{ kind: 'noteText', noteId: 'note' }, "'Literata', Georgia, serif", 16, 400],
+  ] as [MapTextEditTarget, string, number, number][])(
+    'matches the rendered font for %s',
+    (target, fontFamily, fontSize, fontWeight) => {
+      expect(mapTextEditorTextStyle(target)).toMatchObject({
+        fontFamily,
+        fontSize,
+        fontWeight,
+      })
+    },
+  )
+
+  it('marks every interactive editable-line text node as clickable or click-through', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [
+        {
+          id: 'line-audit-note',
+          text: 'Audit this note.',
+          x: 520,
+          y: 480,
+        },
+      ],
+    }
+    const noninteractive = renderToStaticMarkup(
+      createElement(MapSvg, { data }),
+    )
+    const interactive = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data,
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+      }),
+    )
+    const textTags =
+      interactive.match(
+        /<(?:text|tspan)\b(?=[^>]*data-edit-line-node)[^>]*>/g,
+      ) ?? []
+
+    expect(textTags.length).toBeGreaterThan(30)
+    for (const tag of textTags) {
+      expect(
+        tag.includes('role="button"') ||
+          tag.includes('pointer-events="none"'),
+      ).toBe(true)
+    }
+    expect(interactive).toContain(
+      'data-edit-line-node="afterTaxIncome"',
+    )
+    expect(interactive).toContain(
+      'data-edit-line-node="monthlyNeed"',
+    )
+    expect(interactive).toContain(
+      'data-edit-line-node="footnoteText"',
+    )
+    expect(interactive).toContain(
+      'data-edit-line-node="noteText:line-audit-note"',
+    )
+    expect(noninteractive).not.toContain('data-edit-line-node')
+    expect(noninteractive).not.toContain('data-map-edit-key')
+  })
+})
 
 describe('applyMapTextEdit', () => {
   it('clamps map text font-size steps at 9 and each target maximum', () => {
@@ -127,6 +253,20 @@ describe('applyMapTextEdit', () => {
 
     expect(updated.monthlyNeed).toBeNull()
     expect(updated.monthlyNeed).not.toBe(0)
+  })
+
+  it('opens money edits with the same formatted text shown on the map', () => {
+    expect(
+      mapTextEditRawValue(SAMPLE_WHITFIELD, {
+        kind: 'afterTaxIncome',
+      }),
+    ).toBe('$5,900')
+    expect(
+      mapTextEditRawValue(SAMPLE_WHITFIELD, {
+        kind: 'accountValue',
+        accountId,
+      }),
+    ).toBe('$2,450,000')
   })
 
   it('trims labels and preserves the unnamed fallback', () => {
