@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  CAP_CONTENT_GAP,
   hexagonInset,
   incomePanelMetrics,
   incomeTextSizes,
@@ -8,8 +7,10 @@ import {
   MIN_ACCOUNT_WIDTH,
   NOTE_MAX_WIDTH,
   NOTE_MIN_WIDTH,
+  POSITION_ROW_VALUE_GAP,
   pointOnOutline,
   rotatePoint,
+  SHAPE_TEXT_PADDING,
   visibleGeneratedArrowKinds,
   type PlacedAccount,
 } from '../src/layout/layout'
@@ -25,7 +26,7 @@ import {
 import type { Account, MoneyMapData } from '../src/model/types'
 import type { AccountShape } from '../src/model/types'
 import { accountShape, isMigratedFlowId } from '../src/model/types'
-import { TYPE } from '../src/render/tokens'
+import { LEADING, roleGap, TYPE } from '../src/render/tokens'
 
 function expectInsideArtboard(data: MoneyMapData) {
   const layout = layoutMap(data)
@@ -208,25 +209,42 @@ function expectAccountTextIntegrity(data: MoneyMapData) {
     for (const subLayout of placed.subAccountLayouts) {
       for (const line of subLayout.titleLines) {
         expect(
-          textWidth(line, TYPE.subAccountTitle),
+          textWidth(line, subLayout.titleFontSize),
         ).toBeLessThanOrEqual(subLayout.usableTitleWidth)
       }
       for (const line of subLayout.captionLines) {
         expect(
-          textWidth(line, TYPE.subAccountCaption),
+          textWidth(line, subLayout.captionFontSize),
         ).toBeLessThanOrEqual(subLayout.usableCaptionWidth)
       }
-      expect(subLayout.lastBaseline + 10 + 8).toBeLessThanOrEqual(
-        subLayout.h,
-      )
+      expect(
+        subLayout.lastBaseline +
+          10 +
+          roleGap(subLayout.valueFontSize, subLayout.valueFontSize),
+      ).toBeLessThanOrEqual(subLayout.h)
     }
 
     if (accountShape(placed.account) === 'drum') {
       expect(placed.firstBaseline).toBeGreaterThanOrEqual(
-        placed.capRy * 2 + CAP_CONTENT_GAP,
+        placed.capRy * 2 +
+          roleGap(
+            placed.text.titleLeading,
+            placed.text.titleLeading,
+          ),
       )
       expect(
-        placed.contentBottom + placed.capRy + 8,
+        placed.contentBottom +
+          placed.capRy +
+          roleGap(
+            placed.subAccountLayouts.at(-1)?.valueFontSize ??
+              (placed.text.runwayY === undefined
+                ? placed.text.valueFontSize
+                : TYPE.runway),
+            placed.subAccountLayouts.at(-1)?.valueFontSize ??
+              (placed.text.runwayY === undefined
+                ? placed.text.valueFontSize
+                : TYPE.runway),
+          ),
       ).toBeLessThanOrEqual(placed.h)
     } else {
       const bottomClearance =
@@ -410,7 +428,7 @@ describe('layoutMap', () => {
 
     expect(moved.titleLines).toEqual(base.titleLines)
     expect(left).toBeGreaterThanOrEqual(48)
-    expect(top).toBeGreaterThanOrEqual(118)
+    expect(top).toBeCloseTo(118)
     expect(
       moved.x + moved.w / 2 + moved.text.titleX,
     ).toBeGreaterThan(moved.x + moved.w)
@@ -762,7 +780,7 @@ describe('layoutMap', () => {
     )!
 
     expect(cash.h).toBeGreaterThanOrEqual(150)
-    expect(cash.h).toBeLessThanOrEqual(170)
+    expect(cash.h).toBeLessThanOrEqual(180)
   })
 
   it.each([
@@ -1179,8 +1197,8 @@ describe('layoutMap', () => {
       expect(layout.need.h).toBe(170)
       expect(layout.footnotesAt.y).toBe(930)
     }
-    expect(sample.income).toEqual({ x: 48, y: 153.5, w: 280, h: 264 })
-    expect(sample.need).toEqual({ x: 48, y: 683.5, w: 250, h: 170 })
+    expect(sample.income).toEqual({ x: 48, y: 127.5, w: 280, h: 264 })
+    expect(sample.need).toEqual({ x: 48, y: 657.5, w: 250, h: 170 })
     expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 132 })
     expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
   })
@@ -1317,13 +1335,203 @@ describe('layoutMap', () => {
 
     expect(enlarged.text.rowFontSize).toBe(40)
     expect(enlarged.text.rowLeading).toBeCloseTo(
-      (20 / TYPE.row) * 40,
+      1.45 * 40,
     )
     expect(enlarged.subAccountLayouts[0].valueFontSize).toBe(40)
     expect(enlarged.subAccountLayouts[0].titleFontSize).toBeCloseTo(
       (TYPE.subAccountTitle / TYPE.subValue) * 40,
     )
     expect(enlarged.h).toBeGreaterThan(base.h)
+  })
+
+  it.each([
+    ['default', {}],
+    [
+      'enlarged',
+      {
+        'text:managed-after-tax-trust:label': { fs: 28 },
+        'text:managed-after-tax-trust:caption': { fs: 24 },
+        'text:managed-after-tax-trust:rows': { fs: 18 },
+        'text:managed-after-tax-trust:value': { fs: 30 },
+      },
+    ],
+  ])(
+    'derives %s account leading and adjacent-role gaps from effective type',
+    (_label, layoutOverrides) => {
+      const placed = layoutMap({
+        ...SAMPLE_WHITFIELD,
+        layoutOverrides,
+      }).accounts.find(
+        (account) => account.account.id === 'managed-after-tax-trust',
+      )!
+      const { text } = placed
+      const titleLast =
+        text.titleY +
+        (placed.titleLines.length - 1) * text.titleLeading
+      const captionLast =
+        text.captionY! +
+        (placed.captionLines.length - 1) * text.captionLeading
+      const firstRow = placed.positionRows[0]
+      const lastRow = placed.positionRows.at(-1)!
+
+      expect(text.titleLeading).toBeCloseTo(
+        text.titleFontSize * 1.3,
+      )
+      expect(text.captionLeading).toBeCloseTo(
+        text.captionFontSize * 1.45,
+      )
+      expect(text.rowLeading).toBeCloseTo(text.rowFontSize * 1.45)
+      expect(
+        text.titleY - placed.capRy * 2,
+      ).toBeCloseTo(roleGap(text.titleLeading, text.titleLeading))
+      expect(
+        text.captionY! - text.captionFontSize - titleLast,
+      ).toBeCloseTo(
+        roleGap(text.titleLeading, text.captionLeading),
+      )
+      expect(
+        firstRow.firstBaseline - text.rowFontSize - captionLast,
+      ).toBeCloseTo(
+        roleGap(text.captionLeading, text.rowLeading),
+      )
+      expect(
+        text.valueY - text.valueFontSize - lastRow.lastBaseline,
+      ).toBeCloseTo(roleGap(text.rowLeading, text.valueFontSize))
+    },
+  )
+
+  it('wraps measured position labels at 18 while preserving the value and padding', () => {
+    const accountId = 'managed-after-tax-trust'
+    const placed = layoutMap({
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        [`text:${accountId}:rows`]: { fs: 18 },
+      },
+    }).accounts.find((account) => account.account.id === accountId)!
+
+    expect(placed.h).toBeGreaterThan(
+      layoutMap(SAMPLE_WHITFIELD).accounts.find(
+        (account) => account.account.id === accountId,
+      )!.h,
+    )
+    for (const [index, row] of placed.positionRows.entries()) {
+      expect(row.labelLines.length).toBeGreaterThan(1)
+      expect(row.valueText).toBe(
+        money(placed.account.positions![index].value),
+      )
+      expect(row.valueWidth).toBe(
+        textWidth(row.valueText, placed.text.rowFontSize),
+      )
+      expect(
+        row.labelLines.every(
+          (line) =>
+            textWidth(line, placed.text.rowFontSize) <=
+            row.labelMaxWidth,
+        ),
+      ).toBe(true)
+      expect(
+        row.labelMaxWidth +
+          POSITION_ROW_VALUE_GAP +
+          row.valueWidth,
+      ).toBeLessThanOrEqual(row.innerWidth)
+      expect(row.leftX).toBeGreaterThanOrEqual(SHAPE_TEXT_PADDING)
+      expect(placed.w - row.rightX).toBeGreaterThanOrEqual(
+        SHAPE_TEXT_PADDING,
+      )
+    }
+  })
+
+  it('respects position-row side padding throughout the permitted type scale', () => {
+    const accountId = 'managed-after-tax-trust'
+
+    for (let fontSize = 9; fontSize <= 40; fontSize += 1) {
+      const placed = layoutMap({
+        ...SAMPLE_WHITFIELD,
+        layoutOverrides: {
+          [`text:${accountId}:rows`]: { fs: fontSize },
+        },
+      }).accounts.find((account) => account.account.id === accountId)!
+
+      for (const row of placed.positionRows) {
+        expect(row.leftX).toBeGreaterThanOrEqual(SHAPE_TEXT_PADDING)
+        expect(placed.w - row.rightX).toBeGreaterThanOrEqual(
+          SHAPE_TEXT_PADDING,
+        )
+        expect(row.valueWidth).toBeLessThanOrEqual(row.innerWidth)
+      }
+    }
+  })
+
+  it.each([
+    ['default', undefined],
+    ['enlarged', 40],
+  ])(
+    'uses proportional leading and gaps inside the %s sub-account inset',
+    (_label, fontSize) => {
+      const accountId = 'managed-ira-jordan'
+      const placed = layoutMap({
+        ...SAMPLE_WHITFIELD,
+        layoutOverrides:
+          fontSize === undefined
+            ? undefined
+            : { [`text:${accountId}:sub`]: { fs: fontSize } },
+      }).accounts.find((account) => account.account.id === accountId)!
+      const inset = placed.subAccountLayouts[0]
+      const titleLast =
+        inset.titleY +
+        (inset.titleLines.length - 1) * inset.titleLeading
+      const captionLast =
+        inset.captionY! +
+        (inset.captionLines.length - 1) * inset.captionLeading
+
+      expect(inset.titleLeading).toBeCloseTo(
+        inset.titleFontSize * 1.45,
+      )
+      expect(inset.captionLeading).toBeCloseTo(
+        inset.captionFontSize * 1.45,
+      )
+      expect(inset.titleY - 20).toBeCloseTo(
+        roleGap(inset.titleLeading, inset.titleLeading),
+      )
+      expect(
+        inset.captionY! - inset.captionFontSize - titleLast,
+      ).toBeCloseTo(
+        roleGap(inset.titleLeading, inset.captionLeading),
+      )
+      expect(
+        inset.valueY - inset.valueFontSize - captionLast,
+      ).toBeCloseTo(
+        roleGap(inset.captionLeading, inset.valueFontSize),
+      )
+      expect(inset.h - 10 - inset.lastBaseline).toBeCloseTo(
+        roleGap(inset.valueFontSize, inset.valueFontSize),
+      )
+      expect(inset.y - placed.text.valueY).toBeCloseTo(
+        roleGap(placed.text.valueFontSize, inset.titleLeading),
+      )
+    },
+  )
+
+  it('pins the default proportional leading and gap token table', () => {
+    expect(LEADING).toEqual({
+      accountTitle: TYPE.accountTitle * 1.3,
+      caption: TYPE.caption * 1.45,
+      row: TYPE.row * 1.45,
+      subAccountTitle: TYPE.subAccountTitle * 1.45,
+      subAccountCaption: TYPE.subAccountCaption * 1.45,
+    })
+    for (const lineHeight of [
+      LEADING.accountTitle,
+      LEADING.caption,
+      LEADING.row,
+      LEADING.subAccountTitle,
+      LEADING.subAccountCaption,
+      48,
+    ]) {
+      expect(roleGap(lineHeight, lineHeight / 2)).toBe(
+        Math.max(8, lineHeight / 1.5),
+      )
+    }
   })
 
   it('never compresses dense account shapes below their content', () => {

@@ -651,8 +651,9 @@ describe('noninteractive map rendering', () => {
     const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
 
     expect(markup).toMatch(
-      /font-size="24"[^>]*>S&amp;P 500 Index Fund/,
+      /font-size="24"[^>]*><tspan[^>]*>S&amp;P<\/tspan>/,
     )
+    expect(markup).toMatch(/font-size="24"[^>]*>\$380,000/)
     expect(markup).toMatch(
       /font-size="25"[^>]*font-weight="600"[^>]*><tspan[^>]*>Short-Ter/,
     )
