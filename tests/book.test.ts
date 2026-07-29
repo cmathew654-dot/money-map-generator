@@ -257,8 +257,20 @@ describe('book operations', () => {
 
   it('resets account text overrides with the rest of the arrangement', () => {
     const source = structuredClone(SAMPLE_WHITFIELD)
+    source.customArrows = [
+      {
+        id: 'moved-label',
+        sourceId: 'income',
+        targetId: 'need',
+        style: 'solid',
+        label: 'Moved',
+        labelDx: 44,
+        labelDy: -19,
+      },
+    ]
     source.layoutOverrides = {
       income: { dx: 24 },
+      'text:masthead:label': { dx: 20, dy: 8 },
       [`text:${source.accounts[0].id}:caption`]: {
         dx: 60,
         dy: -30,
@@ -269,7 +281,10 @@ describe('book operations', () => {
     const reset = resetArrangement(source)
 
     expect(reset.layoutOverrides).toBeUndefined()
+    expect(reset.customArrows?.[0]).not.toHaveProperty('labelDx')
+    expect(reset.customArrows?.[0]).not.toHaveProperty('labelDy')
     expect(source.layoutOverrides).toBeDefined()
+    expect(source.customArrows?.[0].labelDx).toBe(44)
   })
 
   it('preserves note font sizes when resetting the arrangement', () => {
@@ -316,7 +331,39 @@ describe('parseBook', () => {
       'text:legend:label': { fs: 18 },
       'text:income:row': { fs: 20 },
       'text:need:value': { fs: 40 },
+      'text:masthead:label': { dx: 18, dy: -6 },
     }
+
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it('round-trips every newly movable text role and flow label offsets', () => {
+    const book = newBook()
+    const accountId = book.clients[0].accounts.find(
+      (account) => account.positions?.length,
+    )!.id
+    book.clients[0].layoutOverrides = {
+      'text:income:header': { dx: 1, dy: -1 },
+      'text:income:row': { dx: 2, dy: -2 },
+      'text:income:total': { dx: 3, dy: -3 },
+      'text:need:label': { dx: 4, dy: -4 },
+      'text:need:value': { dx: 5, dy: -5 },
+      'text:footnotes:line': { dx: 6, dy: -6 },
+      'text:masthead:label': { dx: 7, dy: -7 },
+      [`text:${accountId}:rows`]: { dx: 8, dy: -8 },
+      [`text:${accountId}:sub`]: { dx: 9, dy: -9 },
+    }
+    book.clients[0].customArrows = [
+      {
+        id: 'offset-flow',
+        sourceId: 'income',
+        targetId: 'need',
+        style: 'solid',
+        label: 'Offset flow',
+        labelDx: 31,
+        labelDy: -22,
+      },
+    ]
 
     expect(parseBook(JSON.stringify(book))).toEqual(book)
   })
@@ -384,6 +431,27 @@ describe('parseBook', () => {
 
       expect(() => parseBook(JSON.stringify(book))).toThrow(
         'Client 1 has invalid map notes.',
+      )
+    },
+  )
+
+  it.each(['labelDx', 'labelDy'] as const)(
+    'rejects a non-finite custom arrow %s',
+    (field) => {
+      const book = newBook()
+      book.clients[0].customArrows = [
+        {
+          id: 'invalid-label-offset',
+          sourceId: 'income',
+          targetId: 'need',
+          style: 'solid',
+          label: 'Invalid',
+          [field]: Number.NaN,
+        },
+      ]
+
+      expect(() => parseBook(JSON.stringify(book))).toThrow(
+        'Client 1 has invalid custom arrows.',
       )
     },
   )

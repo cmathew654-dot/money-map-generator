@@ -13,10 +13,13 @@ import type {
   GeneratedArrowKind,
   LayoutOverride,
   MapNote,
+  MapTextElement,
+  MapTextElementRole,
   MoneyMapData,
   SubAccount,
 } from '../model/types'
 import {
+  ACCOUNT_TEXT_ROLES,
   accountShape,
   accountTextOverrideKey,
   isMigratedFlowId,
@@ -82,6 +85,8 @@ export interface SubAccountLayout {
   valueFontSize: number
   valueY: number
   y: number
+  textDx?: number
+  textDy?: number
 }
 
 export interface PositionRowLayout {
@@ -1514,7 +1519,18 @@ function customArrowLayouts(
         color: record.color,
         label: record.label,
         labelAt: record.label
-          ? pointOnQuadratic(arrow.start, arrow.control, arrow.end, 0.5)
+          ? (() => {
+              const midpoint = pointOnQuadratic(
+                arrow.start,
+                arrow.control,
+                arrow.end,
+                0.5,
+              )
+              return {
+                x: midpoint.x + (record.labelDx ?? 0),
+                y: midpoint.y + (record.labelDy ?? 0),
+              }
+            })()
           : undefined,
       },
     ]
@@ -1800,6 +1816,28 @@ export const OVERRIDE_BOUNDS = {
   bottom: ARTBOARD.height - PAGE_MARGIN,
 }
 
+export function mapTextOffset(
+  data: MoneyMapData,
+  element: MapTextElement,
+  role: MapTextElementRole,
+  block: Placed,
+): { dx: number; dy: number } {
+  const override =
+    data.layoutOverrides?.[mapTextOverrideKey(element, role)]
+  if (override?.dx === undefined && override?.dy === undefined) {
+    return { dx: 0, dy: 0 }
+  }
+  const clamped = clampRectToBounds(
+    {
+      ...block,
+      x: block.x + (override?.dx ?? 0),
+      y: block.y + (override?.dy ?? 0),
+    },
+    OVERRIDE_BOUNDS,
+  )
+  return { dx: clamped.x - block.x, dy: clamped.y - block.y }
+}
+
 function placedNotes(notes: MapNote[] | undefined): PlacedNote[] {
   return (notes ?? []).map((note) => {
     const width = clamp(
@@ -1956,6 +1994,38 @@ function accountTextBlock(
   role: AccountTextRole,
 ): Placed {
   const { text } = placed
+  if (role === 'rows') {
+    const rows = placed.positionRows
+    if (rows.length === 0) {
+      return { x: placed.x, y: placed.y, w: 1, h: 1 }
+    }
+    const left = Math.min(...rows.map((row) => row.leftX))
+    const right = Math.max(...rows.map((row) => row.rightX))
+    const top = Math.min(...rows.map((row) => row.topY))
+    const bottom = Math.max(
+      ...rows.map((row) => row.lastBaseline + text.rowFontSize * 0.3),
+    )
+    return {
+      x: placed.x + left,
+      y: placed.y + top,
+      w: right - left,
+      h: bottom - top,
+    }
+  }
+  if (role === 'sub') {
+    const subAccounts = placed.subAccountLayouts
+    if (subAccounts.length === 0) {
+      return { x: placed.x, y: placed.y, w: 1, h: 1 }
+    }
+    const first = subAccounts[0]
+    const last = subAccounts[subAccounts.length - 1]
+    return {
+      x: placed.x + placed.w * 0.14,
+      y: placed.y + first.y,
+      w: placed.w * 0.72,
+      h: last.y + last.h - first.y,
+    }
+  }
   const lines =
     role === 'label'
       ? placed.titleLines
@@ -1999,8 +2069,10 @@ function applyAccountTextOverrides(
   overrides: AccountTextOverrides,
 ): PlacedAccount {
   let text = placed.text
+  let positionRows = placed.positionRows
+  let subAccountLayouts = placed.subAccountLayouts
 
-  for (const role of ['label', 'caption', 'value'] as const) {
+  for (const role of ACCOUNT_TEXT_ROLES) {
     const override = overrides[role]
     if (
       (override?.dx === undefined && override?.dy === undefined) ||
@@ -2008,7 +2080,10 @@ function applyAccountTextOverrides(
     ) {
       continue
     }
-    const block = accountTextBlock({ ...placed, text }, role)
+    const block = accountTextBlock(
+      { ...placed, positionRows, subAccountLayouts, text },
+      role,
+    )
     const desired = {
       ...block,
       x: block.x + (override?.dx ?? 0),
@@ -2018,7 +2093,22 @@ function applyAccountTextOverrides(
     const dx = clamped.x - block.x
     const dy = clamped.y - block.y
 
-    if (role === 'label') {
+    if (role === 'rows') {
+      positionRows = positionRows.map((row) => ({
+        ...row,
+        firstBaseline: row.firstBaseline + dy,
+        lastBaseline: row.lastBaseline + dy,
+        leftX: row.leftX + dx,
+        rightX: row.rightX + dx,
+        topY: row.topY + dy,
+      }))
+    } else if (role === 'sub') {
+      subAccountLayouts = subAccountLayouts.map((layout) => ({
+        ...layout,
+        textDx: dx,
+        textDy: dy,
+      }))
+    } else if (role === 'label') {
       text = {
         ...text,
         titleX: dx,
@@ -2039,7 +2129,7 @@ function applyAccountTextOverrides(
     }
   }
 
-  return { ...placed, text }
+  return { ...placed, positionRows, subAccountLayouts, text }
 }
 
 function applyAsNeededChipOverride(

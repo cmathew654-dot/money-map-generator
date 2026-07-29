@@ -78,6 +78,8 @@ export interface CustomArrow {
   targetId: string
   style: 'dotted' | 'dashed' | 'solid'
   label?: string
+  labelDx?: number
+  labelDy?: number
   color?: CustomArrowColor
 }
 
@@ -117,6 +119,7 @@ export const MAP_TEXT_ELEMENTS = {
   income: ['header', 'row', 'total'],
   need: ['label', 'value'],
   footnotes: ['line'],
+  masthead: ['label'],
 } as const
 export type MapTextElement = keyof typeof MAP_TEXT_ELEMENTS
 export type MapTextElementRole =

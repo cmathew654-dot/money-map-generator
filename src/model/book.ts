@@ -338,6 +338,14 @@ export function clearedClient(data: MoneyMapData): MoneyMapData {
 export function resetArrangement(data: MoneyMapData): MoneyMapData {
   const reset = { ...data }
   delete reset.layoutOverrides
+  if (reset.customArrows) {
+    reset.customArrows = reset.customArrows.map((arrow) => {
+      const restored = { ...arrow }
+      delete restored.labelDx
+      delete restored.labelDy
+      return restored
+    })
+  }
   return reset
 }
 
@@ -567,6 +575,12 @@ function validateClient(value: unknown, index: number): void {
             arrow.style !== 'dashed' &&
             arrow.style !== 'solid') ||
           (arrow.label !== undefined && typeof arrow.label !== 'string') ||
+          (arrow.labelDx !== undefined &&
+            (typeof arrow.labelDx !== 'number' ||
+              !Number.isFinite(arrow.labelDx))) ||
+          (arrow.labelDy !== undefined &&
+            (typeof arrow.labelDy !== 'number' ||
+              !Number.isFinite(arrow.labelDy))) ||
           (arrow.color !== undefined &&
             !CUSTOM_ARROW_COLORS.includes(
               arrow.color as (typeof CUSTOM_ARROW_COLORS)[number],

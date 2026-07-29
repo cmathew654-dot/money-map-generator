@@ -16,6 +16,7 @@ import type { MoneyMapData } from '../src/model/types'
 import {
   clampRectToBounds,
   crossedDragThreshold,
+  moveCustomArrowLabel,
   pannedScrollPosition,
   screenDeltaToArtboard,
   screenPointToArtboard,
@@ -187,6 +188,29 @@ describe('map interaction helpers', () => {
     expect(() => parseBook(infiniteFontSize)).toThrow(
       'invalid layout overrides',
     )
+  })
+
+  it('moves a custom flow label on its arrow record without mutation', () => {
+    const data: MoneyMapData = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: [
+        {
+          id: 'label-flow',
+          sourceId: 'income',
+          targetId: 'need',
+          style: 'solid' as const,
+          label: 'Move me',
+        },
+      ],
+    }
+    const moved = moveCustomArrowLabel(data, 'label-flow', 42, -17)
+
+    expect(moved.customArrows?.[0]).toMatchObject({
+      labelDx: 42,
+      labelDy: -17,
+    })
+    expect(data.customArrows?.[0].labelDx).toBeUndefined()
+    expect(moveCustomArrowLabel(data, 'missing', 1, 2)).toBe(data)
   })
 })
 

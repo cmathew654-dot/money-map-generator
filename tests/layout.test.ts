@@ -4,9 +4,11 @@ import {
   incomePanelMetrics,
   incomeTextSizes,
   layoutMap,
+  mapTextOffset,
   MIN_ACCOUNT_WIDTH,
   NOTE_MAX_WIDTH,
   NOTE_MIN_WIDTH,
+  OVERRIDE_BOUNDS,
   POSITION_ROW_VALUE_GAP,
   pointOnOutline,
   rotatePoint,
@@ -1571,5 +1573,120 @@ describe('layoutMap', () => {
       ),
     ).toBe(true)
     expectColumnGaps(layout.accounts)
+  })
+
+  it.each([
+    ['income', 'header'],
+    ['income', 'row'],
+    ['income', 'total'],
+    ['need', 'label'],
+    ['need', 'value'],
+    ['footnotes', 'line'],
+    ['masthead', 'label'],
+  ] as const)(
+    'shifts the %s %s text block by its exact fixed-text override',
+    (element, role) => {
+      const key = `text:${element}:${role}`
+      const data = {
+        ...SAMPLE_WHITFIELD,
+        layoutOverrides: { [key]: { dx: 37, dy: -23 } },
+      }
+
+      expect(
+        mapTextOffset(data, element, role, {
+          x: 500,
+          y: 500,
+          w: 200,
+          h: 60,
+        }),
+      ).toEqual({ dx: 37, dy: -23 })
+    },
+  )
+
+  it('moves position rows and sub-account text in account-local space', () => {
+    const rowsId = SAMPLE_WHITFIELD.accounts.find(
+      (account) => account.positions?.length,
+    )!.id
+    const subId = SAMPLE_WHITFIELD.accounts.find(
+      (account) => account.subAccounts?.length,
+    )!.id
+    const base = layoutMap(SAMPLE_WHITFIELD)
+    const moved = layoutMap({
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        [`text:${rowsId}:rows`]: { dx: 31, dy: -14 },
+        [`text:${subId}:sub`]: { dx: -22, dy: 17 },
+      },
+    })
+    const baseRows = base.accounts.find(
+      (account) => account.account.id === rowsId,
+    )!.positionRows
+    const movedRows = moved.accounts.find(
+      (account) => account.account.id === rowsId,
+    )!.positionRows
+    const movedSub = moved.accounts.find(
+      (account) => account.account.id === subId,
+    )!.subAccountLayouts
+
+    expect(movedRows[0].leftX - baseRows[0].leftX).toBe(31)
+    expect(movedRows[0].rightX - baseRows[0].rightX).toBe(31)
+    expect(movedRows[0].firstBaseline - baseRows[0].firstBaseline).toBe(
+      -14,
+    )
+    expect(movedSub[0].textDx).toBe(-22)
+    expect(movedSub[0].textDy).toBe(17)
+  })
+
+  it('clamps explicit fixed text movement only to override bounds', () => {
+    const block = { x: 500, y: 500, w: 200, h: 60 }
+    const offset = mapTextOffset(
+      {
+        ...SAMPLE_WHITFIELD,
+        layoutOverrides: {
+          'text:masthead:label': { dx: 10_000, dy: -10_000 },
+        },
+      },
+      'masthead',
+      'label',
+      block,
+    )
+
+    expect(block.x + offset.dx + block.w).toBe(OVERRIDE_BOUNDS.right)
+    expect(block.y + offset.dy).toBe(OVERRIDE_BOUNDS.top)
+  })
+
+  it('keeps a custom flow label offset relative to its moving arrow midpoint', () => {
+    const data: MoneyMapData = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: [
+        {
+          id: 'relative-label',
+          sourceId: 'income',
+          targetId: 'need',
+          style: 'solid',
+          label: 'Relative',
+          labelDx: 41,
+          labelDy: -26,
+        },
+      ],
+    }
+    const base = layoutMap(data).arrows.find(
+      (arrow) => arrow.id === 'relative-label',
+    )!
+    const moved = layoutMap({
+      ...data,
+      layoutOverrides: { income: { dx: 180, dy: 70 } },
+    }).arrows.find((arrow) => arrow.id === 'relative-label')!
+    const midpoint = (arrow: typeof base) => ({
+      x: (arrow.start.x + 2 * arrow.control.x + arrow.end.x) / 4,
+      y: (arrow.start.y + 2 * arrow.control.y + arrow.end.y) / 4,
+    })
+
+    for (const arrow of [base, moved]) {
+      const center = midpoint(arrow)
+      expect(arrow.labelAt!.x - center.x).toBeCloseTo(41)
+      expect(arrow.labelAt!.y - center.y).toBeCloseTo(-26)
+    }
+    expect(moved.labelAt).not.toEqual(base.labelAt)
   })
 })
