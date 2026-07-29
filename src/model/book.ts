@@ -457,9 +457,13 @@ function validateLayoutOverrides(
         )
       const validFixedText =
         fixedRoles?.includes(parts[2] as never) === true
+      const validLegacyLegendText =
+        parts[1] === 'legend' && parts[2] === 'label'
       if (
         parts.length !== 3 ||
-        (!validAccountText && !validFixedText)
+        (!validAccountText &&
+          !validFixedText &&
+          !validLegacyLegendText)
       ) {
         throw new Error(
           `Client ${clientIndex + 1} has invalid layout overrides.`,

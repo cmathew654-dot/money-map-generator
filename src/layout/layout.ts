@@ -1,4 +1,8 @@
-import { accountDisplayName, money } from '../model/format'
+import {
+  accountDisplayName,
+  money,
+  moneyPer,
+} from '../model/format'
 import { runwayLine } from '../model/math'
 import type {
   Account,
@@ -20,6 +24,7 @@ import {
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_ACCOUNT_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
+  mapTextOverrideKey,
 } from '../model/types'
 import {
   clamp,
@@ -60,15 +65,20 @@ export interface PlacedNote extends Placed {
 }
 
 export interface SubAccountLayout {
+  captionFontSize: number
+  captionLeading: number
   captionLines: string[]
   captionY?: number
   h: number
   lastBaseline: number
   subAccount: SubAccount
+  titleFontSize: number
+  titleLeading: number
   titleLines: string[]
   titleY: number
   usableCaptionWidth: number
   usableTitleWidth: number
+  valueFontSize: number
   valueY: number
 }
 
@@ -77,8 +87,11 @@ export interface AccountTextLayout {
   captionLeading: number
   captionX: number
   captionY?: number
+  rowFontSize: number
   rowBaselines: number[]
+  rowLeading: number
   runwayY?: number
+  subFontSize: number
   subStartY: number
   tagY: number
   titleFontSize: number
@@ -139,6 +152,7 @@ const DEFAULT_GAP = 28
 const COMPRESSED_GAP = 16
 export const MIN_ACCOUNT_HEIGHT = 120
 export const MIN_ACCOUNT_WIDTH = 180
+export const MIN_INCOME_WIDTH = 240
 export const CAP_CONTENT_GAP = 21
 export const SHAPE_TEXT_PADDING = 20
 export const NOTE_WIDTH = 240
@@ -191,6 +205,8 @@ function accountTextOverrides(
     label: overrides?.[accountTextOverrideKey(accountId, 'label')],
     caption: overrides?.[accountTextOverrideKey(accountId, 'caption')],
     value: overrides?.[accountTextOverrideKey(accountId, 'value')],
+    rows: overrides?.[accountTextOverrideKey(accountId, 'rows')],
+    sub: overrides?.[accountTextOverrideKey(accountId, 'sub')],
   }
 }
 
@@ -199,10 +215,14 @@ function accountTextFontSize(
   role: AccountTextRole,
   fallback: number,
 ): number {
+  const maximum =
+    role === 'rows' || role === 'sub'
+      ? MAX_MAP_TEXT_FONT_SIZE
+      : MAX_ACCOUNT_TEXT_FONT_SIZE
   return clamp(
     overrides[role]?.fs ?? fallback,
     MIN_ACCOUNT_TEXT_FONT_SIZE,
-    MAX_ACCOUNT_TEXT_FONT_SIZE,
+    maximum,
   )
 }
 
@@ -212,6 +232,97 @@ function scaledLeading(
   fontSize: number,
 ): number {
   return (defaultLeading / defaultFontSize) * fontSize
+}
+
+export interface IncomePanelMetrics {
+  contentHeight: number
+  dividerY: number
+  firstRowY: number
+  headerFontSize: number
+  minWidth: number
+  rowFontSize: number
+  rowPitch: number
+  rowValueOffset: number
+  totalFontSize: number
+}
+
+function fixedTextFontSize(
+  data: MoneyMapData,
+  element: 'income',
+  role: 'header' | 'row' | 'total',
+  fallback: number,
+): number {
+  return clamp(
+    data.layoutOverrides?.[mapTextOverrideKey(element, role)]?.fs ??
+      fallback,
+    MIN_MAP_TEXT_FONT_SIZE,
+    MAX_MAP_TEXT_FONT_SIZE,
+  )
+}
+
+export function incomePanelMetrics(
+  data: MoneyMapData,
+): IncomePanelMetrics {
+  const headerFontSize = fixedTextFontSize(
+    data,
+    'income',
+    'header',
+    TYPE.panelHeader,
+  )
+  const rowFontSize = fixedTextFontSize(
+    data,
+    'income',
+    'row',
+    TYPE.incomeValue,
+  )
+  const totalFontSize = fixedTextFontSize(
+    data,
+    'income',
+    'total',
+    TYPE.incomeTotalValue,
+  )
+  const scale = rowFontSize / TYPE.incomeValue
+  const headerBand = 48 * scale
+  const rowPitch = 44 * scale
+  const rowValueOffset = 18 * scale
+  const firstRowY = headerBand + 17 * scale
+  const dividerY =
+    headerBand + data.incomeSources.length * rowPitch + 4 * scale
+  const contentHeight = dividerY + 80
+  const rowLabelFontSize = rowFontSize * (13 / 14)
+  const qualifierFontSize = rowFontSize * (12 / 14)
+  const sourceWidths = data.incomeSources.flatMap((source) => [
+    textWidth(source.label, rowLabelFontSize),
+    textWidth(moneyPer(source.amount, source.period), rowFontSize) +
+      (source.qualifier
+        ? 7 + textWidth(source.qualifier, qualifierFontSize)
+        : 0),
+  ])
+  const headerWidth =
+    textWidth('INCOME SOURCES', headerFontSize) +
+    Math.max(0, 'INCOME SOURCES'.length - 1) * 1.7
+  const totalWidth =
+    textWidth('After-Tax Income', TYPE.incomeTotalLabel) +
+    20 +
+    textWidth(money(data.afterTaxIncome), totalFontSize)
+  const minWidth = Math.max(
+    MIN_INCOME_WIDTH,
+    headerWidth + 40,
+    totalWidth + 40,
+    ...sourceWidths.map((width) => width + 40),
+  )
+
+  return {
+    contentHeight,
+    dividerY,
+    firstRowY,
+    headerFontSize,
+    minWidth,
+    rowFontSize,
+    rowPitch,
+    rowValueOffset,
+    totalFontSize,
+  }
 }
 
 function pillInset(width: number, height: number, y: number): number {
@@ -255,36 +366,42 @@ export function usableTextWidth(
 function subAccountLayout(
   subAccount: SubAccount,
   width: number,
+  valueFontSize: number,
 ): SubAccountLayout {
+  const scale = valueFontSize / TYPE.subValue
+  const titleFontSize = TYPE.subAccountTitle * scale
+  const captionFontSize = TYPE.subAccountCaption * scale
+  const titleLeading = LEADING.subAccountTitle * scale
+  const captionLeading = LEADING.subAccountCaption * scale
   const usableWidth = Math.max(1, width - SHAPE_TEXT_PADDING * 2)
   const titleLines = fitLines(
     subAccount.label,
     usableWidth,
-    TYPE.subAccountTitle,
+    titleFontSize,
   )
   const safeTitleLines = titleLines.length > 0 ? titleLines : ['']
   const captionLines = subAccount.caption
     ? fitLines(
         subAccount.caption,
         usableWidth,
-        TYPE.subAccountCaption,
+        captionFontSize,
       )
     : []
   const titleY =
-    SUB_ACCOUNT_CAP_RY * 2 + SUB_ACCOUNT_CAP_CONTENT_GAP
+    SUB_ACCOUNT_CAP_RY * 2 + SUB_ACCOUNT_CAP_CONTENT_GAP * scale
   const titleLast =
     titleY +
-    (safeTitleLines.length - 1) * LEADING.subAccountTitle
+    (safeTitleLines.length - 1) * titleLeading
   const captionY =
     captionLines.length > 0
-      ? nextRoleBaseline(titleLast, TYPE.subAccountCaption)
+      ? nextRoleBaseline(titleLast, captionFontSize)
       : undefined
   const captionLast =
     captionY === undefined
       ? titleLast
       : captionY +
-        (captionLines.length - 1) * LEADING.subAccountCaption
-  const valueY = nextRoleBaseline(captionLast, TYPE.subValue)
+        (captionLines.length - 1) * captionLeading
+  const valueY = nextRoleBaseline(captionLast, valueFontSize)
   const lastBaseline = valueY
   const h = Math.max(
     88,
@@ -292,15 +409,20 @@ function subAccountLayout(
   )
 
   return {
+    captionFontSize,
+    captionLeading,
     captionLines,
     captionY,
     h,
     lastBaseline,
     subAccount,
+    titleFontSize,
+    titleLeading,
     titleLines: safeTitleLines,
     titleY,
     usableCaptionWidth: usableWidth,
     usableTitleWidth: usableWidth,
+    valueFontSize,
     valueY,
   }
 }
@@ -347,6 +469,21 @@ function accountSizing(
     textOverrides,
     'value',
     TYPE.value,
+  )
+  const rowFontSize = accountTextFontSize(
+    textOverrides,
+    'rows',
+    TYPE.row,
+  )
+  const rowLeading = scaledLeading(
+    LEADING.row,
+    TYPE.row,
+    rowFontSize,
+  )
+  const subFontSize = accountTextFontSize(
+    textOverrides,
+    'sub',
+    TYPE.subValue,
   )
   const titleLeading = scaledLeading(
     LEADING.accountTitle,
@@ -416,8 +553,8 @@ function accountSizing(
       (_position, index) => {
         const baseline =
           index === 0
-            ? nextRoleBaseline(previousBaseline, TYPE.row)
-            : previousBaseline + LEADING.row
+            ? nextRoleBaseline(previousBaseline, rowFontSize)
+            : previousBaseline + rowLeading
         previousBaseline = baseline
         return baseline
       },
@@ -437,7 +574,8 @@ function accountSizing(
 
     const subWidth = width * 0.72
     const subAccountLayouts = (account.subAccounts ?? []).map(
-      (subAccount) => subAccountLayout(subAccount, subWidth),
+      (subAccount) =>
+        subAccountLayout(subAccount, subWidth, subFontSize),
     )
     const subStartY =
       subAccountLayouts.length > 0
@@ -481,8 +619,11 @@ function accountSizing(
         captionLeading,
         captionX: 0,
         captionY,
+        rowFontSize,
         rowBaselines,
+        rowLeading,
         runwayY,
+        subFontSize,
         subStartY,
         tagY,
         titleFontSize,
@@ -1498,6 +1639,31 @@ function applyPlacedOverride<T extends Placed>(
   return { ...placed, ...clamped }
 }
 
+function applyIncomeOverride(
+  placed: Placed,
+  data: MoneyMapData,
+  override: LayoutOverride | undefined,
+): Placed {
+  const metrics = incomePanelMetrics(data)
+  const maximumWidth = OVERRIDE_BOUNDS.right - OVERRIDE_BOUNDS.left
+  const maximumHeight = OVERRIDE_BOUNDS.bottom - OVERRIDE_BOUNDS.top
+  const desired = {
+    x: placed.x + (override?.dx ?? 0),
+    y: placed.y + (override?.dy ?? 0),
+    w: clamp(
+      override?.w ?? placed.w,
+      Math.min(metrics.minWidth, maximumWidth),
+      maximumWidth,
+    ),
+    h: clamp(
+      override?.h ?? placed.h,
+      Math.min(metrics.contentHeight, maximumHeight),
+      maximumHeight,
+    ),
+  }
+  return clampRectToBounds(desired, OVERRIDE_BOUNDS)
+}
+
 function applyAccountOverride(
   placed: PlacedAccount,
   override: LayoutOverride | undefined,
@@ -1748,11 +1914,12 @@ function arrowsForFinalGeometry(
 }
 
 function baseLayout(data: MoneyMapData): MapLayout {
+  const incomeMetrics = incomePanelMetrics(data)
   const income: Placed = {
     x: 48,
     y: 170,
-    w: 280,
-    h: 44 + data.incomeSources.length * 40 + 14 + 46 + 24,
+    w: Math.max(280, incomeMetrics.minWidth),
+    h: incomeMetrics.contentHeight,
   }
   const need: Placed = {
     x: 48,
@@ -1798,8 +1965,9 @@ function baseLayout(data: MoneyMapData): MapLayout {
 
 export function layoutMap(data: MoneyMapData): MapLayout {
   const base = baseLayout(data)
-  const income = applyPlacedOverride(
+  const income = applyIncomeOverride(
     base.income,
+    data,
     data.layoutOverrides?.income,
   )
   const need = applyPlacedOverride(

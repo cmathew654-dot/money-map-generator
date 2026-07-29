@@ -303,7 +303,7 @@ describe('parseBook', () => {
   it('round-trips a client with layout overrides', () => {
     const book = newBook()
     book.clients[0].layoutOverrides = {
-      income: { dx: 24, dy: -12 },
+      income: { dx: 24, dy: -12, w: 360, h: 320 },
       'managed-ira-jordan': { dx: -80, dy: 60, w: 340, h: 280 },
       asNeededChip: { dx: 30, dy: 18 },
       [`text:${book.clients[0].accounts[0].id}:label`]: {
@@ -311,9 +311,23 @@ describe('parseBook', () => {
         dy: -8,
         fs: 24,
       },
+      [`text:${book.clients[0].accounts[0].id}:rows`]: { fs: 18 },
+      [`text:${book.clients[0].accounts[0].id}:sub`]: { fs: 22 },
       'text:legend:label': { fs: 18 },
       'text:income:row': { fs: 20 },
       'text:need:value': { fs: 40 },
+    }
+
+    expect(parseBook(JSON.stringify(book))).toEqual(book)
+  })
+
+  it('accepts account rows/sub roles and keeps legacy legend text inert', () => {
+    const book = newBook()
+    const accountId = book.clients[0].accounts[0].id
+    book.clients[0].layoutOverrides = {
+      [`text:${accountId}:rows`]: { fs: 9 },
+      [`text:${accountId}:sub`]: { fs: 40 },
+      'text:legend:label': { fs: 18 },
     }
 
     expect(parseBook(JSON.stringify(book))).toEqual(book)
@@ -376,6 +390,7 @@ describe('parseBook', () => {
 
   it.each([
     ['malformed role', 'text:managed-ira-jordan:subtitle', { fs: 16 }],
+    ['unknown new account role', 'text:managed-ira-jordan:subs', { fs: 16 }],
     ['missing account', 'text:missing:label', { fs: 16 }],
     ['fixed income role', 'text:income:bogus', { fs: 16 }],
     ['fixed footnote role', 'text:footnotes:label', { fs: 16 }],

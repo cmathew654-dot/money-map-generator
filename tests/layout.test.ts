@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   CAP_CONTENT_GAP,
   hexagonInset,
+  incomePanelMetrics,
   layoutMap,
   MIN_ACCOUNT_WIDTH,
   NOTE_MAX_WIDTH,
@@ -1177,10 +1178,85 @@ describe('layoutMap', () => {
       expect(layout.need.h).toBe(170)
       expect(layout.footnotesAt.y).toBe(930)
     }
-    expect(sample.income).toEqual({ x: 48, y: 153.5, w: 280, h: 248 })
+    expect(sample.income).toEqual({ x: 48, y: 153.5, w: 280, h: 264 })
     expect(sample.need).toEqual({ x: 48, y: 683.5, w: 250, h: 170 })
-    expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 128 })
+    expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 132 })
     expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
+  })
+
+  it('scales income row pitch and the first-row reach with row type', () => {
+    const base = incomePanelMetrics(SAMPLE_WHITFIELD)
+    const larger = incomePanelMetrics({
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: { 'text:income:row': { fs: 30 } },
+    })
+
+    expect(base.rowPitch).toBe(44)
+    expect(larger.rowPitch).toBe(88)
+    expect(larger.firstRowY).toBe(base.firstRowY * 2)
+    expect(larger.contentHeight).toBeGreaterThan(base.contentHeight)
+  })
+
+  it('fits long income rows and floors resized height at content height', () => {
+    const data: MoneyMapData = {
+      ...SAMPLE_WHITFIELD,
+      incomeSources: [
+        {
+          label:
+            'A deliberately long retirement income source label for meetings',
+          amount: 125_000,
+          period: 'yr',
+          qualifier: 'After-Tax',
+        },
+      ],
+      layoutOverrides: {
+        income: { w: 20, h: 20 },
+        'text:income:row': { fs: 24 },
+      },
+    }
+    const metrics = incomePanelMetrics(data)
+    const income = layoutMap(data).income
+
+    expect(metrics.minWidth).toBeGreaterThan(280)
+    expect(income.w).toBe(metrics.minWidth)
+    expect(income.h).toBe(metrics.contentHeight)
+  })
+
+  it('grows account content for larger position rows and sub-account text', () => {
+    const accountId = 'managed-ira-jordan'
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      accounts: SAMPLE_WHITFIELD.accounts.map((account) =>
+        account.id === accountId
+          ? {
+              ...account,
+              positions: [
+                { label: 'US equity allocation', value: 1_200_000 },
+              ],
+            }
+          : account,
+      ),
+    }
+    const base = layoutMap(data).accounts.find(
+      (account) => account.account.id === accountId,
+    )!
+    const enlarged = layoutMap({
+      ...data,
+      layoutOverrides: {
+        [`text:${accountId}:rows`]: { fs: 40 },
+        [`text:${accountId}:sub`]: { fs: 40 },
+      },
+    }).accounts.find((account) => account.account.id === accountId)!
+
+    expect(enlarged.text.rowFontSize).toBe(40)
+    expect(enlarged.text.rowLeading).toBeCloseTo(
+      (20 / TYPE.row) * 40,
+    )
+    expect(enlarged.subAccountLayouts[0].valueFontSize).toBe(40)
+    expect(enlarged.subAccountLayouts[0].titleFontSize).toBeCloseTo(
+      (TYPE.subAccountTitle / TYPE.subValue) * 40,
+    )
+    expect(enlarged.h).toBeGreaterThan(base.h)
   })
 
   it('never compresses dense account shapes below their content', () => {

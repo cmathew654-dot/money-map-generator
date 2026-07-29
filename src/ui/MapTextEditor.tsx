@@ -21,6 +21,8 @@ export type MapTextEditTarget =
   | { kind: 'accountValue'; accountId: string }
   | { kind: 'accountLabel'; accountId: string }
   | { kind: 'accountCaption'; accountId: string }
+  | { kind: 'accountRows'; accountId: string }
+  | { kind: 'accountSub'; accountId: string }
   | { kind: 'incomeHeader' }
   | { kind: 'incomeAmount'; incomeIndex: number }
   | { kind: 'afterTaxIncome' }
@@ -28,7 +30,6 @@ export type MapTextEditTarget =
   | { kind: 'monthlyNeed' }
   | { kind: 'mastheadLabel' }
   | { kind: 'footnoteText' }
-  | { kind: 'legendText' }
   | { kind: 'asNeededAmount' }
   | { kind: 'flowLabel'; arrowId: string }
   | { kind: 'noteText'; noteId: string; x?: number; y?: number }
@@ -52,7 +53,12 @@ export interface ActiveMapTextEdit {
 type SizeOnlyMapTextEditTarget = Extract<
   MapTextEditTarget,
   {
-    kind: 'incomeHeader' | 'needLabel' | 'footnoteText' | 'legendText'
+    kind:
+      | 'accountRows'
+      | 'accountSub'
+      | 'incomeHeader'
+      | 'needLabel'
+      | 'footnoteText'
   }
 >
 
@@ -60,10 +66,11 @@ function isSizeOnlyTarget(
   target: MapTextEditTarget,
 ): target is SizeOnlyMapTextEditTarget {
   return (
+    target.kind === 'accountRows' ||
+    target.kind === 'accountSub' ||
     target.kind === 'incomeHeader' ||
     target.kind === 'needLabel' ||
-    target.kind === 'footnoteText' ||
-    target.kind === 'legendText'
+    target.kind === 'footnoteText'
   )
 }
 
@@ -101,6 +108,18 @@ export function mapTextEditFsInfo(
   }
 
   switch (target.kind) {
+    case 'accountRows':
+      return {
+        key: accountTextOverrideKey(target.accountId, 'rows'),
+        fallback: TYPE.row,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    case 'accountSub':
+      return {
+        key: accountTextOverrideKey(target.accountId, 'sub'),
+        fallback: TYPE.subValue,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
     case 'incomeHeader':
       return {
         key: mapTextOverrideKey('income', 'header'),
@@ -135,12 +154,6 @@ export function mapTextEditFsInfo(
       return {
         key: mapTextOverrideKey('footnotes', 'line'),
         fallback: TYPE.footnote,
-        max: MAX_MAP_TEXT_FONT_SIZE,
-      }
-    case 'legendText':
-      return {
-        key: mapTextOverrideKey('legend', 'label'),
-        fallback: TYPE.legend,
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
     case 'noteText':
@@ -238,7 +251,8 @@ export function mapTextEditRawValue(
     case 'incomeHeader':
     case 'needLabel':
     case 'footnoteText':
-    case 'legendText':
+    case 'accountRows':
+    case 'accountSub':
       return ''
   }
 }
@@ -346,13 +360,14 @@ function editorLabel(target: MapTextEditTarget): string {
   if (target.kind === 'mastheadLabel') return 'Edit masthead label'
   if (target.kind === 'accountLabel') return 'Edit account label'
   if (target.kind === 'accountCaption') return 'Edit account caption'
+  if (target.kind === 'accountRows') return 'Resize position rows'
+  if (target.kind === 'accountSub') return 'Resize sub-account text'
   if (target.kind === 'incomeHeader') return 'Resize income heading'
   if (target.kind === 'incomeAmount') return 'Edit income source amount'
   if (target.kind === 'afterTaxIncome') return 'Edit after-tax income'
   if (target.kind === 'needLabel') return 'Resize monthly income need label'
   if (target.kind === 'monthlyNeed') return 'Edit monthly income need'
   if (target.kind === 'footnoteText') return 'Resize fine print'
-  if (target.kind === 'legendText') return 'Resize flow legend'
   if (target.kind === 'asNeededAmount') return 'Edit as-needed draw amount'
   if (target.kind === 'flowLabel') return 'Edit flow label'
   if (target.kind === 'noteText') return 'Edit map note'

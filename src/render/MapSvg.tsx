@@ -10,11 +10,11 @@ import {
 } from 'react'
 import {
   hexagonInset,
+  incomePanelMetrics,
   layoutMap,
   nearestOutlineT,
   OVERRIDE_BOUNDS,
   pointOnOutline,
-  visibleGeneratedArrowKinds,
 } from '../layout/layout'
 import type {
   Arrow,
@@ -24,7 +24,6 @@ import type {
   PlacedNote,
   SubAccountLayout,
 } from '../layout/layout'
-import { textWidth } from '../layout/textfit'
 import {
   accountDisplayName,
   mastheadPeriodLabel,
@@ -86,7 +85,6 @@ import {
   FONT_SERIF,
   HAIRLINE,
   INK,
-  LEADING,
   MUTED,
   NEED_RED,
   PAPER,
@@ -230,6 +228,38 @@ function editableTextProps(
   }
 }
 
+function editableHitAreaProps(
+  edit: MapTextEditTarget,
+  onElementClick?: (target: MapElementTarget) => void,
+): SVGProps<SVGRectElement> {
+  if (!onElementClick) return { pointerEvents: 'none' }
+
+  const activate = (element: SVGGraphicsElement) => {
+    const { left, top, width, height } = element.getBoundingClientRect()
+    onElementClick({
+      kind: 'edit',
+      edit,
+      rect: { left, top, width, height },
+    })
+  }
+  return {
+    className: 'map-editable-hit',
+    fill: 'transparent',
+    onClick: (event) => {
+      event.stopPropagation()
+      activate(event.currentTarget)
+    },
+    onKeyDown: (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      event.preventDefault()
+      event.stopPropagation()
+      activate(event.currentTarget)
+    },
+    role: 'button',
+    tabIndex: 0,
+  }
+}
+
 function mastheadLabel(data: MoneyMapData): string {
   const period = mastheadPeriodLabel(data.client)
   const label = data.client.mastheadLabel?.trim() || 'Money Map'
@@ -279,6 +309,7 @@ function IncomeRow({
   fontSize,
   index,
   onElementClick,
+  valueOffset,
   source,
   x,
   y,
@@ -286,6 +317,7 @@ function IncomeRow({
   fontSize: number
   index: number
   onElementClick?: (target: MapElementTarget) => void
+  valueOffset: number
   source: IncomeSource
   x: number
   y: number
@@ -303,7 +335,7 @@ function IncomeRow({
       </text>
       <text
         x={x}
-        y={y + 18}
+        y={y + valueOffset}
         fill={INK}
         fontFamily={FONT_SERIF}
         fontSize={fontSize}
@@ -343,21 +375,16 @@ function IncomePanel({
   onElementClick?: (target: MapElementTarget) => void
   placed: Placed
 }) {
-  const dividerY =
-    placed.y + 44 + data.incomeSources.length * 40 + 4
-  const headerFs = fixedTextFs(
-    data,
-    'income',
-    'header',
-    TYPE.panelHeader,
-  )
-  const rowFs = fixedTextFs(data, 'income', 'row', TYPE.incomeValue)
-  const totalFs = fixedTextFs(
-    data,
-    'income',
-    'total',
-    TYPE.incomeTotalValue,
-  )
+  const metrics = incomePanelMetrics(data)
+  const dividerY = placed.y + metrics.dividerY
+  const {
+    firstRowY,
+    headerFontSize: headerFs,
+    rowFontSize: rowFs,
+    rowPitch,
+    rowValueOffset,
+    totalFontSize: totalFs,
+  } = metrics
 
   return (
     <g>
@@ -370,6 +397,16 @@ function IncomePanel({
         fill="#ffffff"
         stroke={HAIRLINE}
         strokeWidth={1.5}
+      />
+      <rect
+        x={placed.x + 12}
+        y={placed.y + 7}
+        width={placed.w - 24}
+        height={35}
+        {...editableHitAreaProps(
+          { kind: 'incomeHeader' },
+          onElementClick,
+        )}
       />
       <text
         x={placed.x + 20}
@@ -392,15 +429,33 @@ function IncomePanel({
         strokeWidth={2}
       />
       {data.incomeSources.map((source, index) => (
-        <IncomeRow
-          fontSize={rowFs}
-          index={index}
-          key={`${source.label}-${index}`}
-          onElementClick={onElementClick}
-          source={source}
-          x={placed.x + 20}
-          y={placed.y + 61 + index * 40}
-        />
+        <g key={`${source.label}-${index}`}>
+          <rect
+            x={placed.x + 12}
+            y={
+              placed.y +
+              firstRowY +
+              index * rowPitch -
+              rowFs * (13 / 14) -
+              5
+            }
+            width={placed.w - 24}
+            height={rowPitch}
+            {...editableHitAreaProps(
+              { kind: 'incomeAmount', incomeIndex: index },
+              onElementClick,
+            )}
+          />
+          <IncomeRow
+            fontSize={rowFs}
+            index={index}
+            onElementClick={onElementClick}
+            source={source}
+            valueOffset={rowValueOffset}
+            x={placed.x + 20}
+            y={placed.y + firstRowY + index * rowPitch}
+          />
+        </g>
       ))}
       <line
         x1={placed.x + 20}
@@ -415,6 +470,16 @@ function IncomePanel({
         x2={placed.x + placed.w - 20}
         y2={dividerY + 3}
         stroke={HAIRLINE}
+      />
+      <rect
+        x={placed.x + 12}
+        y={dividerY + 7}
+        width={placed.w - 24}
+        height={48}
+        {...editableHitAreaProps(
+          { kind: 'afterTaxIncome' },
+          onElementClick,
+        )}
       />
       <text
         x={placed.x + 20}
@@ -539,14 +604,18 @@ function cylinderBody(
 }
 
 function SubAccountDrum({
+  accountId,
   layout,
+  onElementClick,
   x,
   y,
   w,
   fill,
   stroke,
 }: {
+  accountId: string
   layout: SubAccountLayout
+  onElementClick?: (target: MapElementTarget) => void
   x: number
   y: number
   w: number
@@ -575,12 +644,23 @@ function SubAccountDrum({
         strokeDasharray="6 5"
         strokeWidth={1.75}
       />
+      <rect
+        x={x}
+        y={y}
+        width={w}
+        height={layout.h}
+        rx={capRy}
+        {...editableHitAreaProps(
+          { kind: 'accountSub', accountId },
+          onElementClick,
+        )}
+      />
       <text
         x={x + w / 2}
         y={y + layout.titleY}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={TYPE.subAccountTitle}
+        fontSize={layout.titleFontSize}
         fontWeight={600}
         textAnchor="middle"
       >
@@ -588,7 +668,7 @@ function SubAccountDrum({
           <tspan
             key={`${line}-${index}`}
             x={x + w / 2}
-            dy={index === 0 ? 0 : LEADING.subAccountTitle}
+            dy={index === 0 ? 0 : layout.titleLeading}
           >
             {line}
           </tspan>
@@ -600,14 +680,14 @@ function SubAccountDrum({
           y={y + layout.captionY}
           fill={MUTED}
           fontFamily={FONT_SANS}
-          fontSize={TYPE.subAccountCaption}
+          fontSize={layout.captionFontSize}
           textAnchor="middle"
         >
           {layout.captionLines.map((line, index) => (
             <tspan
               key={`${line}-${index}`}
               x={x + w / 2}
-              dy={index === 0 ? 0 : LEADING.subAccountCaption}
+              dy={index === 0 ? 0 : layout.captionLeading}
             >
               {line}
             </tspan>
@@ -619,7 +699,7 @@ function SubAccountDrum({
         y={y + layout.valueY}
         fill={INK}
         fontFamily={FONT_SERIF}
-        fontSize={TYPE.subValue}
+        fontSize={layout.valueFontSize}
         fontWeight={600}
         textAnchor="middle"
         style={numericStyle}
@@ -723,9 +803,19 @@ function AccountContent({
       )}
       {account.positions?.map((position, index) => {
         const rowBaseline = y + text.rowBaselines[index]
-        const rowTop = rowBaseline - TYPE.row - 3
+        const rowTop = rowBaseline - text.rowFontSize - 3
         return (
           <g key={`${position.label}-${index}`}>
+            <rect
+              x={x + 16}
+              y={rowTop}
+              width={w - 32}
+              height={text.rowLeading}
+              {...editableHitAreaProps(
+                { kind: 'accountRows', accountId: account.id },
+                onElementClick,
+              )}
+            />
             <line
               x1={x + 20}
               y1={rowTop}
@@ -738,7 +828,7 @@ function AccountContent({
               y={rowBaseline}
               fill={INK}
               fontFamily={FONT_SANS}
-              fontSize={TYPE.row}
+              fontSize={text.rowFontSize}
             >
               {position.label}
             </text>
@@ -747,7 +837,7 @@ function AccountContent({
               y={rowBaseline}
               fill={INK}
               fontFamily={FONT_SERIF}
-              fontSize={TYPE.row}
+              fontSize={text.rowFontSize}
               fontWeight={600}
               textAnchor="end"
               style={numericStyle}
@@ -798,8 +888,10 @@ function AccountContent({
           .reduce((sum, prior) => sum + prior.h + 8, 0)
         return (
           <SubAccountDrum
+            accountId={account.id}
             key={`${layout.subAccount.label}-${index}`}
             layout={layout}
+            onElementClick={onElementClick}
             x={x + w * 0.14}
             y={y + text.subStartY + priorHeight}
             w={w * 0.72}
@@ -1383,75 +1475,6 @@ function Footnotes({
   )
 }
 
-const LEGEND_Y = 966
-const LEGEND_ITEMS: {
-  kind: 'income' | 'asNeeded'
-  label: string
-}[] = [
-  { kind: 'income', label: 'Income' },
-  { kind: 'asNeeded', label: 'Draw as needed' },
-]
-
-function FlowLegend({
-  arrows,
-  data,
-  markerId,
-  onElementClick,
-}: {
-  arrows: Arrow[]
-  data: MoneyMapData
-  markerId: string
-  onElementClick?: (target: MapElementTarget) => void
-}) {
-  const visible = visibleGeneratedArrowKinds(arrows)
-  if (visible.length === 0) return null
-  const present = new Set(visible)
-  const fontSize = fixedTextFs(data, 'legend', 'label', TYPE.legend)
-  let x = 48
-
-  return (
-    <g aria-label="Flow legend">
-      {LEGEND_ITEMS.filter((item) => present.has(item.kind)).map(
-        (item) => {
-          const itemX = x
-          x += textWidth(item.label, fontSize) + 32 + 16
-          const asNeeded = item.kind === 'asNeeded'
-          return (
-            <g key={item.kind} data-legend-kind={item.kind}>
-              <line
-                x1={itemX}
-                y1={LEGEND_Y - 4}
-                x2={itemX + 24}
-                y2={LEGEND_Y - 4}
-                markerEnd={`url(#${markerId})`}
-                stroke={FLOW_GREEN}
-                strokeDasharray={
-                  asNeeded ? '7 6' : undefined
-                }
-                strokeLinecap="butt"
-                strokeWidth={2}
-              />
-              <text
-                x={itemX + 32}
-                y={LEGEND_Y}
-                fill={MUTED}
-                fontFamily={FONT_SANS}
-                fontSize={fontSize}
-                {...editableTextProps(
-                  { kind: 'legendText' },
-                  onElementClick,
-                )}
-              >
-                {item.label}
-              </text>
-            </g>
-          )
-        },
-      )}
-    </g>
-  )
-}
-
 function NoteBlock({
   onBackgroundToggle,
   onDelete,
@@ -1484,11 +1507,14 @@ function NoteBlock({
         />
       )}
       <rect
-        fill="transparent"
         height={placed.h}
         width={placed.w}
         x={placed.x}
         y={placed.y}
+        {...editableHitAreaProps(
+          { kind: 'noteText', noteId: placed.note.id },
+          onElementClick,
+        )}
       />
       <text
         {...editProps}
@@ -1611,7 +1637,6 @@ export function MapSvg({
       `custom-arrowhead-${color}-${id}`,
     ]),
   ) as Record<CustomArrowColor, string>
-  const legendMarkerId = `legend-arrowhead-${id}`
   const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<DragSession | null>(null)
   const suppressNextClickRef = useRef(false)
@@ -1950,8 +1975,14 @@ export function MapSvg({
       onPointerMove={onChange ? previewDrag : undefined}
       onPointerUp={onChange ? finishDrag : undefined}
     >
-      <rect width={ARTBOARD.width} height={ARTBOARD.height} fill={PAPER} />
       <rect
+        data-map-background="true"
+        width={ARTBOARD.width}
+        height={ARTBOARD.height}
+        fill={PAPER}
+      />
+      <rect
+        data-map-background="true"
         x={24}
         y={24}
         width={1272}
@@ -1990,18 +2021,6 @@ export function MapSvg({
             />
           </marker>
         ))}
-        <marker
-          id={legendMarkerId}
-          viewBox="0 0 7 7"
-          markerWidth={5}
-          markerHeight={5}
-          refX={6}
-          refY={3.5}
-          orient="auto"
-          markerUnits="strokeWidth"
-        >
-          <path d="M 0 0 L 7 3.5 L 0 7 Z" fill={FLOW_GREEN} />
-        </marker>
       </defs>
 
       <Masthead data={displayData} onElementClick={onElementClick} />
@@ -2025,12 +2044,28 @@ export function MapSvg({
           placed={layout.income}
         />
         {onChange && (
-          <ConnectHandle
-            endpointId="income"
-            label="income sources"
-            onBegin={beginConnect}
-            placed={layout.income}
-          />
+          <>
+            <rect
+              aria-label="Resize income sources"
+              className="map-resize-handle"
+              height={16}
+              rx={3}
+              width={16}
+              x={layout.income.x + layout.income.w - 20}
+              y={layout.income.y + layout.income.h - 20}
+              onPointerDown={beginDrag(
+                'income',
+                'resize',
+                layout.income,
+              )}
+            />
+            <ConnectHandle
+              endpointId="income"
+              label="income sources"
+              onBegin={beginConnect}
+              placed={layout.income}
+            />
+          </>
         )}
       </g>
       <g
@@ -2385,12 +2420,6 @@ export function MapSvg({
         onElementClick={onElementClick}
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
-      />
-      <FlowLegend
-        arrows={layout.arrows}
-        data={displayData}
-        markerId={legendMarkerId}
-        onElementClick={onElementClick}
       />
     </svg>
   )
