@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  incomePanelMetrics,
   layoutMap,
   MIN_ACCOUNT_HEIGHT,
   MIN_ACCOUNT_WIDTH,
@@ -15,6 +16,7 @@ import type { MoneyMapData } from '../src/model/types'
 import {
   clampRectToBounds,
   crossedDragThreshold,
+  pannedScrollPosition,
   screenDeltaToArtboard,
   screenPointToArtboard,
   snapRotation,
@@ -58,6 +60,16 @@ describe('map interaction helpers', () => {
     expect(
       crossedDragThreshold({ x: 10, y: 10 }, { x: 14, y: 10 }),
     ).toBe(true)
+  })
+
+  it('maps a background drag to grab-style scroller movement', () => {
+    expect(
+      pannedScrollPosition(
+        { x: 300, y: 240 },
+        { x: 250, y: 180 },
+        { x: 400, y: 500 },
+      ),
+    ).toEqual({ x: 450, y: 560 })
   })
 
   it('merges one override without mutating the client', () => {
@@ -221,6 +233,20 @@ describe('layout overrides', () => {
     expect(
       minimum.contentBottom + minimum.capRy + 8,
     ).toBeLessThanOrEqual(minimum.h)
+  })
+
+  it('resizes income while enforcing its content width and height floors', () => {
+    const metrics = incomePanelMetrics(SAMPLE_WHITFIELD)
+    const widened = layoutMap(
+      withOverrides({ income: { w: 420, h: 360 } }),
+    ).income
+    const minimum = layoutMap(
+      withOverrides({ income: { w: 20, h: 40 } }),
+    ).income
+
+    expect(widened).toMatchObject({ w: 420, h: 360 })
+    expect(minimum.w).toBe(metrics.minWidth)
+    expect(minimum.h).toBe(metrics.contentHeight)
   })
 
   it('clamps translated and resized elements inside the page content area', () => {

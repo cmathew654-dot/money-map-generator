@@ -778,7 +778,6 @@ summary:focus-visible {
 }
 
 .app-shell.is-presenting .map-page svg {
-  pointer-events: none;
   user-select: none;
 }
 
@@ -1742,4 +1741,29 @@ summary:focus-visible {
 .map-page svg.is-dragging .map-note-resize,
 .map-page svg.is-dragging .map-arrow-colors {
   transition: none;
+}
+
+/* S34 */
+.map-page svg .map-editable-hit {
+  fill: transparent;
+  cursor: text;
+  transition: fill 120ms ease;
+}
+
+.map-page svg .map-editable-hit:hover,
+.map-page svg .map-editable-hit:focus-visible {
+  fill: rgb(30 122 74 / 8%);
+}
+
+.map-page.is-zoomed svg [data-map-background] {
+  cursor: grab;
+}
+
+.map-scroller.is-panning,
+.map-scroller.is-panning svg [data-map-background] {
+  cursor: grabbing;
+}
+
+.map-page svg.is-dragging .map-editable-hit {
+  cursor: move;
 }

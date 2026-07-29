@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type PointerEvent as ReactPointerEvent,
   type WheelEvent as ReactWheelEvent,
 } from 'react'
 import {
@@ -60,6 +61,7 @@ import {
   type MapElementTarget,
 } from './render/MapSvg'
 import {
+  pannedScrollPosition,
   restoreGeneratedArrows,
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
@@ -157,6 +159,7 @@ export default function App() {
   const [presentMode, setPresentMode] = useState(false)
   const [mapZoom, setMapZoom] = useState<MapZoom>('fit')
   const [fitZoom, setFitZoom] = useState(100)
+  const [isMapPanning, setIsMapPanning] = useState(false)
   const [shapePopoverOpen, setShapePopoverOpen] = useState(false)
   const [fileStoreSupported] = useState(() =>
     supportsFileStore(window as unknown as FileStoreApi),
@@ -175,6 +178,11 @@ export default function App() {
     anchor: { x: number; y: number }
     pointer: { x: number; y: number }
     scroller: HTMLDivElement
+  } | null>(null)
+  const mapPanRef = useRef<{
+    pointerId: number
+    startPointer: { x: number; y: number }
+    startScroll: { x: number; y: number }
   } | null>(null)
   const shapePopoverRef = useRef<HTMLDivElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
@@ -762,6 +770,49 @@ export default function App() {
     setMapZoom(nextLevel)
   }
 
+  const beginMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (
+      mapZoom === 'fit' ||
+      event.button !== 0 ||
+      !(event.target instanceof Element) ||
+      !event.target.closest('[data-map-background]')
+    ) {
+      return
+    }
+    const scroller = event.currentTarget
+    mapPanRef.current = {
+      pointerId: event.pointerId,
+      startPointer: { x: event.clientX, y: event.clientY },
+      startScroll: { x: scroller.scrollLeft, y: scroller.scrollTop },
+    }
+    scroller.setPointerCapture(event.pointerId)
+    setIsMapPanning(true)
+    event.preventDefault()
+  }
+
+  const continueMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const session = mapPanRef.current
+    if (!session || session.pointerId !== event.pointerId) return
+    const next = pannedScrollPosition(
+      session.startPointer,
+      { x: event.clientX, y: event.clientY },
+      session.startScroll,
+    )
+    event.currentTarget.scrollLeft = next.x
+    event.currentTarget.scrollTop = next.y
+    event.preventDefault()
+  }
+
+  const finishMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const session = mapPanRef.current
+    if (!session || session.pointerId !== event.pointerId) return
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    mapPanRef.current = null
+    setIsMapPanning(false)
+  }
+
   const handleQuickAdd = (bucket: Bucket) => {
     const nextClient = appendBlankAccount(activeClient, bucket)
     const account = nextClient.accounts.at(-1)!
@@ -1095,7 +1146,13 @@ export default function App() {
         >
           <div
             ref={previewPaneRef}
-            className="map-scroller"
+            className={`map-scroller${
+              mapZoom === 'fit' ? '' : ' is-pan-enabled'
+            }${isMapPanning ? ' is-panning' : ''}`}
+            onPointerCancel={finishMapPan}
+            onPointerDown={beginMapPan}
+            onPointerMove={continueMapPan}
+            onPointerUp={finishMapPan}
             onWheel={handleMapWheel}
           >
             <div

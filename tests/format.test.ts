@@ -89,7 +89,7 @@ describe('mastheadPeriodLabel', () => {
         year: '2026',
         postNoteLabel: 'April 2026',
       }),
-    ).toBe('APRIL UPDATE')
+    ).toBe('APRIL 2026')
   })
 
   it('renders month-only mid-year labels naturally', () => {
@@ -99,7 +99,7 @@ describe('mastheadPeriodLabel', () => {
         year: '2026',
         postNoteLabel: 'April',
       }),
-    ).toBe('APRIL UPDATE')
+    ).toBe('APRIL 2026')
   })
 
   it('leaves the annual year untouched', () => {

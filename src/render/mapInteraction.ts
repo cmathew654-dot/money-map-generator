@@ -246,6 +246,17 @@ export function accountTextPointerAction(
   return crossedDragThreshold(start, current) ? 'move' : 'edit'
 }
 
+export function pannedScrollPosition(
+  startPointer: Point,
+  currentPointer: Point,
+  startScroll: Point,
+): Point {
+  return {
+    x: startScroll.x + startPointer.x - currentPointer.x,
+    y: startScroll.y + startPointer.y - currentPointer.y,
+  }
+}
+
 export function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
 }

@@ -56,7 +56,16 @@ describe('palette contrast contract', () => {
   )
 
   it.each([
-    ['muted text', MUTED, PAPER],
+    ['paper', PAPER],
+    ...Object.entries(BUCKETS).map(([bucket, style]) => [
+      `${bucket} tint`,
+      style.tint,
+    ]),
+  ])('muted text meets 4.5:1 on %s', (_surface, background) => {
+    expect(contrastRatio(MUTED, background)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it.each([
     ['flow green', FLOW_GREEN, PAPER],
     ['need red', NEED_RED, '#faeae7'],
   ])('%s meets 4.5:1 on its surface', (_name, foreground, background) => {

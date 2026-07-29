@@ -10,7 +10,7 @@ export const ARTBOARD = { width: 1320, height: 1020 }
 
 export const PAPER = '#fcfcfa'
 export const INK = '#1c2422'
-export const MUTED = '#5b6663'
+export const MUTED = '#47504d'
 export const HAIRLINE = '#dde1dc'
 
 /** The one loud number on the page. */
@@ -109,7 +109,6 @@ export const TYPE = {
   runway: 11.5,
   footnote: 15,
   arrowLabel: 14.5,
-  legend: 12,
 }
 
 /** Baseline-to-baseline distance for multiline map text. */

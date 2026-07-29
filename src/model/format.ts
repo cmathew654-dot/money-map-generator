@@ -38,7 +38,10 @@ export function mastheadPeriodLabel(
     ?.trim()
     .replace(/\s+\d{4}$/, '')
     .trim()
-  return asOf ? `${asOf.toUpperCase()} UPDATE` : 'UPDATE'
+  const year = client.year.trim()
+  return [asOf?.toUpperCase(), year.toUpperCase()]
+    .filter(Boolean)
+    .join(' ')
 }
 
 /** Parse advisor-friendly dollar input, including k/m shorthand. */

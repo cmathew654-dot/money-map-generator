@@ -74,8 +74,12 @@ describe('applyMapTextEdit', () => {
       { key: 'text:need:value', fallback: 30, max: 40 },
     ],
     [
-      { kind: 'legendText' },
-      { key: 'text:legend:label', fallback: 12, max: 40 },
+      { kind: 'accountRows', accountId },
+      { key: `text:${accountId}:rows`, fallback: 14.5, max: 40 },
+    ],
+    [
+      { kind: 'accountSub', accountId },
+      { key: `text:${accountId}:sub`, fallback: 17, max: 40 },
     ],
   ] as [MapTextEditTarget, { key: string; fallback: number; max: number }][])(
     'maps the %s target to its font-size override',
@@ -171,7 +175,8 @@ describe('applyMapTextEdit', () => {
     { kind: 'incomeHeader' },
     { kind: 'needLabel' },
     { kind: 'footnoteText' },
-    { kind: 'legendText' },
+    { kind: 'accountRows', accountId },
+    { kind: 'accountSub', accountId },
   ] as MapTextEditTarget[])(
     'keeps size-only %s edits out of the data model',
     (target) => {
@@ -484,9 +489,27 @@ describe('noninteractive map rendering', () => {
     expect(markup).toContain(
       'y="958.8" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
     )
-    expect(markup).toContain(
-      'data-legend-kind="asNeeded"><line x1="164.4288"',
+    expect(markup).not.toContain('Flow legend')
+    expect(markup).not.toContain('data-legend-kind')
+  })
+
+  it('renders shared position and proportional sub-account font sizes', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        'text:managed-after-tax-trust:rows': { fs: 24 },
+        'text:managed-ira-jordan:sub': { fs: 34 },
+      },
+    }
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    expect(markup).toMatch(
+      /font-size="24"[^>]*>S&amp;P 500 Index Fund/,
     )
+    expect(markup).toMatch(
+      /font-size="25"[^>]*font-weight="600"[^>]*><tspan[^>]*>Short-Ter/,
+    )
+    expect(markup).toMatch(/font-size="34"[^>]*>\$240,000/)
   })
 
   it('prints solid notes and semantic flow colors without editor chrome', () => {
@@ -578,7 +601,7 @@ describe('noninteractive map rendering', () => {
 
     expect(annualMarkup).toContain('RETIREMENT ROADMAP 2026')
     expect(midYearMarkup).toContain(
-      'RETIREMENT ROADMAP — APRIL UPDATE',
+      'RETIREMENT ROADMAP — APRIL 2026',
     )
     expect(interactiveMarkup).toMatch(
       /class="map-editable-text"[^>]*>RETIREMENT ROADMAP 2026/,
@@ -638,6 +661,8 @@ describe('noninteractive map rendering', () => {
     )
 
     expect(markup).toContain('map-interactive')
+    expect(markup).toContain('aria-label="Resize income sources"')
+    expect(markup).toContain('class="map-editable-hit"')
     for (const className of editorChrome) {
       expect(markup).toContain(className)
     }
