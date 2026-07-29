@@ -4,6 +4,7 @@ import publicSansItalic from '../fonts/public-sans-latin-wght-italic.woff2'
 import publicSansNormal from '../fonts/public-sans-latin-wght-normal.woff2'
 import { parseBook } from '../model/book'
 import type { MoneyMapFile } from '../model/types'
+import { buildPdf } from './pdf'
 
 const ARTBOARD_WIDTH = 1320
 const ARTBOARD_HEIGHT = 1020
@@ -28,19 +29,20 @@ function cleanFileNamePart(value: string): string {
 export function mapFileName(
   title: string | undefined,
   year: string,
+  extension: 'png' | 'pdf' | 'svg' = 'png',
 ): string {
   const safeTitle = cleanFileNamePart(title ?? '') || 'Client'
   const suffixStart = ' — Money Map '
-  const extension = '.png'
+  const fileExtension = `.${extension}`
   const maxYearLength =
     MAX_FILE_NAME_LENGTH -
     1 -
     suffixStart.length -
-    extension.length
+    fileExtension.length
   const safeYear = cleanFileNamePart(year)
     .slice(0, maxYearLength)
     .trim()
-  const suffix = `${suffixStart}${safeYear}${extension}`
+  const suffix = `${suffixStart}${safeYear}${fileExtension}`
   const maxTitleLength = MAX_FILE_NAME_LENGTH - suffix.length
   const trimmedTitle = safeTitle.slice(0, maxTitleLength).trim()
 
@@ -110,14 +112,7 @@ function pngBlobFromCanvas(canvas: HTMLCanvasElement): Promise<Blob> {
   })
 }
 
-export async function exportPng(
-  svg: SVGSVGElement,
-  fileName: string,
-): Promise<void> {
-  const clone = svg.cloneNode(true) as SVGSVGElement
-  clone.setAttribute('width', String(ARTBOARD_WIDTH))
-  clone.setAttribute('height', String(ARTBOARD_HEIGHT))
-
+async function exportFontCss(): Promise<string> {
   const fontEntries = await Promise.all(
     Object.entries(FONT_FILES).map(async ([name, path]) => [
       name,
@@ -125,8 +120,8 @@ export async function exportPng(
     ]),
   )
   const fonts = Object.fromEntries(fontEntries)
-  const style = document.createElementNS(SVG_NAMESPACE, 'style')
-  style.textContent = `
+
+  return `
     @font-face {
       font-family: 'Literata';
       src: url('${fonts.literataNormal}') format('woff2');
@@ -152,6 +147,17 @@ export async function exportPng(
       font-weight: 100 900;
     }
   `
+}
+
+export async function serializeMapSvg(
+  svg: SVGSVGElement,
+): Promise<string> {
+  const clone = svg.cloneNode(true) as SVGSVGElement
+  clone.setAttribute('width', String(ARTBOARD_WIDTH))
+  clone.setAttribute('height', String(ARTBOARD_HEIGHT))
+
+  const style = document.createElementNS(SVG_NAMESPACE, 'style')
+  style.textContent = await exportFontCss()
 
   let defs = clone.querySelector('defs')
   if (!defs) {
@@ -160,11 +166,16 @@ export async function exportPng(
   }
   defs.prepend(style)
 
-  const serialized = new XMLSerializer().serializeToString(clone)
+  return new XMLSerializer().serializeToString(clone)
+}
+
+async function renderMapCanvas(
+  svg: SVGSVGElement,
+): Promise<HTMLCanvasElement> {
+  const serialized = await serializeMapSvg(svg)
   const svgUrl = URL.createObjectURL(
     new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' }),
   )
-  let pngUrl: string | undefined
 
   try {
     const image = await imageFromUrl(svgUrl)
@@ -176,17 +187,65 @@ export async function exportPng(
       throw new Error('Canvas drawing is not available.')
     }
     context.drawImage(image, 0, 0, canvas.width, canvas.height)
+    return canvas
+  } finally {
+    URL.revokeObjectURL(svgUrl)
+  }
+}
 
-    const png = await pngBlobFromCanvas(canvas)
-    pngUrl = URL.createObjectURL(png)
+function downloadBlob(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob)
+  try {
     const link = document.createElement('a')
-    link.href = pngUrl
+    link.href = url
     link.download = fileName
     document.body.append(link)
     link.click()
     link.remove()
   } finally {
-    URL.revokeObjectURL(svgUrl)
-    if (pngUrl) URL.revokeObjectURL(pngUrl)
+    URL.revokeObjectURL(url)
   }
+}
+
+function jpegBytesFromDataUrl(dataUrl: string): Uint8Array {
+  const encoded = dataUrl.split(',', 2)[1]
+  if (!encoded) throw new Error('The PDF image could not be created.')
+  const binary = atob(encoded)
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0))
+}
+
+export async function exportPng(
+  svg: SVGSVGElement,
+  fileName: string,
+): Promise<void> {
+  const canvas = await renderMapCanvas(svg)
+  downloadBlob(await pngBlobFromCanvas(canvas), fileName)
+}
+
+export async function exportSvg(
+  svg: SVGSVGElement,
+  fileName: string,
+): Promise<void> {
+  downloadBlob(
+    new Blob([await serializeMapSvg(svg)], {
+      type: 'image/svg+xml;charset=utf-8',
+    }),
+    fileName,
+  )
+}
+
+export async function exportPdf(
+  svg: SVGSVGElement,
+  fileName: string,
+): Promise<void> {
+  const canvas = await renderMapCanvas(svg)
+  const jpeg = jpegBytesFromDataUrl(
+    canvas.toDataURL('image/jpeg', 0.92),
+  )
+  downloadBlob(
+    new Blob([buildPdf(jpeg, canvas.width, canvas.height)], {
+      type: 'application/pdf',
+    }),
+    fileName,
+  )
 }
