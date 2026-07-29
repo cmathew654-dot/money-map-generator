@@ -453,6 +453,9 @@ describe('noninteractive map rendering', () => {
     expect(markup).not.toContain('map-interactive')
     expect(markup).not.toContain('map-editable-text')
     expect(markup).not.toContain('data-connect-id')
+    expect(markup).not.toMatch(
+      /<rect(?=[^>]*pointer-events="none")(?![^>]*fill="transparent")/,
+    )
   })
 
   it('renders fixed-element overrides and proportional income row sizes', () => {

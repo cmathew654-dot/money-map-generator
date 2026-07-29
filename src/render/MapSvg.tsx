@@ -232,7 +232,9 @@ function editableHitAreaProps(
   edit: MapTextEditTarget,
   onElementClick?: (target: MapElementTarget) => void,
 ): SVGProps<SVGRectElement> {
-  if (!onElementClick) return { pointerEvents: 'none' }
+  if (!onElementClick) {
+    return { fill: 'transparent', pointerEvents: 'none' }
+  }
 
   const activate = (element: SVGGraphicsElement) => {
     const { left, top, width, height } = element.getBoundingClientRect()
