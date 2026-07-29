@@ -11,6 +11,7 @@ import {
 import {
   hexagonInset,
   incomePanelMetrics,
+  incomeTextSizes,
   layoutMap,
   nearestOutlineT,
   OVERRIDE_BOUNDS,
@@ -93,13 +94,6 @@ import {
 } from './tokens'
 
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
-
-export function incomeTotalLabelFontSize(totalFontSize: number): number {
-  return (
-    totalFontSize *
-    (TYPE.incomeTotalLabel / TYPE.incomeTotalValue)
-  )
-}
 
 function fixedTextFs(
   data: MoneyMapData,
@@ -461,15 +455,16 @@ function IncomePanel({
   placed: Placed
 }) {
   const metrics = incomePanelMetrics(data)
+  const sizes = incomeTextSizes(data)
   const dividerY = placed.y + metrics.dividerY
   const {
     firstRowY,
-    headerFontSize: headerFs,
-    rowFontSize: rowFs,
     rowPitch,
     rowValueOffset,
-    totalFontSize: totalFs,
   } = metrics
+  const headerFs = sizes.header
+  const rowFs = sizes.rowValue
+  const totalFs = sizes.totalValue
 
   return (
     <g>
@@ -571,7 +566,7 @@ function IncomePanel({
         y={dividerY + 31}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={incomeTotalLabelFontSize(totalFs)}
+        fontSize={sizes.totalLabel}
         fontWeight={600}
         {...editableLineTextProps(
           { kind: 'afterTaxIncome' },

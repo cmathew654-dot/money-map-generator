@@ -2,6 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { accountDisplayName } from '../src/model/format'
+import { incomeTextSizes } from '../src/layout/layout'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import {
   addCustomArrow,
@@ -17,7 +18,6 @@ import {
   setMapNoteBackground,
 } from '../src/render/mapInteraction'
 import {
-  incomeTotalLabelFontSize,
   MapSvg,
   resolveCustomArrowColor,
 } from '../src/render/MapSvg'
@@ -35,25 +35,29 @@ import {
 const accountId = 'managed-ira-jordan'
 
 describe('seamless map text editor geometry and typography', () => {
-  it('scales the after-tax label at the total-size ratio', () => {
-    expect(incomeTotalLabelFontSize(17)).toBe(13)
-    expect(incomeTotalLabelFontSize(30)).toBeCloseTo(30 * (13 / 17))
-
+  it('renders the shared effective income total sizes', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        ...SAMPLE_WHITFIELD.layoutOverrides,
+        'text:income:total': { fs: 30 },
+      },
+    }
+    const sizes = incomeTextSizes(data)
     const markup = renderToStaticMarkup(
       createElement(MapSvg, {
-        data: {
-          ...SAMPLE_WHITFIELD,
-          layoutOverrides: {
-            ...SAMPLE_WHITFIELD.layoutOverrides,
-            'text:income:total': { fs: 30 },
-          },
-        },
+        data,
       }),
     )
+
+    expect(sizes.totalLabel).toBeCloseTo(30 * (13 / 17))
+    expect(sizes.totalValue).toBe(30)
     expect(markup).toContain(
-      `font-size="${incomeTotalLabelFontSize(30)}" font-weight="600">After-Tax Income`,
+      `font-size="${sizes.totalLabel}" font-weight="600">After-Tax Income`,
     )
-    expect(markup).toMatch(/font-size="30"[^>]*>\$5,900/)
+    expect(markup).toMatch(
+      new RegExp(`font-size="${sizes.totalValue}"[^>]*>\\$5,900`),
+    )
   })
 
   it('places the size pill above text or flips it below near the map top', () => {

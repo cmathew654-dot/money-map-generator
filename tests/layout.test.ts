@@ -3,6 +3,7 @@ import {
   CAP_CONTENT_GAP,
   hexagonInset,
   incomePanelMetrics,
+  incomeTextSizes,
   layoutMap,
   MIN_ACCOUNT_WIDTH,
   NOTE_MAX_WIDTH,
@@ -13,7 +14,7 @@ import {
   type PlacedAccount,
 } from '../src/layout/layout'
 import { fitLines, textWidth } from '../src/layout/textfit'
-import { money } from '../src/model/format'
+import { money, moneyPer } from '../src/model/format'
 import { newBook } from '../src/model/book'
 import {
   blankClient,
@@ -1195,6 +1196,72 @@ describe('layoutMap', () => {
     expect(larger.rowPitch).toBe(88)
     expect(larger.firstRowY).toBe(base.firstRowY * 2)
     expect(larger.contentHeight).toBeGreaterThan(base.contentHeight)
+  })
+
+  it('measures every scaled income role in the width floor', () => {
+    const scaled = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        income: { w: 20 },
+        'text:income:header': { fs: 28 },
+        'text:income:row': { fs: 30 },
+        'text:income:total': { fs: 30 },
+      },
+    }
+    const sixDigit = { ...scaled, afterTaxIncome: 999_999 }
+
+    expect(incomeTextSizes(SAMPLE_WHITFIELD)).toEqual({
+      header: 17.5,
+      rowLabel: 15 * (13 / 14),
+      rowQualifier: 15 * (12 / 14),
+      rowValue: 15,
+      totalLabel: 13,
+      totalValue: 17,
+    })
+    expect(incomeTextSizes(scaled)).toEqual({
+      header: 28,
+      rowLabel: 30 * (13 / 14),
+      rowQualifier: 30 * (12 / 14),
+      rowValue: 30,
+      totalLabel: 30 * (13 / 17),
+      totalValue: 30,
+    })
+    expect(incomePanelMetrics(scaled).minWidth).toBeGreaterThan(
+      incomePanelMetrics(SAMPLE_WHITFIELD).minWidth,
+    )
+
+    for (const data of [SAMPLE_WHITFIELD, scaled, sixDigit]) {
+      const sizes = incomeTextSizes(data)
+      const metrics = incomePanelMetrics(data)
+      const totalWidth =
+        textWidth('After-Tax Income', sizes.totalLabel) +
+        16 +
+        textWidth(money(data.afterTaxIncome), sizes.totalValue)
+
+      expect(totalWidth).toBeLessThanOrEqual(metrics.minWidth - 40)
+      if (data !== SAMPLE_WHITFIELD) {
+        expect(layoutMap(data).income.w).toBe(metrics.minWidth)
+      }
+    }
+
+    const sizes = incomeTextSizes(scaled)
+    const innerWidth = incomePanelMetrics(scaled).minWidth - 40
+    const headerWidth =
+      textWidth('INCOME SOURCES', sizes.header) +
+      ('INCOME SOURCES'.length - 1) * 1.7
+    const row = scaled.incomeSources[2]
+    const labelWidth = textWidth(
+      row.label,
+      sizes.rowLabel,
+    )
+    const valueWidth =
+      textWidth(moneyPer(row.amount, row.period), sizes.rowValue) +
+      7 +
+      textWidth(row.qualifier!, sizes.rowQualifier)
+
+    expect(headerWidth).toBeLessThanOrEqual(innerWidth)
+    expect(labelWidth).toBeLessThanOrEqual(innerWidth)
+    expect(valueWidth).toBeLessThanOrEqual(innerWidth)
   })
 
   it('fits long income rows and floors resized height at content height', () => {

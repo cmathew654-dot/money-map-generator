@@ -246,6 +246,15 @@ export interface IncomePanelMetrics {
   totalFontSize: number
 }
 
+export interface IncomeTextSizes {
+  header: number
+  rowLabel: number
+  rowQualifier: number
+  rowValue: number
+  totalLabel: number
+  totalValue: number
+}
+
 function fixedTextFontSize(
   data: MoneyMapData,
   element: 'income',
@@ -260,27 +269,43 @@ function fixedTextFontSize(
   )
 }
 
-export function incomePanelMetrics(
-  data: MoneyMapData,
-): IncomePanelMetrics {
-  const headerFontSize = fixedTextFontSize(
-    data,
-    'income',
-    'header',
-    TYPE.panelHeader,
-  )
-  const rowFontSize = fixedTextFontSize(
+export function incomeTextSizes(data: MoneyMapData): IncomeTextSizes {
+  const rowValue = fixedTextFontSize(
     data,
     'income',
     'row',
     TYPE.incomeValue,
   )
-  const totalFontSize = fixedTextFontSize(
+  const totalValue = fixedTextFontSize(
     data,
     'income',
     'total',
     TYPE.incomeTotalValue,
   )
+
+  return {
+    header: fixedTextFontSize(
+      data,
+      'income',
+      'header',
+      TYPE.panelHeader,
+    ),
+    rowLabel: rowValue * (13 / 14),
+    rowQualifier: rowValue * (12 / 14),
+    rowValue,
+    totalLabel:
+      totalValue * (TYPE.incomeTotalLabel / TYPE.incomeTotalValue),
+    totalValue,
+  }
+}
+
+export function incomePanelMetrics(
+  data: MoneyMapData,
+): IncomePanelMetrics {
+  const sizes = incomeTextSizes(data)
+  const headerFontSize = sizes.header
+  const rowFontSize = sizes.rowValue
+  const totalFontSize = sizes.totalValue
   const scale = rowFontSize / TYPE.incomeValue
   const headerBand = 48 * scale
   const rowPitch = 44 * scale
@@ -289,21 +314,19 @@ export function incomePanelMetrics(
   const dividerY =
     headerBand + data.incomeSources.length * rowPitch + 4 * scale
   const contentHeight = dividerY + 80
-  const rowLabelFontSize = rowFontSize * (13 / 14)
-  const qualifierFontSize = rowFontSize * (12 / 14)
   const sourceWidths = data.incomeSources.flatMap((source) => [
-    textWidth(source.label, rowLabelFontSize),
+    textWidth(source.label, sizes.rowLabel),
     textWidth(moneyPer(source.amount, source.period), rowFontSize) +
       (source.qualifier
-        ? 7 + textWidth(source.qualifier, qualifierFontSize)
+        ? 7 + textWidth(source.qualifier, sizes.rowQualifier)
         : 0),
   ])
   const headerWidth =
     textWidth('INCOME SOURCES', headerFontSize) +
     Math.max(0, 'INCOME SOURCES'.length - 1) * 1.7
   const totalWidth =
-    textWidth('After-Tax Income', TYPE.incomeTotalLabel) +
-    20 +
+    textWidth('After-Tax Income', sizes.totalLabel) +
+    16 +
     textWidth(money(data.afterTaxIncome), totalFontSize)
   const minWidth = Math.max(
     MIN_INCOME_WIDTH,
