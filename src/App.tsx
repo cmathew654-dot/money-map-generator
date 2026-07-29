@@ -46,7 +46,9 @@ import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
 import { NOTE_WIDTH } from './layout/layout'
 import {
+  exportPdf,
   exportPng,
+  exportSvg,
   loadBookFromFile,
   mapFileName,
   saveBookToFile,
@@ -638,34 +640,38 @@ export default function App() {
     }
   }
 
-  const handleExportPng = async () => {
+  const handleExport = async (format: 'png' | 'pdf' | 'svg') => {
+    const label = format.toUpperCase()
     const svg = printMapRef.current?.querySelector('svg')
     if (!svg) {
       showError(
-        'Could not export PNG',
+        `Could not export ${label}`,
         new Error('The Money Map is not ready to export.'),
-        'The PNG could not be exported.',
+        `The ${label} could not be exported.`,
       )
       return
     }
 
     try {
-      await exportPng(
+      await { png: exportPng, pdf: exportPdf, svg: exportSvg }[format](
         svg,
         mapFileName(
           activeClient.client.title,
           activeClient.client.year,
+          format,
         ),
       )
-      addToast('PNG exported')
+      addToast(`${label} exported`)
     } catch (error) {
       showError(
-        'Could not export PNG',
+        `Could not export ${label}`,
         error,
-        'The PNG could not be exported.',
+        `The ${label} could not be exported.`,
       )
     }
   }
+
+  const handleExportPng = () => handleExport('png')
 
   const handleMapElementClick = (target: MapElementTarget) => {
     if (target.kind === 'edit') {
@@ -1074,13 +1080,37 @@ export default function App() {
             >
               Print
             </button>
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => void handleExportPng()}
+            <Menu
+              ariaLabel="Save map"
+              trigger={
+                <>
+                  <span>Save</span>
+                  <span aria-hidden="true" className="menu-caret">
+                    ▾
+                  </span>
+                </>
+              }
+              triggerClassName="primary-button save-menu-trigger"
             >
-              Export PNG
-            </button>
+              <MenuItem onClick={() => void handleExportPng()}>
+                PNG image
+              </MenuItem>
+              <MenuItem onClick={() => void handleExport('pdf')}>
+                PDF document
+              </MenuItem>
+              <MenuItem onClick={() => void handleExport('svg')}>
+                SVG image
+              </MenuItem>
+              <MenuSeparator />
+              <div
+                className="save-menu-status"
+                title={connectedFile?.name}
+              >
+                {connectedFile
+                  ? `Book auto-saves — connected to ${connectedFile.name} ✓`
+                  : 'Book auto-saves in this browser — connect a file from Book ▾'}
+              </div>
+            </Menu>
           </div>
         </div>
         <input

@@ -19,21 +19,22 @@ card.
 
 ## What it does
 
+- **The whole practice in one book** — instead of maps buried in client files
+  inside folders inside folders, one book holds every client's map and
+  auto-saves locally. Connect it to a real file and it saves to your own disk
+  or OneDrive.
 - **Live generation** — a plain form on the left, the finished map on the
   right, updated on every keystroke. No canvas, no dragging, no design work.
-- **The whole practice in one file** — a client "book" (built for 100–200
-  clients) with add / duplicate / delete, autosaved locally, saved and
-  loaded as a single JSON file.
 - **The grammar advisors already use** — tax-bucket color coding
   (short-term, after-tax, tax-deferred, tax-preferred, charitable, cash),
   refill-waterfall arrows, RMD footnotes, positions inside an account, and
   nested sub-accounts (e.g. short-term funds earmarked inside an IRA).
 - **Blanks are a feature** — any empty dollar value renders as `~$ ______`,
   the fill-in-live-in-the-meeting convention from real practice.
-- **Meeting-grade output** — print to a single landscape letter page, or
-  export a high-resolution PNG with the typefaces embedded.
+- **Meeting-grade output** — save a high-resolution PNG, PDF, or SVG with
+  the typefaces embedded, or print to a single landscape letter page.
 - **Private by construction** — fully client-side. No server, no network
-  calls, nothing leaves the machine. Safe for real client data.
+  calls, nothing ever leaves the machine. Safe for real client data.
 
 ## Architecture
 
@@ -52,7 +53,7 @@ can be pure.
 | `src/render/MapSvg.tsx` | The map as one SVG component tree |
 | `src/render/tokens.ts` | Every color, size, and type decision — the design swap point |
 | `src/form/Form.tsx` | The form |
-| `src/export/export.ts` | PNG export (fonts embedded), JSON save/load |
+| `src/export/export.ts` | PNG / PDF / SVG export (fonts embedded), JSON save/load |
 | `src/styles/` | App shell + print stylesheet |
 | `tests/` | Vitest: formatting, layout geometry (overlap, waterfall order, clearance), book ops, filenames |
 
