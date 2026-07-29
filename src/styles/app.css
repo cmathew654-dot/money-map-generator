@@ -674,7 +674,7 @@ summary:focus-visible {
   overflow-x: hidden;
   overflow-y: auto;
   border-right: 1px solid #dde1dc;
-  background: #fcfcfa;
+  background: #ffffff;
 }
 
 .form-mode-toggle {
@@ -685,7 +685,7 @@ summary:focus-visible {
   justify-content: flex-end;
   gap: 2px;
   padding: 12px 20px 5px;
-  background: #fcfcfa;
+  background: #ffffff;
 }
 
 .form-mode-toggle button {
@@ -703,7 +703,7 @@ summary:focus-visible {
 
 .form-mode-toggle button.is-active {
   border-color: #1c2422;
-  background: #fcfcfa;
+  background: #ffffff;
   color: #1c2422;
 }
 
@@ -1059,7 +1059,7 @@ summary:focus-visible {
   padding: 10px;
   border: 1px solid #e3e7e0;
   border-radius: 8px;
-  background: #fcfcfa;
+  background: #ffffff;
 }
 
 .stacked-row-heading {
@@ -1137,9 +1137,14 @@ summary:focus-visible {
 
 .add-button {
   margin-top: 7px;
+  background: #ffffff;
 }
 
-.add-button:hover,
+.add-button:hover {
+  background: #f1f3f0;
+  text-decoration: underline;
+}
+
 .text-button:hover {
   background: transparent;
   text-decoration: underline;
@@ -1213,7 +1218,7 @@ summary:focus-visible {
   border-right: 1px solid #dde1dc;
   border-bottom: 1px solid #dde1dc;
   border-left: 3px solid #59645f;
-  background: #fcfcfa;
+  background: #ffffff;
 }
 
 .account-summary {
@@ -1398,9 +1403,9 @@ summary:focus-visible {
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  border-color: #dde1dc;
+  border-color: #c9cfc9;
   border-radius: 999px;
-  background: transparent;
+  background: #ffffff;
   color: #5b6663;
   font-size: 12px;
 }
@@ -1561,7 +1566,7 @@ summary:focus-visible {
   margin-top: auto;
   padding: 12px 0;
   border-top: 1px solid #dde1dc;
-  background: #fcfcfa;
+  background: #ffffff;
 }
 
 .wizard-back {
