@@ -55,6 +55,7 @@ import type {
   MapTextEditRect,
   MapTextEditTarget,
 } from '../ui/MapTextEditor'
+import { mapTextEditTargetKey } from '../ui/MapTextEditor'
 import {
   addCustomArrow,
   accountTextPointerAction,
@@ -93,6 +94,13 @@ import {
 
 const numericStyle = { fontVariantNumeric: 'tabular-nums' }
 
+export function incomeTotalLabelFontSize(totalFontSize: number): number {
+  return (
+    totalFontSize *
+    (TYPE.incomeTotalLabel / TYPE.incomeTotalValue)
+  )
+}
+
 function fixedTextFs(
   data: MoneyMapData,
   element: MapTextElement,
@@ -125,6 +133,7 @@ export type MapElementTarget =
   | { kind: 'account' | 'income' | 'need'; id?: string }
   | {
       kind: 'edit'
+      color?: string
       edit: MapTextEditTarget
       rect: MapTextEditRect
     }
@@ -134,6 +143,12 @@ interface MapSvgProps {
   onElementClick?: (target: MapElementTarget) => void
   onChange?: (data: MoneyMapData) => void
   highlightId?: string | null
+}
+
+interface MapEditDataAttributes {
+  'data-edit-line-node'?: string
+  'data-map-edit-hit'?: string
+  'data-map-edit-key'?: string
 }
 
 type DragMode =
@@ -195,19 +210,25 @@ function editableTextProps(
   edit: MapTextEditTarget,
   onElementClick?: (target: MapElementTarget) => void,
   onPointerDown?: (event: PointerEvent<SVGElement>) => void,
-): SVGProps<SVGTextElement | SVGTSpanElement> {
+): SVGProps<SVGTextElement | SVGTSpanElement> & MapEditDataAttributes {
   if (!onElementClick) return {}
 
   const activate = (element: SVGGraphicsElement) => {
-    const { left, top, width, height } = element.getBoundingClientRect()
+    const target =
+      element.closest<SVGGraphicsElement>('text[data-map-edit-key]') ??
+      element
+    const { left, top, width, height } = target.getBoundingClientRect()
     onElementClick({
       kind: 'edit',
+      color: getComputedStyle(target).fill,
       edit,
       rect: { left, top, width, height },
     })
   }
   return {
     className: 'map-editable-text',
+    'data-edit-line-node': mapTextEditTargetKey(edit),
+    'data-map-edit-key': mapTextEditTargetKey(edit),
     onPointerDown,
     onClick: (
       event: MouseEvent<SVGTextElement | SVGTSpanElement>,
@@ -228,24 +249,63 @@ function editableTextProps(
   }
 }
 
+function editableLineTextProps(
+  edit: MapTextEditTarget,
+  onElementClick?: (target: MapElementTarget) => void,
+  editorTarget = false,
+): SVGProps<SVGTextElement | SVGTSpanElement> & MapEditDataAttributes {
+  if (!onElementClick) return {}
+  return {
+    className: 'map-editable-line',
+    'data-edit-line-node': mapTextEditTargetKey(edit),
+    ...(editorTarget
+      ? { 'data-map-edit-key': mapTextEditTargetKey(edit) }
+      : {}),
+    pointerEvents: 'none',
+  }
+}
+
 function editableHitAreaProps(
   edit: MapTextEditTarget,
   onElementClick?: (target: MapElementTarget) => void,
-): SVGProps<SVGRectElement> {
+): SVGProps<SVGRectElement> & MapEditDataAttributes {
   if (!onElementClick) {
     return { fill: 'transparent', pointerEvents: 'none' }
   }
 
   const activate = (element: SVGGraphicsElement) => {
-    const { left, top, width, height } = element.getBoundingClientRect()
+    const hitRect = element.getBoundingClientRect()
+    const key = mapTextEditTargetKey(edit)
+    const target = Array.from(
+      element.ownerSVGElement?.querySelectorAll<SVGGraphicsElement>(
+        '[data-map-edit-key]',
+      ) ?? [],
+    )
+      .filter(
+        (candidate) =>
+          candidate.getAttribute('data-map-edit-key') === key,
+      )
+      .sort((left, right) => {
+        const leftRect = left.getBoundingClientRect()
+        const rightRect = right.getBoundingClientRect()
+        const hitCenterY = hitRect.top + hitRect.height / 2
+        return (
+          Math.abs(leftRect.top + leftRect.height / 2 - hitCenterY) -
+          Math.abs(rightRect.top + rightRect.height / 2 - hitCenterY)
+        )
+      })[0]
+    const { left, top, width, height } =
+      target?.getBoundingClientRect() ?? hitRect
     onElementClick({
       kind: 'edit',
+      color: target ? getComputedStyle(target).fill : undefined,
       edit,
       rect: { left, top, width, height },
     })
   }
   return {
     className: 'map-editable-hit',
+    'data-map-edit-hit': mapTextEditTargetKey(edit),
     fill: 'transparent',
     onClick: (event) => {
       event.stopPropagation()
@@ -290,6 +350,16 @@ function Masthead({
       >
         {data.client.title}
       </text>
+      <rect
+        x={454}
+        y={58}
+        width={818}
+        height={40}
+        {...editableHitAreaProps(
+          { kind: 'mastheadLabel' },
+          onElementClick,
+        )}
+      />
       <text
         x={470}
         y={83}
@@ -332,6 +402,10 @@ function IncomeRow({
         fill={INK}
         fontFamily={FONT_SANS}
         fontSize={fontSize * (13 / 14)}
+        {...editableLineTextProps(
+          { kind: 'incomeAmount', incomeIndex: index },
+          onElementClick,
+        )}
       >
         {source.label}
       </text>
@@ -343,9 +417,14 @@ function IncomeRow({
         fontSize={fontSize}
         fontWeight={600}
         style={numericStyle}
+        {...editableLineTextProps(
+          { kind: 'incomeAmount', incomeIndex: index },
+          onElementClick,
+          true,
+        )}
       >
         <tspan
-          {...editableTextProps(
+          {...editableLineTextProps(
             { kind: 'incomeAmount', incomeIndex: index },
             onElementClick,
           )}
@@ -359,6 +438,10 @@ function IncomeRow({
             fontFamily={FONT_SANS}
             fontSize={fontSize * (12 / 14)}
             fontWeight={400}
+            {...editableLineTextProps(
+              { kind: 'incomeAmount', incomeIndex: index },
+              onElementClick,
+            )}
           >
             {source.qualifier}
           </tspan>
@@ -488,8 +571,12 @@ function IncomePanel({
         y={dividerY + 31}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={TYPE.incomeTotalLabel}
+        fontSize={incomeTotalLabelFontSize(totalFs)}
         fontWeight={600}
+        {...editableLineTextProps(
+          { kind: 'afterTaxIncome' },
+          onElementClick,
+        )}
       >
         After-Tax Income
       </text>
@@ -502,7 +589,11 @@ function IncomePanel({
         fontWeight={600}
         textAnchor="end"
         style={numericStyle}
-        {...editableTextProps({ kind: 'afterTaxIncome' }, onElementClick)}
+        {...editableLineTextProps(
+          { kind: 'afterTaxIncome' },
+          onElementClick,
+          true,
+        )}
       >
         {money(data.afterTaxIncome)}
       </text>
@@ -539,6 +630,16 @@ function NeedCard({
         stroke={NEED_RED}
         strokeWidth={2}
       />
+      <rect
+        x={placed.x + 12}
+        y={placed.y + 31}
+        width={placed.w - 24}
+        height={38}
+        {...editableHitAreaProps(
+          { kind: 'needLabel' },
+          onElementClick,
+        )}
+      />
       <text
         x={placed.x + placed.w / 2}
         y={placed.y + 58}
@@ -552,6 +653,16 @@ function NeedCard({
       >
         MONTHLY INCOME NEED
       </text>
+      <rect
+        x={placed.x + 12}
+        y={placed.y + 75}
+        width={placed.w - 24}
+        height={52}
+        {...editableHitAreaProps(
+          { kind: 'monthlyNeed' },
+          onElementClick,
+        )}
+      />
       <text
         x={placed.x + placed.w / 2}
         y={placed.y + 111}
@@ -560,15 +671,31 @@ function NeedCard({
         fontSize={valueFs}
         fontWeight={600}
         textAnchor="middle"
+        {...editableLineTextProps(
+          { kind: 'monthlyNeed' },
+          onElementClick,
+        )}
       >
         <tspan
           style={numericStyle}
-          {...editableTextProps({ kind: 'monthlyNeed' }, onElementClick)}
+          {...editableLineTextProps(
+            { kind: 'monthlyNeed' },
+            onElementClick,
+            true,
+          )}
         >
           {money(value)}
         </tspan>
         {tag && (
-          <tspan fill={MUTED} fontStyle="italic" fontWeight={400}>
+          <tspan
+            fill={MUTED}
+            fontStyle="italic"
+            fontWeight={400}
+            {...editableLineTextProps(
+              { kind: 'monthlyNeed' },
+              onElementClick,
+            )}
+          >
             {` ${tag}`}
           </tspan>
         )}
@@ -665,12 +792,20 @@ function SubAccountDrum({
         fontSize={layout.titleFontSize}
         fontWeight={600}
         textAnchor="middle"
+        {...editableLineTextProps(
+          { kind: 'accountSub', accountId },
+          onElementClick,
+        )}
       >
         {layout.titleLines.map((line, index) => (
           <tspan
             key={`${line}-${index}`}
             x={x + w / 2}
             dy={index === 0 ? 0 : layout.titleLeading}
+            {...editableLineTextProps(
+              { kind: 'accountSub', accountId },
+              onElementClick,
+            )}
           >
             {line}
           </tspan>
@@ -684,12 +819,20 @@ function SubAccountDrum({
           fontFamily={FONT_SANS}
           fontSize={layout.captionFontSize}
           textAnchor="middle"
+          {...editableLineTextProps(
+            { kind: 'accountSub', accountId },
+            onElementClick,
+          )}
         >
           {layout.captionLines.map((line, index) => (
             <tspan
               key={`${line}-${index}`}
               x={x + w / 2}
               dy={index === 0 ? 0 : layout.captionLeading}
+              {...editableLineTextProps(
+                { kind: 'accountSub', accountId },
+                onElementClick,
+              )}
             >
               {line}
             </tspan>
@@ -705,6 +848,10 @@ function SubAccountDrum({
         fontWeight={600}
         textAnchor="middle"
         style={numericStyle}
+        {...editableLineTextProps(
+          { kind: 'accountSub', accountId },
+          onElementClick,
+        )}
       >
         {money(subAccount.value)}
       </text>
@@ -773,6 +920,10 @@ function AccountContent({
             key={`${line}-${index}`}
             x={x + w / 2 + text.titleX}
             dy={index === 0 ? 0 : text.titleLeading}
+            {...editableTextProps(
+              { kind: 'accountLabel', accountId: account.id },
+              onElementClick,
+            )}
           >
             {line}
           </tspan>
@@ -797,6 +948,10 @@ function AccountContent({
               key={`${line}-${index}`}
               x={x + w / 2 + text.captionX}
               dy={index === 0 ? 0 : text.captionLeading}
+              {...editableTextProps(
+                { kind: 'accountCaption', accountId: account.id },
+                onElementClick,
+              )}
             >
               {line}
             </tspan>
@@ -831,6 +986,10 @@ function AccountContent({
               fill={INK}
               fontFamily={FONT_SANS}
               fontSize={text.rowFontSize}
+              {...editableLineTextProps(
+                { kind: 'accountRows', accountId: account.id },
+                onElementClick,
+              )}
             >
               {position.label}
             </text>
@@ -843,6 +1002,10 @@ function AccountContent({
               fontWeight={600}
               textAnchor="end"
               style={numericStyle}
+              {...editableLineTextProps(
+                { kind: 'accountRows', accountId: account.id },
+                onElementClick,
+              )}
             >
               {money(position.value)}
             </text>
@@ -863,11 +1026,25 @@ function AccountContent({
           onTextPointerDown?.(account.id, 'value'),
         )}
       >
-        <tspan style={numericStyle}>
+        <tspan
+          style={numericStyle}
+          {...editableTextProps(
+            { kind: 'accountValue', accountId: account.id },
+            onElementClick,
+          )}
+        >
           {money(account.value)}
         </tspan>
         {account.valueTag && (
-          <tspan fill={MUTED} fontStyle="italic" fontWeight={400}>
+          <tspan
+            fill={MUTED}
+            fontStyle="italic"
+            fontWeight={400}
+            {...editableTextProps(
+              { kind: 'accountValue', accountId: account.id },
+              onElementClick,
+            )}
+          >
             {` ${account.valueTag}`}
           </tspan>
         )}
@@ -1362,6 +1539,16 @@ function AsNeededLabel({
         fill="#ffffff"
         stroke={HAIRLINE}
       />
+      <rect
+        x={arrow.labelAt.x - 118}
+        y={arrow.labelAt.y - 15}
+        width={236}
+        height={30}
+        {...editableHitAreaProps(
+          { kind: 'asNeededAmount' },
+          onElementClick,
+        )}
+      />
       <text
         x={arrow.labelAt.x}
         y={arrow.labelAt.y + 5}
@@ -1369,6 +1556,10 @@ function AsNeededLabel({
         fontFamily={FONT_SANS}
         fontSize={TYPE.arrowLabel}
         textAnchor="middle"
+        {...editableLineTextProps(
+          { kind: 'asNeededAmount' },
+          onElementClick,
+        )}
       >
         Monthly Income as Needed
         <tspan
@@ -1376,9 +1567,10 @@ function AsNeededLabel({
           fontFamily={FONT_SERIF}
           fontWeight={600}
           style={numericStyle}
-          {...editableTextProps(
+          {...editableLineTextProps(
             { kind: 'asNeededAmount' },
             onElementClick,
+            true,
           )}
         >
           {money(amount)}
@@ -1402,20 +1594,39 @@ function FootnoteLine({
   y: number
 }) {
   return (
-    <text
+    <>
+      <rect
+        x={x - 360}
+        y={y - fontSize - 3}
+        width={720}
+        height={fontSize + 9}
+        {...editableHitAreaProps(
+          { kind: 'footnoteText' },
+          onElementClick,
+        )}
+      />
+      <text
       x={x}
       y={y}
       fill={INK}
       fontFamily={FONT_SANS}
       fontSize={fontSize}
       textAnchor="middle"
-      {...editableTextProps({ kind: 'footnoteText' }, onElementClick)}
+      {...editableLineTextProps(
+        { kind: 'footnoteText' },
+        onElementClick,
+        true,
+      )}
     >
       {footnote.label}:{' '}
       <tspan
         fontFamily={FONT_SERIF}
         fontWeight={600}
         style={numericStyle}
+        {...editableLineTextProps(
+          { kind: 'footnoteText' },
+          onElementClick,
+        )}
       >
         {money(footnote.gross)}
       </tspan>
@@ -1425,11 +1636,16 @@ function FootnoteLine({
         fontFamily={FONT_SERIF}
         fontWeight={600}
         style={numericStyle}
+        {...editableLineTextProps(
+          { kind: 'footnoteText' },
+          onElementClick,
+        )}
       >
         {money(footnote.net)}
       </tspan>{' '}
       after withholding
-    </text>
+      </text>
+    </>
   )
 }
 
@@ -1490,9 +1706,10 @@ function NoteBlock({
   onResize?: (event: PointerEvent<SVGElement>) => void
   placed: PlacedNote
 }) {
-  const editProps = editableTextProps(
+  const editProps = editableLineTextProps(
     { kind: 'noteText', noteId: placed.note.id },
     onElementClick,
+    true,
   )
   return (
     <>
@@ -1534,6 +1751,10 @@ function NoteBlock({
             key={`${line}-${index}`}
             x={placed.x}
             dy={index === 0 ? 0 : placed.lineAdvance}
+            {...editableLineTextProps(
+              { kind: 'noteText', noteId: placed.note.id },
+              onElementClick,
+            )}
           >
             {line}
           </tspan>

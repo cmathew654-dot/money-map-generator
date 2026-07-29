@@ -1,11 +1,15 @@
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
+  type ChangeEvent,
   type CSSProperties,
+  type FocusEvent,
+  type KeyboardEvent,
   type RefObject,
 } from 'react'
-import { parseMoneyInput } from '../model/format'
+import { money, parseMoneyInput } from '../model/format'
 import type { AccountTextRole, MoneyMapData } from '../model/types'
 import {
   accountTextOverrideKey,
@@ -15,7 +19,16 @@ import {
   mapTextOverrideKey,
 } from '../model/types'
 import { addMapNote } from '../render/mapInteraction'
-import { TYPE } from '../render/tokens'
+import {
+  ARTBOARD,
+  FLOW_GREEN,
+  FONT_SANS,
+  FONT_SERIF,
+  INK,
+  MUTED,
+  NEED_RED,
+  TYPE,
+} from '../render/tokens'
 
 export type MapTextEditTarget =
   | { kind: 'accountValue'; accountId: string }
@@ -42,12 +55,151 @@ export interface MapTextEditRect {
 }
 
 export interface ActiveMapTextEdit {
+  color?: string
   target: MapTextEditTarget
   rect: MapTextEditRect
   rawValue: string
   fontSize?: number
   fontSizeMax?: number
   fontSizeChanged?: boolean
+}
+
+export interface MapTextEditorTextStyle {
+  color: string
+  fontFamily: string
+  fontSize: number
+  fontWeight: number
+  letterSpacing?: number
+  textAlign: 'left' | 'center' | 'right'
+  textTransform?: 'uppercase'
+}
+
+export interface MapTextEditorPillPosition {
+  left: number
+  placement: 'above' | 'below'
+  top: number
+}
+
+export function mapTextEditTargetKey(target: MapTextEditTarget): string {
+  switch (target.kind) {
+    case 'accountValue':
+    case 'accountLabel':
+    case 'accountCaption':
+    case 'accountRows':
+    case 'accountSub':
+      return `${target.kind}:${target.accountId}`
+    case 'incomeAmount':
+      return `${target.kind}:${target.incomeIndex}`
+    case 'flowLabel':
+      return `${target.kind}:${target.arrowId}`
+    case 'noteText':
+      return `${target.kind}:${target.noteId}`
+    default:
+      return target.kind
+  }
+}
+
+export function mapTextEditorPillPosition(
+  rect: MapTextEditRect,
+  mapTop: number,
+  pillWidth = 72,
+  pillHeight = 30,
+  gap = 8,
+): MapTextEditorPillPosition {
+  const placement = rect.top - mapTop < 48 ? 'below' : 'above'
+  return {
+    left: rect.left + (rect.width - pillWidth) / 2,
+    placement,
+    top:
+      placement === 'below'
+        ? rect.top + rect.height + gap
+        : rect.top - pillHeight - gap,
+  }
+}
+
+type MapTextEditKind = MapTextEditTarget['kind']
+type MapTextEditorStyleBase = Omit<MapTextEditorTextStyle, 'fontSize'>
+
+const MAP_TEXT_EDITOR_STYLES: Record<
+  MapTextEditKind,
+  MapTextEditorStyleBase
+> = {
+  accountCaption: {
+    color: MUTED, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'center',
+  },
+  accountLabel: {
+    color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'center',
+  },
+  accountRows: {
+    color: INK, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'left',
+  },
+  accountSub: {
+    color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'center',
+  },
+  accountValue: {
+    color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'center',
+  },
+  afterTaxIncome: {
+    color: FLOW_GREEN, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'right',
+  },
+  asNeededAmount: {
+    color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'left',
+  },
+  flowLabel: {
+    color: INK, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'center',
+  },
+  footnoteText: {
+    color: INK, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'center',
+  },
+  incomeAmount: {
+    color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'left',
+  },
+  incomeHeader: {
+    color: FLOW_GREEN, fontFamily: FONT_SANS, fontWeight: 700,
+    letterSpacing: 1.7, textAlign: 'left', textTransform: 'uppercase',
+  },
+  mastheadLabel: {
+    color: MUTED, fontFamily: FONT_SANS, fontWeight: 600,
+    letterSpacing: 2.5, textAlign: 'left', textTransform: 'uppercase',
+  },
+  monthlyNeed: {
+    color: NEED_RED, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'center',
+  },
+  needLabel: {
+    color: INK, fontFamily: FONT_SANS, fontWeight: 700,
+    letterSpacing: 1.8, textAlign: 'center', textTransform: 'uppercase',
+  },
+  noteText: {
+    color: MUTED, fontFamily: FONT_SERIF, fontWeight: 400, textAlign: 'left',
+  },
+}
+
+const MAP_TEXT_EDITOR_FONT_SIZES: Record<MapTextEditKind, number> = {
+  accountCaption: TYPE.caption,
+  accountLabel: TYPE.accountTitle,
+  accountRows: TYPE.row,
+  accountSub: TYPE.subValue,
+  accountValue: TYPE.value,
+  afterTaxIncome: TYPE.incomeTotalValue,
+  asNeededAmount: TYPE.arrowLabel,
+  flowLabel: TYPE.arrowLabel,
+  footnoteText: TYPE.footnote,
+  incomeAmount: TYPE.incomeValue,
+  incomeHeader: TYPE.panelHeader,
+  mastheadLabel: TYPE.mastheadLabel,
+  monthlyNeed: TYPE.needValue,
+  needLabel: TYPE.needLabel,
+  noteText: TYPE.note,
+}
+
+export function mapTextEditorTextStyle(
+  target: MapTextEditTarget,
+  fontSize?: number,
+): MapTextEditorTextStyle {
+  return {
+    ...MAP_TEXT_EDITOR_STYLES[target.kind],
+    fontSize: fontSize ?? MAP_TEXT_EDITOR_FONT_SIZES[target.kind],
+  }
 }
 
 type SizeOnlyMapTextEditTarget = Extract<
@@ -217,9 +369,9 @@ export function mapTextEditRawValue(
 ): string {
   switch (target.kind) {
     case 'accountValue':
-      return String(
+      return money(
         data.accounts.find((account) => account.id === target.accountId)
-          ?.value ?? '',
+          ?.value ?? null,
       )
     case 'accountLabel':
       return (
@@ -232,13 +384,15 @@ export function mapTextEditRawValue(
           ?.caption ?? ''
       )
     case 'incomeAmount':
-      return String(data.incomeSources[target.incomeIndex]?.amount ?? '')
+      return money(
+        data.incomeSources[target.incomeIndex]?.amount ?? null,
+      )
     case 'afterTaxIncome':
-      return String(data.afterTaxIncome ?? '')
+      return money(data.afterTaxIncome)
     case 'monthlyNeed':
-      return String(data.monthlyNeed ?? '')
+      return money(data.monthlyNeed)
     case 'asNeededAmount':
-      return String(data.asNeededAmount ?? '')
+      return money(data.asNeededAmount)
     case 'flowLabel':
       return (
         data.customArrows?.find((arrow) => arrow.id === target.arrowId)
@@ -392,26 +546,57 @@ export function MapTextEditor({
   const sizeControlsRef = useRef<HTMLDivElement>(null)
   const container = containerRef.current
   const containerRect = container?.getBoundingClientRect()
-  const hasFontSize = edit.fontSize !== undefined
+  const mapRect = container?.querySelector('svg')?.getBoundingClientRect()
   const sizeOnly = isSizeOnlyTarget(edit.target)
   const fontSizeMax = edit.fontSizeMax ?? MAX_ACCOUNT_TEXT_FONT_SIZE
-  const width = sizeOnly
-    ? 78
-    : Math.max(edit.rect.width + 16, 104) + (hasFontSize ? 70 : 0)
-  const height = Math.max(edit.rect.height + 10, 32)
-  const style: CSSProperties = {
+  const targetKey = mapTextEditTargetKey(edit.target)
+  const mapScale = mapRect ? mapRect.width / ARTBOARD.width : 1
+  const textStyle = mapTextEditorTextStyle(
+    edit.target,
+    edit.fontSize,
+  )
+  const multiline =
+    edit.rect.height > textStyle.fontSize * mapScale * 1.45
+  const inputStyle: CSSProperties = {
+    color: edit.color ?? textStyle.color,
+    fontFamily: textStyle.fontFamily,
+    fontSize: textStyle.fontSize * mapScale,
+    fontWeight: textStyle.fontWeight,
+    height: edit.rect.height,
     left:
       edit.rect.left -
       (containerRect?.left ?? 0) +
-      (container?.scrollLeft ?? 0) -
-      (width - edit.rect.width) / 2,
+      (container?.scrollLeft ?? 0),
+    letterSpacing:
+      textStyle.letterSpacing === undefined
+        ? undefined
+        : textStyle.letterSpacing * mapScale,
+    lineHeight: `${
+      multiline
+        ? textStyle.fontSize * mapScale * 1.25
+        : edit.rect.height
+    }px`,
+    textAlign: textStyle.textAlign,
+    textTransform: textStyle.textTransform,
     top:
       edit.rect.top -
       (containerRect?.top ?? 0) +
-      (container?.scrollTop ?? 0) -
-      (height - edit.rect.height) / 2,
-    width,
-    height,
+      (container?.scrollTop ?? 0),
+    width: Math.max(edit.rect.width, 24),
+  }
+  const pillScreenPosition = mapTextEditorPillPosition(
+    edit.rect,
+    mapRect?.top ?? edit.rect.top,
+  )
+  const pillStyle: CSSProperties = {
+    left:
+      pillScreenPosition.left -
+      (containerRect?.left ?? 0) +
+      (container?.scrollLeft ?? 0),
+    top:
+      pillScreenPosition.top -
+      (containerRect?.top ?? 0) +
+      (container?.scrollTop ?? 0),
   }
   const finish = (action: () => void) => {
     if (finished.current) return
@@ -423,62 +608,83 @@ export function MapTextEditor({
     if (sizeOnly) sizeControlsRef.current?.focus()
   }, [sizeOnly])
 
+  useLayoutEffect(() => {
+    if (sizeOnly) return
+    const editedElements = Array.from(
+      containerRef.current?.querySelectorAll<SVGElement>(
+        '[data-map-edit-key]',
+      ) ?? [],
+    ).filter(
+      (element) => element.getAttribute('data-map-edit-key') === targetKey,
+    )
+    editedElements.forEach((element) =>
+      element.classList.add('map-editing-text'),
+    )
+    return () => {
+      editedElements.forEach((element) =>
+        element.classList.remove('map-editing-text'),
+      )
+    }
+  }, [containerRef, sizeOnly, targetKey])
+
+  const inputMode: 'decimal' | 'text' =
+    edit.target.kind === 'accountLabel' ||
+    edit.target.kind === 'accountCaption' ||
+    edit.target.kind === 'mastheadLabel' ||
+    edit.target.kind === 'flowLabel' ||
+    edit.target.kind === 'noteText'
+      ? 'text'
+      : 'decimal'
+  const controlProps = {
+    'aria-label': editorLabel(edit.target),
+    autoFocus: true,
+    className: 'map-text-editor-input',
+    inputMode,
+    onBlur: () => finish(() => onCommit(rawValue)),
+    onChange: (
+      event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => setRawValue(event.target.value),
+    onFocus: (
+      event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => event.currentTarget.select(),
+    onKeyDown: (
+      event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        finish(() => onCommit(rawValue))
+      } else if (event.key === 'Escape') {
+        event.preventDefault()
+        finish(
+          edit.target.kind === 'noteText'
+            ? () => onCommit(rawValue)
+            : onCancel,
+        )
+      }
+    },
+    placeholder:
+      edit.target.kind === 'noteText' ? 'Add a note…' : undefined,
+    value: rawValue,
+  }
+
   return (
-    <div
-      className={`map-text-editor${
-        edit.target.kind === 'noteText'
-          ? ' is-note'
-          : edit.target.kind === 'flowLabel'
-            ? ' is-flow'
-            : sizeOnly
-              ? ' is-size-only'
-              : ''
-      }`}
-      style={style}
-    >
+    <>
       {!sizeOnly && (
-        <input
-          autoFocus
-          aria-label={editorLabel(edit.target)}
-          className="map-text-editor-input"
-          inputMode={
-            edit.target.kind === 'accountLabel' ||
-            edit.target.kind === 'accountCaption' ||
-            edit.target.kind === 'mastheadLabel' ||
-            edit.target.kind === 'flowLabel' ||
-            edit.target.kind === 'noteText'
-              ? 'text'
-              : 'decimal'
-          }
-          placeholder={
-            edit.target.kind === 'noteText' ? 'Add a note…' : undefined
-          }
-          type="text"
-          value={rawValue}
-          onBlur={() => finish(() => onCommit(rawValue))}
-          onChange={(event) => setRawValue(event.target.value)}
-          onFocus={(event) => event.currentTarget.select()}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault()
-              finish(() => onCommit(rawValue))
-            } else if (event.key === 'Escape') {
-              event.preventDefault()
-              finish(
-                edit.target.kind === 'noteText'
-                  ? () => onCommit(rawValue)
-                  : onCancel,
-              )
-            }
-          }}
-        />
+        <div className="map-text-editor" style={inputStyle}>
+          {multiline ? (
+            <textarea {...controlProps} />
+          ) : (
+            <input {...controlProps} type="text" />
+          )}
+        </div>
       )}
       {edit.fontSize !== undefined && (
         <div
           ref={sizeControlsRef}
           aria-label={sizeOnly ? editorLabel(edit.target) : 'Font size'}
-          className="map-text-size-controls"
+          className={`map-text-size-controls is-${pillScreenPosition.placement}`}
           role={sizeOnly ? 'group' : undefined}
+          style={pillStyle}
           tabIndex={sizeOnly ? 0 : undefined}
           onBlur={(event) => {
             if (
@@ -531,6 +737,6 @@ export function MapTextEditor({
           </button>
         </div>
       )}
-    </div>
+    </>
   )
 }

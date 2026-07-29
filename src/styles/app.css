@@ -359,6 +359,10 @@ summary:focus-visible {
   text-underline-offset: 3px;
 }
 
+.map-page svg .map-editing-text {
+  visibility: hidden;
+}
+
 .map-page svg.map-interactive {
   touch-action: none;
   user-select: none;
@@ -912,52 +916,66 @@ summary:focus-visible {
 .map-text-editor {
   position: absolute;
   z-index: 3;
-  display: flex;
   box-sizing: border-box;
   min-width: 0;
-  align-items: stretch;
   margin: 0;
-  border: 2px solid #1e7a4a;
-  border-radius: 5px;
-  padding: 2px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgb(28 36 34 / 20%);
+  border: 0;
+  padding: 0;
+  background: transparent;
 }
 
 .map-text-editor-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
   min-width: 0;
-  flex: 1;
   border: 0;
+  border-bottom: 1px solid rgb(30 122 74 / 55%);
+  border-radius: 0;
   outline: 0;
-  padding: 0 5px;
+  padding: 0;
   background: transparent;
-  color: #1c2422;
-  font: 600 15px/1.2 'Literata', Georgia, serif;
-  text-align: center;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  text-transform: inherit;
+  caret-color: #1e7a4a;
+  resize: none;
+  overflow: hidden;
 }
 
-.map-text-editor.is-note .map-text-editor-input {
-  color: #5b6663;
-  font-weight: 400;
-  text-align: left;
+.map-text-editor-input:focus {
+  box-shadow: 0 1px 0 rgb(30 122 74 / 22%);
 }
 
-.map-text-editor.is-flow .map-text-editor-input {
-  font-family: 'Public Sans', 'Segoe UI', sans-serif;
-  font-size: 13.5px;
-  font-weight: 400;
+.map-text-editor-input::selection {
+  background: rgb(30 122 74 / 18%);
 }
 
 .map-text-size-controls {
+  position: absolute;
+  z-index: 4;
   display: flex;
-  align-items: stretch;
+  box-sizing: border-box;
+  width: 72px;
+  height: 30px;
+  align-items: center;
   gap: 2px;
+  border: 1px solid #dde1dc;
+  border-radius: 999px;
+  padding: 3px;
+  background: #fcfcfa;
+  box-shadow: 0 3px 10px rgb(28 36 34 / 16%);
 }
 
 .map-text-size-controls button {
-  min-width: 30px;
+  min-width: 0;
+  height: 22px;
+  flex: 1;
   border: 0;
-  border-radius: 3px;
+  border-radius: 999px;
   padding: 0 3px;
   background: #eef7f1;
   color: #1e7a4a;
@@ -1773,6 +1791,16 @@ summary:focus-visible {
 .map-page svg .map-editable-hit:hover,
 .map-page svg .map-editable-hit:focus-visible {
   fill: rgb(30 122 74 / 8%);
+}
+
+.map-page svg .map-editable-hit:hover ~ .map-editable-line,
+.map-page svg .map-editable-hit:focus-visible ~ .map-editable-line,
+.map-page svg .map-editable-hit:hover + g .map-editable-line,
+.map-page svg .map-editable-hit:focus-visible + g .map-editable-line {
+  text-decoration: underline;
+  text-decoration-color: rgb(28 36 34 / 35%);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .map-page.is-zoomed svg [data-map-background] {

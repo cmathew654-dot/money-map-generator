@@ -676,6 +676,7 @@ export default function App() {
   const handleMapElementClick = (target: MapElementTarget) => {
     if (target.kind === 'edit') {
       setMapTextEdit({
+        color: target.color,
         target: target.edit,
         rect: target.rect,
         rawValue: mapTextEditRawValue(activeClient, target.edit),
