@@ -953,31 +953,29 @@ function AccountContent({
           ))}
         </text>
       )}
-      {account.positions?.map((position, index) => {
-        const rowBaseline = y + text.rowBaselines[index]
-        const rowTop = rowBaseline - text.rowFontSize - 3
+      {placed.positionRows.map((row, index) => {
         return (
-          <g key={`${position.label}-${index}`}>
+          <g key={`${row.valueText}-${index}`}>
             <rect
-              x={x + 16}
-              y={rowTop}
-              width={w - 32}
-              height={text.rowLeading}
+              x={x + row.leftX}
+              y={y + row.topY}
+              width={row.innerWidth}
+              height={row.h}
               {...editableHitAreaProps(
                 { kind: 'accountRows', accountId: account.id },
                 onElementClick,
               )}
             />
             <line
-              x1={x + 20}
-              y1={rowTop}
-              x2={x + w - 20}
-              y2={rowTop}
+              x1={x + row.leftX}
+              y1={y + row.topY}
+              x2={x + row.rightX}
+              y2={y + row.topY}
               stroke={HAIRLINE}
             />
             <text
-              x={x + 20}
-              y={rowBaseline}
+              x={x + row.leftX}
+              y={y + row.firstBaseline}
               fill={INK}
               fontFamily={FONT_SANS}
               fontSize={text.rowFontSize}
@@ -986,11 +984,23 @@ function AccountContent({
                 onElementClick,
               )}
             >
-              {position.label}
+              {row.labelLines.map((line, lineIndex) => (
+                <tspan
+                  key={`${line}-${lineIndex}`}
+                  x={x + row.leftX}
+                  dy={lineIndex === 0 ? 0 : text.rowLeading}
+                  {...editableLineTextProps(
+                    { kind: 'accountRows', accountId: account.id },
+                    onElementClick,
+                  )}
+                >
+                  {line}
+                </tspan>
+              ))}
             </text>
             <text
-              x={x + w - 20}
-              y={rowBaseline}
+              x={x + row.rightX}
+              y={y + row.firstBaseline}
               fill={INK}
               fontFamily={FONT_SERIF}
               fontSize={text.rowFontSize}
@@ -1002,7 +1012,7 @@ function AccountContent({
                 onElementClick,
               )}
             >
-              {money(position.value)}
+              {row.valueText}
             </text>
           </g>
         )
@@ -1057,9 +1067,6 @@ function AccountContent({
         </text>
       )}
       {subAccountLayouts.map((layout, index) => {
-        const priorHeight = subAccountLayouts
-          .slice(0, index)
-          .reduce((sum, prior) => sum + prior.h + 8, 0)
         return (
           <SubAccountDrum
             accountId={account.id}
@@ -1067,7 +1074,7 @@ function AccountContent({
             layout={layout}
             onElementClick={onElementClick}
             x={x + w * 0.14}
-            y={y + text.subStartY + priorHeight}
+            y={y + layout.y}
             w={w * 0.72}
             fill={style.tint}
             stroke={style.stroke}

@@ -113,9 +113,25 @@ export const TYPE = {
 
 /** Baseline-to-baseline distance for multiline map text. */
 export const LEADING = {
-  accountTitle: 24,
-  caption: 19,
-  row: 20,
-  subAccountTitle: 18,
-  subAccountCaption: 15,
+  accountTitle: TYPE.accountTitle * 1.3,
+  caption: TYPE.caption * 1.45,
+  row: TYPE.row * 1.45,
+  subAccountTitle: TYPE.subAccountTitle * 1.45,
+  subAccountCaption: TYPE.subAccountCaption * 1.45,
+}
+
+export const ROLE_GAP = {
+  divisor: 1.5,
+  minimum: 8,
+}
+
+/** Clear space between adjacent text roles, derived from their leading. */
+export function roleGap(
+  firstLineHeight: number,
+  secondLineHeight: number,
+): number {
+  return Math.max(
+    ROLE_GAP.minimum,
+    Math.max(firstLineHeight, secondLineHeight) / ROLE_GAP.divisor,
+  )
 }
