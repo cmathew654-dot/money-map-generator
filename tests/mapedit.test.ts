@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { accountDisplayName } from '../src/model/format'
-import { incomeTextSizes } from '../src/layout/layout'
+import { incomeTextSizes, layoutMap } from '../src/layout/layout'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import {
   addCustomArrow,
@@ -638,6 +638,77 @@ describe('noninteractive map rendering', () => {
     )
     expect(markup).not.toContain('Flow legend')
     expect(markup).not.toContain('data-legend-kind')
+  })
+
+  it('renders every newly movable fixed text role at its override offset', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        'text:income:header': { dx: 11, dy: 12 },
+        'text:income:row': { dx: 21, dy: 22 },
+        'text:income:total': { dx: 31, dy: 32 },
+        'text:need:label': { dx: 41, dy: -12 },
+        'text:need:value': { dx: 51, dy: -22 },
+        'text:footnotes:line': { dx: 100, dy: -32 },
+        'text:masthead:label': { dx: -20, dy: 80 },
+      },
+    }
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    for (const [dx, dy] of [
+      [11, 12],
+      [21, 22],
+      [31, 32],
+      [41, -12],
+      [51, -22],
+      [100, -32],
+      [-20, 80],
+    ]) {
+      expect(markup).toContain(`transform="translate(${dx} ${dy})"`)
+    }
+  })
+
+  it('renders account row/sub blocks and custom flow labels at moved positions', () => {
+    const rowsId = SAMPLE_WHITFIELD.accounts.find(
+      (account) => account.positions?.length,
+    )!.id
+    const subId = SAMPLE_WHITFIELD.accounts.find(
+      (account) => account.subAccounts?.length,
+    )!.id
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        [`text:${rowsId}:rows`]: { dx: 26, dy: -13 },
+        [`text:${subId}:sub`]: { dx: -18, dy: 15 },
+      },
+      customArrows: [
+        {
+          id: 'rendered-label-offset',
+          sourceId: 'income',
+          targetId: 'need',
+          style: 'solid' as const,
+          label: 'Moved label',
+          labelDx: 34,
+          labelDy: -27,
+        },
+      ],
+    }
+    const layout = layoutMap(data)
+    const rows = layout.accounts.find(
+      (account) => account.account.id === rowsId,
+    )!.positionRows
+    const arrow = layout.arrows.find(
+      (candidate) => candidate.id === 'rendered-label-offset',
+    )!
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    expect(markup).toContain(`x="${rows[0].leftX + layout.accounts.find(
+      (account) => account.account.id === rowsId,
+    )!.x}"`)
+    expect(markup).toContain('transform="translate(-18 15)"')
+    expect(markup).toContain(
+      `x="${arrow.labelAt!.x}" y="${arrow.labelAt!.y + 14.5 / 3}"`,
+    )
   })
 
   it('renders shared position and proportional sub-account font sizes', () => {

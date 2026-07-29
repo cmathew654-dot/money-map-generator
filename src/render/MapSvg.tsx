@@ -13,6 +13,7 @@ import {
   incomePanelMetrics,
   incomeTextSizes,
   layoutMap,
+  mapTextOffset,
   nearestOutlineT,
   OVERRIDE_BOUNDS,
   pointOnOutline,
@@ -66,6 +67,7 @@ import {
   deleteCustomArrow,
   deleteMapNote,
   hideGeneratedArrow,
+  moveCustomArrowLabel,
   moveMapNote,
   resizeMapNote,
   setCustomArrowColor,
@@ -156,6 +158,7 @@ type DragMode =
   | 'noteMove'
   | 'noteResize'
   | 'textMove'
+  | 'flowLabelMove'
 
 interface DragSession {
   active: boolean
@@ -171,6 +174,10 @@ interface DragSession {
   startScreen: Point
   sourceId?: string
 }
+
+type TextPointerDown = (
+  target: MapTextEditTarget,
+) => (event: PointerEvent<SVGElement>) => void
 
 function placedRotation(placed: Placed): number {
   return 'rot' in placed && typeof placed.rot === 'number'
@@ -262,6 +269,7 @@ function editableLineTextProps(
 function editableHitAreaProps(
   edit: MapTextEditTarget,
   onElementClick?: (target: MapElementTarget) => void,
+  onPointerDown?: (event: PointerEvent<SVGElement>) => void,
 ): SVGProps<SVGRectElement> & MapEditDataAttributes {
   if (!onElementClick) {
     return { fill: 'transparent', pointerEvents: 'none' }
@@ -301,6 +309,7 @@ function editableHitAreaProps(
     className: 'map-editable-hit',
     'data-map-edit-hit': mapTextEditTargetKey(edit),
     fill: 'transparent',
+    onPointerDown,
     onClick: (event) => {
       event.stopPropagation()
       activate(event.currentTarget)
@@ -325,13 +334,43 @@ function mastheadLabel(data: MoneyMapData): string {
   return `${label} ${period}`
 }
 
+function fixedTextOverrideKey(target: MapTextEditTarget): string | null {
+  switch (target.kind) {
+    case 'incomeHeader':
+      return mapTextOverrideKey('income', 'header')
+    case 'incomeAmount':
+      return mapTextOverrideKey('income', 'row')
+    case 'afterTaxIncome':
+      return mapTextOverrideKey('income', 'total')
+    case 'needLabel':
+      return mapTextOverrideKey('need', 'label')
+    case 'monthlyNeed':
+      return mapTextOverrideKey('need', 'value')
+    case 'footnoteText':
+      return mapTextOverrideKey('footnotes', 'line')
+    case 'mastheadLabel':
+      return mapTextOverrideKey('masthead', 'label')
+    default:
+      return null
+  }
+}
+
 function Masthead({
   data,
   onElementClick,
+  onTextPointerDown,
 }: {
   data: MoneyMapData
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: TextPointerDown
 }) {
+  const edit = { kind: 'mastheadLabel' } as const
+  const offset = mapTextOffset(data, 'masthead', 'label', {
+    x: 454,
+    y: 58,
+    w: 818,
+    h: 40,
+  })
   return (
     <g>
       <text
@@ -344,28 +383,35 @@ function Masthead({
       >
         {data.client.title}
       </text>
-      <rect
-        x={454}
-        y={58}
-        width={818}
-        height={40}
-        {...editableHitAreaProps(
-          { kind: 'mastheadLabel' },
-          onElementClick,
-        )}
-      />
-      <text
-        x={470}
-        y={83}
-        fill={MUTED}
-        fontFamily={FONT_SANS}
-        fontSize={TYPE.mastheadLabel}
-        fontWeight={600}
-        letterSpacing={2.5}
-        {...editableTextProps({ kind: 'mastheadLabel' }, onElementClick)}
-      >
-        {mastheadLabel(data).toUpperCase()}
-      </text>
+      <g transform={`translate(${offset.dx} ${offset.dy})`}>
+        <rect
+          x={454}
+          y={58}
+          width={818}
+          height={40}
+          {...editableHitAreaProps(
+            edit,
+            onElementClick,
+            onTextPointerDown?.(edit),
+          )}
+        />
+        <text
+          x={470}
+          y={83}
+          fill={MUTED}
+          fontFamily={FONT_SANS}
+          fontSize={TYPE.mastheadLabel}
+          fontWeight={600}
+          letterSpacing={2.5}
+          {...editableTextProps(
+            edit,
+            onElementClick,
+            onTextPointerDown?.(edit),
+          )}
+        >
+          {mastheadLabel(data).toUpperCase()}
+        </text>
+      </g>
       <line x1={48} y1={118} x2={1272} y2={118} stroke={HAIRLINE} />
     </g>
   )
@@ -448,10 +494,12 @@ function IncomeRow({
 function IncomePanel({
   data,
   onElementClick,
+  onTextPointerDown,
   placed,
 }: {
   data: MoneyMapData
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: TextPointerDown
   placed: Placed
 }) {
   const metrics = incomePanelMetrics(data)
@@ -465,6 +513,20 @@ function IncomePanel({
   const headerFs = sizes.header
   const rowFs = sizes.rowValue
   const totalFs = sizes.totalValue
+  const headerEdit = { kind: 'incomeHeader' } as const
+  const headerOffset = mapTextOffset(data, 'income', 'header', {
+    x: placed.x + 12,
+    y: placed.y + 7,
+    w: placed.w - 24,
+    h: 35,
+  })
+  const totalEdit = { kind: 'afterTaxIncome' } as const
+  const totalOffset = mapTextOffset(data, 'income', 'total', {
+    x: placed.x + 12,
+    y: dividerY + 7,
+    w: placed.w - 24,
+    h: 48,
+  })
 
   return (
     <g>
@@ -478,28 +540,35 @@ function IncomePanel({
         stroke={HAIRLINE}
         strokeWidth={1.5}
       />
-      <rect
-        x={placed.x + 12}
-        y={placed.y + 7}
-        width={placed.w - 24}
-        height={35}
-        {...editableHitAreaProps(
-          { kind: 'incomeHeader' },
-          onElementClick,
-        )}
-      />
-      <text
-        x={placed.x + 20}
-        y={placed.y + 29}
-        fill={FLOW_GREEN}
-        fontFamily={FONT_SANS}
-        fontSize={headerFs}
-        fontWeight={700}
-        letterSpacing={1.7}
-        {...editableTextProps({ kind: 'incomeHeader' }, onElementClick)}
-      >
-        INCOME SOURCES
-      </text>
+      <g transform={`translate(${headerOffset.dx} ${headerOffset.dy})`}>
+        <rect
+          x={placed.x + 12}
+          y={placed.y + 7}
+          width={placed.w - 24}
+          height={35}
+          {...editableHitAreaProps(
+            headerEdit,
+            onElementClick,
+            onTextPointerDown?.(headerEdit),
+          )}
+        />
+        <text
+          x={placed.x + 20}
+          y={placed.y + 29}
+          fill={FLOW_GREEN}
+          fontFamily={FONT_SANS}
+          fontSize={headerFs}
+          fontWeight={700}
+          letterSpacing={1.7}
+          {...editableTextProps(
+            headerEdit,
+            onElementClick,
+            onTextPointerDown?.(headerEdit),
+          )}
+        >
+          INCOME SOURCES
+        </text>
+      </g>
       <line
         x1={placed.x + 20}
         y1={placed.y + 40}
@@ -508,22 +577,34 @@ function IncomePanel({
         stroke={FLOW_GREEN}
         strokeWidth={2}
       />
-      {data.incomeSources.map((source, index) => (
-        <g key={`${source.label}-${index}`}>
+      {data.incomeSources.map((source, index) => {
+        const edit = { kind: 'incomeAmount', incomeIndex: index } as const
+        const rowBlock = {
+          x: placed.x + 12,
+          y:
+            placed.y +
+            firstRowY +
+            index * rowPitch -
+            rowFs * (13 / 14) -
+            5,
+          w: placed.w - 24,
+          h: rowPitch,
+        }
+        const offset = mapTextOffset(data, 'income', 'row', rowBlock)
+        return (
+        <g
+          key={`${source.label}-${index}`}
+          transform={`translate(${offset.dx} ${offset.dy})`}
+        >
           <rect
-            x={placed.x + 12}
-            y={
-              placed.y +
-              firstRowY +
-              index * rowPitch -
-              rowFs * (13 / 14) -
-              5
-            }
-            width={placed.w - 24}
-            height={rowPitch}
+            x={rowBlock.x}
+            y={rowBlock.y}
+            width={rowBlock.w}
+            height={rowBlock.h}
             {...editableHitAreaProps(
-              { kind: 'incomeAmount', incomeIndex: index },
+              edit,
               onElementClick,
+              onTextPointerDown?.(edit),
             )}
           />
           <IncomeRow
@@ -536,7 +617,8 @@ function IncomePanel({
             y={placed.y + firstRowY + index * rowPitch}
           />
         </g>
-      ))}
+        )
+      })}
       <line
         x1={placed.x + 20}
         y1={dividerY}
@@ -551,47 +633,43 @@ function IncomePanel({
         y2={dividerY + 3}
         stroke={HAIRLINE}
       />
-      <rect
-        x={placed.x + 12}
-        y={dividerY + 7}
-        width={placed.w - 24}
-        height={48}
-        {...editableHitAreaProps(
-          { kind: 'afterTaxIncome' },
-          onElementClick,
-        )}
-      />
-      <text
-        x={placed.x + 20}
-        y={dividerY + 31}
-        fill={INK}
-        fontFamily={FONT_SANS}
-        fontSize={sizes.totalLabel}
-        fontWeight={600}
-        {...editableLineTextProps(
-          { kind: 'afterTaxIncome' },
-          onElementClick,
-        )}
-      >
-        After-Tax Income
-      </text>
-      <text
-        x={placed.x + placed.w - 20}
-        y={dividerY + 31}
-        fill={FLOW_GREEN}
-        fontFamily={FONT_SERIF}
-        fontSize={totalFs}
-        fontWeight={600}
-        textAnchor="end"
-        style={numericStyle}
-        {...editableLineTextProps(
-          { kind: 'afterTaxIncome' },
-          onElementClick,
-          true,
-        )}
-      >
-        {money(data.afterTaxIncome)}
-      </text>
+      <g transform={`translate(${totalOffset.dx} ${totalOffset.dy})`}>
+        <rect
+          x={placed.x + 12}
+          y={dividerY + 7}
+          width={placed.w - 24}
+          height={48}
+          {...editableHitAreaProps(
+            totalEdit,
+            onElementClick,
+            onTextPointerDown?.(totalEdit),
+          )}
+        />
+        <text
+          x={placed.x + 20}
+          y={dividerY + 31}
+          fill={INK}
+          fontFamily={FONT_SANS}
+          fontSize={sizes.totalLabel}
+          fontWeight={600}
+          {...editableLineTextProps(totalEdit, onElementClick)}
+        >
+          After-Tax Income
+        </text>
+        <text
+          x={placed.x + placed.w - 20}
+          y={dividerY + 31}
+          fill={FLOW_GREEN}
+          fontFamily={FONT_SERIF}
+          fontSize={totalFs}
+          fontWeight={600}
+          textAnchor="end"
+          style={numericStyle}
+          {...editableLineTextProps(totalEdit, onElementClick, true)}
+        >
+          {money(data.afterTaxIncome)}
+        </text>
+      </g>
     </g>
   )
 }
@@ -600,6 +678,7 @@ function NeedCard({
   data,
   mathLine,
   onElementClick,
+  onTextPointerDown,
   tag,
   value,
   placed,
@@ -607,12 +686,27 @@ function NeedCard({
   data: MoneyMapData
   mathLine: string | null
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: TextPointerDown
   tag?: string
   value: number | null
   placed: Placed
 }) {
   const labelFs = fixedTextFs(data, 'need', 'label', TYPE.needLabel)
   const valueFs = fixedTextFs(data, 'need', 'value', TYPE.needValue)
+  const labelEdit = { kind: 'needLabel' } as const
+  const labelOffset = mapTextOffset(data, 'need', 'label', {
+    x: placed.x + 12,
+    y: placed.y + 31,
+    w: placed.w - 24,
+    h: 38,
+  })
+  const valueEdit = { kind: 'monthlyNeed' } as const
+  const valueOffset = mapTextOffset(data, 'need', 'value', {
+    x: placed.x + 12,
+    y: placed.y + 75,
+    w: placed.w - 24,
+    h: 52,
+  })
   return (
     <g>
       <rect
@@ -625,76 +719,76 @@ function NeedCard({
         stroke={NEED_RED}
         strokeWidth={2}
       />
-      <rect
-        x={placed.x + 12}
-        y={placed.y + 31}
-        width={placed.w - 24}
-        height={38}
-        {...editableHitAreaProps(
-          { kind: 'needLabel' },
-          onElementClick,
-        )}
-      />
-      <text
-        x={placed.x + placed.w / 2}
-        y={placed.y + 58}
-        fill={INK}
-        fontFamily={FONT_SANS}
-        fontSize={labelFs}
-        fontWeight={700}
-        letterSpacing={1.8}
-        textAnchor="middle"
-        {...editableTextProps({ kind: 'needLabel' }, onElementClick)}
-      >
-        MONTHLY INCOME NEED
-      </text>
-      <rect
-        x={placed.x + 12}
-        y={placed.y + 75}
-        width={placed.w - 24}
-        height={52}
-        {...editableHitAreaProps(
-          { kind: 'monthlyNeed' },
-          onElementClick,
-        )}
-      />
-      <text
-        x={placed.x + placed.w / 2}
-        y={placed.y + 111}
-        fill={NEED_RED}
-        fontFamily={FONT_SERIF}
-        fontSize={valueFs}
-        fontWeight={600}
-        textAnchor="middle"
-        {...editableLineTextProps(
-          { kind: 'monthlyNeed' },
-          onElementClick,
-        )}
-      >
-        <tspan
-          style={numericStyle}
-          {...editableLineTextProps(
-            { kind: 'monthlyNeed' },
+      <g transform={`translate(${labelOffset.dx} ${labelOffset.dy})`}>
+        <rect
+          x={placed.x + 12}
+          y={placed.y + 31}
+          width={placed.w - 24}
+          height={38}
+          {...editableHitAreaProps(
+            labelEdit,
             onElementClick,
-            true,
+            onTextPointerDown?.(labelEdit),
+          )}
+        />
+        <text
+          x={placed.x + placed.w / 2}
+          y={placed.y + 58}
+          fill={INK}
+          fontFamily={FONT_SANS}
+          fontSize={labelFs}
+          fontWeight={700}
+          letterSpacing={1.8}
+          textAnchor="middle"
+          {...editableTextProps(
+            labelEdit,
+            onElementClick,
+            onTextPointerDown?.(labelEdit),
           )}
         >
-          {money(value)}
-        </tspan>
-        {tag && (
+          MONTHLY INCOME NEED
+        </text>
+      </g>
+      <g transform={`translate(${valueOffset.dx} ${valueOffset.dy})`}>
+        <rect
+          x={placed.x + 12}
+          y={placed.y + 75}
+          width={placed.w - 24}
+          height={52}
+          {...editableHitAreaProps(
+            valueEdit,
+            onElementClick,
+            onTextPointerDown?.(valueEdit),
+          )}
+        />
+        <text
+          x={placed.x + placed.w / 2}
+          y={placed.y + 111}
+          fill={NEED_RED}
+          fontFamily={FONT_SERIF}
+          fontSize={valueFs}
+          fontWeight={600}
+          textAnchor="middle"
+          {...editableLineTextProps(valueEdit, onElementClick)}
+        >
           <tspan
-            fill={MUTED}
-            fontStyle="italic"
-            fontWeight={400}
-            {...editableLineTextProps(
-              { kind: 'monthlyNeed' },
-              onElementClick,
-            )}
+            style={numericStyle}
+            {...editableLineTextProps(valueEdit, onElementClick, true)}
           >
-            {` ${tag}`}
+            {money(value)}
           </tspan>
-        )}
-      </text>
+          {tag && (
+            <tspan
+              fill={MUTED}
+              fontStyle="italic"
+              fontWeight={400}
+              {...editableLineTextProps(valueEdit, onElementClick)}
+            >
+              {` ${tag}`}
+            </tspan>
+          )}
+        </text>
+      </g>
       {mathLine && (
         <text
           x={placed.x + placed.w / 2}
@@ -731,6 +825,7 @@ function SubAccountDrum({
   accountId,
   layout,
   onElementClick,
+  onTextPointerDown,
   x,
   y,
   w,
@@ -740,6 +835,10 @@ function SubAccountDrum({
   accountId: string
   layout: SubAccountLayout
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: (
+    accountId: string,
+    role: AccountTextRole,
+  ) => (event: PointerEvent<SVGElement>) => void
   x: number
   y: number
   w: number
@@ -748,6 +847,7 @@ function SubAccountDrum({
 }) {
   const capRy = 10
   const { subAccount } = layout
+  const edit = { kind: 'accountSub', accountId } as const
 
   return (
     <g>
@@ -768,6 +868,9 @@ function SubAccountDrum({
         strokeDasharray="6 5"
         strokeWidth={1.75}
       />
+      <g
+        transform={`translate(${layout.textDx ?? 0} ${layout.textDy ?? 0})`}
+      >
       <rect
         x={x}
         y={y}
@@ -775,8 +878,9 @@ function SubAccountDrum({
         height={layout.h}
         rx={capRy}
         {...editableHitAreaProps(
-          { kind: 'accountSub', accountId },
+          edit,
           onElementClick,
+          onTextPointerDown?.(accountId, 'sub'),
         )}
       />
       <text
@@ -850,6 +954,7 @@ function SubAccountDrum({
       >
         {money(subAccount.value)}
       </text>
+      </g>
     </g>
   )
 }
@@ -961,10 +1066,11 @@ function AccountContent({
               y={y + row.topY}
               width={row.innerWidth}
               height={row.h}
-              {...editableHitAreaProps(
-                { kind: 'accountRows', accountId: account.id },
-                onElementClick,
-              )}
+            {...editableHitAreaProps(
+              { kind: 'accountRows', accountId: account.id },
+              onElementClick,
+              onTextPointerDown?.(account.id, 'rows'),
+            )}
             />
             <line
               x1={x + row.leftX}
@@ -1073,6 +1179,7 @@ function AccountContent({
             key={`${layout.subAccount.label}-${index}`}
             layout={layout}
             onElementClick={onElementClick}
+            onTextPointerDown={onTextPointerDown}
             x={x + w * 0.14}
             y={y + layout.y}
             w={w * 0.72}
@@ -1265,9 +1372,11 @@ export function resolveCustomArrowColor(
 function FlowArrowLabel({
   arrow,
   onElementClick,
+  onPointerDown,
 }: {
   arrow: Arrow
   onElementClick?: (target: MapElementTarget) => void
+  onPointerDown?: (event: PointerEvent<SVGElement>) => void
 }) {
   if (!arrow.id || !arrow.label || !arrow.labelAt) return null
   return (
@@ -1285,7 +1394,7 @@ function FlowArrowLabel({
       {...editableTextProps(
         { kind: 'flowLabel', arrowId: arrow.id },
         onElementClick,
-        (event) => event.stopPropagation(),
+        onPointerDown ?? ((event) => event.stopPropagation()),
       )}
       className={`map-flow-label${
         onElementClick ? ' map-editable-text' : ''
@@ -1348,7 +1457,11 @@ function ArrowEditor({
         fill="none"
         onPointerDown={onBeginDrag('arrowBow')}
       />
-      <FlowArrowLabel arrow={arrow} onElementClick={onElementClick} />
+      <FlowArrowLabel
+        arrow={arrow}
+        onElementClick={onElementClick}
+        onPointerDown={onBeginDrag('flowLabelMove')}
+      />
       {[
         ['arrowStart', arrow.start],
         ['arrowBow', midpoint],
@@ -1583,28 +1696,41 @@ function AsNeededLabel({
 }
 
 function FootnoteLine({
+  data,
   fontSize,
   footnote,
   onElementClick,
+  onTextPointerDown,
   x,
   y,
 }: {
+  data: MoneyMapData
   fontSize: number
   footnote: Footnote
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: TextPointerDown
   x: number
   y: number
 }) {
+  const edit = { kind: 'footnoteText' } as const
+  const block = {
+    x: x - 360,
+    y: y - fontSize - 3,
+    w: 720,
+    h: fontSize + 9,
+  }
+  const offset = mapTextOffset(data, 'footnotes', 'line', block)
   return (
-    <>
+    <g transform={`translate(${offset.dx} ${offset.dy})`}>
       <rect
-        x={x - 360}
-        y={y - fontSize - 3}
-        width={720}
-        height={fontSize + 9}
+        x={block.x}
+        y={block.y}
+        width={block.w}
+        height={block.h}
         {...editableHitAreaProps(
-          { kind: 'footnoteText' },
+          edit,
           onElementClick,
+          onTextPointerDown?.(edit),
         )}
       />
       <text
@@ -1615,7 +1741,7 @@ function FootnoteLine({
       fontSize={fontSize}
       textAnchor="middle"
       {...editableLineTextProps(
-        { kind: 'footnoteText' },
+        edit,
         onElementClick,
         true,
       )}
@@ -1626,7 +1752,7 @@ function FootnoteLine({
         fontWeight={600}
         style={numericStyle}
         {...editableLineTextProps(
-          { kind: 'footnoteText' },
+          edit,
           onElementClick,
         )}
       >
@@ -1639,7 +1765,7 @@ function FootnoteLine({
         fontWeight={600}
         style={numericStyle}
         {...editableLineTextProps(
-          { kind: 'footnoteText' },
+          edit,
           onElementClick,
         )}
       >
@@ -1647,7 +1773,7 @@ function FootnoteLine({
       </tspan>{' '}
       after withholding
       </text>
-    </>
+    </g>
   )
 }
 
@@ -1655,12 +1781,14 @@ function Footnotes({
   data,
   footnotes,
   onElementClick,
+  onTextPointerDown,
   x,
   y,
 }: {
   data: MoneyMapData
   footnotes: Footnote[]
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: TextPointerDown
   x: number
   y: number
 }) {
@@ -1683,10 +1811,12 @@ function Footnotes({
       />
       {footnotes.map((footnote, index) => (
         <FootnoteLine
+          data={data}
           fontSize={fontSize}
           key={`${footnote.label}-${index}`}
           footnote={footnote}
           onElementClick={onElementClick}
+          onTextPointerDown={onTextPointerDown}
           x={x}
           y={y + index * lineAdvance}
         />
@@ -1986,7 +2116,8 @@ export function MapSvg({
     const currentScreen = { x: event.clientX, y: event.clientY }
     if (
       !session.active &&
-      (session.mode === 'textMove'
+      (session.mode === 'textMove' ||
+      session.mode === 'flowLabelMove'
         ? accountTextPointerAction(session.startScreen, currentScreen) ===
           'edit'
         : !crossedDragThreshold(session.startScreen, currentScreen))
@@ -2023,6 +2154,38 @@ export function MapSvg({
       },
       session.inverseScreenCtm,
     )
+    if (
+      session.mode === 'flowLabelMove' &&
+      session.startArrow?.id &&
+      session.startArrow.labelAt
+    ) {
+      const record = data.customArrows?.find(
+        (arrow) => arrow.id === session.startArrow!.id,
+      )
+      if (!record) return
+      const desired = clampRectToBounds(
+        {
+          x: session.startArrow.labelAt.x + delta.x,
+          y: session.startArrow.labelAt.y + delta.y,
+          w: 0,
+          h: 0,
+        },
+        OVERRIDE_BOUNDS,
+      )
+      const nextData = moveCustomArrowLabel(
+        data,
+        record.id,
+        (record.labelDx ?? 0) +
+          desired.x -
+          session.startArrow.labelAt.x,
+        (record.labelDy ?? 0) +
+          desired.y -
+          session.startArrow.labelAt.y,
+      )
+      session.latestData = nextData
+      setPreviewData(nextData)
+      return
+    }
     if (session.mode === 'noteMove' && session.startPlaced) {
       const clamped = clampRectToBounds(
         {
@@ -2171,6 +2334,12 @@ export function MapSvg({
     accountId: string,
     role: AccountTextRole,
   ) => beginDrag(accountTextOverrideKey(accountId, role), 'textMove')
+  const beginFixedTextDrag: TextPointerDown = (target) => {
+    const key = fixedTextOverrideKey(target)
+    return key
+      ? beginDrag(key, 'textMove')
+      : (event) => event.stopPropagation()
+  }
 
   return (
     <svg
@@ -2248,7 +2417,11 @@ export function MapSvg({
         ))}
       </defs>
 
-      <Masthead data={displayData} onElementClick={onElementClick} />
+      <Masthead
+        data={displayData}
+        onElementClick={onElementClick}
+        onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
+      />
       <g
         data-connect-id={onChange ? 'income' : undefined}
         {...interactiveGroupProps(
@@ -2266,6 +2439,7 @@ export function MapSvg({
         <IncomePanel
           data={displayData}
           onElementClick={onElementClick}
+          onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
           placed={layout.income}
         />
         {onChange && (
@@ -2316,6 +2490,7 @@ export function MapSvg({
             displayData.showMath !== false,
           )}
           onElementClick={onElementClick}
+          onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
           tag={displayData.needTag}
           value={displayData.monthlyNeed}
           placed={layout.need}
@@ -2643,6 +2818,7 @@ export function MapSvg({
         data={displayData}
         footnotes={displayData.footnotes}
         onElementClick={onElementClick}
+        onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
       />
