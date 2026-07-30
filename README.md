@@ -33,14 +33,15 @@ card.
   the fill-in-live-in-the-meeting convention from real practice.
 - **Meeting-grade output** — save a high-resolution PNG, PDF, or SVG with
   the typefaces embedded, or print to a single landscape letter page.
-- **Private by construction** — fully client-side. No server, no network
-  calls, nothing ever leaves the machine. Safe for real client data.
+- **Local processing** — imported books are parsed and edited in the browser.
+  The current build does not upload imported files to a project server. Use
+  only data you are authorized to handle and follow the policies that apply to
+  it.
 
 ## Architecture
 
-Small on purpose: two runtime dependencies (`react`, `react-dom`),
-~15 source files, one state owner, and pure functions for everything that
-can be pure.
+Small on purpose: two runtime dependencies (`react`, `react-dom`), one state
+owner, and pure functions for everything that can be pure.
 
 | File | Responsibility |
 |---|---|
@@ -64,17 +65,14 @@ hand a meeting-grade page to an advisor every time.
 
 ## How it was built
 
-Spec-driven delegation: each implementation session was written as a
-zero-context specification (`docs/codex/SESSION-*.md`), executed headlessly
-by a coding agent, and independently reviewed — gates re-run, diffs read,
-and every visual change screenshot-audited before acceptance. The session
-specs, reports, and punch lists in `docs/codex/` are the full, honest
-history of the build, including the defects the review caught.
+The tool grew through a series of small passes: the form first, then layout,
+editing, local file handling, and export. The notes in `docs/codex/` show the
+decisions and fixes along the way.
 
 ## Run it
 
 ```
-npm install
+npm ci
 npm run dev      # local dev server
 npm test         # vitest
 npm run build    # production build to dist/
