@@ -1,0 +1,231 @@
+name: UI certification
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-certification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-primary:
+    name: Windows Chrome and Edge
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium firefox webkit
+      - run: npm test
+      - run: npm run build
+      - name: Record environment
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force test-results/certification | Out-Null
+          $chromePath = Join-Path $env:ProgramFiles 'Google\Chrome\Application\chrome.exe'
+          $edgePath = Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application\msedge.exe'
+          $chrome = if (Test-Path -LiteralPath $chromePath) {
+            (Get-Item -LiteralPath $chromePath).VersionInfo.ProductVersion
+          } else {
+            'not found'
+          }
+          $edge = if (Test-Path -LiteralPath $edgePath) {
+            (Get-Item -LiteralPath $edgePath).VersionInfo.ProductVersion
+          } else {
+            'not found'
+          }
+          @(
+            "github_run=https://github.com/${env:GITHUB_REPOSITORY}/actions/runs/${env:GITHUB_RUN_ID}"
+            "github_sha=${env:GITHUB_SHA}"
+            "runner_image=${env:ImageOS} ${env:ImageVersion}"
+            "os=$([System.Environment]::OSVersion.VersionString)"
+            "node=$(node --version)"
+            "npm=$(npm --version)"
+            "playwright=$(npx playwright --version)"
+            "chrome=${chrome}"
+            "edge=${edge}"
+          ) | Set-Content -Encoding utf8 test-results/certification/windows-environment.txt
+      - name: Canonical browser matrix
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/windows-canonical.xml
+        run: >-
+          npx playwright test
+          tests/e2e/accessibility.spec.ts
+          tests/e2e/app-resilience.spec.ts
+          tests/e2e/certification.spec.ts
+          tests/e2e/map-keyboard.spec.ts
+          tests/e2e/menu-keyboard.spec.ts
+          tests/e2e/multitab-history.spec.ts
+          tests/e2e/reflow.spec.ts
+          --project=chromium-1440x900
+          --project=chrome-1440x900
+          --project=msedge-1440x900
+          --project=firefox-1440x900
+          --project=webkit-1440x900
+          --reporter=line,junit
+          --output=test-results/e2e/windows-canonical
+      - name: Reflow proxy matrix
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/windows-reflow.xml
+        run: >-
+          npx playwright test tests/e2e/reflow.spec.ts
+          --project=firefox-1280x720
+          --project=chromium-text-zoom-200
+          --project=chrome-1440x900
+          --project=msedge-1440x900
+          --project=webkit-1280x720
+          --reporter=line,junit
+          --output=test-results/e2e/windows-reflow
+      - name: Extended certification
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/windows-extended.xml
+        run: >-
+          npx playwright test tests/e2e/extended-certification.spec.ts
+          --project=chromium-1280x720
+          --project=webkit-1440x900
+          --project=chrome-1440x900
+          --project=msedge-1440x900
+          --reporter=line,junit
+          --output=test-results/e2e/windows-extended
+      - name: Visual matrix
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/windows-visual.xml
+        run: >-
+          npx playwright test tests/e2e/visual.spec.ts
+          --project=chromium-*
+          --reporter=line,junit
+          --output=test-results/e2e/windows-visual
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-certification-windows-${{ github.sha }}
+          path: test-results
+          if-no-files-found: warn
+          retention-days: 30
+
+  macos-secondary:
+    name: macOS Chrome, WebKit, and native Safari
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install webkit
+      - run: npm run build
+      - name: Record environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/certification
+          {
+            echo "github_run=https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "github_sha=${GITHUB_SHA}"
+            echo "runner_image=${ImageOS:-unknown} ${ImageVersion:-unknown}"
+            sw_vers
+            echo "node=$(node --version)"
+            echo "npm=$(npm --version)"
+            echo "playwright=$(npx playwright --version)"
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version
+            /usr/bin/safaridriver --version
+          } | tee test-results/certification/macos-environment.txt
+      - name: macOS Chrome and WebKit matrix
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/macos-canonical.xml
+        run: >-
+          npx playwright test
+          tests/e2e/accessibility.spec.ts
+          tests/e2e/app-resilience.spec.ts
+          tests/e2e/certification.spec.ts
+          tests/e2e/map-keyboard.spec.ts
+          tests/e2e/menu-keyboard.spec.ts
+          tests/e2e/multitab-history.spec.ts
+          tests/e2e/reflow.spec.ts
+          --project=chrome-1440x900
+          --project=webkit-1440x900
+          --reporter=line,junit
+          --output=test-results/e2e/macos-canonical
+      - name: macOS reflow proxy
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/macos-reflow.xml
+        run: >-
+          npx playwright test tests/e2e/reflow.spec.ts
+          --project=chrome-1440x900
+          --project=webkit-1280x720
+          --reporter=line,junit
+          --output=test-results/e2e/macos-reflow
+      - name: macOS extended certification
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/macos-extended.xml
+        run: >-
+          npx playwright test tests/e2e/extended-certification.spec.ts
+          --project=chrome-1440x900
+          --project=webkit-1440x900
+          --reporter=line,junit
+          --output=test-results/e2e/macos-extended
+      - name: Native Safari smoke and file round-trip
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/safari-native
+          npm run preview -- --host 127.0.0.1 --port 4187 \
+            > test-results/safari-native/vite-preview.log 2>&1 &
+          preview_pid=$!
+          safari_pid=
+          cleanup() {
+            if [[ -n "${safari_pid}" ]]; then
+              kill "${safari_pid}" 2>/dev/null || true
+            fi
+            kill "${preview_pid}" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:4187/ > /dev/null; then
+              break
+            fi
+            if [[ "${attempt}" == 60 ]]; then
+              echo "Vite preview did not become ready" >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          /usr/bin/safaridriver --enable || sudo /usr/bin/safaridriver --enable
+          /usr/bin/safaridriver -p 4444 \
+            > test-results/safari-native/safaridriver.log 2>&1 &
+          safari_pid=$!
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4444/status > /dev/null; then
+              break
+            fi
+            if [[ "${attempt}" == 30 ]]; then
+              echo "SafariDriver did not become ready" >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          BASE_URL=http://127.0.0.1:4187 \
+          WEBDRIVER_URL=http://127.0.0.1:4444 \
+          ARTIFACT_DIR=test-results/safari-native \
+          DOWNLOAD_DIR="${HOME}/Downloads" \
+          node tests/e2e/safari-native.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-certification-macos-${{ github.sha }}
+          path: test-results
+          if-no-files-found: warn
+          retention-days: 30

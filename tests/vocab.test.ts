@@ -32,6 +32,7 @@ function bookWithTerms(): MoneyMapFile {
   ]
   first.incomeSources = [
     {
+      id: 'income-social-security',
       label: 'Social Security',
       amount: 1,
       period: 'mo',

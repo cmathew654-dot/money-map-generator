@@ -18,7 +18,7 @@ import {
   CUSTOM_ARROW_COLORS,
   MAP_TEXT_ELEMENTS,
   accountTextOverrideKey,
-  isMigratedFlowId,
+  mapItemTextOverrideKey,
   migratedFlowId,
   newId,
   type MapTextElement,
@@ -111,6 +111,8 @@ function uniqueMigratedFlowId(
 }
 
 export function migrateClient(data: MoneyMapData): MoneyMapData {
+  const incomeSources = data.incomeSources.map((source) => ({ ...source, id: typeof source.id === 'string' && source.id ? source.id : newId('income') }))
+  const footnotes = data.footnotes.map((footnote) => ({ ...footnote, id: typeof footnote.id === 'string' && footnote.id ? footnote.id : newId('footnote') }))
   const existingArrows = data.customArrows ?? []
   const normalizedArrows = existingArrows.map((arrow) =>
     arrow.style === undefined
@@ -125,8 +127,8 @@ export function migrateClient(data: MoneyMapData): MoneyMapData {
     return normalizedArrows.some(
       (arrow, index) => arrow !== existingArrows[index],
     )
-      ? { ...data, customArrows: normalizedArrows }
-      : data
+      ? { ...data, incomeSources, footnotes, customArrows: normalizedArrows }
+      : { ...data, incomeSources, footnotes }
   }
 
   const chain = LEGACY_WATERFALL_ORDER.flatMap((bucket) =>
@@ -160,6 +162,8 @@ export function migrateClient(data: MoneyMapData): MoneyMapData {
 
   return {
     ...data,
+    incomeSources,
+    footnotes,
     accounts: data.accounts.map((account) => ({
       ...account,
       inWaterfall: false,
@@ -267,50 +271,27 @@ export function redoHistory(history: BookHistory): {
 function withFreshIds(data: MoneyMapData): MoneyMapData {
   const copy = structuredClone(data)
   copy.id = newId('client')
-  const accountIds = new Map<string, string>()
-  copy.accounts = copy.accounts.map((account) => {
-    const id = newId('account')
-    accountIds.set(account.id, id)
-    return { ...account, id }
-  })
-  if (copy.layoutOverrides) {
-    copy.layoutOverrides = Object.fromEntries(
-      Object.entries(copy.layoutOverrides).map(([key, override]) => {
-        const [prefix, accountId, role, ...extra] = key.split(':')
-        const remappedId = accountIds.get(accountId)
-        return prefix === 'text' &&
-          remappedId &&
-          extra.length === 0 &&
-          ACCOUNT_TEXT_ROLES.includes(
-            role as (typeof ACCOUNT_TEXT_ROLES)[number],
-          )
-          ? [
-              accountTextOverrideKey(
-                remappedId,
-                role as (typeof ACCOUNT_TEXT_ROLES)[number],
-              ),
-              override,
-            ]
-          : [key, override]
-      }),
-    )
+  const accounts = new Map<string, string>()
+  const incomes = new Map<string, string>()
+  const footnotes = new Map<string, string>()
+  const arrows = new Map<string, string>()
+  copy.accounts = copy.accounts.map((item) => { const id = newId('account'); accounts.set(item.id, id); return { ...item, id } })
+  copy.incomeSources = copy.incomeSources.map((item) => { const id = newId('income'); incomes.set(item.id, id); return { ...item, id } })
+  copy.footnotes = copy.footnotes.map((item) => { const id = newId('footnote'); footnotes.set(item.id, id); return { ...item, id } })
+  copy.customArrows?.forEach((item) => arrows.set(item.id, newId('arrow')))
+  const remapKey = (key: string): string => {
+    if (accounts.has(key)) return accounts.get(key)!
+    const parts = key.split(':')
+    if (parts.length === 3 && parts[0] === 'text' && accounts.has(parts[1])) return accountTextOverrideKey(accounts.get(parts[1])!, parts[2] as (typeof ACCOUNT_TEXT_ROLES)[number])
+    if (parts.length === 4 && parts[0] === 'text' && parts[1] === 'income' && parts[2] === 'row' && incomes.has(parts[3])) return mapItemTextOverrideKey('income', 'row', incomes.get(parts[3])!)
+    if (parts.length === 4 && parts[0] === 'text' && parts[1] === 'footnotes' && parts[2] === 'line' && footnotes.has(parts[3])) return mapItemTextOverrideKey('footnotes', 'line', footnotes.get(parts[3])!)
+    if (key.startsWith('arrow:custom:') && arrows.has(key.slice(13))) return `arrow:custom:${arrows.get(key.slice(13))}`
+    if (key.startsWith('arrow:waterfall:') && accounts.has(key.slice(16))) return `arrow:waterfall:${accounts.get(key.slice(16))}`
+    return key
   }
-  if (copy.customArrows) {
-    copy.customArrows = copy.customArrows.map((arrow) => ({
-      ...arrow,
-      id: isMigratedFlowId(arrow.id)
-        ? migratedFlowId(accountIds.get(arrow.sourceId) ?? arrow.sourceId)
-        : newId('arrow'),
-      sourceId: accountIds.get(arrow.sourceId) ?? arrow.sourceId,
-      targetId: accountIds.get(arrow.targetId) ?? arrow.targetId,
-    }))
-  }
-  if (copy.notes) {
-    copy.notes = copy.notes.map((note) => ({
-      ...note,
-      id: newId('note'),
-    }))
-  }
+  if (copy.layoutOverrides) copy.layoutOverrides = Object.fromEntries(Object.entries(copy.layoutOverrides).map(([key, value]) => [remapKey(key), value]))
+  if (copy.customArrows) copy.customArrows = copy.customArrows.map((item) => ({ ...item, id: arrows.get(item.id)!, sourceId: accounts.get(item.sourceId) ?? item.sourceId, targetId: accounts.get(item.targetId) ?? item.targetId }))
+  if (copy.notes) copy.notes = copy.notes.map((item) => ({ ...item, id: newId('note') }))
   return copy
 }
 
@@ -415,10 +396,30 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || typeof value === 'string'
+}
+function isMoneyValue(value: unknown): boolean {
+  return value === null || (typeof value === 'number' && Number.isFinite(value))
+}
+function uniqueIds(values: unknown[], index: number, label: string, allowMissing = false): Set<string> {
+  const ids = new Set<string>()
+  for (const value of values) {
+    if (!isRecord(value)) continue
+    const id = value.id
+    if (allowMissing && (id === undefined || id === '')) continue
+    if (typeof id !== 'string' || id.length === 0 || ids.has(id)) throw new Error(`Client ${index + 1} has invalid or duplicate ${label} ids.`)
+    ids.add(id)
+  }
+  return ids
+}
+
 function validateLayoutOverrides(
   value: unknown,
   clientIndex: number,
   accountIds: Set<string>,
+  incomeIds: Set<string>,
+  footnoteIds: Set<string>,
 ): void {
   if (value === undefined) return
   if (!isRecord(value)) {
@@ -467,12 +468,8 @@ function validateLayoutOverrides(
         fixedRoles?.includes(parts[2] as never) === true
       const validLegacyLegendText =
         parts[1] === 'legend' && parts[2] === 'label'
-      if (
-        parts.length !== 3 ||
-        (!validAccountText &&
-          !validFixedText &&
-          !validLegacyLegendText)
-      ) {
+      const validItemText = parts.length === 4 && ((parts[1] === 'income' && parts[2] === 'row' && incomeIds.has(parts[3])) || (parts[1] === 'footnotes' && parts[2] === 'line' && footnoteIds.has(parts[3])))
+      if (!validItemText && (parts.length !== 3 || (!validAccountText && !validFixedText && !validLegacyLegendText))) {
         throw new Error(
           `Client ${clientIndex + 1} has invalid layout overrides.`,
         )
@@ -503,11 +500,11 @@ function validateLayoutOverrides(
   }
 }
 
-function validateClient(value: unknown, index: number): void {
+function validateClient(value: unknown, index: number, allowMissingItemIds = false): void {
   if (!isRecord(value)) {
     throw new Error(`Client ${index + 1} must be an object.`)
   }
-  if (typeof value.id !== 'string') {
+  if (typeof value.id !== 'string' || value.id.length === 0) {
     throw new Error(`Client ${index + 1} is missing a valid id.`)
   }
   if (!isRecord(value.client)) {
@@ -517,6 +514,7 @@ function validateClient(value: unknown, index: number): void {
   if (
     typeof details.title !== 'string' ||
     typeof details.year !== 'string' ||
+    !isOptionalString(details.postNoteLabel) ||
     (details.mastheadLabel !== undefined &&
       typeof details.mastheadLabel !== 'string') ||
     (details.variant !== 'annual' && details.variant !== 'postNote')
@@ -537,11 +535,34 @@ function validateClient(value: unknown, index: number): void {
   if (value.needTag !== undefined && typeof value.needTag !== 'string') {
     throw new Error(`Client ${index + 1} has an invalid need tag.`)
   }
+  for (const field of ['afterTaxIncome', 'monthlyNeed', 'asNeededAmount'] as const) {
+    if (!isMoneyValue(value[field])) throw new Error(`Client ${index + 1} has an invalid money value.`)
+  }
+  const incomeSources = value.incomeSources as unknown[]
+  const incomeIds = uniqueIds(incomeSources, index, 'income source', allowMissingItemIds)
+  if (incomeSources.some((source) =>
+    !isRecord(source) ||
+    (!allowMissingItemIds && (typeof source.id !== 'string' || source.id.length === 0)) ||
+    typeof source.label !== 'string' || !isMoneyValue(source.amount) ||
+    (source.period !== 'mo' && source.period !== 'yr') || !isOptionalString(source.qualifier)
+  )) throw new Error(`Client ${index + 1} has invalid income sources.`)
+  const footnotes = value.footnotes as unknown[]
+  const footnoteIds = uniqueIds(footnotes, index, 'footnote', allowMissingItemIds)
+  if (footnotes.some((footnote) =>
+    !isRecord(footnote) ||
+    (!allowMissingItemIds && (typeof footnote.id !== 'string' || footnote.id.length === 0)) ||
+    typeof footnote.label !== 'string' || !isMoneyValue(footnote.gross) || !isMoneyValue(footnote.net)
+  )) throw new Error(`Client ${index + 1} has invalid footnotes.`)
   const accounts = value.accounts as unknown[]
+  const accountIds = uniqueIds(accounts, index, 'account')
   for (const account of accounts) {
     if (
       !isRecord(account) ||
-      (account.shape !== undefined &&
+      typeof account.id !== 'string' || account.id.length === 0 ||
+      typeof account.bucket !== 'string' ||
+      !Object.prototype.hasOwnProperty.call(BUCKET_DEFAULTS, account.bucket) ||
+      typeof account.label !== 'string' || !isMoneyValue(account.value) ||
+      !isOptionalString(account.caption) ||      (account.shape !== undefined &&
         !ACCOUNT_SHAPES.includes(
           account.shape as (typeof ACCOUNT_SHAPES)[number],
         ))
@@ -554,6 +575,12 @@ function validateClient(value: unknown, index: number): void {
     ) {
       throw new Error(`Client ${index + 1} has an invalid account value tag.`)
     }
+    if (account.positions !== undefined && (!Array.isArray(account.positions) || account.positions.some((position) =>
+      !isRecord(position) || typeof position.label !== 'string' || !isMoneyValue(position.value)
+    ))) throw new Error(`Client ${index + 1} has invalid account positions.`)
+    if (account.subAccounts !== undefined && (!Array.isArray(account.subAccounts) || account.subAccounts.some((subAccount) =>
+      !isRecord(subAccount) || typeof subAccount.label !== 'string' || !isOptionalString(subAccount.caption) || !isMoneyValue(subAccount.value)
+    ))) throw new Error(`Client ${index + 1} has invalid subaccounts.`)
     if (
       account.inWaterfall !== undefined &&
       typeof account.inWaterfall !== 'boolean'
@@ -589,6 +616,10 @@ function validateClient(value: unknown, index: number): void {
     ) {
       throw new Error(`Client ${index + 1} has invalid custom arrows.`)
     }
+    const arrows = value.customArrows as unknown[]
+    uniqueIds(arrows, index, 'custom arrow')
+    const endpoints = new Set(['income', 'need', ...accountIds])
+    if (arrows.some((arrow) => isRecord(arrow) && (!endpoints.has(String(arrow.sourceId)) || !endpoints.has(String(arrow.targetId))))) throw new Error(`Client ${index + 1} has custom arrows with invalid references.`)
   }
   if (
     value.hiddenArrows !== undefined &&
@@ -620,17 +651,14 @@ function validateClient(value: unknown, index: number): void {
     ) {
       throw new Error(`Client ${index + 1} has invalid map notes.`)
     }
+    uniqueIds(value.notes as unknown[], index, 'map note')
   }
   validateLayoutOverrides(
     value.layoutOverrides,
     index,
-    new Set(
-      accounts.flatMap((account) =>
-        isRecord(account) && typeof account.id === 'string'
-          ? [account.id]
-          : [],
-      ),
-    ),
+    accountIds,
+    incomeIds,
+    footnoteIds,
   )
 }
 
@@ -657,10 +685,10 @@ export function parseBook(json: string): MoneyMapFile {
   if (value.clients.length === 0) {
     throw new Error('The Money Map book must contain at least one client.')
   }
-  value.clients.forEach(validateClient)
+  value.clients.forEach((client, index) => validateClient(client, index, true))
   const book = value as unknown as MoneyMapFile
-  return {
-    ...book,
-    clients: book.clients.map(migrateClient),
-  }
+  const clients = book.clients.map(migrateClient)
+  clients.forEach((client, index) => validateClient(client, index))
+  if (new Set(clients.map((client) => client.id)).size !== clients.length) throw new Error('The Money Map book contains duplicate client ids.')
+  return { ...book, clients }
 }

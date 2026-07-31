@@ -10,6 +10,7 @@ import type {
   AccountTextRole,
   Bucket,
   CustomArrow,
+  Footnote,
   GeneratedArrowKind,
   LayoutOverride,
   MapNote,
@@ -27,6 +28,7 @@ import {
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_ACCOUNT_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
+  mapItemTextOverrideKey,
   mapTextOverrideKey,
 } from '../model/types'
 import {
@@ -153,6 +155,20 @@ export interface MapLayout {
   arrows: Arrow[]
   contentBounds: Placed
   footnotesAt: { x: number; y: number }
+  warnings: LayoutWarning[]
+}
+
+export interface LayoutWarning {
+  code:
+    | 'account-column-overflow'
+    | 'account-overlap'
+    | 'account-panel-overlap'
+    | 'footnote-overlap'
+    | 'income-need-overlap'
+    | 'masthead-title-overflow'
+    | 'note-content-overlap'
+    | 'panel-out-of-bounds'
+  message: string
 }
 
 interface Column {
@@ -169,6 +185,8 @@ const MASTHEAD_RULE_Y = 118
 const FOOTNOTED_CONTENT_BOTTOM = 900
 const OPEN_CONTENT_BOTTOM = 950
 const FOOTNOTE_BASELINE_Y = 930
+const MASTHEAD_TITLE_MAX_WIDTH = 382
+const MIN_MASTHEAD_TITLE_SIZE = 18
 const DEFAULT_GAP = 28
 const COMPRESSED_GAP = 16
 export const MIN_ACCOUNT_HEIGHT = 120
@@ -374,6 +392,18 @@ export function incomePanelMetrics(
     rowValueOffset,
     totalFontSize,
   }
+}
+
+export function mastheadTitleFontSize(data: MoneyMapData): number {
+  const title = data.client.title.trim()
+  if (!title) return TYPE.masthead
+  const naturalWidth = textWidth(title, TYPE.masthead)
+  if (naturalWidth <= MASTHEAD_TITLE_MAX_WIDTH) return TYPE.masthead
+  return clamp(
+    TYPE.masthead * (MASTHEAD_TITLE_MAX_WIDTH / naturalWidth),
+    MIN_MASTHEAD_TITLE_SIZE,
+    TYPE.masthead,
+  )
 }
 
 function pillInset(width: number, height: number, y: number): number {
@@ -1418,6 +1448,9 @@ function routedArrow({
     }
     if (penalty === 0) break
   }
+  if (preferAbove && control.y < minimumY) {
+    control = { ...control, y: minimumY }
+  }
 
   return {
     kind,
@@ -1700,12 +1733,14 @@ function arrowBounds(arrow: Arrow): Placed[] {
 }
 
 function contentBounds(
-  layout: Pick<MapLayout, 'income' | 'need' | 'accounts' | 'arrows'>,
+  layout: Pick<MapLayout, 'income' | 'need' | 'accounts' | 'arrows'> &
+    Partial<Pick<MapLayout, 'notes'>>,
 ): Placed {
   const boxes = [
     layout.income,
     layout.need,
     ...layout.accounts.map(obstacleBounds),
+    ...(layout.notes ?? []),
     ...layout.arrows.flatMap(arrowBounds),
   ]
   const x = Math.min(...boxes.map((box) => box.x))
@@ -1821,9 +1856,17 @@ export function mapTextOffset(
   element: MapTextElement,
   role: MapTextElementRole,
   block: Placed,
+  itemId?: string,
 ): { dx: number; dy: number } {
-  const override =
+  const shared =
     data.layoutOverrides?.[mapTextOverrideKey(element, role)]
+  const item = itemId
+    ? data.layoutOverrides?.[
+        mapItemTextOverrideKey(element, role, itemId)
+      ]
+    : undefined
+  const override =
+    shared || item ? { ...shared, ...item } : undefined
   if (override?.dx === undefined && override?.dy === undefined) {
     return { dx: 0, dy: 0 }
   }
@@ -1836,6 +1879,65 @@ export function mapTextOffset(
     OVERRIDE_BOUNDS,
   )
   return { dx: clamped.x - block.x, dy: clamped.y - block.y }
+}
+
+export interface FootnoteLineLayout {
+  fontSize: number
+  footnote: Footnote
+  y: number
+}
+
+export function footnoteHasContent(footnote: Footnote): boolean {
+  return (
+    footnote.label.trim().length > 0 ||
+    footnote.gross !== null ||
+    footnote.net !== null
+  )
+}
+
+export function footnoteLineLayouts(
+  data: MoneyMapData,
+  preferredBaseline = FOOTNOTE_BASELINE_Y,
+): FootnoteLineLayout[] {
+  const shared =
+    data.layoutOverrides?.[mapTextOverrideKey('footnotes', 'line')]
+  const specs = data.footnotes
+    .filter(footnoteHasContent)
+    .map((footnote) => {
+      const item = data.layoutOverrides?.[
+        mapItemTextOverrideKey('footnotes', 'line', footnote.id)
+      ]
+      return {
+        dy: item?.dy ?? shared?.dy ?? 0,
+        fontSize: clamp(
+          item?.fs ?? shared?.fs ?? TYPE.footnote,
+          MIN_MAP_TEXT_FONT_SIZE,
+          MAX_MAP_TEXT_FONT_SIZE,
+        ),
+        footnote,
+      }
+    })
+  if (specs.length === 0) return []
+
+  let y = preferredBaseline
+  const lines = specs.map((spec, index) => {
+    const previous = specs[index - 1]
+    if (previous) {
+      const adjacentAdvance =
+        Math.max(previous.fontSize, spec.fontSize) * 1.6
+      y +=
+        adjacentAdvance +
+        Math.max(0, previous.dy - spec.dy)
+    }
+    return { fontSize: spec.fontSize, footnote: spec.footnote, y }
+  })
+  const last = lines.at(-1)!
+  const lastDy = specs.at(-1)!.dy
+  const shift = Math.min(
+    0,
+    OVERRIDE_BOUNDS.bottom - 6 - (last.y + lastDy),
+  )
+  return lines.map((line) => ({ ...line, y: line.y + shift }))
 }
 
 function placedNotes(notes: MapNote[] | undefined): PlacedNote[] {
@@ -2212,7 +2314,7 @@ function baseLayout(data: MoneyMapData): MapLayout {
   }
   const need: Placed = {
     x: 48,
-    y: 700,
+    y: Math.max(700, income.y + income.h + 24),
     w: Math.max(
       250,
       textWidth(taggedMoney(data.monthlyNeed, data.needTag), TYPE.needValue) +
@@ -2247,8 +2349,9 @@ function baseLayout(data: MoneyMapData): MapLayout {
       notes: [],
       arrows,
       footnotesAt: { x: 390, y: 930 },
+      warnings: [],
     },
-    data.footnotes.length > 0,
+    data.footnotes.some(footnoteHasContent),
   )
 }
 
@@ -2292,24 +2395,160 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     data.layoutOverrides?.asNeededChip,
     data.hiddenArrows,
   )
+  const notes = placedNotes(data.notes)
   const finalBounds = contentBounds({
     income,
     need,
     accounts,
+    notes,
     arrows,
   })
+  const footnoteLines = footnoteLineLayouts(data)
+  const footnoteBaseline = footnoteLines[0]?.y ?? FOOTNOTE_BASELINE_Y
+  const warnings: LayoutWarning[] = []
+  const incomeMetrics = incomePanelMetrics(data)
+  const primaryPanels = [
+    {
+      name: 'Income sources panel',
+      bounds: {
+        ...income,
+        w: Math.max(income.w, incomeMetrics.minWidth),
+        h: Math.max(income.h, incomeMetrics.contentHeight),
+      },
+    },
+    { name: 'Monthly income need panel', bounds: need },
+  ]
+  for (const panel of primaryPanels) {
+    const edges = [
+      panel.bounds.x < 0 ? 'left' : null,
+      panel.bounds.y < 0 ? 'top' : null,
+      panel.bounds.x + panel.bounds.w > ARTBOARD.width ? 'right' : null,
+      panel.bounds.y + panel.bounds.h > ARTBOARD.height ? 'bottom' : null,
+    ].filter((edge): edge is string => edge !== null)
+    if (edges.length > 0) {
+      warnings.push({
+        code: 'panel-out-of-bounds',
+        message: `${panel.name} extends beyond the ${edges.join(' and ')} edge${
+          edges.length === 1 ? '' : 's'
+        } of the printable artboard.`,
+      })
+    }
+  }
+  const intersects = (left: Placed, right: Placed) =>
+    left.x < right.x + right.w &&
+    left.x + left.w > right.x &&
+    left.y < right.y + right.h &&
+    left.y + left.h > right.y
+  const accountRects = accounts.map(obstacleBounds)
+  const accountOverlap = accountRects.some((account, index) =>
+    accountRects.slice(index + 1).some((other) => intersects(account, other)),
+  )
+  if (accountOverlap) {
+    warnings.push({
+      code: 'account-overlap',
+      message: 'Account shapes overlap each other.',
+    })
+  }
+  const accountPanelOverlap = accountRects.some(
+    (account) => intersects(account, income) || intersects(account, need),
+  )
+  if (accountPanelOverlap) {
+    warnings.push({
+      code: 'account-panel-overlap',
+      message: 'An account shape overlaps an income panel.',
+    })
+  }
+  const mapContentRects = [income, need, ...accountRects]
+  const noteContentOverlap = notes.some((note) =>
+    mapContentRects.some((content) => intersects(note, content)),
+  )
+  if (noteContentOverlap) {
+    warnings.push({
+      code: 'note-content-overlap',
+      message: 'A map note overlaps map content.',
+    })
+  }
+  const incomeNeedOverlap =
+    income.x < need.x + need.w &&
+    income.x + income.w > need.x &&
+    income.y < need.y + need.h &&
+    income.y + income.h > need.y
+  if (incomeNeedOverlap) {
+    warnings.push({
+      code: 'income-need-overlap',
+      message: 'Income sources overlap the monthly income need card.',
+    })
+  }
+  const overflowingAccounts = accounts.filter(
+    (account) => account.y + account.h > OVERRIDE_BOUNDS.bottom,
+  )
+  if (overflowingAccounts.length > 0) {
+    warnings.push({
+      code: 'account-column-overflow',
+      message: `${overflowingAccounts.length} account ${
+        overflowingAccounts.length === 1 ? 'shape extends' : 'shapes extend'
+      } below the printable map area.`,
+    })
+  }
+  const footnoteCenterX = finalBounds.x + finalBounds.w / 2
+  const contentRects = [
+    income,
+    need,
+    ...accountRects,
+    ...notes,
+  ]
+  const footnotesOverlap = footnoteLines.some((line) => {
+    const block = {
+      x: footnoteCenterX - 360,
+      y: line.y - line.fontSize - 3,
+      w: 720,
+      h: line.fontSize + 9,
+    }
+    const offset = mapTextOffset(
+      data,
+      'footnotes',
+      'line',
+      block,
+      line.footnote.id,
+    )
+    const placed = {
+      ...block,
+      x: block.x + offset.dx,
+      y: block.y + offset.dy,
+    }
+    return contentRects.some(
+      (rect) => intersects(placed, rect),
+    )
+  })
+  if (footnotesOverlap) {
+    warnings.push({
+      code: 'footnote-overlap',
+      message: 'Fine print overlaps the map content.',
+    })
+  }
+  const mastheadSize = mastheadTitleFontSize(data)
+  if (
+    textWidth(data.client.title, mastheadSize) >
+    MASTHEAD_TITLE_MAX_WIDTH
+  ) {
+    warnings.push({
+      code: 'masthead-title-overflow',
+      message: 'The client title is too long to fit in the masthead.',
+    })
+  }
 
   return {
     ...base,
     income,
     need,
     accounts,
-    notes: placedNotes(data.notes),
+    notes,
     arrows,
     contentBounds: finalBounds,
     footnotesAt: {
       x: finalBounds.x + finalBounds.w / 2,
-      y: FOOTNOTE_BASELINE_Y,
+      y: footnoteBaseline,
     },
+    warnings,
   }
 }

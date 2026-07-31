@@ -11,6 +11,7 @@ import {
   appendBlankPosition,
   focusPendingTarget,
   isMoneyDraftDirty,
+  synchronizeMoneyDraft,
   nextEnterFocusTarget,
   updateNoteText,
   yearSelectOptions,
@@ -20,7 +21,7 @@ import { blankClient } from '../src/model/samples'
 describe('income source presets', () => {
   it('adds a prefilled row without mutating the existing rows', () => {
     const existing = [
-      { label: 'Pension', amount: 2_000, period: 'mo' as const },
+      { id: 'income-existing', label: 'Pension', amount: 2_000, period: 'mo' as const },
     ]
 
     const result = addIncomeSource(existing, 'Social Security')
@@ -28,6 +29,7 @@ describe('income source presets', () => {
     expect(result).toEqual([
       existing[0],
       {
+        id: expect.stringMatching(/^income-/),
         label: 'Social Security',
         amount: null,
         period: 'mo',
@@ -40,7 +42,7 @@ describe('income source presets', () => {
   it('renders the preset chips and clarified row labels', () => {
     const data = blankClient()
     data.incomeSources = [
-      { label: '', amount: null, period: 'mo' },
+      { id: 'income-test', label: '', amount: null, period: 'mo' },
     ]
 
     const markup = renderToStaticMarkup(
@@ -81,6 +83,20 @@ describe('rapid-entry keyboard helpers', () => {
     expect(isMoneyDraftDirty('', '85000')).toBe(true)
   })
 
+  it('synchronizes an inactive mounted money draft without clobbering active typing', () => {
+    expect(synchronizeMoneyDraft('85000', false, 72_000)).toBeNull()
+    expect(synchronizeMoneyDraft('85k', true, 85_000)).toBe('85k')
+    expect(synchronizeMoneyDraft(null, true, null)).toBeNull()
+  })
+
+  it('adopts focused external history values so blur and Escape cannot replay stale typing', () => {
+    const externalSnapshot = '85000'
+    const synchronized = synchronizeMoneyDraft('92k', true, 85_000)
+
+    expect(synchronized).toBe(externalSnapshot)
+    expect(isMoneyDraftDirty(synchronized, externalSnapshot)).toBe(false)
+    expect(synchronizeMoneyDraft('92k', true, null)).toBe('')
+  })
   it('focuses any pending target through the shared mechanism', () => {
     const focused: string[] = []
     const input = { focus: () => focused.push('input') }
@@ -175,7 +191,7 @@ describe('client date selects', () => {
 describe('need fine print', () => {
   it('nests the renamed fine print controls in Need', () => {
     const data = blankClient()
-    data.footnotes = [{ label: '', gross: null, net: null }]
+    data.footnotes = [{ id: 'footnote-test', label: '', gross: null, net: null }]
 
     const markup = renderToStaticMarkup(
       createElement(NeedSection, {

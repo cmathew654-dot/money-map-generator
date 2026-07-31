@@ -8,9 +8,9 @@ export const SAMPLE_WHITFIELD: MoneyMapData = {
     variant: 'annual',
   },
   incomeSources: [
-    { label: 'Social Security', amount: 2400, period: 'mo' },
-    { label: 'Pension — Dana', amount: 1900, period: 'mo' },
-    { label: 'Rental Income', amount: null, period: 'mo', qualifier: 'Gross' },
+    { id: 'income-whitfield-social-security', label: 'Social Security', amount: 2400, period: 'mo' },
+    { id: 'income-whitfield-pension', label: 'Pension — Dana', amount: 1900, period: 'mo' },
+    { id: 'income-whitfield-rental', label: 'Rental Income', amount: null, period: 'mo', qualifier: 'Gross' },
   ],
   afterTaxIncome: 5900,
   monthlyNeed: 15000,
@@ -81,7 +81,7 @@ export const SAMPLE_WHITFIELD: MoneyMapData = {
       style: 'dotted',
     },
   ],
-  footnotes: [{ label: 'Jordan 2026 RMD', gross: 96500, net: 74300 }],
+  footnotes: [{ id: 'footnote-whitfield-rmd', label: 'Jordan 2026 RMD', gross: 96500, net: 74300 }],
 }
 
 export const SAMPLE_CALLOWAY: MoneyMapData = {
@@ -94,18 +94,21 @@ export const SAMPLE_CALLOWAY: MoneyMapData = {
   },
   incomeSources: [
     {
+      id: 'income-calloway-real-estate',
       label: 'Real Estate Income',
       amount: 21000,
       period: 'mo',
       qualifier: 'Gross',
     },
     {
+      id: 'income-calloway-pension',
       label: 'Union Pension',
       amount: 1200,
       period: 'mo',
       qualifier: 'Gross',
     },
     {
+      id: 'income-calloway-social-security',
       label: 'Social Security',
       amount: 3100,
       period: 'mo',
@@ -178,7 +181,7 @@ export const SAMPLE_CALLOWAY: MoneyMapData = {
       style: 'dotted',
     },
   ],
-  footnotes: [{ label: 'Marcus 2026 RMD', gross: 89000, net: 67000 }],
+  footnotes: [{ id: 'footnote-calloway-rmd', label: 'Marcus 2026 RMD', gross: 89000, net: 67000 }],
 }
 
 export const SAMPLE_VENKAT: MoneyMapData = {
@@ -190,12 +193,14 @@ export const SAMPLE_VENKAT: MoneyMapData = {
   },
   incomeSources: [
     {
+      id: 'income-venkat-rental',
       label: 'Rental Income',
       amount: 26000,
       period: 'mo',
       qualifier: 'Gross',
     },
     {
+      id: 'income-venkat-social-security',
       label: 'Eventual Social Security',
       amount: null,
       period: 'mo',

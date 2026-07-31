@@ -17,7 +17,6 @@ import {
   duplicateClient,
   emptyHistory,
   newBook,
-  parseBook,
   pushHistory,
   redoHistory,
   resetArrangement,
@@ -44,7 +43,8 @@ import {
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
-import { NOTE_WIDTH } from './layout/layout'
+import { layoutMap, NOTE_WIDTH } from './layout/layout'
+import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import {
   exportPdf,
   exportPng,
@@ -83,26 +83,52 @@ import { Menu, MenuItem, MenuSeparator } from './ui/Menu'
 import { Toast, type ToastMessage } from './ui/Toast'
 import './styles/print.css'
 
-const STORAGE_KEY = 'money-map-book:v1'
 const FORM_MODE_STORAGE_KEY = 'money-map-form-mode:v1'
+const WRITER_TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
+const WRITER_TAKEOVER_POLL_MS = 250
 
 type FormMode = 'guided' | 'full'
 type FileSaveStatus = 'saved' | 'saving'
+type BrowserSaveStatus = 'saved' | 'saving' | 'error'
 type MapZoom = 'fit' | number
+
+export function canMutateBook(dataMode: 'demo' | 'real', isWriter: boolean, recovering: boolean) {
+  return !recovering && (dataMode === 'demo' || isWriter)
+}
+
+export function canWriteConnectedBook(canMutate: boolean, connected: boolean) {
+  return canMutate && connected
+}
+
+export function browserPersistenceLabel(dataMode: 'demo' | 'real', isWriter: boolean, status: BrowserSaveStatus) {
+  if (dataMode === 'demo') return 'Demo mode — changes are temporary'
+  if (!isWriter) return 'Read only — another tab owns browser saves'
+  if (status === 'saving') return 'Saving in this browser…'
+  if (status === 'error') return 'Browser save failed'
+  return 'Saved in this browser'
+}
+
+export function layoutOutputBlockMessage(warnings: ReadonlyArray<{ message: string }>) {
+  return warnings.length ? warnings.map((warning) => warning.message).join(' ') : null
+}
+
+export function appMapFileName(
+  title: string,
+  year: string,
+  format: 'png' | 'pdf' | 'svg',
+) {
+  const cleanYear = year.trim()
+  const fileName = mapFileName(title, cleanYear, format)
+  return cleanYear ? fileName : fileName.replace(/\s+\.([^.]*)$/, '.$1')
+}
 type AppDialog =
   | { kind: 'delete'; clientId: string; name: string }
   | { kind: 'error'; title: string; message: string }
+  | { kind: 'loadBook'; book: MoneyMapFile }
   | { kind: 'resetLayout' }
   | { kind: 'clearMap'; clientId: string; name: string }
 
-function initialBook(): MoneyMapFile {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? parseBook(saved) : newBook()
-  } catch {
-    return newBook()
-  }
-}
+function initialBrowserBook(): BrowserBookLoad { return loadBrowserBook(localStorage) }
 
 function initialFormMode(): FormMode {
   try {
@@ -135,8 +161,9 @@ function mapTextEditFontState(
 }
 
 export default function App() {
+  const [initialLoad] = useState(initialBrowserBook)
   const [snapshot, setSnapshot] = useState<BookSnapshot>(() => {
-    const book = initialBook()
+    const book = initialLoad.book
     return { book, activeClientId: book.clients[0].id }
   })
   const [history, setHistory] = useState<BookHistory>(emptyHistory)
@@ -158,18 +185,27 @@ export default function App() {
     useState<BookFileHandle | null>(null)
   const [fileSaveStatus, setFileSaveStatus] =
     useState<FileSaveStatus>('saved')
+  const [browserSaveStatus, setBrowserSaveStatus] = useState<BrowserSaveStatus>(initialLoad.status === 'error' ? 'error' : 'saved')
+  const [browserSaveError, setBrowserSaveError] = useState(initialLoad.status === 'error' ? initialLoad.message : '')
+  const [recovery, setRecovery] = useState(initialLoad.status === 'recovery' ? { raw: initialLoad.raw, message: initialLoad.message } : null)
+  const [tabId] = useState(() => newId('tab'))
+  const [isWriter, setIsWriter] = useState(() => DATA_MODE === 'real' && acquireBrowserWriter(localStorage, tabId).status === 'acquired')
+  const [writerTakeoverPending, setWriterTakeoverPending] = useState(false)
   const [presentMode, setPresentMode] = useState(false)
   const [mapZoom, setMapZoom] = useState<MapZoom>('fit')
   const [fitZoom, setFitZoom] = useState(100)
   const [isMapPanning, setIsMapPanning] = useState(false)
   const [shapePopoverOpen, setShapePopoverOpen] = useState(false)
+  const [exporting, setExporting] = useState<'png' | 'pdf' | 'svg' | null>(null)
   const [fileStoreSupported] = useState(() =>
-    supportsFileStore(window as unknown as FileStoreApi),
+    DATA_MODE === 'real' && supportsFileStore(window as unknown as FileStoreApi),
   )
   const focusRequestCounter = useRef(0)
   const toastCounter = useRef(0)
   const fileSaveRevision = useRef(0)
   const fileWriteQueue = useRef<Promise<void>>(Promise.resolve())
+  const writerTakeoverTimerRef = useRef<number | null>(null)
+  const exportInFlightRef = useRef<'png' | 'pdf' | 'svg' | null>(null)
   const snapshotRef = useRef(snapshot)
   const historyRef = useRef(history)
   const appShellRef = useRef<HTMLElement>(null)
@@ -189,6 +225,7 @@ export default function App() {
   const shapePopoverRef = useRef<HTMLDivElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const { book, activeClientId } = snapshot
+  const canMutate = canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
   const vocabulary = useMemo(() => buildVocabulary(book), [book])
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
@@ -213,6 +250,7 @@ export default function App() {
       mapTextEdit.fontSize,
     )
   })()
+  const layoutWarnings = useMemo(() => layoutMap(previewClient).warnings ?? [], [previewClient])
 
   useEffect(() => {
     setMapZoom('fit')
@@ -280,6 +318,7 @@ export default function App() {
 
   const commitSnapshot = useCallback(
     (next: BookSnapshot, targetClientId: string | null) => {
+      if (!canMutate) return
       const nextHistory = pushHistory(
         historyRef.current,
         snapshotRef.current,
@@ -290,7 +329,7 @@ export default function App() {
       showHistory(nextHistory)
       showSnapshot(next)
     },
-    [showHistory, showSnapshot],
+    [canMutate, showHistory, showSnapshot],
   )
 
   const resetWizard = useCallback(() => {
@@ -309,20 +348,22 @@ export default function App() {
   )
 
   const handleUndo = useCallback(() => {
+    if (!canMutate) return false
     const result = undoHistory(historyRef.current)
     if (!result.snapshot) return false
     showHistory(result.history)
     restoreHistorySnapshot(result.snapshot)
     return true
-  }, [restoreHistorySnapshot, showHistory])
+  }, [canMutate, restoreHistorySnapshot, showHistory])
 
   const handleRedo = useCallback(() => {
+    if (!canMutate) return false
     const result = redoHistory(historyRef.current)
     if (!result.snapshot) return false
     showHistory(result.history)
     restoreHistorySnapshot(result.snapshot)
     return true
-  }, [restoreHistorySnapshot, showHistory])
+  }, [canMutate, restoreHistorySnapshot, showHistory])
 
   const addToast = useCallback((message: string) => {
     toastCounter.current += 1
@@ -345,19 +386,102 @@ export default function App() {
       })
   }, [fileStoreSupported])
 
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(book))
-      } catch {
-        // Storage can be unavailable or full; the in-memory book remains usable.
+  const flushBrowserSave = useCallback(() => {
+    if (DATA_MODE !== 'real' || !isWriter || recovery || currentBrowserWriter(localStorage) !== tabId) return
+    const error = saveBrowserBook(localStorage, snapshotRef.current.book)
+    setBrowserSaveStatus(error ? 'error' : 'saved'); setBrowserSaveError(error ?? '')
+  }, [isWriter, recovery, tabId])
+  const clearWriterTakeoverTimer = useCallback(() => {
+    if (writerTakeoverTimerRef.current === null) return
+    window.clearTimeout(writerTakeoverTimerRef.current)
+    writerTakeoverTimerRef.current = null
+  }, [])
+  const requestBrowserWriterTakeover = useCallback(() => {
+    setWriterTakeoverPending(true)
+    const tryTakeover = () => {
+      const result = acquireBrowserWriter(localStorage, tabId, true)
+      if (result.status === 'acquired') {
+        clearWriterTakeoverTimer()
+        try { localStorage.removeItem(WRITER_TAKEOVER_REQUEST_KEY) } catch { /* The acquired lease remains valid. */ }
+        setWriterTakeoverPending(false)
+        setIsWriter(true)
+        return
       }
-    }, 400)
+      if (result.status === 'error') {
+        clearWriterTakeoverTimer()
+        setWriterTakeoverPending(false)
+        return
+      }
+      writerTakeoverTimerRef.current = window.setTimeout(tryTakeover, WRITER_TAKEOVER_POLL_MS)
+    }
+    try {
+      localStorage.setItem(WRITER_TAKEOVER_REQUEST_KEY, JSON.stringify({ requester: tabId, requestedAt: Date.now() }))
+    } catch {
+      // Polling reports storage failure by restoring the retry button.
+    }
+    writerTakeoverTimerRef.current = window.setTimeout(tryTakeover, WRITER_TAKEOVER_POLL_MS)
+  }, [clearWriterTakeoverTimer, tabId])
+  useEffect(() => {
+    if (DATA_MODE !== 'real' || !isWriter || recovery) return
+    setBrowserSaveStatus('saving'); const timeout = window.setTimeout(flushBrowserSave, 400)
     return () => window.clearTimeout(timeout)
-  }, [book])
+  }, [book, flushBrowserSave, isWriter, recovery])
+  useEffect(() => {
+    if (DATA_MODE !== 'real' || !isWriter) return
+    const heartbeat = window.setInterval(() => {
+      if (acquireBrowserWriter(localStorage, tabId).status !== 'acquired') setIsWriter(false)
+    }, WRITER_HEARTBEAT_MS)
+    return () => window.clearInterval(heartbeat)
+  }, [isWriter, tabId])
+  useEffect(() => {
+    if (DATA_MODE !== 'real') return
+    const flush = () => flushBrowserSave(); const hidden = () => { if (document.visibilityState === 'hidden') flush() }
+    const handlePageHide = () => { flushBrowserSave(); releaseBrowserWriter(localStorage, tabId) }
+    const handlePageShow = () => setIsWriter(acquireBrowserWriter(localStorage, tabId).status === 'acquired')
+    const storage = (event: StorageEvent) => {
+      if (event.key === WRITER_TAKEOVER_REQUEST_KEY && event.newValue && isWriter && currentBrowserWriter(localStorage) === tabId) {
+        try {
+          const request = JSON.parse(event.newValue) as { requester?: unknown }
+          if (typeof request.requester === 'string' && request.requester !== tabId) {
+            flushBrowserSave()
+            releaseBrowserWriter(localStorage, tabId)
+            setIsWriter(false)
+            localStorage.removeItem(WRITER_TAKEOVER_REQUEST_KEY)
+          }
+        } catch {
+          // Malformed takeover requests never change writer ownership.
+        }
+      }
+      if (event.key === WRITER_STORAGE_KEY) {
+        const result = acquireBrowserWriter(localStorage, tabId)
+        if (result.status === 'acquired') {
+          clearWriterTakeoverTimer()
+          setWriterTakeoverPending(false)
+        }
+        setIsWriter(result.status === 'acquired')
+      }
+      if (event.key === BOOK_STORAGE_KEY && !isWriter) {
+        const latest = loadBrowserBook(localStorage)
+        if (latest.status === 'ready') {
+          showHistory(emptyHistory())
+          showSnapshot({ book: latest.book, activeClientId: latest.book.clients[0].id })
+        }
+      }
+    }
+    window.addEventListener('pagehide', handlePageHide); window.addEventListener('beforeunload', handlePageHide); window.addEventListener('pageshow', handlePageShow); document.addEventListener('visibilitychange', hidden); window.addEventListener('storage', storage)
+    return () => { window.removeEventListener('pagehide', handlePageHide); window.removeEventListener('beforeunload', handlePageHide); window.removeEventListener('pageshow', handlePageShow); document.removeEventListener('visibilitychange', hidden); window.removeEventListener('storage', storage) }
+  }, [clearWriterTakeoverTimer, flushBrowserSave, isWriter, showHistory, showSnapshot, tabId])
+
+  useEffect(
+    () => () => {
+      if (writerTakeoverTimerRef.current !== null) window.clearTimeout(writerTakeoverTimerRef.current)
+      if (DATA_MODE === 'real') releaseBrowserWriter(localStorage, tabId)
+    },
+    [tabId],
+  )
 
   useEffect(() => {
-    if (!connectedFile) return
+    if (!connectedFile || !canWriteConnectedBook(canMutate, true)) return
     fileSaveRevision.current += 1
     const revision = fileSaveRevision.current
     setFileSaveStatus('saving')
@@ -383,7 +507,7 @@ export default function App() {
       )
     }, 800)
     return () => window.clearTimeout(timeout)
-  }, [addToast, book, connectedFile])
+  }, [addToast, book, canMutate, connectedFile])
 
   useEffect(() => {
     try {
@@ -404,11 +528,11 @@ export default function App() {
       if (!isUndo && !isRedo) return
 
       const changed = isUndo ? handleUndo() : handleRedo()
-      if (changed) event.preventDefault()
+      if (changed || canMutate) event.preventDefault()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleRedo, handleUndo])
+  }, [canMutate, handleRedo, handleUndo])
 
   const exitPresentMode = useCallback(() => {
     setPresentMode(false)
@@ -452,6 +576,7 @@ export default function App() {
 
   const replaceBookFromFile = useCallback(
     async (handle: BookFileHandle, isReconnect: boolean) => {
+      if (!canMutate) return
       let result: FileReadResult
       try {
         if (!(await requestBookFilePermission(handle))) {
@@ -487,7 +612,7 @@ export default function App() {
       rememberConnectedFile(handle)
       addToast(isReconnect ? 'Book restored from file' : 'Book loaded from file')
     },
-    [addToast, commitSnapshot, rememberConnectedFile, resetWizard],
+    [addToast, canMutate, commitSnapshot, rememberConnectedFile, resetWizard],
   )
 
   const handleCreateConnectedFile = async () => {
@@ -622,26 +747,37 @@ export default function App() {
     })
   }
 
+  const applyLoadedBook = (nextBook: MoneyMapFile) => {
+    if (!canMutate) return
+    if (connectedFile) handleDisconnectFile()
+    setRecovery(null)
+    commitSnapshot({ book: nextBook, activeClientId: nextBook.clients[0].id }, null)
+    setMapTextEdit(null)
+    resetWizard()
+    setDialog(null)
+    addToast('Book loaded')
+  }
+
   const handleLoad = async (file: File) => {
     try {
       const nextBook = await loadBookFromFile(file)
-      commitSnapshot(
-        {
-          book: nextBook,
-          activeClientId: nextBook.clients[0].id,
-        },
-        null,
-      )
-      setMapTextEdit(null)
-      resetWizard()
-      addToast('Book loaded')
+      if (connectedFile) setDialog({ kind: 'loadBook', book: nextBook })
+      else applyLoadedBook(nextBook)
     } catch (error) {
       showError('Could not load book', error, 'The book could not be loaded.')
     }
   }
 
+  const handleSaveBook = () => {
+    try { saveBookToFile(book); addToast('Book saved') }
+    catch (error) { showError('Could not save book', error, 'The book could not be saved.') }
+  }
+
   const handleExport = async (format: 'png' | 'pdf' | 'svg') => {
+    if (exportInFlightRef.current) return
     const label = format.toUpperCase()
+    const blocked = layoutOutputBlockMessage(layoutWarnings)
+    if (blocked) { showError(`Could not export ${label}`, new Error(blocked), `The ${label} could not be exported.`); return }
     const svg = printMapRef.current?.querySelector('svg')
     if (!svg) {
       showError(
@@ -652,10 +788,12 @@ export default function App() {
       return
     }
 
+    exportInFlightRef.current = format
+    setExporting(format)
     try {
       await { png: exportPng, pdf: exportPdf, svg: exportSvg }[format](
         svg,
-        mapFileName(
+        appMapFileName(
           activeClient.client.title,
           activeClient.client.year,
           format,
@@ -668,7 +806,27 @@ export default function App() {
         error,
         `The ${label} could not be exported.`,
       )
+    } finally { exportInFlightRef.current = null; setExporting(null) }
+  }
+
+  const downloadRecoveryCopy = () => {
+    if (!recovery) return
+    let url: string | null = null; let link: HTMLAnchorElement | null = null
+    try {
+      url = URL.createObjectURL(new Blob([recovery.raw], { type: 'application/json' }))
+      link = document.createElement('a'); link.href = url; link.download = 'money-map-recovery.json'
+      document.body.append(link); link.click(); link.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url!), 0)
+    } catch (error) {
+      link?.remove(); if (url) URL.revokeObjectURL(url)
+      showError('Could not download recovery copy', error, 'The recovery copy could not be downloaded.')
     }
+  }
+
+  const handlePrint = () => {
+    const blocked = layoutOutputBlockMessage(layoutWarnings)
+    if (blocked) { showError('Could not print', new Error(blocked), 'The Money Map could not be printed.'); return }
+    window.print()
   }
 
   const handleExportPng = () => handleExport('png')
@@ -927,6 +1085,7 @@ export default function App() {
           </select>
           <button
             className="quiet-button compact-button"
+            disabled={!canMutate}
             type="button"
             onClick={handleNew}
           >
@@ -937,8 +1096,8 @@ export default function App() {
             trigger={<span aria-hidden="true">⋯</span>}
             triggerClassName="client-menu-trigger"
           >
-            <MenuItem onClick={handleDuplicate}>Duplicate</MenuItem>
-            <MenuItem danger onClick={handleDelete}>
+            <MenuItem disabled={!canMutate} onClick={handleDuplicate}>Duplicate</MenuItem>
+            <MenuItem danger disabled={!canMutate} onClick={handleDelete}>
               Delete
             </MenuItem>
           </Menu>
@@ -947,7 +1106,7 @@ export default function App() {
           <button
             aria-label="Undo"
             className="quiet-button history-button"
-            disabled={history.past.length === 0}
+            disabled={!canMutate || history.past.length === 0}
             title="Undo (Ctrl+Z)"
             type="button"
             onClick={handleUndo}
@@ -957,7 +1116,7 @@ export default function App() {
           <button
             aria-label="Redo"
             className="quiet-button history-button"
-            disabled={history.future.length === 0}
+            disabled={!canMutate || history.future.length === 0}
             title="Redo (Ctrl+Shift+Z or Ctrl+Y)"
             type="button"
             onClick={handleRedo}
@@ -985,15 +1144,10 @@ export default function App() {
           }
           triggerClassName="book-menu-trigger"
         >
-          <MenuItem
-            onClick={() => {
-              saveBookToFile(book)
-              addToast('Book saved')
-            }}
-          >
+          <MenuItem onClick={handleSaveBook}>
             Save book
           </MenuItem>
-          <MenuItem onClick={() => fileInputRef.current?.click()}>
+          <MenuItem disabled={!canMutate} onClick={() => fileInputRef.current?.click()}>
             Load book
           </MenuItem>
           {fileStoreSupported && <MenuSeparator />}
@@ -1043,18 +1197,19 @@ export default function App() {
             triggerClassName="reset-menu-trigger"
           >
             <MenuItem
-              disabled={!hasLayoutOverrides}
+              disabled={!canMutate || !hasLayoutOverrides}
               onClick={() => setDialog({ kind: 'resetLayout' })}
             >
               Reset arrangement
             </MenuItem>
             {hasHiddenArrows && (
-              <MenuItem onClick={handleRestoreGeneratedArrows}>
+              <MenuItem disabled={!canMutate} onClick={handleRestoreGeneratedArrows}>
                 Restore generated arrows
               </MenuItem>
             )}
             <MenuItem
               danger
+              disabled={!canMutate}
               onClick={() =>
                 setDialog({
                   kind: 'clearMap',
@@ -1077,7 +1232,8 @@ export default function App() {
             <button
               className="primary-button"
               type="button"
-              onClick={() => window.print()}
+              disabled={layoutWarnings.length > 0}
+              onClick={handlePrint}
             >
               Print
             </button>
@@ -1093,13 +1249,13 @@ export default function App() {
               }
               triggerClassName="primary-button save-menu-trigger"
             >
-              <MenuItem onClick={() => void handleExportPng()}>
+              <MenuItem disabled={Boolean(exporting)} onClick={() => void handleExportPng()}>
                 PNG image
               </MenuItem>
-              <MenuItem onClick={() => void handleExport('pdf')}>
+              <MenuItem disabled={Boolean(exporting)} onClick={() => void handleExport('pdf')}>
                 PDF document
               </MenuItem>
-              <MenuItem onClick={() => void handleExport('svg')}>
+              <MenuItem disabled={Boolean(exporting)} onClick={() => void handleExport('svg')}>
                 SVG image
               </MenuItem>
               <MenuSeparator />
@@ -1107,9 +1263,9 @@ export default function App() {
                 className="save-menu-status"
                 title={connectedFile?.name}
               >
-                {connectedFile
-                  ? `Book auto-saves — connected to ${connectedFile.name} ✓`
-                  : 'Book auto-saves in this browser — connect a file from Book ▾'}
+                {exporting ? `Exporting ${exporting.toUpperCase()}…` : connectedFile && canMutate
+                  ? `${fileSaveStatus === 'saving' ? 'Saving' : 'Saved'} — connected to ${connectedFile.name}`
+                  : browserPersistenceLabel(DATA_MODE, isWriter, browserSaveStatus)}
               </div>
             </Menu>
           </div>
@@ -1117,6 +1273,8 @@ export default function App() {
         <input
           ref={fileInputRef}
           accept=".json"
+          aria-label="Load book file"
+          disabled={!canMutate}
           className="visually-hidden"
           type="file"
           onChange={(event) => {
@@ -1126,6 +1284,13 @@ export default function App() {
           }}
         />
       </header>
+      {!presentMode && <div className="app-status-stack" aria-live="polite">
+        {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes are temporary. Do not enter real client data. Real use requires a private separate-origin deployment with <code>VITE_DATA_MODE=real</code>.</span></section>}
+        {DATA_MODE === 'real' && !isWriter && <section className="app-status-banner is-warning"><strong>Read-only tab</strong><span>Another tab owns browser saves.</span><button disabled={writerTakeoverPending} type="button" onClick={requestBrowserWriterTakeover}>{writerTakeoverPending ? 'Waiting for current editor…' : 'Take over editing'}</button></section>}
+        {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
+        {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Browser save failed</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Retry</button></section>}
+        {layoutWarnings.length > 0 && <section className="app-status-banner is-warning"><strong>Export paused</strong><span>{layoutWarnings.map((warning) => warning.message).join(' ')}</span></section>}
+      </div>}
       <div className="workspace">
         <aside className="form-pane" aria-label="Client editor">
           <div className="form-mode-toggle" aria-label="Form mode">
@@ -1146,6 +1311,7 @@ export default function App() {
               Full form
             </button>
           </div>
+          <fieldset className="mutation-fieldset" disabled={!canMutate}>
           {formMode === 'guided' ? (
             <Wizard
               currentStep={wizardStep}
@@ -1158,7 +1324,7 @@ export default function App() {
               onExportPng={() => void handleExportPng()}
               onFullForm={() => setFormMode('full')}
               onHoverAccount={setHighlightId}
-              onPrint={() => window.print()}
+              onPrint={handlePrint}
               vocabulary={vocabulary}
             />
           ) : (
@@ -1170,6 +1336,7 @@ export default function App() {
               vocabulary={vocabulary}
             />
           )}
+          </fieldset>
         </aside>
         <section
           className="preview-pane"
@@ -1205,14 +1372,14 @@ export default function App() {
                 <MapSvg
                   data={previewClient}
                   highlightId={presentMode ? undefined : highlightId}
-                  onChange={presentMode ? undefined : handleMapChange}
+                  onChange={presentMode || !canMutate ? undefined : handleMapChange}
                   onElementClick={
-                    presentMode ? undefined : handleMapElementClick
+                    presentMode || !canMutate ? undefined : handleMapElementClick
                   }
                 />
               </div>
             </div>
-            {mapTextEdit && !presentMode && (
+            {mapTextEdit && !presentMode && canMutate && (
               <MapTextEditor
                 containerRef={previewPaneRef}
                 edit={mapTextEdit}
@@ -1318,6 +1485,18 @@ export default function App() {
           onConfirm={() => setDialog(null)}
         >
           {dialog.message}
+        </Dialog>
+      )}
+      {dialog?.kind === 'loadBook' && (
+        <Dialog
+          confirmLabel="Disconnect and load"
+          danger
+          open
+          title="Replace connected book"
+          onClose={() => setDialog(null)}
+          onConfirm={() => applyLoadedBook(dialog.book)}
+        >
+          Loading another book disconnects {connectedFile?.name}. The existing connected file will not be overwritten.
         </Dialog>
       )}
       {dialog?.kind === 'resetLayout' && (

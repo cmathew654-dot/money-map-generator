@@ -101,7 +101,7 @@ export function addIncomeSource(
 ): IncomeSource[] {
   return [
     ...incomeSources,
-    { label, amount: null, period: 'mo' },
+    { id: newId('income'), label, amount: null, period: 'mo' },
   ]
 }
 
@@ -158,6 +158,15 @@ export function isMoneyDraftDirty(
   return draft !== null && draft !== focusSnapshot
 }
 
+export function synchronizeMoneyDraft(
+  draft: string | null,
+  isFocused: boolean,
+  value: number | null,
+): string | null {
+  if (!isFocused) return null
+  if (parseMoneyInput(draft ?? '') === value) return draft
+  return value === null ? '' : String(value)
+}
 type PendingFocusTarget = {
   focus(): void
 }
@@ -241,6 +250,8 @@ function MoneyField({
 }: MoneyFieldProps) {
   const [draft, setDraft] = useState<string | null>(null)
   const focusSnapshot = useRef('')
+  const originalValue = useRef<number | null>(value)
+  const isFocused = useRef(false)
   const focusedInput = useRef<HTMLInputElement | null>(null)
   const selectAfterRender = useRef(false)
   const commitDraft = () => {
@@ -250,6 +261,22 @@ function MoneyField({
     focusSnapshot.current = nextDraft
   }
 
+
+  useEffect(() => {
+    setDraft((current) => {
+      const next = synchronizeMoneyDraft(
+        current,
+        isFocused.current,
+        value,
+      )
+      if (isFocused.current && next !== current) {
+        const snapshot = value === null ? '' : String(value)
+        focusSnapshot.current = snapshot
+        originalValue.current = value
+      }
+      return next
+    })
+  }, [value])
   useLayoutEffect(() => {
     if (!selectAfterRender.current) return
     selectAfterRender.current = false
@@ -268,15 +295,20 @@ function MoneyField({
         type="text"
         value={draft ?? (value === null ? '' : money(value))}
         onBlur={() => {
+          isFocused.current = false
           commitDraft()
           setDraft(null)
         }}
         onChange={(event) => {
-          setDraft(event.target.value)
+          const nextDraft = event.target.value
+          setDraft(nextDraft)
+          onChange(parseMoneyInput(nextDraft))
         }}
         onFocus={(event) => {
+          isFocused.current = true
           const snapshot = value === null ? '' : String(value)
           focusSnapshot.current = snapshot
+          originalValue.current = value
           focusedInput.current = event.currentTarget
           selectAfterRender.current = true
           setDraft(snapshot)
@@ -286,6 +318,7 @@ function MoneyField({
           if (event.key === 'Escape') {
             event.preventDefault()
             setDraft(focusSnapshot.current)
+            onChange(originalValue.current)
             return
           }
           if (event.key === 'Enter') {
@@ -311,7 +344,6 @@ function MoneyField({
           const nextDraft = String(next)
           setDraft(nextDraft)
           onChange(next)
-          focusSnapshot.current = nextDraft
         }}
       />
     </label>
@@ -771,12 +803,15 @@ function AccountCard({
   }, [account.id, registerFocusRefs])
 
   return (
-    <details
-      className={`account-card bucket-${account.bucket}`}
+    <div
+      className="account-card-shell"
       onMouseEnter={() => onHoverAccount?.(account.id)}
       onMouseLeave={() => onHoverAccount?.(null)}
-      ref={detailsRef}
     >
+      <details
+        className={`account-card bucket-${account.bucket}`}
+        ref={detailsRef}
+      >
       <summary className="account-summary">
         <span aria-hidden="true" className="account-swatch" />
         <span
@@ -787,30 +822,9 @@ function AccountCard({
           {accountDisplayName(account)}
         </span>
         <span className="account-summary-value">{money(account.value)}</span>
-        <span
-          aria-label={`Shape for ${accountDisplayName(account)}`}
-          className="shape-segmented-control"
-          role="group"
-        >
-          {ACCOUNT_SHAPES.map((shape) => (
-            <button
-              aria-label={`${shapeLabels[shape]} shape`}
-              aria-pressed={accountShape(account) === shape}
-              className="shape-option"
-              key={shape}
-              type="button"
-              onClick={(event) => {
-                event.preventDefault()
-                event.stopPropagation()
-                onChange({ ...account, shape })
-              }}
-              onPointerDown={(event) => event.stopPropagation()}
-            >
-              <ShapeGlyph shape={shape} />
-            </button>
-          ))}
-        </span>
+        <span aria-hidden="true" style={{ width: 108 }} />
       </summary>
+
       <div className="account-body">
         <button className="text-button" type="button" onClick={onRemove}>
           Remove account
@@ -878,7 +892,32 @@ function AccountCard({
           onChange={(subAccounts) => onChange({ ...account, subAccounts })}
         />
       </div>
-    </details>
+      </details>
+      <span
+        aria-label={`Shape for ${accountDisplayName(account)}`}
+        className="shape-segmented-control"
+        role="group"
+        style={{ position: 'absolute', right: 12, top: 12 }}
+      >
+        {ACCOUNT_SHAPES.map((shape) => (
+          <button
+            aria-label={`${shapeLabels[shape]} shape`}
+            aria-pressed={accountShape(account) === shape}
+            className="shape-option"
+            key={shape}
+            type="button"
+            onClick={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              onChange({ ...account, shape })
+            }}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <ShapeGlyph shape={shape} />
+          </button>
+        ))}
+      </span>
+    </div>
   )
 }
 
@@ -1057,7 +1096,7 @@ export function FinePrintSection({
           requestFocus(() => labelInputs.current[index])
           setFootnotes([
             ...data.footnotes,
-            { label: '', gross: null, net: null },
+            { id: newId('footnote'), label: '', gross: null, net: null },
           ])
         }}
       >

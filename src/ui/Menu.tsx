@@ -97,6 +97,14 @@ export function Menu({
       }
       return
     }
+    if (event.key === 'Home' || event.key === 'End') { event.preventDefault(); items[event.key === 'Home' ? 0 : items.length - 1]?.focus(); return }
+    if (event.key.length === 1 && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      const query = event.key.toLocaleLowerCase(); const currentIndex = items.indexOf(document.activeElement as HTMLElement)
+      const ordered = [...items.slice(currentIndex + 1), ...items.slice(0, currentIndex + 1)]
+      const match = ordered.find((item) => item.textContent?.trim().toLocaleLowerCase().startsWith(query))
+      if (match) { event.preventDefault(); match.focus() }
+      return
+    }
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
 
     event.preventDefault()

@@ -1,4 +1,4 @@
-import {
+﻿import {
   useEffect,
   useId,
   useRef,
@@ -11,13 +11,16 @@ import {
 import {
   hexagonInset,
   incomePanelMetrics,
+  footnoteLineLayouts,
   incomeTextSizes,
   layoutMap,
   mapTextOffset,
+  mastheadTitleFontSize,
   nearestOutlineT,
   OVERRIDE_BOUNDS,
   pointOnOutline,
 } from '../layout/layout'
+import { textWidth } from '../layout/textfit'
 import type {
   Arrow,
   OutlineElement,
@@ -50,6 +53,7 @@ import {
   MIN_MAP_TEXT_FONT_SIZE,
   accountShape,
   accountTextOverrideKey,
+  mapItemTextOverrideKey,
   mapTextOverrideKey,
   nextAccountShape,
 } from '../model/types'
@@ -145,6 +149,7 @@ interface MapEditDataAttributes {
   'data-edit-line-node'?: string
   'data-map-edit-hit'?: string
   'data-map-edit-key'?: string
+  'data-layout-key'?: string
 }
 
 type DragMode =
@@ -196,12 +201,7 @@ function interactiveGroupProps(
   return {
     'aria-label': label,
     onClick: activate,
-    onKeyDown: (event: KeyboardEvent<SVGGElement>) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return
-      event.preventDefault()
-      activate()
-    },
-    role: 'button',
+    role: 'group',
     style: { cursor: 'pointer' },
     tabIndex: 0,
   }
@@ -227,9 +227,12 @@ function editableTextProps(
     })
   }
   return {
+    'aria-label': `Edit ${mapTextEditTargetKey(edit)}`,
     className: 'map-editable-text',
     'data-edit-line-node': mapTextEditTargetKey(edit),
     'data-map-edit-key': mapTextEditTargetKey(edit),
+    'data-layout-key': fixedTextOverrideKey(edit) ?? undefined,
+    'aria-keyshortcuts': fixedTextOverrideKey(edit) ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined,
     onPointerDown,
     onClick: (
       event: MouseEvent<SVGTextElement | SVGTSpanElement>,
@@ -306,8 +309,11 @@ function editableHitAreaProps(
     })
   }
   return {
+    'aria-label': `Edit ${mapTextEditTargetKey(edit)}`,
     className: 'map-editable-hit',
     'data-map-edit-hit': mapTextEditTargetKey(edit),
+    'data-layout-key': fixedTextOverrideKey(edit) ?? undefined,
+    'aria-keyshortcuts': fixedTextOverrideKey(edit) ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined,
     fill: 'transparent',
     onPointerDown,
     onClick: (event) => {
@@ -339,7 +345,9 @@ function fixedTextOverrideKey(target: MapTextEditTarget): string | null {
     case 'incomeHeader':
       return mapTextOverrideKey('income', 'header')
     case 'incomeAmount':
-      return mapTextOverrideKey('income', 'row')
+      return target.incomeId
+        ? mapItemTextOverrideKey('income', 'row', target.incomeId)
+        : mapTextOverrideKey('income', 'row')
     case 'afterTaxIncome':
       return mapTextOverrideKey('income', 'total')
     case 'needLabel':
@@ -347,7 +355,9 @@ function fixedTextOverrideKey(target: MapTextEditTarget): string | null {
     case 'monthlyNeed':
       return mapTextOverrideKey('need', 'value')
     case 'footnoteText':
-      return mapTextOverrideKey('footnotes', 'line')
+      return target.footnoteId
+        ? mapItemTextOverrideKey('footnotes', 'line', target.footnoteId)
+        : mapTextOverrideKey('footnotes', 'line')
     case 'mastheadLabel':
       return mapTextOverrideKey('masthead', 'label')
     default:
@@ -378,7 +388,7 @@ function Masthead({
         y={84}
         fill={INK}
         fontFamily={FONT_SERIF}
-        fontSize={TYPE.masthead}
+        fontSize={mastheadTitleFontSize(data)}
         fontWeight={600}
       >
         {data.client.title}
@@ -443,7 +453,7 @@ function IncomeRow({
         fontFamily={FONT_SANS}
         fontSize={fontSize * (13 / 14)}
         {...editableLineTextProps(
-          { kind: 'incomeAmount', incomeIndex: index },
+          { kind: 'incomeAmount', incomeIndex: index, incomeId: source.id },
           onElementClick,
         )}
       >
@@ -458,14 +468,14 @@ function IncomeRow({
         fontWeight={600}
         style={numericStyle}
         {...editableLineTextProps(
-          { kind: 'incomeAmount', incomeIndex: index },
+          { kind: 'incomeAmount', incomeIndex: index, incomeId: source.id },
           onElementClick,
           true,
         )}
       >
         <tspan
           {...editableLineTextProps(
-            { kind: 'incomeAmount', incomeIndex: index },
+            { kind: 'incomeAmount', incomeIndex: index, incomeId: source.id },
             onElementClick,
           )}
         >
@@ -479,7 +489,7 @@ function IncomeRow({
             fontSize={fontSize * (12 / 14)}
             fontWeight={400}
             {...editableLineTextProps(
-              { kind: 'incomeAmount', incomeIndex: index },
+              { kind: 'incomeAmount', incomeIndex: index, incomeId: source.id },
               onElementClick,
             )}
           >
@@ -578,7 +588,17 @@ function IncomePanel({
         strokeWidth={2}
       />
       {data.incomeSources.map((source, index) => {
-        const edit = { kind: 'incomeAmount', incomeIndex: index } as const
+        const edit = { kind: 'incomeAmount', incomeIndex: index, incomeId: source.id } as const
+        const visibleWidth = Math.min(
+          placed.w - 24,
+          Math.max(
+            textWidth(source.label, rowFs * (13 / 14)),
+            textWidth(moneyPer(source.amount, source.period), rowFs) +
+              (source.qualifier
+                ? 7 + textWidth(source.qualifier, rowFs * (12 / 14))
+                : 0),
+          ) + 16,
+        )
         const rowBlock = {
           x: placed.x + 12,
           y:
@@ -587,10 +607,16 @@ function IncomePanel({
             index * rowPitch -
             rowFs * (13 / 14) -
             5,
-          w: placed.w - 24,
+          w: visibleWidth,
           h: rowPitch,
         }
-        const offset = mapTextOffset(data, 'income', 'row', rowBlock)
+        const offset = mapTextOffset(
+          data,
+          'income',
+          'row',
+          rowBlock,
+          source.id,
+        )
         return (
         <g
           key={`${source.label}-${index}`}
@@ -831,6 +857,7 @@ function SubAccountDrum({
   w,
   fill,
   stroke,
+  subAccountIndex,
 }: {
   accountId: string
   layout: SubAccountLayout
@@ -844,6 +871,7 @@ function SubAccountDrum({
   w: number
   fill: string
   stroke: string
+  subAccountIndex: number
 }) {
   const capRy = 10
   const { subAccount } = layout
@@ -891,9 +919,10 @@ function SubAccountDrum({
         fontSize={layout.titleFontSize}
         fontWeight={600}
         textAnchor="middle"
-        {...editableLineTextProps(
-          { kind: 'accountSub', accountId },
+        {...editableTextProps(
+          { kind: 'accountSubLabel', accountId, subAccountIndex },
           onElementClick,
+          onTextPointerDown?.(accountId, 'sub'),
         )}
       >
         {layout.titleLines.map((line, index) => (
@@ -902,7 +931,7 @@ function SubAccountDrum({
             x={x + w / 2}
             dy={index === 0 ? 0 : layout.titleLeading}
             {...editableLineTextProps(
-              { kind: 'accountSub', accountId },
+              { kind: 'accountSubLabel', accountId, subAccountIndex },
               onElementClick,
             )}
           >
@@ -918,9 +947,10 @@ function SubAccountDrum({
           fontFamily={FONT_SANS}
           fontSize={layout.captionFontSize}
           textAnchor="middle"
-          {...editableLineTextProps(
-            { kind: 'accountSub', accountId },
+          {...editableTextProps(
+            { kind: 'accountSubCaption', accountId, subAccountIndex },
             onElementClick,
+            onTextPointerDown?.(accountId, 'sub'),
           )}
         >
           {layout.captionLines.map((line, index) => (
@@ -929,7 +959,7 @@ function SubAccountDrum({
               x={x + w / 2}
               dy={index === 0 ? 0 : layout.captionLeading}
               {...editableLineTextProps(
-                { kind: 'accountSub', accountId },
+                { kind: 'accountSubCaption', accountId, subAccountIndex },
                 onElementClick,
               )}
             >
@@ -947,9 +977,10 @@ function SubAccountDrum({
         fontWeight={600}
         textAnchor="middle"
         style={numericStyle}
-        {...editableLineTextProps(
-          { kind: 'accountSub', accountId },
+        {...editableTextProps(
+          { kind: 'accountSubValue', accountId, subAccountIndex },
           onElementClick,
+          onTextPointerDown?.(accountId, 'sub'),
         )}
       >
         {money(subAccount.value)}
@@ -1020,7 +1051,7 @@ function AccountContent({
             key={`${line}-${index}`}
             x={x + w / 2 + text.titleX}
             dy={index === 0 ? 0 : text.titleLeading}
-            {...editableTextProps(
+            {...editableLineTextProps(
               { kind: 'accountLabel', accountId: account.id },
               onElementClick,
             )}
@@ -1048,7 +1079,7 @@ function AccountContent({
               key={`${line}-${index}`}
               x={x + w / 2 + text.captionX}
               dy={index === 0 ? 0 : text.captionLeading}
-              {...editableTextProps(
+              {...editableLineTextProps(
                 { kind: 'accountCaption', accountId: account.id },
                 onElementClick,
               )}
@@ -1085,9 +1116,10 @@ function AccountContent({
               fill={INK}
               fontFamily={FONT_SANS}
               fontSize={text.rowFontSize}
-              {...editableLineTextProps(
-                { kind: 'accountRows', accountId: account.id },
+              {...editableTextProps(
+                { kind: 'accountPositionLabel', accountId: account.id, positionIndex: index },
                 onElementClick,
+                onTextPointerDown?.(account.id, 'rows'),
               )}
             >
               {row.labelLines.map((line, lineIndex) => (
@@ -1096,7 +1128,7 @@ function AccountContent({
                   x={x + row.leftX}
                   dy={lineIndex === 0 ? 0 : text.rowLeading}
                   {...editableLineTextProps(
-                    { kind: 'accountRows', accountId: account.id },
+                    { kind: 'accountPositionLabel', accountId: account.id, positionIndex: index },
                     onElementClick,
                   )}
                 >
@@ -1113,9 +1145,10 @@ function AccountContent({
               fontWeight={600}
               textAnchor="end"
               style={numericStyle}
-              {...editableLineTextProps(
-                { kind: 'accountRows', accountId: account.id },
+              {...editableTextProps(
+                { kind: 'accountPositionValue', accountId: account.id, positionIndex: index },
                 onElementClick,
+                onTextPointerDown?.(account.id, 'rows'),
               )}
             >
               {row.valueText}
@@ -1139,7 +1172,7 @@ function AccountContent({
       >
         <tspan
           style={numericStyle}
-          {...editableTextProps(
+          {...editableLineTextProps(
             { kind: 'accountValue', accountId: account.id },
             onElementClick,
           )}
@@ -1151,7 +1184,7 @@ function AccountContent({
             fill={MUTED}
             fontStyle="italic"
             fontWeight={400}
-            {...editableTextProps(
+            {...editableLineTextProps(
               { kind: 'accountValue', accountId: account.id },
               onElementClick,
             )}
@@ -1185,6 +1218,7 @@ function AccountContent({
             w={w * 0.72}
             fill={style.tint}
             stroke={style.stroke}
+            subAccountIndex={index}
           />
         )
       })}
@@ -1442,8 +1476,9 @@ function ArrowEditor({
   return (
     <g
       aria-label={`Adjust ${arrow.kind} arrow`}
+      aria-keyshortcuts="Control+ArrowLeft Control+ArrowRight"
       className="map-arrow-editor"
-      role="button"
+      role="group"
       tabIndex={0}
     >
       <ArrowPath
@@ -1469,7 +1504,7 @@ function ArrowEditor({
       ].map(([mode, point]) => (
         <circle
           key={mode as string}
-          aria-label={`${String(mode).replace('arrow', '')} handle`}
+          aria-hidden="true"
           className="map-arrow-handle"
           cx={(point as Point).x}
           cy={(point as Point).y}
@@ -1535,6 +1570,7 @@ function ArrowEditor({
         <g
           aria-label="Flow color"
           className="map-arrow-colors"
+          role="group"
           transform={`translate(${midpoint.x - 48} ${midpoint.y + 46})`}
         >
           {CUSTOM_ARROW_COLORS.map((color, index) => {
@@ -1712,14 +1748,20 @@ function FootnoteLine({
   x: number
   y: number
 }) {
-  const edit = { kind: 'footnoteText' } as const
+  const edit = { kind: 'footnoteText', footnoteId: footnote.id } as const
   const block = {
     x: x - 360,
     y: y - fontSize - 3,
     w: 720,
     h: fontSize + 9,
   }
-  const offset = mapTextOffset(data, 'footnotes', 'line', block)
+  const offset = mapTextOffset(
+    data,
+    'footnotes',
+    'line',
+    block,
+    footnote.id,
+  )
   return (
     <g transform={`translate(${offset.dx} ${offset.dy})`}>
       <rect
@@ -1779,46 +1821,39 @@ function FootnoteLine({
 
 function Footnotes({
   data,
-  footnotes,
   onElementClick,
   onTextPointerDown,
   x,
   y,
 }: {
   data: MoneyMapData
-  footnotes: Footnote[]
   onElementClick?: (target: MapElementTarget) => void
   onTextPointerDown?: TextPointerDown
   x: number
   y: number
 }) {
-  if (footnotes.length === 0) return null
-  const fontSize = fixedTextFs(
-    data,
-    'footnotes',
-    'line',
-    TYPE.footnote,
-  )
-  const lineAdvance = 24 * (fontSize / TYPE.footnote)
+  const lines = footnoteLineLayouts(data, y)
+  if (lines.length === 0) return null
+  const ruleY = lines[0].y - lines[0].fontSize - 3
   return (
-    <g aria-label="Footnotes">
+    <g aria-label="Footnotes" role="group">
       <line
         x1={x - 110}
-        y1={y - 18}
+        y1={ruleY}
         x2={x + 110}
-        y2={y - 18}
+        y2={ruleY}
         stroke={HAIRLINE}
       />
-      {footnotes.map((footnote, index) => (
+      {lines.map((line) => (
         <FootnoteLine
           data={data}
-          fontSize={fontSize}
-          key={`${footnote.label}-${index}`}
-          footnote={footnote}
+          fontSize={line.fontSize}
+          key={line.footnote.id}
+          footnote={line.footnote}
           onElementClick={onElementClick}
           onTextPointerDown={onTextPointerDown}
           x={x}
-          y={y + index * lineAdvance}
+          y={line.y}
         />
       ))}
     </g>
@@ -1964,7 +1999,7 @@ function NoteBlock({
       )}
       {onResize && (
         <rect
-          aria-label="Resize note"
+          aria-hidden="true"
           className="map-note-resize"
           height={Math.max(24, placed.h)}
           rx={4}
@@ -2343,6 +2378,47 @@ export function MapSvg({
 
   return (
     <svg
+      onKeyDownCapture={(event) => {
+        if (!onChange || !(event.target instanceof Element)) return
+        const target = event.target
+        const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+        const step = event.shiftKey ? 10 : 2
+        const commit = (key: string, patch: LayoutOverride) => {
+          event.preventDefault(); event.stopPropagation()
+          onChange(withOverride(data, key, patch))
+        }
+        const textKey = target.closest('[data-layout-key]')?.getAttribute('data-layout-key')
+        if (textKey && arrowKeys.includes(event.key) && !event.altKey && !event.ctrlKey && !event.metaKey) {
+          const value = data.layoutOverrides?.[textKey] ?? {}
+          commit(textKey, { dx: (value.dx ?? 0) + (event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0), dy: (value.dy ?? 0) + (event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0) })
+          return
+        }
+        const arrowNode = target.closest('.map-arrow-editor')
+        if (arrowNode && event.ctrlKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+          const index = Array.from(event.currentTarget.querySelectorAll('.map-arrow-editor')).indexOf(arrowNode)
+          const arrow = layout.arrows[index]
+          if (arrow?.kind !== 'custom' || !arrow.id) return
+          const field = event.key === 'ArrowLeft' ? 'sourceId' : 'targetId'
+          const other = field === 'sourceId' ? arrow.targetId : arrow.sourceId
+          const current = field === 'sourceId' ? arrow.sourceId : arrow.targetId
+          const endpoints = ['income', 'need', ...data.accounts.map((account) => account.id)]
+          const start = Math.max(0, endpoints.indexOf(current ?? ''))
+          const next = Array.from({ length: endpoints.length }, (_, offset) => endpoints[(start + offset + 1) % endpoints.length]).find((candidate) => candidate !== other)
+          if (!next) return
+          event.preventDefault(); event.stopPropagation()
+          onChange({ ...data, customArrows: data.customArrows?.map((item) => item.id === arrow.id ? { ...item, [field]: next } : item) })
+          return
+        }
+        const object = target.closest('[data-connect-id][role="group"]')
+        const key = object?.getAttribute('data-connect-id')
+        if (!key || (!arrowKeys.includes(event.key) && event.key !== '[' && event.key !== ']')) return
+        const placed = key === 'income' ? layout.income : key === 'need' ? layout.need : layout.accounts.find((item) => item.account.id === key)
+        if (!placed) return
+        const value = data.layoutOverrides?.[key] ?? {}
+        if (event.altKey && arrowKeys.includes(event.key) && key !== 'need') commit(key, { w: placed.w + (event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0), h: placed.h + (event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0) })
+        else if (!event.altKey && !event.ctrlKey && !event.metaKey && arrowKeys.includes(event.key)) commit(key, { dx: (value.dx ?? 0) + (event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0), dy: (value.dy ?? 0) + (event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0) })
+        else if (!event.altKey && !event.ctrlKey && !event.metaKey && key !== 'income' && key !== 'need') commit(key, { rot: snapRotation((value.rot ?? placedRotation(placed)) + (event.key === ']' ? 15 : -15)) })
+      }}
       aria-label={`Money Map for ${displayData.client.title}`}
       className={[
         onChange ? 'map-interactive' : '',
@@ -2352,7 +2428,7 @@ export function MapSvg({
         .filter(Boolean)
         .join(' ')}
       ref={svgRef}
-      role="img"
+      role={onChange ? 'group' : 'img'}
       viewBox={`0 0 ${ARTBOARD.width} ${ARTBOARD.height}`}
       xmlns="http://www.w3.org/2000/svg"
       onClickCapture={
@@ -2424,6 +2500,7 @@ export function MapSvg({
       />
       <g
         data-connect-id={onChange ? 'income' : undefined}
+        aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight' : undefined}
         {...interactiveGroupProps(
           'Income sources',
           { kind: 'income' },
@@ -2445,7 +2522,7 @@ export function MapSvg({
         {onChange && (
           <>
             <rect
-              aria-label="Resize income sources"
+              aria-hidden="true"
               className="map-resize-handle"
               height={16}
               rx={3}
@@ -2469,6 +2546,7 @@ export function MapSvg({
       </g>
       <g
         data-connect-id={onChange ? 'need' : undefined}
+        aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined}
         {...interactiveGroupProps(
           'Monthly income need',
           { kind: 'need' },
@@ -2504,7 +2582,7 @@ export function MapSvg({
           />
         )}
       </g>
-      <g aria-label="Accounts">
+      <g aria-label="Accounts" role="group">
         {layout.accounts.map((placed, index) => {
           const style = BUCKETS[placed.account.bucket]
           const shape = accountShape(placed.account)
@@ -2521,6 +2599,7 @@ export function MapSvg({
               data-account-id={placed.account.id}
               data-account-shape={shape}
               data-connect-id={onChange ? placed.account.id : undefined}
+              aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight BracketLeft BracketRight' : undefined}
               key={`${placed.account.id}-${index}`}
               {...interactiveGroupProps(
                 accountDisplayName(placed.account),
@@ -2579,9 +2658,7 @@ export function MapSvg({
               {onChange && (
                 <>
                   <circle
-                    aria-label={`Rotate ${accountDisplayName(
-                      placed.account,
-                    )}`}
+                    aria-hidden="true"
                     className="map-rotate-handle"
                     cx={placed.x + placed.w / 2}
                     cy={placed.y - 22}
@@ -2632,9 +2709,7 @@ export function MapSvg({
                     </g>
                   </g>
                   <rect
-                    aria-label={`Resize ${accountDisplayName(
-                      placed.account,
-                    )}`}
+                    aria-hidden="true"
                     className="map-resize-handle"
                     height={16}
                     rx={3}
@@ -2659,7 +2734,7 @@ export function MapSvg({
           )
         })}
       </g>
-      <g aria-label="Money flow">
+      <g aria-label="Money flow" role="group">
         {layout.arrows.map((arrow, index) => {
           if (!onChange) {
             return (
@@ -2766,7 +2841,7 @@ export function MapSvg({
           />
         </g>
       )}
-      <g aria-label="Map notes">
+      <g aria-label="Map notes" role="group">
         {layout.notes.map((placed) => (
           <g
             className={onChange ? 'map-draggable map-note' : 'map-note'}
@@ -2816,7 +2891,6 @@ export function MapSvg({
       </g>
       <Footnotes
         data={displayData}
-        footnotes={displayData.footnotes}
         onElementClick={onElementClick}
         onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
         x={layout.footnotesAt.x}
