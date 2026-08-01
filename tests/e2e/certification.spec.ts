@@ -33,8 +33,8 @@ test.describe('desktop behavioral certification', () => {
     const field = page.locator('.money-input').first()
     const original = await field.inputValue()
     await field.fill('92000'); await field.press('Tab')
-    await page.keyboard.press('Control+z'); await expect(field).toHaveValue(original)
-    await page.keyboard.press('Control+Shift+z'); await expect(field).toHaveValue(/92,?000|\$92,?000/)
+    await page.keyboard.press('ControlOrMeta+z'); await expect(field).toHaveValue(original)
+    await page.keyboard.press('ControlOrMeta+Shift+z'); await expect(field).toHaveValue(/92,?000|\$92,?000/)
   })
 
   test('new client completes the wizard', async ({ page }, info) => {

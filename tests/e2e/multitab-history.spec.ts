@@ -28,7 +28,7 @@ test('external writer snapshot invalidates stale undo history before ownership r
   await focusPage(page)
   await expect(firstTitle).toBeEnabled()
   await expect(authoritativeTitle).toBeDisabled()
-  await page.keyboard.press('Control+z')
+  await page.keyboard.press('ControlOrMeta+z')
 
   await expect(firstTitle).toHaveValue('Page B authoritative edit')
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), BOOK_KEY)).toContain('Page B authoritative edit')
@@ -84,9 +84,9 @@ test('focused money draft keeps its local undo and redo behavior', async ({ page
   await field.focus()
   const focusedOriginal = await field.inputValue()
   await field.fill('92000')
-  await field.press('Control+z')
+  await field.press('ControlOrMeta+z')
   await expect(field).toHaveValue(focusedOriginal)
-  await field.press('Control+Shift+z')
+  await field.press('ControlOrMeta+Shift+z')
   await expect(field).toHaveValue(/92,?000|\$92,?000/)
 })
 test('navigation pagehide hands ownership to the follower immediately', async ({ context, page }) => {
