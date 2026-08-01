@@ -227,18 +227,21 @@ const COLUMNS: Column[] = [
 
 const SUB_ACCOUNT_GAP = 8
 const SUB_ACCOUNT_CAP_RY = 10
+const TEXT_DESCENT = 0.22
+const DETAIL_GAP = 12
+const VALUE_GAP = 16
+const SUPPORT_GAP = 8
 
-function nextRoleBaseline(
-  baseline: number,
+function baselineAfterText(
+  previousBaseline: number,
+  previousFontSize: number,
   nextFontSize: number,
-  previousLineHeight: number,
-  nextLineHeight: number,
+  clearSpace: number,
 ): number {
-  return (
-    baseline +
-    nextFontSize +
-    roleGap(previousLineHeight, nextLineHeight)
-  )
+  return previousBaseline +
+    previousFontSize * TEXT_DESCENT +
+    clearSpace +
+    nextFontSize
 }
 
 type AccountTextOverrides = Partial<Record<AccountTextRole, LayoutOverride>>
@@ -421,7 +424,7 @@ export function usableTextWidth(
   size: number,
 ): number {
   const textTop = Math.max(0, baseline - size)
-  const textBottom = Math.min(height, baseline + size * 0.22)
+  const textBottom = Math.min(height, baseline + size * TEXT_DESCENT)
   let shapeInset = 0
 
   if (shape === 'rect') {
@@ -469,18 +472,17 @@ function subAccountLayout(
       )
     : []
   const titleY =
-    SUB_ACCOUNT_CAP_RY * 2 +
-    roleGap(titleLeading, titleLeading)
+    SUB_ACCOUNT_CAP_RY * 2 + DETAIL_GAP + titleFontSize
   const titleLast =
     titleY +
     (safeTitleLines.length - 1) * titleLeading
   const captionY =
     captionLines.length > 0
-      ? nextRoleBaseline(
+      ? baselineAfterText(
           titleLast,
+          titleFontSize,
           captionFontSize,
-          titleLeading,
-          captionLeading,
+          DETAIL_GAP,
         )
       : undefined
   const captionLast =
@@ -488,13 +490,13 @@ function subAccountLayout(
       ? titleLast
       : captionY +
         (captionLines.length - 1) * captionLeading
-  const priorLineHeight =
-    captionY === undefined ? titleLeading : captionLeading
-  const valueY = nextRoleBaseline(
+  const priorFontSize =
+    captionY === undefined ? titleFontSize : captionFontSize
+  const valueY = baselineAfterText(
     captionLast,
+    priorFontSize,
     valueFontSize,
-    priorLineHeight,
-    valueFontSize,
+    VALUE_GAP,
   )
   const lastBaseline = valueY
   const h = Math.max(
@@ -685,13 +687,12 @@ function accountSizing(
     const tagY = shape === 'drum' ? capRy : 25
     const titleY =
       shape === 'drum'
-        ? capRy * 2 +
-          roleGap(titleLeading, titleLeading)
-        : nextRoleBaseline(
+        ? capRy * 2 + DETAIL_GAP + titleFontSize
+        : baselineAfterText(
             tagY,
-            titleFontSize,
             TYPE.accountTag,
-            titleLeading,
+            titleFontSize,
+            DETAIL_GAP,
           )
     const usableTitleWidth = usableTextWidth(
       shape,
@@ -710,11 +711,11 @@ function accountSizing(
     const titleLast =
       titleY +
       (safeTitleLines.length - 1) * titleLeading
-    const provisionalCaptionY = nextRoleBaseline(
+    const provisionalCaptionY = baselineAfterText(
       titleLast,
+      titleFontSize,
       captionFontSize,
-      titleLeading,
-      captionLeading,
+      DETAIL_GAP,
     )
     const usableCaptionWidth = usableTextWidth(
       shape,
@@ -739,15 +740,17 @@ function accountSizing(
           (captionLines.length - 1) * captionLeading
     let previousLineHeight =
       captionY === undefined ? titleLeading : captionLeading
+    let previousFontSize =
+      captionY === undefined ? titleFontSize : captionFontSize
     const positionRows = (account.positions ?? []).map(
       (position, index) => {
         const firstBaseline =
           index === 0
-            ? nextRoleBaseline(
+            ? baselineAfterText(
                 previousBaseline,
+                previousFontSize,
                 rowFontSize,
-                previousLineHeight,
-                rowLeading,
+                DETAIL_GAP,
               )
             : previousBaseline + rowLeading
         const row = positionRowLayout(
@@ -762,15 +765,16 @@ function accountSizing(
         )
         previousBaseline = row.lastBaseline
         previousLineHeight = rowLeading
+        previousFontSize = rowFontSize
         return row
       },
     )
     const rowBaselines = positionRows.map((row) => row.firstBaseline)
-    const valueY = nextRoleBaseline(
+    const valueY = baselineAfterText(
       previousBaseline,
+      previousFontSize,
       valueFontSize,
-      previousLineHeight,
-      valueFontSize,
+      VALUE_GAP,
     )
     const usableValueWidth = usableTextWidth(
       shape,
@@ -780,11 +784,11 @@ function accountSizing(
       valueFontSize,
     )
     const runwayY = hasRunway
-      ? nextRoleBaseline(
+      ? baselineAfterText(
           valueY,
-          TYPE.runway,
           valueFontSize,
           TYPE.runway,
+          SUPPORT_GAP,
         )
       : undefined
     previousBaseline = runwayY ?? valueY
@@ -1786,6 +1790,12 @@ function centerComposition(
     ? FOOTNOTED_CONTENT_BOTTOM
     : OPEN_CONTENT_BOTTOM
   const verticalCenter = (MASTHEAD_RULE_Y + lowerBound) / 2
+  const minimumDy = Math.max(
+    MASTHEAD_RULE_Y - bounds.y,
+    OVERRIDE_BOUNDS.top - layout.income.y,
+  )
+  const maximumDy = lowerBound - (bounds.y + bounds.h)
+  const desiredDy = verticalCenter - (bounds.y + bounds.h / 2)
   const dx =
     Math.round(
       constrainedOffset(
@@ -1796,11 +1806,9 @@ function centerComposition(
     ) / 10
   const dy =
     Math.round(
-      constrainedOffset(
-        verticalCenter - (bounds.y + bounds.h / 2),
-        MASTHEAD_RULE_Y - bounds.y,
-        lowerBound - (bounds.y + bounds.h),
-      ) * 10,
+      (minimumDy > maximumDy
+        ? minimumDy
+        : constrainedOffset(desiredDy, minimumDy, maximumDy)) * 10,
     ) / 10
   const centered = {
     ...layout,

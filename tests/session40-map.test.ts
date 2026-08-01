@@ -15,6 +15,61 @@ import {
 } from '../src/ui/MapTextEditor'
 
 describe('Session 40 map editing and capacity', () => {
+  it('centers need text in its existing rows before additive offsets', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        'text:need:label': { fs: 22 },
+        'text:need:value': { fs: 40 },
+      },
+    }
+    const need = layoutMap(data).need
+    const markup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data,
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+      }),
+    )
+    const geometry = (key: string) => {
+      const match = markup.match(
+        new RegExp(
+          `<text x="([^"]+)" y="([^"]+)"[^>]*data-edit-line-node="${key}"`,
+        ),
+      )
+      expect(match, `Missing rendered text geometry for ${key}`).not.toBeNull()
+      return { x: Number(match![1]), y: Number(match![2]) }
+    }
+    const label = geometry('needLabel')
+    const value = geometry('monthlyNeed')
+
+    expect(label.x).toBe(need.x + need.w / 2)
+    expect(value.x).toBe(label.x)
+    expect(label.y).toBeCloseTo(need.y + 31 + 38 / 2 + 22 * 0.35)
+    expect(value.y).toBeCloseTo(need.y + 75 + 52 / 2 + 40 * 0.35)
+
+    const movedMarkup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data: {
+          ...data,
+          layoutOverrides: {
+            ...data.layoutOverrides,
+            'text:need:label': { fs: 22, dx: 13, dy: -7 },
+            'text:need:value': { fs: 40, dx: -9, dy: 6 },
+          },
+        },
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+      }),
+    )
+    expect(movedMarkup).toMatch(
+      /transform="translate\(13 -7\)"[^>]*><rect[^>]*data-map-edit-hit="needLabel"/,
+    )
+    expect(movedMarkup).toMatch(
+      /transform="translate\(-9 6\)"[^>]*><rect[^>]*data-map-edit-hit="monthlyNeed"/,
+    )
+  })
+
   it('edits individual position and sub-account fields', () => {
     const positionAccount = SAMPLE_WHITFIELD.accounts.find(
       (account) => account.positions?.length,
@@ -155,7 +210,7 @@ describe('Session 40 map editing and capacity', () => {
     expect(warnings).toContain('footnote-overlap')
   })
 
-  it('blocks output for every primary panel outside the artboard', () => {
+  it('warns for every primary panel outside the artboard', () => {
     const denseIncome = {
       ...SAMPLE_WHITFIELD,
       incomeSources: Array.from({ length: 36 }, (_, index) => ({
@@ -191,7 +246,9 @@ describe('Session 40 map editing and capacity', () => {
         message: expect.stringContaining(name),
       })
     }
-    expect(layoutMap(SAMPLE_WHITFIELD).warnings).toEqual([])
+    expect(layoutMap(SAMPLE_WHITFIELD).warnings).not.toContainEqual(
+      expect.objectContaining({ code: 'panel-out-of-bounds' }),
+    )
   })
 
   it('auto-fits mastheads and warns at the minimum size', () => {

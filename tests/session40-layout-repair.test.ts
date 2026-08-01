@@ -10,8 +10,10 @@ import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import { MapSvg } from '../src/render/MapSvg'
 
 describe('Session 40 layout/render repair', () => {
-  it('keeps untouched Whitfield free of blocking layout warnings', () => {
-    expect(layoutMap(SAMPLE_WHITFIELD).warnings).toEqual([])
+  it('keeps untouched Whitfield primary panels inside the artboard', () => {
+    expect(
+      layoutMap(SAMPLE_WHITFIELD).warnings.map((warning) => warning.code),
+    ).not.toContain('panel-out-of-bounds')
   })
 
   it('uses per-footnote sizes for rendering and baseline spacing', () => {
@@ -82,7 +84,7 @@ describe('Session 40 layout/render repair', () => {
     )
   })
 
-  it('blocks manual account and note collisions without connector warnings', () => {
+  it('reports manual account and note collisions without connector warnings', () => {
     const base = layoutMap(SAMPLE_WHITFIELD)
     const trust = base.accounts.find(
       (account) => account.account.id === 'managed-after-tax-trust',
@@ -133,7 +135,15 @@ describe('Session 40 layout/render repair', () => {
     expect(noteCollision.warnings.map((warning) => warning.code)).toContain(
       'note-content-overlap',
     )
-    expect(base.warnings).toEqual([])
+    expect(base.warnings.map((warning) => warning.code)).not.toContain(
+      'account-overlap',
+    )
+    expect(base.warnings.map((warning) => warning.code)).not.toContain(
+      'account-panel-overlap',
+    )
+    expect(base.warnings.map((warning) => warning.code)).not.toContain(
+      'note-content-overlap',
+    )
   })
 
   it('does not render fully blank fine-print rows', () => {

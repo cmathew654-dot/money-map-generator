@@ -705,6 +705,10 @@ function IncomePanel({
   )
 }
 
+function centeredTextBaseline(top: number, height: number, fontSize: number) {
+  return top + height / 2 + fontSize * 0.35
+}
+
 function NeedCard({
   data,
   mathLine,
@@ -725,19 +729,21 @@ function NeedCard({
   const labelFs = fixedTextFs(data, 'need', 'label', TYPE.needLabel)
   const valueFs = fixedTextFs(data, 'need', 'value', TYPE.needValue)
   const labelEdit = { kind: 'needLabel' } as const
-  const labelOffset = mapTextOffset(data, 'need', 'label', {
+  const labelRow = {
     x: placed.x + 12,
     y: placed.y + 31,
     w: placed.w - 24,
     h: 38,
-  })
+  }
+  const labelOffset = mapTextOffset(data, 'need', 'label', labelRow)
   const valueEdit = { kind: 'monthlyNeed' } as const
-  const valueOffset = mapTextOffset(data, 'need', 'value', {
+  const valueRow = {
     x: placed.x + 12,
     y: placed.y + 75,
     w: placed.w - 24,
     h: 52,
-  })
+  }
+  const valueOffset = mapTextOffset(data, 'need', 'value', valueRow)
   return (
     <g>
       <rect
@@ -752,10 +758,10 @@ function NeedCard({
       />
       <g transform={`translate(${labelOffset.dx} ${labelOffset.dy})`}>
         <rect
-          x={placed.x + 12}
-          y={placed.y + 31}
-          width={placed.w - 24}
-          height={38}
+          x={labelRow.x}
+          y={labelRow.y}
+          width={labelRow.w}
+          height={labelRow.h}
           {...editableHitAreaProps(
             labelEdit,
             onElementClick,
@@ -764,7 +770,7 @@ function NeedCard({
         />
         <text
           x={placed.x + placed.w / 2}
-          y={placed.y + 58}
+          y={centeredTextBaseline(labelRow.y, labelRow.h, labelFs)}
           fill={INK}
           fontFamily={FONT_SANS}
           fontSize={labelFs}
@@ -782,10 +788,10 @@ function NeedCard({
       </g>
       <g transform={`translate(${valueOffset.dx} ${valueOffset.dy})`}>
         <rect
-          x={placed.x + 12}
-          y={placed.y + 75}
-          width={placed.w - 24}
-          height={52}
+          x={valueRow.x}
+          y={valueRow.y}
+          width={valueRow.w}
+          height={valueRow.h}
           {...editableHitAreaProps(
             valueEdit,
             onElementClick,
@@ -794,7 +800,7 @@ function NeedCard({
         />
         <text
           x={placed.x + placed.w / 2}
-          y={placed.y + 111}
+          y={centeredTextBaseline(valueRow.y, valueRow.h, valueFs)}
           fill={NEED_RED}
           fontFamily={FONT_SERIF}
           fontSize={valueFs}

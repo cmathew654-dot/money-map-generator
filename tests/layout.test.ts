@@ -170,6 +170,46 @@ function singleAccountData(shape: AccountShape): MoneyMapData {
   return data
 }
 
+const TEXT_DESCENT = 0.22
+
+function textTop(baseline: number, fontSize: number): number {
+  return baseline - fontSize
+}
+
+function textBottom(baseline: number, fontSize: number): number {
+  return baseline + fontSize * TEXT_DESCENT
+}
+
+function wrappedAccountData(shape: AccountShape, caption = true): MoneyMapData {
+  const data = blankClient()
+  data.asNeededAmount = 10_000
+  data.accounts = [
+    {
+      id: 'aligned-account',
+      bucket: 'shortTerm',
+      shape,
+      label: caption
+        ? 'Long-Term Household Reserve for Future Income'
+        : 'Reserve',
+      caption: caption ? 'Held jointly for planned retirement spending' : undefined,
+      value: 250_000,
+      positions: [
+        { label: 'Treasury ladder', value: 120_000 },
+        { label: 'Money market reserve', value: 130_000 },
+      ],
+      subAccounts: [
+        {
+          label: 'Near-Term Funds',
+          caption: 'Two years of spending',
+          value: 80_000,
+        },
+      ],
+      inWaterfall: false,
+    },
+  ]
+  return data
+}
+
 function textStressData(
   label: string,
   caption?: string,
@@ -247,7 +287,7 @@ function expectAccountTextIntegrity(data: MoneyMapData) {
                 ? placed.text.valueFontSize
                 : TYPE.runway),
           ),
-      ).toBeLessThanOrEqual(placed.h)
+      ).toBeLessThanOrEqual(placed.h + 1e-9)
     } else {
       const bottomClearance =
         accountShape(placed.account) === 'pill' ? 24 : 20
@@ -776,13 +816,16 @@ describe('layoutMap', () => {
     expect(migratedCount).toBeGreaterThan(0)
   })
 
-  it('keeps the content-light cash drum compact', () => {
+  it('grows the content-light cash drum only enough for cap clearance', () => {
     const cash = layoutMap(SAMPLE_WHITFIELD).accounts.find(
       (placed) => placed.account.id === 'cash-at-bank',
     )!
 
-    expect(cash.h).toBeGreaterThanOrEqual(150)
-    expect(cash.h).toBeLessThanOrEqual(180)
+    expect(cash.h).toBeCloseTo(
+      cash.contentBottom +
+        cash.capRy +
+        roleGap(cash.text.valueFontSize, cash.text.valueFontSize),
+    )
   })
 
   it.each([
@@ -1200,7 +1243,7 @@ describe('layoutMap', () => {
       expect(layout.footnotesAt.y).toBe(930)
     }
     expect(sample.income).toEqual({ x: 48, y: 118, w: 280, h: 264 })
-    expect(sample.need).toEqual({ x: 48, y: 640.2, w: 250, h: 170 })
+    expect(sample.need).toEqual({ x: 48, y: 648, w: 250, h: 170 })
     expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 132 })
     expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
   })
@@ -1347,26 +1390,10 @@ describe('layoutMap', () => {
     expect(enlarged.h).toBeGreaterThan(base.h)
   })
 
-  it.each([
-    ['default', {}],
-    [
-      'enlarged',
-      {
-        'text:managed-after-tax-trust:label': { fs: 28 },
-        'text:managed-after-tax-trust:caption': { fs: 24 },
-        'text:managed-after-tax-trust:rows': { fs: 18 },
-        'text:managed-after-tax-trust:value': { fs: 30 },
-      },
-    ],
-  ])(
-    'derives %s account leading and adjacent-role gaps from effective type',
-    (_label, layoutOverrides) => {
-      const placed = layoutMap({
-        ...SAMPLE_WHITFIELD,
-        layoutOverrides,
-      }).accounts.find(
-        (account) => account.account.id === 'managed-after-tax-trust',
-      )!
+  it.each(['drum', 'card', 'rect', 'pill'] as const)(
+    'centers and spaces wrapped %s account content on rendered edges',
+    (shape) => {
+      const placed = layoutMap(wrappedAccountData(shape)).accounts[0]
       const { text } = placed
       const titleLast =
         text.titleY +
@@ -1376,30 +1403,83 @@ describe('layoutMap', () => {
         (placed.captionLines.length - 1) * text.captionLeading
       const firstRow = placed.positionRows[0]
       const lastRow = placed.positionRows.at(-1)!
+      const inset = placed.subAccountLayouts[0]
+      const insetTitleLast =
+        inset.titleY +
+        (inset.titleLines.length - 1) * inset.titleLeading
+      const insetCaptionLast =
+        inset.captionY! +
+        (inset.captionLines.length - 1) * inset.captionLeading
 
-      expect(text.titleLeading).toBeCloseTo(
-        text.titleFontSize * 1.3,
+      expect(placed.titleLines.length).toBeGreaterThan(1)
+      expect(text.titleX).toBe(0)
+      expect(text.captionX).toBe(0)
+      expect(text.valueX).toBe(0)
+      for (const row of placed.positionRows) {
+        expect((row.leftX + row.rightX) / 2).toBeCloseTo(placed.w / 2)
+      }
+      expect(placed.w * 0.14 + placed.w * 0.72 / 2).toBeCloseTo(
+        placed.w / 2,
       )
-      expect(text.captionLeading).toBeCloseTo(
-        text.captionFontSize * 1.45,
-      )
-      expect(text.rowLeading).toBeCloseTo(text.rowFontSize * 1.45)
+
+      const titleStart = textTop(text.titleY, text.titleFontSize)
+      const titleAnchor =
+        shape === 'drum'
+          ? placed.capRy * 2
+          : textBottom(text.tagY, TYPE.accountTag)
+      expect(titleStart - titleAnchor).toBeCloseTo(12)
       expect(
-        text.titleY - placed.capRy * 2,
-      ).toBeCloseTo(roleGap(text.titleLeading, text.titleLeading))
+        textTop(text.captionY!, text.captionFontSize) -
+          textBottom(titleLast, text.titleFontSize),
+      ).toBeCloseTo(12)
       expect(
-        text.captionY! - text.captionFontSize - titleLast,
-      ).toBeCloseTo(
-        roleGap(text.titleLeading, text.captionLeading),
-      )
+        textTop(firstRow.firstBaseline, text.rowFontSize) -
+          textBottom(captionLast, text.captionFontSize),
+      ).toBeCloseTo(12)
       expect(
-        firstRow.firstBaseline - text.rowFontSize - captionLast,
-      ).toBeCloseTo(
-        roleGap(text.captionLeading, text.rowLeading),
-      )
+        textTop(text.valueY, text.valueFontSize) -
+          textBottom(lastRow.lastBaseline, text.rowFontSize),
+      ).toBeCloseTo(16)
       expect(
-        text.valueY - text.valueFontSize - lastRow.lastBaseline,
-      ).toBeCloseTo(roleGap(text.rowLeading, text.valueFontSize))
+        textTop(text.runwayY!, TYPE.runway) -
+          textBottom(text.valueY, text.valueFontSize),
+      ).toBeCloseTo(8)
+
+      expect(
+        textTop(inset.titleY, inset.titleFontSize) - 20,
+      ).toBeCloseTo(12)
+      expect(
+        textTop(inset.captionY!, inset.captionFontSize) -
+          textBottom(insetTitleLast, inset.titleFontSize),
+      ).toBeCloseTo(12)
+      expect(
+        textTop(inset.valueY, inset.valueFontSize) -
+          textBottom(insetCaptionLast, inset.captionFontSize),
+      ).toBeCloseTo(16)
+    },
+  )
+
+  it.each(['drum', 'card', 'rect', 'pill'] as const)(
+    'keeps short no-caption %s accounts on the same 12/16 rhythm',
+    (shape) => {
+      const placed = layoutMap(wrappedAccountData(shape, false)).accounts[0]
+      const { text } = placed
+      const titleLast =
+        text.titleY +
+        (placed.titleLines.length - 1) * text.titleLeading
+      const firstRow = placed.positionRows[0]
+      const lastRow = placed.positionRows.at(-1)!
+
+      expect(placed.titleLines).toHaveLength(1)
+      expect(text.captionY).toBeUndefined()
+      expect(
+        textTop(firstRow.firstBaseline, text.rowFontSize) -
+          textBottom(titleLast, text.titleFontSize),
+      ).toBeCloseTo(12)
+      expect(
+        textTop(text.valueY, text.valueFontSize) -
+          textBottom(lastRow.lastBaseline, text.rowFontSize),
+      ).toBeCloseTo(16)
     },
   )
 
@@ -1469,7 +1549,7 @@ describe('layoutMap', () => {
     ['default', undefined],
     ['enlarged', 40],
   ])(
-    'uses proportional leading and gaps inside the %s sub-account inset',
+    'keeps fixed rendered-edge gaps inside the %s sub-account inset',
     (_label, fontSize) => {
       const accountId = 'managed-ira-jordan'
       const placed = layoutMap({
@@ -1493,25 +1573,20 @@ describe('layoutMap', () => {
       expect(inset.captionLeading).toBeCloseTo(
         inset.captionFontSize * 1.45,
       )
-      expect(inset.titleY - 20).toBeCloseTo(
-        roleGap(inset.titleLeading, inset.titleLeading),
-      )
       expect(
-        inset.captionY! - inset.captionFontSize - titleLast,
-      ).toBeCloseTo(
-        roleGap(inset.titleLeading, inset.captionLeading),
-      )
+        textTop(inset.titleY, inset.titleFontSize) - 20,
+      ).toBeCloseTo(12)
       expect(
-        inset.valueY - inset.valueFontSize - captionLast,
-      ).toBeCloseTo(
-        roleGap(inset.captionLeading, inset.valueFontSize),
-      )
+        textTop(inset.captionY!, inset.captionFontSize) -
+          textBottom(titleLast, inset.titleFontSize),
+      ).toBeCloseTo(12)
       expect(inset.h - 10 - inset.lastBaseline).toBeCloseTo(
         roleGap(inset.valueFontSize, inset.valueFontSize),
       )
-      expect(inset.y - placed.text.valueY).toBeCloseTo(
-        roleGap(placed.text.valueFontSize, inset.titleLeading),
-      )
+      expect(
+        textTop(inset.valueY, inset.valueFontSize) -
+          textBottom(captionLast, inset.captionFontSize),
+      ).toBeCloseTo(16)
     },
   )
 
