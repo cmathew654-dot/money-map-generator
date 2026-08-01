@@ -22,9 +22,13 @@ import {
   resolveCustomArrowColor,
 } from '../src/render/MapSvg'
 import {
+  MapTextEditor,
   adjustMapTextFontSize,
   applyMapTextEdit,
   applyMapTextFontSize,
+  mapTextEditorDismissAction,
+  mapTextEditorFocusOrigin,
+  mapTextEditorShouldRestoreFocus,
   mapTextEditorPillPosition,
   mapTextEditorTextStyle,
   mapTextEditFsInfo,
@@ -35,6 +39,63 @@ import {
 const accountId = 'managed-ira-jordan'
 
 describe('seamless map text editor geometry and typography', () => {
+  it('renders a visible close control with the required accessible name', () => {
+    const markup = renderToStaticMarkup(
+      createElement(MapTextEditor, {
+        containerRef: { current: null },
+        edit: {
+          rawValue: '$2,450,000',
+          rect: { left: 200, top: 120, width: 120, height: 30 },
+          target: { kind: 'accountValue', accountId },
+        },
+        onCancel: () => undefined,
+        onCommit: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('aria-label="Close text editor"')
+  })
+
+  it.each([
+    ['close', 'commit'],
+    ['outside', 'commit'],
+    ['escape', 'cancel'],
+  ] as const)('%s dismissal requests %s', (reason, action) => {
+    expect(mapTextEditorDismissAction(reason)).toBe(action)
+  })
+
+  it.each([
+    ['close', true],
+    ['escape', true],
+    ['outside', false],
+  ] as const)(
+    '%s dismissal restores originating map focus: %s',
+    (reason, expected) => {
+      expect(mapTextEditorShouldRestoreFocus(reason)).toBe(expected)
+    },
+  )
+  it('keeps the exact captured origin among duplicate edit keys until it disconnects', () => {
+    const key = `accountValue:${accountId}`
+    const candidate = {
+      isConnected: true,
+      getAttribute: (name: string) =>
+        name === 'data-map-edit-key' ? key : null,
+    }
+    const invoked = {
+      isConnected: true,
+      getAttribute: (name: string) =>
+        name === 'data-map-edit-key' ? key : null,
+    }
+
+    expect(mapTextEditorFocusOrigin(invoked, key, [candidate, invoked])).toBe(
+      invoked,
+    )
+
+    invoked.isConnected = false
+    expect(mapTextEditorFocusOrigin(invoked, key, [candidate, invoked])).toBe(
+      candidate,
+    )
+  })
   it('renders the shared effective income total sizes', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
@@ -561,11 +622,18 @@ describe('noninteractive map rendering', () => {
     'map-arrow-colors',
     'map-connect-handle',
     'map-resize-handle',
-    'map-rotate-handle',
-    'map-shape-flip',
+
     'map-note-delete',
     'map-note-background',
     'map-note-resize',
+  ]
+  const selectedAccountChrome = [
+    'data-account-controls-for=',
+    'map-account-controls',
+    'map-shape-picker',
+    'map-adjust-controls',
+    'map-connect-flow-control',
+    'map-rotate-handle',
   ]
 
   it('emits zero editor chrome nodes without edit callbacks', () => {
@@ -592,6 +660,9 @@ describe('noninteractive map rendering', () => {
     expect(markup).toContain('$2,000/mo — funds 529')
     expect(markup).toContain('data-arrow-style="solid"')
     for (const className of editorChrome) {
+      expect(markup).not.toContain(className)
+    }
+    for (const className of selectedAccountChrome) {
       expect(markup).not.toContain(className)
     }
     expect(markup).not.toContain('map-interactive')
@@ -867,7 +938,36 @@ describe('noninteractive map rendering', () => {
     )
   })
 
-  it('keeps editor chrome in the interactive render path', () => {
+  it('compacts only constrained as-needed money while retaining exact accessible text', () => {
+    const constrained = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data: { ...SAMPLE_WHITFIELD, asNeededAmount: 930_923_028 },
+      }),
+    )
+    const unconstrained = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data: { ...SAMPLE_WHITFIELD, asNeededAmount: 930_923 },
+      }),
+    )
+    const placeholder = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data: { ...SAMPLE_WHITFIELD, asNeededAmount: null },
+      }),
+    )
+
+    expect(constrained).toContain(
+      'aria-label="Monthly Income as Needed $930,923,028"',
+    )
+    expect(constrained).toContain(
+      '<title>Monthly Income as Needed $930,923,028</title>',
+    )
+    expect(constrained).toMatch(/>\$930\.9M<\/tspan>/)
+    expect(unconstrained).toMatch(/>\$930,923<\/tspan>/)
+    expect(unconstrained).not.toContain('$930.9K')
+    expect(placeholder).toContain('~$ ______')
+  })
+
+  it('keeps global chrome interactive and account chrome selected-only', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
       notes: [
@@ -889,18 +989,30 @@ describe('noninteractive map rendering', () => {
         onElementClick: () => undefined,
       }),
     )
+    const selectedMarkup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data,
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+        selectedTargetKey: 'account:' + data.accounts[0].id,
+      }),
+    )
 
     expect(markup).toContain('map-interactive')
-    expect(markup).toContain(
-      'aria-hidden="true" class="map-resize-handle"',
-    )
+    expect(markup).not.toContain('data-account-controls-for=')
     expect(markup).toMatch(
-      /data-connect-id="income"(?=[^>]*aria-keyshortcuts="[^"]*Alt\+ArrowRight")[^>]*>/,
+      /data-connect-id="income"(?=[^>]*aria-keyshortcuts="[^"]*Alt\+ArrowRight Enter Space")[^>]*>/,
     )
     expect(markup).toContain('class="map-editable-hit"')
     for (const className of editorChrome) {
       expect(markup).toContain(className)
     }
+    for (const className of selectedAccountChrome) {
+      expect(selectedMarkup).toContain(className)
+    }
     expect(markup).toContain('class="map-arrow-color-ring" cx="0"')
+    expect(selectedMarkup).toContain('>×</text>')
+    expect(selectedMarkup).toContain('>—</text>')
+    expect(selectedMarkup).toContain(' → ')
   })
 })

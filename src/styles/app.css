@@ -2022,3 +2022,174 @@ summary:focus-visible {
     fill: Highlight;
   }
 }
+
+/* Session 40 selected map controls */
+.map-account-decoration {
+  pointer-events: none;
+}
+
+.map-interactive .map-editable-hit:hover,
+.map-interactive .map-editable-hit:focus-visible {
+  fill: rgb(30 122 74 / 0.08);
+  stroke: rgb(30 122 74 / 0.7);
+  stroke-width: 1.5;
+}
+
+.map-interactive [data-account-id][data-map-target]:hover,
+.map-interactive [data-account-id][data-map-selected='true'] {
+  filter: drop-shadow(0 0 5px rgb(30 122 74 / 0.5));
+}
+
+.map-interactive[data-connect-mode='true']
+  [data-connect-id]:not([data-account-controls-for]) {
+  filter: drop-shadow(0 0 7px rgb(47 107 171 / 0.75));
+}
+
+.map-account-controls,
+.map-account-controls .map-resize-handle,
+.map-account-controls .map-rotate-handle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.map-control-panel,
+.map-control-button,
+.map-control-surface {
+  fill: rgb(255 255 255 / 0.97);
+  stroke: #77837e;
+  stroke-width: 2;
+}
+
+.map-control-panel {
+  filter: drop-shadow(0 4px 7px rgb(28 36 34 / 0.18));
+}
+
+.map-shape-option,
+.map-adjust-button,
+.map-connect-flow-control {
+  cursor: pointer;
+}
+
+.map-shape-option.is-active .map-control-button,
+.map-shape-option:hover .map-control-button,
+.map-adjust-button:hover .map-control-button,
+.map-connect-flow-control:hover .map-control-button {
+  fill: #dcefe4;
+  stroke: #1e7a4a;
+  stroke-width: 3;
+}
+
+.map-control-label,
+.map-adjust-glyph,
+.map-connect-flow-label {
+  fill: #1c2422;
+  font-family: 'Public Sans', 'Segoe UI', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.map-adjust-glyph {
+  font-size: 21px;
+}
+
+.map-shape-option-glyph,
+.map-rotate-glyph,
+.map-resize-glyph,
+.map-connect-flow-glyph {
+  fill: none;
+  pointer-events: none;
+  stroke: #2a3230;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.map-control-hit {
+  fill: transparent;
+  pointer-events: all;
+  stroke: none;
+}
+
+.map-account-controls .map-rotate-handle {
+  cursor: grab;
+}
+
+.map-account-controls .map-resize-handle {
+  cursor: nwse-resize;
+}
+
+.map-account-controls .map-control-surface {
+  fill: #fff;
+  stroke: #1e7a4a;
+  stroke-width: 3;
+}
+
+.map-connect-flow-label {
+  font-size: 22px;
+}
+
+@media print {
+  .map-interaction-control,
+  .map-connect-handle,
+  .map-resize-handle,
+  .map-rotate-handle {
+    display: none !important;
+  }
+}
+/* Session 40 map control review fixes */
+.map-account-body-hit {
+  fill: transparent;
+  pointer-events: all;
+  stroke: transparent;
+}
+
+@media (forced-colors: active) {
+  .map-account-controls,
+  .map-shape-option,
+  .map-adjust-button,
+  .map-connect-flow-control {
+    forced-color-adjust: none;
+  }
+
+  .map-control-panel,
+  .map-control-button,
+  .map-control-surface {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+
+  .map-shape-option-glyph,
+  .map-rotate-glyph,
+  .map-resize-glyph,
+  .map-connect-flow-glyph {
+    fill: none;
+    stroke: CanvasText;
+  }
+
+  .map-control-label,
+  .map-adjust-glyph,
+  .map-connect-flow-label {
+    fill: CanvasText;
+  }
+
+  .map-shape-option:focus-visible,
+  .map-adjust-button:focus-visible,
+  .map-connect-flow-control:focus-visible {
+    outline: 2px solid Highlight;
+    outline-color: Highlight;
+    outline-offset: 2px;
+  }
+
+  .map-shape-option.is-active .map-control-button {
+    fill: Highlight;
+    stroke: HighlightText;
+  }
+
+  .map-interactive
+    [data-account-id][data-map-selected='true']
+    .map-account-body-hit {
+    stroke: Highlight;
+    stroke-width: 3;
+  }
+}

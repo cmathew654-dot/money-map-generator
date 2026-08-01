@@ -86,6 +86,31 @@ export interface MapTextEditorPillPosition {
   top: number
 }
 
+export type MapTextEditorDismissReason = 'close' | 'escape' | 'outside'
+export type MapTextEditorDismissAction = 'cancel' | 'commit'
+
+export function mapTextEditorDismissAction(
+  reason: MapTextEditorDismissReason,
+): MapTextEditorDismissAction {
+  return reason === 'escape' ? 'cancel' : 'commit'
+}
+export function mapTextEditorShouldRestoreFocus(
+  reason: MapTextEditorDismissReason,
+): boolean {
+  return reason !== 'outside'
+}
+export function mapTextEditorFocusOrigin<
+  T extends {
+    readonly isConnected: boolean
+    getAttribute(name: string): string | null
+  },
+>(captured: T | null, targetKey: string, fallbacks: readonly T[] = []): T | null {
+  const matches = (candidate: T) =>
+    candidate.isConnected &&
+    candidate.getAttribute('data-map-edit-key') === targetKey
+  if (captured && matches(captured)) return captured
+  return fallbacks.find(matches) ?? null
+}
 export function mapTextEditTargetKey(target: MapTextEditTarget): string {
   switch (target.kind) {
     case 'accountValue':
@@ -653,15 +678,23 @@ export function MapTextEditor({
   onCommit(rawValue: string): void
   onFontSizeChange?(fontSize: number): void
 }) {
+  const targetKey = mapTextEditTargetKey(edit.target)
+  const activeElement =
+    typeof document === 'undefined' ? null : document.activeElement
   const [rawValue, setRawValue] = useState(edit.rawValue)
+  const editorRef = useRef<HTMLDivElement>(null)
   const finished = useRef(false)
+  const originRef = useRef<SVGElement | null>(
+    typeof SVGElement !== 'undefined' && activeElement instanceof SVGElement
+      ? mapTextEditorFocusOrigin(activeElement, targetKey)
+      : null,
+  )
   const sizeControlsRef = useRef<HTMLDivElement>(null)
   const container = containerRef.current
   const containerRect = container?.getBoundingClientRect()
   const mapRect = container?.querySelector('svg')?.getBoundingClientRect()
   const sizeOnly = isSizeOnlyTarget(edit.target)
   const fontSizeMax = edit.fontSizeMax ?? MAX_ACCOUNT_TEXT_FONT_SIZE
-  const targetKey = mapTextEditTargetKey(edit.target)
   const mapScale = mapRect ? mapRect.width / ARTBOARD.width : 1
   const textStyle = mapTextEditorTextStyle(
     edit.target,
@@ -696,9 +729,11 @@ export function MapTextEditor({
       (container?.scrollTop ?? 0),
     width: Math.max(edit.rect.width, 24),
   }
+  const pillButtonCount = edit.fontSize === undefined ? 1 : 3
   const pillScreenPosition = mapTextEditorPillPosition(
     edit.rect,
     mapRect?.top ?? edit.rect.top,
+    pillButtonCount * 36,
   )
   const pillStyle: CSSProperties = {
     left:
@@ -710,18 +745,42 @@ export function MapTextEditor({
       (containerRect?.top ?? 0) +
       (container?.scrollTop ?? 0),
   }
-  const finish = (action: () => void) => {
+  const restoreOriginFocus = () => {
+    const origin = originRef.current
+    window.setTimeout(() => {
+      if (origin?.isConnected) origin.focus()
+    }, 0)
+  }
+  const finish = (reason: MapTextEditorDismissReason) => {
     if (finished.current) return
     finished.current = true
-    action()
+    if (mapTextEditorDismissAction(reason) === 'cancel') onCancel()
+    else onCommit(rawValue)
+    if (mapTextEditorShouldRestoreFocus(reason)) restoreOriginFocus()
   }
 
   useEffect(() => {
     if (sizeOnly) sizeControlsRef.current?.focus()
   }, [sizeOnly])
 
+  useEffect(() => {
+    const handlePointerDown = (event: globalThis.PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (
+        editorRef.current?.contains(target) ||
+        sizeControlsRef.current?.contains(target)
+      ) {
+        return
+      }
+      finish('outside')
+    }
+    document.addEventListener('pointerdown', handlePointerDown, true)
+    return () =>
+      document.removeEventListener('pointerdown', handlePointerDown, true)
+  })
+
   useLayoutEffect(() => {
-    if (sizeOnly) return
     const editedElements = Array.from(
       containerRef.current?.querySelectorAll<SVGElement>(
         '[data-map-edit-key]',
@@ -729,9 +788,22 @@ export function MapTextEditor({
     ).filter(
       (element) => element.getAttribute('data-map-edit-key') === targetKey,
     )
-    editedElements.forEach((element) =>
-      element.classList.add('map-editing-text'),
+    const focusedElements = editedElements.filter(
+      (element) => element === document.activeElement,
     )
+    const tabStops = editedElements.filter((element) =>
+      element.hasAttribute('tabindex'),
+    )
+    originRef.current = mapTextEditorFocusOrigin(
+      originRef.current,
+      targetKey,
+      [...focusedElements, ...tabStops, ...editedElements],
+    )
+    if (!sizeOnly) {
+      editedElements.forEach((element) =>
+        element.classList.add('map-editing-text'),
+      )
+    }
     return () => {
       editedElements.forEach((element) =>
         element.classList.remove('map-editing-text'),
@@ -755,7 +827,11 @@ export function MapTextEditor({
     autoFocus: true,
     className: 'map-text-editor-input',
     inputMode,
-    onBlur: () => finish(() => onCommit(rawValue)),
+    onBlur: (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const nextTarget = event.relatedTarget as Node | null
+      if (nextTarget && sizeControlsRef.current?.contains(nextTarget)) return
+      finish('outside')
+    },
     onChange: (
       event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => setRawValue(event.target.value),
@@ -767,14 +843,10 @@ export function MapTextEditor({
     ) => {
       if (event.key === 'Enter') {
         event.preventDefault()
-        finish(() => onCommit(rawValue))
+        finish('close')
       } else if (event.key === 'Escape') {
         event.preventDefault()
-        finish(
-          edit.target.kind === 'noteText'
-            ? () => onCommit(rawValue)
-            : onCancel,
-        )
+        finish('escape')
       }
     },
     placeholder:
@@ -785,7 +857,7 @@ export function MapTextEditor({
   return (
     <>
       {!sizeOnly && (
-        <div className="map-text-editor" style={inputStyle}>
+        <div ref={editorRef} className="map-text-editor" style={inputStyle}>
           {multiline ? (
             <textarea {...controlProps} />
           ) : (
@@ -793,65 +865,77 @@ export function MapTextEditor({
           )}
         </div>
       )}
-      {edit.fontSize !== undefined && (
-        <div
-          ref={sizeControlsRef}
-          aria-label={sizeOnly ? editorLabel(edit.target) : 'Font size'}
-          className={`map-text-size-controls is-${pillScreenPosition.placement}`}
-          role={sizeOnly ? 'group' : undefined}
-          style={pillStyle}
-          tabIndex={sizeOnly ? 0 : undefined}
-          onBlur={(event) => {
-            if (
-              !sizeOnly ||
-              event.currentTarget.contains(event.relatedTarget as Node | null)
-            ) {
-              return
-            }
-            finish(() => onCommit(rawValue))
-          }}
-          onKeyDown={(event) => {
-            if (!sizeOnly) return
-            if (event.key === 'Escape') {
-              event.preventDefault()
-              finish(onCancel)
-            } else if (
-              event.key === 'Enter' &&
-              event.target === event.currentTarget
-            ) {
-              event.preventDefault()
-              finish(() => onCommit(rawValue))
-            }
-          }}
+      <div
+        ref={sizeControlsRef}
+        aria-label={sizeOnly ? editorLabel(edit.target) : undefined}
+        className={`map-text-size-controls is-${pillScreenPosition.placement}`}
+        role={sizeOnly ? 'group' : undefined}
+        style={pillStyle}
+        tabIndex={sizeOnly ? 0 : undefined}
+        onBlur={(event) => {
+          const nextTarget = event.relatedTarget as Node | null
+          if (
+            nextTarget &&
+            (event.currentTarget.contains(nextTarget) ||
+              editorRef.current?.contains(nextTarget))
+          ) {
+            return
+          }
+          finish('outside')
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            finish('escape')
+          } else if (
+            sizeOnly &&
+            event.key === 'Enter' &&
+            event.target === event.currentTarget
+          ) {
+            event.preventDefault()
+            finish('close')
+          }
+        }}
+      >
+        {edit.fontSize !== undefined && (
+          <>
+            <button
+              aria-label="Decrease font size"
+              disabled={edit.fontSize <= MIN_MAP_TEXT_FONT_SIZE}
+              type="button"
+              onClick={() =>
+                onFontSizeChange?.(
+                  adjustMapTextFontSize(edit.fontSize!, -1, fontSizeMax),
+                )
+              }
+              onPointerDown={(event) => event.preventDefault()}
+            >
+              A−
+            </button>
+            <button
+              aria-label="Increase font size"
+              disabled={edit.fontSize >= fontSizeMax}
+              type="button"
+              onClick={() =>
+                onFontSizeChange?.(
+                  adjustMapTextFontSize(edit.fontSize!, 1, fontSizeMax),
+                )
+              }
+              onPointerDown={(event) => event.preventDefault()}
+            >
+              A+
+            </button>
+          </>
+        )}
+        <button
+          aria-label="Close text editor"
+          type="button"
+          onClick={() => finish('close')}
+          onPointerDown={(event) => event.preventDefault()}
         >
-          <button
-            aria-label="Decrease font size"
-            disabled={edit.fontSize <= MIN_MAP_TEXT_FONT_SIZE}
-            type="button"
-            onClick={() =>
-              onFontSizeChange?.(
-                adjustMapTextFontSize(edit.fontSize!, -1, fontSizeMax),
-              )
-            }
-            onPointerDown={(event) => event.preventDefault()}
-          >
-            A−
-          </button>
-          <button
-            aria-label="Increase font size"
-            disabled={edit.fontSize >= fontSizeMax}
-            type="button"
-            onClick={() =>
-              onFontSizeChange?.(
-                adjustMapTextFontSize(edit.fontSize!, 1, fontSizeMax),
-              )
-            }
-            onPointerDown={(event) => event.preventDefault()}
-          >
-            A+
-          </button>
-        </div>
-      )}
+          ×
+        </button>
+      </div>
     </>
   )
 }
