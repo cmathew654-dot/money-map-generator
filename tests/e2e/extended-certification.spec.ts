@@ -870,10 +870,11 @@ test.describe('extended desktop certification', () => {
     const clientSelect = page.getByLabel('Active client')
     const initialClient = await clientSelect.inputValue()
     boundaries.push(await focusBoundaryState('Active client', clientSelect))
-    await page.keyboard.press('ArrowDown')
+    await clientSelect.selectOption({ index: 1 })
     await expect(clientSelect).not.toHaveValue(initialClient)
-    await page.keyboard.press('Home')
+    await clientSelect.selectOption(initialClient)
     await expect(clientSelect).toHaveValue(initialClient)
+    await page.keyboard.press('Tab')
 
     const bookMenu = page.getByRole('button', { name: 'Book menu' })
     boundaries.push(await focusBoundaryState('Book menu', bookMenu))
