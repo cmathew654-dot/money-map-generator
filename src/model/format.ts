@@ -81,6 +81,55 @@ export function money(value: number | null, opts?: { approx?: boolean }): string
   return `${opts?.approx ? '~' : ''}${sign}$${grouped}`
 }
 
+export interface MapMoneyText {
+  display: string
+  exact: string
+}
+
+const MAP_MONEY_UNITS = [
+  { divisor: 1_000, suffix: 'K' },
+  { divisor: 1_000_000, suffix: 'M' },
+  { divisor: 1_000_000_000, suffix: 'B' },
+  { divisor: 1_000_000_000_000, suffix: 'T' },
+] as const
+
+/** Compact visual text for constrained map labels, with exact text retained. */
+export function mapMoney(
+  value: number | null,
+  maxLength: number,
+  opts?: { approx?: boolean },
+): MapMoneyText {
+  const exact = money(value, opts)
+  if (
+    value === null ||
+    !Number.isFinite(value) ||
+    exact.length <= maxLength
+  ) {
+    return { display: exact, exact }
+  }
+
+  const rounded = Math.abs(Math.round(value))
+  let unitIndex = -1
+  for (let index = 0; index < MAP_MONEY_UNITS.length; index += 1) {
+    if (rounded >= MAP_MONEY_UNITS[index].divisor) unitIndex = index
+  }
+  if (unitIndex < 0) return { display: exact, exact }
+
+  let scaled = rounded / MAP_MONEY_UNITS[unitIndex].divisor
+  if (
+    Number(scaled.toFixed(1)) >= 1_000 &&
+    unitIndex < MAP_MONEY_UNITS.length - 1
+  ) {
+    unitIndex += 1
+    scaled = rounded / MAP_MONEY_UNITS[unitIndex].divisor
+  }
+  const amount = scaled.toFixed(1).replace(/\.0$/, '')
+  const prefix = `${opts?.approx ? '~' : ''}${value < 0 ? '-' : ''}$`
+  return {
+    display: `${prefix}${amount}${MAP_MONEY_UNITS[unitIndex].suffix}`,
+    exact,
+  }
+}
 /** For income rows: "$3,000 mo." / "$25,000 yr." */
 export function moneyPer(value: number | null, period: 'mo' | 'yr'): string {
   if (value === null) return BLANK

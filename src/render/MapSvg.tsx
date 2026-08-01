@@ -1,5 +1,4 @@
 ﻿import {
-  useEffect,
   useId,
   useRef,
   useState,
@@ -33,6 +32,7 @@ import {
   accountDisplayName,
   mastheadPeriodLabel,
   money,
+  mapMoney,
   moneyPer,
 } from '../model/format'
 import { gapLine, runwayLine } from '../model/math'
@@ -55,7 +55,6 @@ import {
   accountTextOverrideKey,
   mapItemTextOverrideKey,
   mapTextOverrideKey,
-  nextAccountShape,
 } from '../model/types'
 import type {
   MapTextEditRect,
@@ -139,6 +138,8 @@ export type MapElementTarget =
     }
 
 interface MapSvgProps {
+  selectedTargetKey?: string | null
+  onSelectedTargetChange?: (targetKey: string | null) => void
   data: MoneyMapData
   onElementClick?: (target: MapElementTarget) => void
   onChange?: (data: MoneyMapData) => void
@@ -149,6 +150,8 @@ interface MapEditDataAttributes {
   'data-edit-line-node'?: string
   'data-map-edit-hit'?: string
   'data-map-edit-key'?: string
+  'data-map-edit-visual'?: string
+  'data-map-target'?: string
   'data-layout-key'?: string
 }
 
@@ -231,6 +234,7 @@ function editableTextProps(
     className: 'map-editable-text',
     'data-edit-line-node': mapTextEditTargetKey(edit),
     'data-map-edit-key': mapTextEditTargetKey(edit),
+    'data-map-target': 'text:' + mapTextEditTargetKey(edit),
     'data-layout-key': fixedTextOverrideKey(edit) ?? undefined,
     'aria-keyshortcuts': fixedTextOverrideKey(edit) ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined,
     onPointerDown,
@@ -312,6 +316,7 @@ function editableHitAreaProps(
     'aria-label': `Edit ${mapTextEditTargetKey(edit)}`,
     className: 'map-editable-hit',
     'data-map-edit-hit': mapTextEditTargetKey(edit),
+    'data-map-target': 'text:' + mapTextEditTargetKey(edit),
     'data-layout-key': fixedTextOverrideKey(edit) ?? undefined,
     'aria-keyshortcuts': fixedTextOverrideKey(edit) ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined,
     fill: 'transparent',
@@ -888,9 +893,11 @@ function SubAccountDrum({
       />
       <ellipse
         cx={x + w / 2}
+        className="map-account-decoration"
         cy={y + capRy}
         rx={w / 2}
         ry={capRy}
+        pointerEvents="none"
         fill={fill}
         stroke={stroke}
         strokeDasharray="6 5"
@@ -990,6 +997,39 @@ function SubAccountDrum({
   )
 }
 
+function accountVisualTextProps(
+  edit: MapTextEditTarget,
+): SVGProps<SVGTextElement> & MapEditDataAttributes {
+  const key = mapTextEditTargetKey(edit)
+  return {
+    'aria-hidden': true,
+    className: 'map-editable-text',
+    'data-edit-line-node': key,
+    'data-map-edit-visual': key,
+    pointerEvents: 'none',
+  }
+}
+
+function accountTextHitRect(
+  centerX: number,
+  baselineY: number,
+  accountWidth: number,
+  fontSize: number,
+  leading: number,
+  lineCount: number,
+) {
+  const width = Math.max(72, accountWidth * 0.84)
+  const height = Math.max(
+    28,
+    Math.max(0, lineCount - 1) * leading + fontSize * 1.4,
+  )
+  return {
+    height,
+    width,
+    x: centerX - width / 2,
+    y: baselineY - fontSize,
+  }
+}
 function AccountContent({
   onElementClick,
   onTextPointerDown,
@@ -1017,6 +1057,57 @@ function AccountContent({
     w,
   } = placed
   const style = BUCKETS[account.bucket]
+  const titleEdit: MapTextEditTarget = {
+    kind: 'accountLabel',
+    accountId: account.id,
+  }
+  const captionEdit: MapTextEditTarget = {
+    kind: 'accountCaption',
+    accountId: account.id,
+  }
+  const valueEdit: MapTextEditTarget = {
+    kind: 'accountValue',
+    accountId: account.id,
+  }
+  const titlePointerDown = onTextPointerDown?.(account.id, 'label')
+  const captionPointerDown = onTextPointerDown?.(account.id, 'caption')
+  const valuePointerDown = onTextPointerDown?.(account.id, 'value')
+  const titleTextProps = onElementClick
+    ? accountVisualTextProps(titleEdit)
+    : editableTextProps(titleEdit, onElementClick, titlePointerDown)
+  const captionTextProps = onElementClick
+    ? accountVisualTextProps(captionEdit)
+    : editableTextProps(captionEdit, onElementClick, captionPointerDown)
+  const valueTextProps = onElementClick
+    ? accountVisualTextProps(valueEdit)
+    : editableTextProps(valueEdit, onElementClick, valuePointerDown)
+  const titleHit = accountTextHitRect(
+    x + w / 2 + text.titleX,
+    y + text.titleY,
+    w,
+    text.titleFontSize,
+    text.titleLeading,
+    titleLines.length,
+  )
+  const captionHit =
+    text.captionY === undefined
+      ? null
+      : accountTextHitRect(
+          x + w / 2 + text.captionX,
+          y + text.captionY,
+          w,
+          text.captionFontSize,
+          text.captionLeading,
+          captionLines.length,
+        )
+  const valueHit = accountTextHitRect(
+    x + w / 2 + text.valueX,
+    y + text.valueY,
+    w,
+    text.valueFontSize,
+    text.valueFontSize,
+    1,
+  )
   return (
     <>
       <text
@@ -1040,11 +1131,7 @@ function AccountContent({
         fontSize={text.titleFontSize}
         fontWeight={600}
         textAnchor="middle"
-        {...editableTextProps(
-          { kind: 'accountLabel', accountId: account.id },
-          onElementClick,
-          onTextPointerDown?.(account.id, 'label'),
-        )}
+        {...titleTextProps}
       >
         {titleLines.map((line, index) => (
           <tspan
@@ -1060,7 +1147,23 @@ function AccountContent({
           </tspan>
         ))}
       </text>
+      {onElementClick && (
+        <rect
+          x={titleHit.x}
+          y={titleHit.y}
+          width={titleHit.width}
+          height={titleHit.height}
+          {...editableHitAreaProps(
+            titleEdit,
+            onElementClick,
+            titlePointerDown,
+          )}
+          data-map-edit-key={mapTextEditTargetKey(titleEdit)}
+          pointerEvents="all"
+        />
+      )}
       {text.captionY !== undefined && (
+        <>
         <text
           x={x + w / 2 + text.captionX}
           y={y + text.captionY}
@@ -1068,11 +1171,7 @@ function AccountContent({
           fontFamily={FONT_SANS}
           fontSize={text.captionFontSize}
           textAnchor="middle"
-          {...editableTextProps(
-            { kind: 'accountCaption', accountId: account.id },
-            onElementClick,
-            onTextPointerDown?.(account.id, 'caption'),
-          )}
+          {...captionTextProps}
         >
           {captionLines.map((line, index) => (
             <tspan
@@ -1088,6 +1187,22 @@ function AccountContent({
             </tspan>
           ))}
         </text>
+        {onElementClick && captionHit && (
+          <rect
+            x={captionHit.x}
+            y={captionHit.y}
+            width={captionHit.width}
+            height={captionHit.height}
+            {...editableHitAreaProps(
+              captionEdit,
+              onElementClick,
+              captionPointerDown,
+            )}
+            data-map-edit-key={mapTextEditTargetKey(captionEdit)}
+            pointerEvents="all"
+          />
+        )}
+        </>
       )}
       {placed.positionRows.map((row, index) => {
         return (
@@ -1164,11 +1279,7 @@ function AccountContent({
         fontSize={text.valueFontSize}
         fontWeight={600}
         textAnchor="middle"
-        {...editableTextProps(
-          { kind: 'accountValue', accountId: account.id },
-          onElementClick,
-          onTextPointerDown?.(account.id, 'value'),
-        )}
+        {...valueTextProps}
       >
         <tspan
           style={numericStyle}
@@ -1193,6 +1304,21 @@ function AccountContent({
           </tspan>
         )}
       </text>
+      {onElementClick && (
+        <rect
+          x={valueHit.x}
+          y={valueHit.y}
+          width={valueHit.width}
+          height={valueHit.height}
+          {...editableHitAreaProps(
+            valueEdit,
+            onElementClick,
+            valuePointerDown,
+          )}
+          data-map-edit-key={mapTextEditTargetKey(valueEdit)}
+          pointerEvents="all"
+        />
+      )}
       {runway && (
         <text
           x={x + w / 2}
@@ -1256,7 +1382,35 @@ function FlatAccount({
   return (
     <g>
       {shape === 'rect' ? (
-        <path d={hexagonPath(x, y, w, h)} {...outlineProps} />
+        <path
+          aria-hidden="true"
+          className="map-account-body-hit"
+          d={hexagonPath(x, y, w, h)}
+          fill="transparent"
+          pointerEvents="all"
+          stroke="none"
+        />
+      ) : (
+        <rect
+          aria-hidden="true"
+          className="map-account-body-hit"
+          fill="transparent"
+          height={h}
+          pointerEvents="all"
+          rx={radius}
+          stroke="none"
+          width={w}
+          x={x}
+          y={y}
+        />
+      )}
+      {shape === 'rect' ? (
+        <path
+          className="map-account-decoration"
+          d={hexagonPath(x, y, w, h)}
+          pointerEvents="none"
+          {...outlineProps}
+        />
       ) : (
         <rect
           x={x}
@@ -1264,6 +1418,8 @@ function FlatAccount({
           width={w}
           height={h}
           rx={radius}
+          className="map-account-decoration"
+          pointerEvents="none"
           {...outlineProps}
         />
       )}
@@ -1334,7 +1490,28 @@ function Cylinder({
   return (
     <g>
       <path
+        aria-hidden="true"
+        className="map-account-body-hit"
         d={cylinderBody(x, y, w, h, capRy)}
+        fill="transparent"
+        pointerEvents="all"
+        stroke="none"
+      />
+      <ellipse
+        aria-hidden="true"
+        className="map-account-body-hit"
+        cx={centerX}
+        cy={y + capRy}
+        fill="transparent"
+        pointerEvents="all"
+        rx={w / 2}
+        ry={capRy}
+        stroke="none"
+      />
+      <path
+        className="map-account-decoration"
+        d={cylinderBody(x, y, w, h, capRy)}
+        pointerEvents="none"
         fill={style.tint}
         stroke={style.stroke}
         strokeDasharray={dash}
@@ -1342,9 +1519,11 @@ function Cylinder({
       />
       <ellipse
         cx={centerX}
+        className="map-account-decoration"
         cy={y + capRy}
         rx={w / 2}
         ry={capRy}
+        pointerEvents="none"
         fill={style.tint}
         stroke={style.stroke}
         strokeDasharray={dash}
@@ -1637,11 +1816,13 @@ function ArrowEditor({
 function ConnectHandle({
   endpointId,
   label,
+  onActivate,
   onBegin,
   placed,
 }: {
   endpointId: string
   label: string
+  onActivate: () => void
   onBegin: (
     sourceId: string,
     source: OutlineElement,
@@ -1653,9 +1834,13 @@ function ConnectHandle({
   return (
     <g
       aria-label={`Connect from ${label}`}
+      aria-keyshortcuts="Enter Space"
       className="map-connect-handle"
       role="button"
       tabIndex={0}
+      onKeyDown={(event) =>
+        activateMapControl(event, onActivate)
+      }
       onPointerDown={onBegin(endpointId, placed)}
     >
       <circle cx={x} cy={y} r={9} />
@@ -1679,8 +1864,12 @@ function AsNeededLabel({
   onElementClick?: (target: MapElementTarget) => void
 }) {
   if (!arrow.labelAt) return null
+  const amountText = mapMoney(amount, 10)
+  const accessibleLabel =
+    'Monthly Income as Needed ' + amountText.exact
   return (
-    <g>
+    <g aria-label={accessibleLabel}>
+      <title>{accessibleLabel}</title>
       <rect
         x={arrow.labelAt.x - 125}
         y={arrow.labelAt.y - 19}
@@ -1724,7 +1913,7 @@ function AsNeededLabel({
             true,
           )}
         >
-          {money(amount)}
+          {amountText.display}
         </tspan>
       </text>
     </g>
@@ -2013,7 +2202,430 @@ function NoteBlock({
   )
 }
 
+type AccountAdjustment =
+  | 'move-left'
+  | 'move-right'
+  | 'move-up'
+  | 'move-down'
+  | 'size-smaller'
+  | 'size-larger'
+  | 'rotate-counterclockwise'
+  | 'rotate-clockwise'
+
+const ACCOUNT_SHAPE_OPTIONS: ReadonlyArray<{
+  label: string
+  shape: AccountShape
+}> = [
+  { label: 'Card', shape: 'card' },
+  { label: 'Cylinder', shape: 'drum' },
+  { label: 'Bucket', shape: 'rect' },
+  { label: 'Pill', shape: 'pill' },
+]
+
+export interface AccountKeyboardActivation {
+  selectedTargetKey: string
+  connection?: { sourceId: string; targetId: string }
+}
+
+export function accountKeyboardActivation(
+  key: string,
+  accountId: string,
+  connectSourceId: string | null,
+): AccountKeyboardActivation | null {
+  if (key !== 'Enter' && key !== ' ') return null
+  const selectedTargetKey =
+    accountId === 'income' || accountId === 'need'
+      ? accountId
+      : 'account:' + accountId
+  if (!connectSourceId || connectSourceId === accountId) {
+    return { selectedTargetKey }
+  }
+  return {
+    connection: { sourceId: connectSourceId, targetId: accountId },
+    selectedTargetKey,
+  }
+}
+
+export function stopMapControlPointerDown(event: {
+  stopPropagation: () => void
+}) {
+  event.stopPropagation()
+}
+
+const ADJUST_PANEL_WIDTH = 584
+const MAP_CONTROL_MARGIN = 24
+
+export function adjustPanelX(centerX: number): number {
+  return Math.max(
+    MAP_CONTROL_MARGIN,
+    Math.min(
+      ARTBOARD.width - ADJUST_PANEL_WIDTH - MAP_CONTROL_MARGIN,
+      centerX - ADJUST_PANEL_WIDTH / 2,
+    ),
+  )
+}
+function activateMapControl(
+  event: KeyboardEvent<SVGGElement>,
+  activate: () => void,
+) {
+  if (event.key !== 'Enter' && event.key !== ' ') return
+  event.preventDefault()
+  event.stopPropagation()
+  activate()
+}
+
+function SelectedAccountControls({
+  onAdjust,
+  onBeginConnect,
+  onBeginResize,
+  onBeginRotate,
+  onChooseShape,
+  onEnterConnectMode,
+  placed,
+  shape,
+}: {
+  onAdjust: (action: AccountAdjustment) => void
+  onBeginConnect: (event: PointerEvent<SVGElement>) => void
+  onBeginResize: (event: PointerEvent<SVGElement>) => void
+  onBeginRotate: (event: PointerEvent<SVGElement>) => void
+  onChooseShape: (shape: AccountShape) => void
+  onEnterConnectMode: () => void
+  placed: PlacedAccount
+  shape: AccountShape
+}) {
+  const { account, x, y, w, h } = placed
+  const centerX = x + w / 2
+  const below = y + h + 230 < 1020
+  const shapeY = below ? y + h + 18 : y - 116
+  const adjustY = below ? shapeY + 104 : shapeY - 104
+  const adjustX = adjustPanelX(centerX)
+  const shapeX = Math.max(24, Math.min(896, centerX - 200))
+  const connectX = x + w + 192 < 1320 ? x + w + 12 : x - 192
+  const adjustments: ReadonlyArray<{
+    action: AccountAdjustment
+    label: string
+    glyph: string
+  }> = [
+    { action: 'move-left', label: 'Move left', glyph: '-X' },
+    { action: 'move-right', label: 'Move right', glyph: '+X' },
+    { action: 'move-up', label: 'Move up', glyph: '-Y' },
+    { action: 'move-down', label: 'Move down', glyph: '+Y' },
+    { action: 'size-smaller', label: 'Decrease size', glyph: '-' },
+    { action: 'size-larger', label: 'Increase size', glyph: '+' },
+    {
+      action: 'rotate-counterclockwise',
+      label: 'Rotate counterclockwise',
+      glyph: 'CCW',
+    },
+    { action: 'rotate-clockwise', label: 'Rotate clockwise', glyph: 'CW' },
+  ]
+
+  return (
+    <g
+      className="map-account-controls map-interaction-control"
+      data-account-controls-for={account.id}
+      data-pointer-shield="true"
+      onPointerDown={stopMapControlPointerDown}
+    >
+      <g
+        aria-label={'Shape for ' + account.label}
+        className="map-shape-picker"
+        role="group"
+      >
+        <rect
+          className="map-control-panel"
+          height="92"
+          rx="14"
+          width="408"
+          x={shapeX - 4}
+          y={shapeY - 4}
+        />
+        {ACCOUNT_SHAPE_OPTIONS.map((option, index) => {
+          const buttonX = shapeX + index * 100
+          return (
+            <g
+              key={option.shape}
+              aria-label={
+                'Use ' + option.label + ' shape for ' + account.label
+              }
+              aria-pressed={shape === option.shape}
+              className={
+                'map-shape-option' +
+                (shape === option.shape ? ' is-active' : '')
+              }
+              data-min-screen-hit="28"
+              role="button"
+              tabIndex={0}
+              onClick={(event) => {
+                event.stopPropagation()
+                onChooseShape(option.shape)
+              }}
+              onKeyDown={(event) =>
+                activateMapControl(event, () => onChooseShape(option.shape))
+              }
+              onPointerDown={stopMapControlPointerDown}
+            >
+              <title>{'Use ' + option.label + ' shape'}</title>
+              <rect
+                className="map-control-button"
+                height="84"
+                rx="12"
+                width="92"
+                x={buttonX}
+                y={shapeY}
+              />
+              <g
+                className="map-shape-option-glyph"
+                strokeWidth="4"
+                transform={
+                  'translate(' +
+                  (buttonX + 34) +
+                  ' ' +
+                  (shapeY + 16) +
+                  ') scale(2)'
+                }
+              >
+                <ShapeFlipGlyph shape={option.shape} x={0} y={0} />
+              </g>
+              <text
+                className="map-control-label"
+                textAnchor="middle"
+                x={buttonX + 46}
+                y={shapeY + 70}
+              >
+                {option.label}
+              </text>
+            </g>
+          )
+        })}
+      </g>
+
+      <g
+        aria-label={'Adjust ' + account.label}
+        className="map-adjust-controls"
+        role="group"
+      >
+        <rect
+          className="map-control-panel"
+          height="92"
+          rx="14"
+          width="584"
+          x={adjustX - 4}
+          y={adjustY - 4}
+        />
+        {adjustments.map((button, index) => {
+          const buttonX = adjustX + index * 72
+          return (
+            <g
+              key={button.action}
+              aria-label={button.label}
+              className="map-adjust-button"
+              data-min-screen-hit="28"
+              role="button"
+              tabIndex={0}
+              onClick={(event) => {
+                event.stopPropagation()
+                onAdjust(button.action)
+              }}
+              onKeyDown={(event) =>
+                activateMapControl(event, () => onAdjust(button.action))
+              }
+              onPointerDown={stopMapControlPointerDown}
+            >
+              <title>{button.label}</title>
+              <rect
+                className="map-control-button"
+                height="84"
+                rx="12"
+                width="64"
+                x={buttonX}
+                y={adjustY}
+              />
+              <text
+                className="map-adjust-glyph"
+                textAnchor="middle"
+                x={buttonX + 32}
+                y={adjustY + 52}
+              >
+                {button.glyph}
+              </text>
+            </g>
+          )
+        })}
+      </g>
+
+      <g
+        aria-hidden="true"
+        className="map-rotate-handle"
+        data-min-screen-hit="28"
+        onPointerDown={onBeginRotate}
+      >
+        <title>Rotate account - drag, or use the Adjust buttons</title>
+        <circle className="map-control-hit" cx={centerX} cy={y - 52} r="48" />
+        <circle
+          className="map-control-surface"
+          cx={centerX}
+          cy={y - 52}
+          r="28"
+        />
+        <path
+          className="map-rotate-glyph"
+          d={
+            'M ' +
+            (centerX - 15) +
+            ' ' +
+            (y - 48) +
+            ' A 18 18 0 1 1 ' +
+            (centerX + 10) +
+            ' ' +
+            (y - 36) +
+            ' M ' +
+            (centerX + 10) +
+            ' ' +
+            (y - 36) +
+            ' L ' +
+            (centerX + 8) +
+            ' ' +
+            (y - 47) +
+            ' M ' +
+            (centerX + 10) +
+            ' ' +
+            (y - 36) +
+            ' L ' +
+            (centerX + 21) +
+            ' ' +
+            (y - 40)
+          }
+        />
+      </g>
+
+      <g
+        aria-hidden="true"
+        className="map-resize-handle"
+        data-min-screen-hit="28"
+        onPointerDown={onBeginResize}
+      >
+        <title>Resize account - drag, or use the Adjust buttons</title>
+        <rect
+          className="map-control-hit"
+          height="96"
+          width="96"
+          x={x + w - 48}
+          y={y + h - 48}
+        />
+        <rect
+          className="map-control-surface"
+          height="56"
+          rx="12"
+          width="56"
+          x={x + w - 28}
+          y={y + h - 28}
+        />
+        <path
+          className="map-resize-glyph"
+          d={
+            'M ' +
+            (x + w - 15) +
+            ' ' +
+            (y + h + 15) +
+            ' L ' +
+            (x + w + 15) +
+            ' ' +
+            (y + h - 15) +
+            ' M ' +
+            (x + w - 15) +
+            ' ' +
+            (y + h + 2) +
+            ' L ' +
+            (x + w - 15) +
+            ' ' +
+            (y + h + 15) +
+            ' L ' +
+            (x + w - 2) +
+            ' ' +
+            (y + h + 15) +
+            ' M ' +
+            (x + w + 2) +
+            ' ' +
+            (y + h - 15) +
+            ' L ' +
+            (x + w + 15) +
+            ' ' +
+            (y + h - 15) +
+            ' L ' +
+            (x + w + 15) +
+            ' ' +
+            (y + h - 2)
+          }
+        />
+      </g>
+
+      <g
+        aria-label={'Connect flow from ' + account.label}
+        className="map-connect-flow-control"
+        data-min-screen-hit="28"
+        role="button"
+        tabIndex={0}
+        onClick={(event) => {
+          event.stopPropagation()
+          onEnterConnectMode()
+        }}
+        onKeyDown={(event) =>
+          activateMapControl(event, onEnterConnectMode)
+        }
+        onPointerDown={(event) => {
+          stopMapControlPointerDown(event)
+          onBeginConnect(event)
+        }}
+      >
+        <title>
+          Connect flow - choose this, then choose a highlighted target
+        </title>
+        <rect
+          className="map-control-button"
+          height="96"
+          rx="48"
+          width="180"
+          x={connectX}
+          y={y + h / 2 - 48}
+        />
+        <path
+          className="map-connect-flow-glyph"
+          d={
+            'M ' +
+            (connectX + 20) +
+            ' ' +
+            (y + h / 2) +
+            ' H ' +
+            (connectX + 52) +
+            ' M ' +
+            (connectX + 40) +
+            ' ' +
+            (y + h / 2 - 12) +
+            ' L ' +
+            (connectX + 52) +
+            ' ' +
+            (y + h / 2) +
+            ' L ' +
+            (connectX + 40) +
+            ' ' +
+            (y + h / 2 + 12)
+          }
+        />
+        <text
+          className="map-connect-flow-label"
+          x={connectX + 64}
+          y={y + h / 2 + 9}
+        >
+          Connect flow
+        </text>
+      </g>
+    </g>
+  )
+}
 export function MapSvg({
+  selectedTargetKey: controlledSelectedTargetKey,
+  onSelectedTargetChange,
   data,
   onElementClick,
   onChange,
@@ -2039,6 +2651,22 @@ export function MapSvg({
   } | null>(null)
   const [connecting, setConnecting] = useState(false)
   const [dragging, setDragging] = useState(false)
+  const [localSelectedTargetKey, setLocalSelectedTargetKey] = useState<
+    string | null
+  >(null)
+  const [connectSourceId, setConnectSourceId] = useState<string | null>(null)
+  const selectedTargetKey = onChange
+    ? controlledSelectedTargetKey === undefined
+      ? localSelectedTargetKey
+      : controlledSelectedTargetKey
+    : null
+
+  const setSelectedTarget = (targetKey: string | null) => {
+    if (controlledSelectedTargetKey === undefined) {
+      setLocalSelectedTargetKey(targetKey)
+    }
+    onSelectedTargetChange?.(targetKey)
+  }
   const displayData = previewData ?? data
   const layout = layoutMap(displayData)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
@@ -2051,49 +2679,67 @@ export function MapSvg({
             (placed) => placed.account.id === endpointId,
           )
 
-  const cycleShape = (accountId: string) => {
-    onChange?.({
+  const setAccountShape = (accountId: string, shape: AccountShape) => {
+    if (!onChange) return
+    onChange({
       ...data,
       accounts: data.accounts.map((account) =>
-        account.id === accountId
-          ? {
-              ...account,
-              shape: nextAccountShape(accountShape(account)),
-            }
-          : account,
+        account.id === accountId ? { ...account, shape } : account,
       ),
     })
   }
 
-  useEffect(() => {
-    if (!dragRef.current) setPreviewData(null)
-  }, [data])
-
-  const cancelDrag = () => {
-    const session = dragRef.current
-    if (!session) return
-    const svg = svgRef.current
-    if (svg?.hasPointerCapture(session.pointerId)) {
-      svg.releasePointerCapture(session.pointerId)
-    }
-    dragRef.current = null
-    setDragging(false)
-    setConnecting(false)
-    setConnectPreview(null)
-    setPreviewData(null)
-  }
-
-  useEffect(() => {
+  const adjustAccount = (
+    placed: PlacedAccount,
+    action: AccountAdjustment,
+  ) => {
     if (!onChange) return
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== 'Escape' || !dragRef.current) return
-      event.preventDefault()
-      cancelDrag()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onChange])
+    const key = placed.account.id
+    const previous = data.layoutOverrides?.[key] ?? {}
+    const moveStep = 12
+    const sizeStep = 12
+    const rotateStep = 15
 
+    if (action === 'move-left' || action === 'move-right') {
+      onChange(
+        withOverride(data, key, {
+          dx:
+            (previous.dx ?? 0) +
+            (action === 'move-left' ? -moveStep : moveStep),
+        }),
+      )
+      return
+    }
+    if (action === 'move-up' || action === 'move-down') {
+      onChange(
+        withOverride(data, key, {
+          dy:
+            (previous.dy ?? 0) +
+            (action === 'move-up' ? -moveStep : moveStep),
+        }),
+      )
+      return
+    }
+    if (action === 'size-smaller' || action === 'size-larger') {
+      const delta = action === 'size-smaller' ? -sizeStep : sizeStep
+      onChange(
+        withOverride(data, key, {
+          h: Math.max(80, placed.h + delta),
+          w: Math.max(120, placed.w + delta),
+        }),
+      )
+      return
+    }
+    onChange(
+      withOverride(data, key, {
+        rot:
+          (previous.rot ?? 0) +
+          (action === 'rotate-counterclockwise'
+            ? -rotateStep
+            : rotateStep),
+      }),
+    )
+  }
   const beginDrag = (
     key: string,
     mode: DragMode,
@@ -2102,7 +2748,8 @@ export function MapSvg({
     startOutline?: OutlineElement,
   ) => (event: PointerEvent<SVGElement>) => {
     if (!onChange || event.button !== 0) return
-    if (mode !== 'move') event.stopPropagation()
+    event.preventDefault()
+    event.stopPropagation()
     const screenCtm = svgRef.current?.getScreenCTM()
     if (!screenCtm) return
 
@@ -2120,7 +2767,6 @@ export function MapSvg({
       startScreen: { x: event.clientX, y: event.clientY },
     }
   }
-
   const beginConnect = (
     sourceId: string,
     source: OutlineElement,
@@ -2145,6 +2791,13 @@ export function MapSvg({
     }
   }
 
+  const cancelDrag = () => {
+    dragRef.current = null
+    setDragging(false)
+    setConnecting(false)
+    setConnectPreview(null)
+    setPreviewData(null)
+  }
   const previewDrag = (event: PointerEvent<SVGSVGElement>) => {
     const session = dragRef.current
     if (!session || session.pointerId !== event.pointerId) return
@@ -2376,11 +3029,102 @@ export function MapSvg({
       : (event) => event.stopPropagation()
   }
 
+  const handleMapClickCapture = (event: MouseEvent<SVGSVGElement>) => {
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false
+      event.preventDefault()
+      event.stopPropagation()
+      return
+    }
+    if (!onChange || !(event.target instanceof Element)) return
+
+    const element = event.target
+    const connectTarget = element.closest<SVGElement>('[data-connect-id]')
+    const targetId = connectTarget?.dataset.connectId
+    if (connectSourceId && targetId && targetId !== connectSourceId) {
+      event.preventDefault()
+      event.stopPropagation()
+      onChange(addCustomArrow(data, connectSourceId, targetId))
+      setConnectSourceId(null)
+      setSelectedTarget(
+        targetId === 'income' || targetId === 'need'
+          ? targetId
+          : 'account:' + targetId,
+      )
+      return
+    }
+
+    const target = element.closest<SVGElement>('[data-map-target]')
+    const targetKey = target?.dataset.mapTarget ?? null
+    setSelectedTarget(targetKey)
+    if (!targetKey) setConnectSourceId(null)
+  }
+
+  const selectedAccountId =
+    onChange && selectedTargetKey?.startsWith('account:')
+      ? selectedTargetKey.slice('account:'.length)
+      : null
+  const selectedAccount = selectedAccountId
+    ? layout.accounts.find(
+        (placed) => placed.account.id === selectedAccountId,
+      )
+    : undefined
+  const renderedAccounts = selectedAccount
+    ? [
+        ...layout.accounts.filter(
+          (placed) => placed.account.id !== selectedAccountId,
+        ),
+        selectedAccount,
+      ]
+    : layout.accounts
+
   return (
     <svg
+      data-connect-mode={connectSourceId ? 'true' : undefined}
+      data-selected-target={
+        onChange && selectedTargetKey ? selectedTargetKey : undefined
+      }
       onKeyDownCapture={(event) => {
+        if (event.key === 'Escape') {
+          if (!onChange) return
+          event.preventDefault()
+          if (dragRef.current) cancelDrag()
+          setConnectSourceId(null)
+          setSelectedTarget(null)
+          return
+        }
         if (!onChange || !(event.target instanceof Element)) return
         const target = event.target
+        if (
+          target.matches('[data-connect-id]') &&
+          (connectSourceId || target.matches('[data-account-id]'))
+        ) {
+          const endpointId = target.getAttribute('data-connect-id')
+          const activation = endpointId
+            ? accountKeyboardActivation(
+                event.key,
+                endpointId,
+                connectSourceId,
+              )
+            : null
+          if (activation) {
+            event.preventDefault()
+            event.stopPropagation()
+            if (activation.connection) {
+              const nextData = addCustomArrow(
+                data,
+                activation.connection.sourceId,
+                activation.connection.targetId,
+              )
+              if (nextData !== data) {
+                onChange(nextData)
+                setConnectSourceId(null)
+              }
+            }
+            setSelectedTarget(activation.selectedTargetKey)
+            return
+          }
+        }
         const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
         const step = event.shiftKey ? 10 : 2
         const commit = (key: string, patch: LayoutOverride) => {
@@ -2432,14 +3176,7 @@ export function MapSvg({
       viewBox={`0 0 ${ARTBOARD.width} ${ARTBOARD.height}`}
       xmlns="http://www.w3.org/2000/svg"
       onClickCapture={
-        onChange
-          ? (event) => {
-              if (!suppressNextClickRef.current) return
-              event.preventDefault()
-              event.stopPropagation()
-              suppressNextClickRef.current = false
-            }
-          : undefined
+        onChange ? handleMapClickCapture : undefined
       }
       onPointerCancel={onChange ? cancelDrag : undefined}
       onPointerMove={onChange ? previewDrag : undefined}
@@ -2493,247 +3230,6 @@ export function MapSvg({
         ))}
       </defs>
 
-      <Masthead
-        data={displayData}
-        onElementClick={onElementClick}
-        onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
-      />
-      <g
-        data-connect-id={onChange ? 'income' : undefined}
-        aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight' : undefined}
-        {...interactiveGroupProps(
-          'Income sources',
-          { kind: 'income' },
-          onElementClick,
-        )}
-        className={onChange ? 'map-draggable' : undefined}
-        onPointerDown={
-          onChange
-            ? beginDrag('income', 'move', layout.income)
-            : undefined
-        }
-      >
-        <IncomePanel
-          data={displayData}
-          onElementClick={onElementClick}
-          onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
-          placed={layout.income}
-        />
-        {onChange && (
-          <>
-            <rect
-              aria-hidden="true"
-              className="map-resize-handle"
-              height={16}
-              rx={3}
-              width={16}
-              x={layout.income.x + layout.income.w - 20}
-              y={layout.income.y + layout.income.h - 20}
-              onPointerDown={beginDrag(
-                'income',
-                'resize',
-                layout.income,
-              )}
-            />
-            <ConnectHandle
-              endpointId="income"
-              label="income sources"
-              onBegin={beginConnect}
-              placed={layout.income}
-            />
-          </>
-        )}
-      </g>
-      <g
-        data-connect-id={onChange ? 'need' : undefined}
-        aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined}
-        {...interactiveGroupProps(
-          'Monthly income need',
-          { kind: 'need' },
-          onElementClick,
-        )}
-        className={onChange ? 'map-draggable' : undefined}
-        onPointerDown={
-          onChange
-            ? beginDrag('need', 'move', layout.need)
-            : undefined
-        }
-      >
-        <NeedCard
-          data={displayData}
-          mathLine={gapLine(
-            displayData.monthlyNeed,
-            displayData.afterTaxIncome,
-            displayData.asNeededAmount,
-            displayData.showMath !== false,
-          )}
-          onElementClick={onElementClick}
-          onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
-          tag={displayData.needTag}
-          value={displayData.monthlyNeed}
-          placed={layout.need}
-        />
-        {onChange && (
-          <ConnectHandle
-            endpointId="need"
-            label="monthly income need"
-            onBegin={beginConnect}
-            placed={layout.need}
-          />
-        )}
-      </g>
-      <g aria-label="Accounts" role="group">
-        {layout.accounts.map((placed, index) => {
-          const style = BUCKETS[placed.account.bucket]
-          const shape = accountShape(placed.account)
-          const runway =
-            placed.account.bucket === 'shortTerm'
-              ? runwayLine(
-                  placed.account.value,
-                  displayData.asNeededAmount,
-                  displayData.showMath !== false,
-                )
-              : null
-          return (
-            <g
-              data-account-id={placed.account.id}
-              data-account-shape={shape}
-              data-connect-id={onChange ? placed.account.id : undefined}
-              aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight BracketLeft BracketRight' : undefined}
-              key={`${placed.account.id}-${index}`}
-              {...interactiveGroupProps(
-                accountDisplayName(placed.account),
-                { kind: 'account', id: placed.account.id },
-                onElementClick,
-              )}
-              className={onChange ? 'map-draggable' : undefined}
-              transform={
-                placed.rot === 0
-                  ? undefined
-                  : `rotate(${placed.rot} ${
-                      placed.x + placed.w / 2
-                    } ${placed.y + placed.h / 2})`
-              }
-              onPointerDown={
-                onChange
-                  ? beginDrag(placed.account.id, 'move', placed)
-                  : undefined
-              }
-            >
-              {highlightId === placed.account.id && (
-                <rect
-                  data-highlight-halo={placed.account.id}
-                  fill="none"
-                  height={placed.h + 12}
-                  opacity={0.35}
-                  pointerEvents="none"
-                  rx={18}
-                  stroke={style.stroke}
-                  strokeWidth={4}
-                  width={placed.w + 12}
-                  x={placed.x - 6}
-                  y={placed.y - 6}
-                />
-              )}
-              {shape === 'drum' ? (
-                <Cylinder
-                  onElementClick={onElementClick}
-                  onTextPointerDown={
-                    onChange ? beginAccountTextDrag : undefined
-                  }
-                  placed={placed}
-                  runway={runway}
-                />
-              ) : (
-                <FlatAccount
-                  onElementClick={onElementClick}
-                  onTextPointerDown={
-                    onChange ? beginAccountTextDrag : undefined
-                  }
-                  placed={placed}
-                  runway={runway}
-                  shape={shape}
-                />
-              )}
-              {onChange && (
-                <>
-                  <circle
-                    aria-hidden="true"
-                    className="map-rotate-handle"
-                    cx={placed.x + placed.w / 2}
-                    cy={placed.y - 22}
-                    r={7}
-                    onPointerDown={beginDrag(
-                      placed.account.id,
-                      'rotate',
-                      placed,
-                    )}
-                  />
-                  <g
-                    aria-label={`Change ${accountDisplayName(
-                      placed.account,
-                    )} shape`}
-                    className="map-shape-flip"
-                    role="button"
-                    tabIndex={0}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      cycleShape(placed.account.id)
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key !== 'Enter' && event.key !== ' ') return
-                      event.preventDefault()
-                      event.stopPropagation()
-                      cycleShape(placed.account.id)
-                    }}
-                    onPointerDown={(event) => event.stopPropagation()}
-                  >
-                    <rect
-                      className="map-shape-flip-surface"
-                      height={16}
-                      rx={3}
-                      width={18}
-                      x={placed.x + placed.w - 44}
-                      y={placed.y + placed.h - 20}
-                    />
-                    <g
-                      className="map-shape-flip-glyph"
-                      stroke={style.stroke}
-                      strokeWidth={1.3}
-                    >
-                      <ShapeFlipGlyph
-                        shape={shape}
-                        x={placed.x + placed.w - 41}
-                        y={placed.y + placed.h - 17}
-                      />
-                    </g>
-                  </g>
-                  <rect
-                    aria-hidden="true"
-                    className="map-resize-handle"
-                    height={16}
-                    rx={3}
-                    width={16}
-                    x={placed.x + placed.w - 20}
-                    y={placed.y + placed.h - 20}
-                    onPointerDown={beginDrag(
-                      placed.account.id,
-                      'resize',
-                      placed,
-                    )}
-                  />
-                  <ConnectHandle
-                    endpointId={placed.account.id}
-                    label={accountDisplayName(placed.account)}
-                    onBegin={beginConnect}
-                    placed={placed}
-                  />
-                </>
-              )}
-            </g>
-          )
-        })}
-      </g>
       <g aria-label="Money flow" role="group">
         {layout.arrows.map((arrow, index) => {
           if (!onChange) {
@@ -2816,6 +3312,222 @@ export function MapSvg({
           )
         })}
       </g>
+      <Masthead
+        data={displayData}
+        onElementClick={onElementClick}
+        onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
+      />
+      <g
+        data-connect-id={onChange ? 'income' : undefined}
+        aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight Enter Space' : undefined}
+        {...interactiveGroupProps(
+          'Income sources',
+          { kind: 'income' },
+          onElementClick,
+        )}
+        className={onChange ? 'map-draggable' : undefined}
+        onPointerDown={
+          onChange
+            ? beginDrag('income', 'move', layout.income)
+            : undefined
+        }
+      >
+        <IncomePanel
+          data={displayData}
+          onElementClick={onElementClick}
+          onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
+          placed={layout.income}
+        />
+        {onChange && (
+          <>
+            <rect
+              aria-hidden="true"
+              className="map-resize-handle"
+              height={16}
+              rx={3}
+              width={16}
+              x={layout.income.x + layout.income.w - 20}
+              y={layout.income.y + layout.income.h - 20}
+              onPointerDown={beginDrag(
+                'income',
+                'resize',
+                layout.income,
+              )}
+            />
+            <ConnectHandle
+              endpointId="income"
+              label="income sources"
+              onActivate={() => {
+                setConnectSourceId('income')
+                setSelectedTarget('income')
+              }}
+              onBegin={beginConnect}
+              placed={layout.income}
+            />
+          </>
+        )}
+      </g>
+      <g
+        data-connect-id={onChange ? 'need' : undefined}
+        aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Enter Space' : undefined}
+        {...interactiveGroupProps(
+          'Monthly income need',
+          { kind: 'need' },
+          onElementClick,
+        )}
+        className={onChange ? 'map-draggable' : undefined}
+        onPointerDown={
+          onChange
+            ? beginDrag('need', 'move', layout.need)
+            : undefined
+        }
+      >
+        <NeedCard
+          data={displayData}
+          mathLine={gapLine(
+            displayData.monthlyNeed,
+            displayData.afterTaxIncome,
+            displayData.asNeededAmount,
+            displayData.showMath !== false,
+          )}
+          onElementClick={onElementClick}
+          onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
+          tag={displayData.needTag}
+          value={displayData.monthlyNeed}
+          placed={layout.need}
+        />
+        {onChange && (
+          <ConnectHandle
+            endpointId="need"
+            label="monthly income need"
+            onActivate={() => {
+              setConnectSourceId('need')
+              setSelectedTarget('need')
+            }}
+            onBegin={beginConnect}
+            placed={layout.need}
+          />
+        )}
+      </g>
+      <g aria-label="Accounts" role="group">
+        {renderedAccounts.map((placed) => {
+          const style = BUCKETS[placed.account.bucket]
+          const shape = accountShape(placed.account)
+          const runway =
+            placed.account.bucket === 'shortTerm'
+              ? runwayLine(
+                  placed.account.value,
+                  displayData.asNeededAmount,
+                  displayData.showMath !== false,
+                )
+              : null
+          return (
+            <g
+              data-account-id={placed.account.id}
+              data-map-target={
+                onChange ? 'account:' + placed.account.id : undefined
+              }
+              data-map-selected={
+                selectedTargetKey === 'account:' + placed.account.id
+                  ? 'true'
+                  : undefined
+              }
+              data-account-shape={shape}
+              data-connect-id={onChange ? placed.account.id : undefined}
+              aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight BracketLeft BracketRight Enter Space' : undefined}
+              key={placed.account.id}
+              {...interactiveGroupProps(
+                accountDisplayName(placed.account),
+                { kind: 'account', id: placed.account.id },
+                onElementClick,
+              )}
+              className={onChange ? 'map-draggable' : undefined}
+              transform={
+                placed.rot === 0
+                  ? undefined
+                  : `rotate(${placed.rot} ${
+                      placed.x + placed.w / 2
+                    } ${placed.y + placed.h / 2})`
+              }
+              onPointerDown={
+                onChange
+                  ? beginDrag(placed.account.id, 'move', placed)
+                  : undefined
+              }
+            >
+              {highlightId === placed.account.id && (
+                <rect
+                  data-highlight-halo={placed.account.id}
+                  fill="none"
+                  height={placed.h + 12}
+                  opacity={0.35}
+                  pointerEvents="none"
+                  rx={18}
+                  stroke={style.stroke}
+                  strokeWidth={4}
+                  width={placed.w + 12}
+                  x={placed.x - 6}
+                  y={placed.y - 6}
+                />
+              )}
+              {shape === 'drum' ? (
+                <Cylinder
+                  onElementClick={onElementClick}
+                  onTextPointerDown={
+                    onChange ? beginAccountTextDrag : undefined
+                  }
+                  placed={placed}
+                  runway={runway}
+                />
+              ) : (
+                <FlatAccount
+                  onElementClick={onElementClick}
+                  onTextPointerDown={
+                    onChange ? beginAccountTextDrag : undefined
+                  }
+                  placed={placed}
+                  runway={runway}
+                  shape={shape}
+                />
+              )}
+              {onChange &&
+                selectedTargetKey ===
+                  'account:' + placed.account.id && (
+                  <SelectedAccountControls
+                    onAdjust={(action) => adjustAccount(placed, action)}
+                    onBeginConnect={beginConnect(
+                      placed.account.id,
+                      placed,
+                    )}
+                    onBeginResize={beginDrag(
+                      placed.account.id,
+                      'resize',
+                      placed,
+                    )}
+                    onBeginRotate={beginDrag(
+                      placed.account.id,
+                      'rotate',
+                      placed,
+                    )}
+                    onChooseShape={(nextShape) =>
+                      setAccountShape(placed.account.id, nextShape)
+                    }
+                    onEnterConnectMode={() =>
+                      setConnectSourceId((current) =>
+                        current === placed.account.id
+                          ? null
+                          : placed.account.id,
+                      )
+                    }
+                    placed={placed}
+                    shape={shape}
+                  />
+                )}
+            </g>
+          )
+        })}
+      </g>
+
       {connectPreview && (
         <path
           className="map-connect-preview"

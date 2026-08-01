@@ -4,6 +4,7 @@ import {
   accountDisplayName,
   bucketDisplayName,
   mastheadPeriodLabel,
+  mapMoney,
   money,
   moneyPer,
   parseMoneyInput,
@@ -130,6 +131,36 @@ describe('money', () => {
   })
 })
 
+describe('mapMoney', () => {
+  it('uses exact money text whenever it fits', () => {
+    expect(mapMoney(5_900, 6)).toEqual({
+      display: '$5,900',
+      exact: '$5,900',
+    })
+  })
+
+  it('compacts long map values while retaining exact text', () => {
+    expect(mapMoney(930_923_028, 8)).toEqual({
+      display: '$930.9M',
+      exact: '$930,923,028',
+    })
+  })
+
+  it('removes trailing decimal zeroes from compact suffixes', () => {
+    expect(mapMoney(1_000_000, 5)).toEqual({
+      display: '$1M',
+      exact: '$1,000,000',
+    })
+  })
+
+  it('preserves signs, approximate markers, and blank semantics', () => {
+    expect(mapMoney(-1_600_000, 8, { approx: true })).toEqual({
+      display: '~-$1.6M',
+      exact: '~-$1,600,000',
+    })
+    expect(mapMoney(null, 2)).toEqual({ display: BLANK, exact: BLANK })
+  })
+})
 describe('moneyPer', () => {
   it('adds the requested income period', () => {
     expect(moneyPer(3000, 'mo')).toBe('$3,000 mo.')
