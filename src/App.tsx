@@ -460,7 +460,7 @@ export default function App() {
         }
         setIsWriter(result.status === 'acquired')
       }
-      if (event.key === BOOK_STORAGE_KEY && !isWriter) {
+      if (event.key === BOOK_STORAGE_KEY && currentBrowserWriter(localStorage) !== tabId) {
         const latest = loadBrowserBook(localStorage)
         if (latest.status === 'ready') {
           showHistory(emptyHistory())
