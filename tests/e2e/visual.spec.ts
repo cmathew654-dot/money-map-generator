@@ -5,27 +5,15 @@ async function stabilize(page: Page) {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(async () => { await document.fonts.ready })
   await page.locator('.toast').evaluateAll((toasts) => toasts.forEach((toast) => toast.remove()))
-  await page.locator('.form-pane').evaluate((pane) => new Promise<void>((resolve) => {
-    let previous = pane.scrollTop
-    let stableFrames = 0
-    const waitForSettle = () => {
-      const current = pane.scrollTop
-      stableFrames = current === previous ? stableFrames + 1 : 0
-      previous = current
-      if (stableFrames >= 5) resolve()
-      else requestAnimationFrame(waitForSettle)
-    }
-    requestAnimationFrame(waitForSettle)
-  }))
 }
 
-const screenshotOptions = {
+const elementScreenshotOptions = {
   animations: 'disabled' as const,
   caret: 'hide' as const,
-  fullPage: true,
   scale: 'css' as const,
   maxDiffPixelRatio: 0.002,
 }
+const screenshotOptions = { ...elementScreenshotOptions, fullPage: true }
 
 async function compareOrAttachReflow(page: Page, info: TestInfo, name: string) {
   if (info.project.name === 'chromium-text-zoom-200') {
@@ -69,12 +57,13 @@ test.describe('desktop visual baselines', () => {
     test.slow()
     await openApp(page)
     await fullForm(page)
+    const preview = page.locator('.preview-pane')
 
     const account = page.locator('[data-account-id][role="group"]').first()
     await account.locator('.map-account-body-hit:not(ellipse)').click({ position: { x: 18, y: 18 } })
     await expect(page.locator('.map-inspector')).toBeVisible()
     await stabilize(page)
-    await expect(page).toHaveScreenshot('selected-account.png', screenshotOptions)
+    await expect(preview).toHaveScreenshot('selected-account.png', elementScreenshotOptions)
 
     const arrowHit = page.getByRole('group', { name: 'Adjust custom arrow' }).first().locator('.map-arrow-hit')
     const arrowPoint = await arrowHit.evaluate((element) => {
@@ -90,7 +79,7 @@ test.describe('desktop visual baselines', () => {
     await page.mouse.click(arrowPoint.x, arrowPoint.y)
     await expect(page.locator('.map-inspector')).toBeVisible()
     await stabilize(page)
-    await expect(page).toHaveScreenshot('selected-arrow.png', screenshotOptions)
+    await expect(preview).toHaveScreenshot('selected-arrow.png', elementScreenshotOptions)
 
     await page.getByRole('button', { name: '+ Note', exact: true }).click()
     const editor = page.locator('.map-text-editor-input')
@@ -99,7 +88,7 @@ test.describe('desktop visual baselines', () => {
     await page.getByRole('group', { name: 'Adjust note: Selected state note' }).focus()
     await expect(page.locator('.map-inspector')).toBeVisible()
     await stabilize(page)
-    await expect(page).toHaveScreenshot('selected-note.png', screenshotOptions)
+    await expect(preview).toHaveScreenshot('selected-note.png', elementScreenshotOptions)
 
     const asNeeded = page.getByLabel('Draw from Short-Term Bucket')
     await asNeeded.fill('9100')
@@ -107,6 +96,6 @@ test.describe('desktop visual baselines', () => {
     await page.getByRole('button', { name: 'Adjust need supporting text' }).focus()
     await expect(page.locator('.map-inspector')).toBeVisible()
     await stabilize(page)
-    await expect(page).toHaveScreenshot('selected-supporting-text.png', screenshotOptions)
+    await expect(preview).toHaveScreenshot('selected-supporting-text.png', elementScreenshotOptions)
   })
 })
