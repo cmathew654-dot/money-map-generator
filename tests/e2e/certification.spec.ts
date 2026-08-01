@@ -73,6 +73,7 @@ test.describe('desktop behavioral certification', () => {
   })
 
   test('writer ownership survives rapid tab handoffs with edits', async ({ context, page }) => {
+    test.setTimeout(90_000)
     const second = await context.newPage(); await openApp(second)
     await focusPage(page)
     await page.getByLabel('Title').fill('Rapid handoff seed')

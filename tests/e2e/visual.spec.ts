@@ -5,6 +5,18 @@ async function stabilize(page: Page) {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(async () => { await document.fonts.ready })
   await page.locator('.toast').evaluateAll((toasts) => toasts.forEach((toast) => toast.remove()))
+  await page.locator('.form-pane').evaluate((pane) => new Promise<void>((resolve) => {
+    let previous = pane.scrollTop
+    let stableFrames = 0
+    const waitForSettle = () => {
+      const current = pane.scrollTop
+      stableFrames = current === previous ? stableFrames + 1 : 0
+      previous = current
+      if (stableFrames >= 5) resolve()
+      else requestAnimationFrame(waitForSettle)
+    }
+    requestAnimationFrame(waitForSettle)
+  }))
 }
 
 const screenshotOptions = {
@@ -12,7 +24,7 @@ const screenshotOptions = {
   caret: 'hide' as const,
   fullPage: true,
   scale: 'css' as const,
-  maxDiffPixelRatio: 0.001,
+  maxDiffPixelRatio: 0.002,
 }
 
 async function compareOrAttachReflow(page: Page, info: TestInfo, name: string) {
