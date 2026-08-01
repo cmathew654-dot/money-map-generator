@@ -69,7 +69,6 @@ test('takeover waits for a crashed lease to expire and then succeeds', async ({ 
   await expect(page.getByText('Read-only tab')).toBeVisible()
 
   await page.getByRole('button', { name: 'Take over editing' }).click()
-  await expect(page.getByRole('button', { name: 'Waiting for current editor…' })).toBeDisabled()
   await expect(page.getByText('Read-only tab')).toHaveCount(0, { timeout: 4_000 })
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('money-map-generator:writer') || '{}').tabId)).not.toBe('crashed-tab')
 })

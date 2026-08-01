@@ -1,5 +1,5 @@
 import {
-  useEffect,
+  useLayoutEffect,
   useId,
   useRef,
   useState,
@@ -52,18 +52,15 @@ export function Menu({
     }
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return
 
-    const frame = window.requestAnimationFrame(() => {
-      menuItems(popoverRef.current)[0]?.focus()
-    })
+    menuItems(popoverRef.current)[0]?.focus()
     const handleClickAway = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) closeMenu()
     }
     document.addEventListener('mousedown', handleClickAway)
     return () => {
-      window.cancelAnimationFrame(frame)
       document.removeEventListener('mousedown', handleClickAway)
     }
   }, [open])
