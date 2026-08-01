@@ -378,78 +378,6 @@ summary:focus-visible {
   cursor: move;
 }
 
-.map-page svg .map-resize-handle {
-  opacity: 0;
-  fill: #fcfcfa;
-  stroke: #1e7a4a;
-  stroke-width: 2;
-  transition: opacity 120ms ease;
-  cursor: nwse-resize;
-}
-
-.map-page svg .map-rotate-handle {
-  opacity: 0;
-  fill: #fcfcfa;
-  stroke: #1e7a4a;
-  stroke-width: 2;
-  transition: opacity 120ms ease;
-  cursor: grab;
-}
-
-.map-page svg .map-rotate-handle:active,
-.map-page svg.is-dragging .map-rotate-handle {
-  cursor: grabbing;
-}
-
-.map-page svg .map-shape-flip {
-  opacity: 0;
-  cursor: pointer;
-  transition: opacity 120ms ease;
-}
-
-.map-page svg .map-shape-flip-surface {
-  fill: #fcfcfa;
-  stroke: #1e7a4a;
-  stroke-width: 2;
-}
-
-.map-page svg .map-shape-flip-glyph {
-  pointer-events: none;
-}
-
-.map-page svg .map-connect-handle {
-  opacity: 0;
-  cursor: crosshair;
-  transition: opacity 120ms ease;
-}
-
-.map-page svg .map-connect-handle circle {
-  fill: #fcfcfa;
-  stroke: #1e7a4a;
-  stroke-width: 2;
-}
-
-.map-page svg .map-connect-glyph {
-  fill: none;
-  stroke: #1e7a4a;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.5;
-  pointer-events: none;
-}
-
-.map-page svg .map-connect-preview {
-  stroke: #1c2422;
-  stroke-dasharray: 6 5;
-  stroke-width: 2;
-}
-
-.map-page svg.is-connecting,
-.map-page svg.is-connecting .map-draggable,
-.map-page svg.is-connecting .map-editable-text {
-  cursor: crosshair;
-}
-
 .map-page svg .map-arrow-editor {
   cursor: grab;
 }
@@ -460,45 +388,14 @@ summary:focus-visible {
 }
 
 .map-page svg .map-arrow-handle {
-  opacity: 0;
   fill: #fcfcfa;
   stroke: #1e7a4a;
   stroke-width: 2;
-  transition: opacity 120ms ease;
 }
 
-.map-page svg .map-arrow-delete {
-  opacity: 0;
-  cursor: pointer;
-  transition: opacity 120ms ease;
-}
-
-.map-page svg .map-arrow-style,
-.map-page svg .map-arrow-label-add {
-  opacity: 0;
-  cursor: pointer;
-  transition: opacity 120ms ease;
-}
-
-.map-page svg .map-arrow-style rect,
-.map-page svg .map-arrow-label-add {
-  fill: #fcfcfa;
-  stroke: #1c2422;
-  stroke-width: 1.25;
-}
-
-.map-page svg .map-arrow-style text {
-  fill: #1c2422;
-  font: 11px/1 sans-serif;
-  pointer-events: none;
-}
-
-.map-page svg .map-arrow-label-add {
-  fill: #1c2422;
-  paint-order: stroke;
-  stroke: #fcfcfa;
-  stroke-width: 7px;
-  font: 700 12px/1 sans-serif;
+.map-page svg .map-arrow-handle-hit {
+  cursor: grab;
+  pointer-events: stroke;
 }
 
 .map-page svg .map-flow-label {
@@ -508,114 +405,8 @@ summary:focus-visible {
   stroke-width: 6px;
 }
 
-.map-page svg .map-arrow-delete circle {
-  fill: #fcfcfa;
-  stroke: #1c2422;
-  stroke-width: 1.5;
-}
-
-.map-page svg .map-arrow-delete text {
-  fill: #1c2422;
-  font: 16px/1 sans-serif;
-  pointer-events: none;
-}
-
-.map-page svg .map-note-delete {
-  opacity: 0;
-  cursor: pointer;
-  pointer-events: none;
-  transition: opacity 120ms ease;
-}
-
-.map-page svg .map-note-delete rect {
-  fill: #fcfcfa;
-  stroke: #5b6663;
-  stroke-width: 1;
-}
-
-.map-page svg .map-note-delete text {
-  fill: #5b6663;
-  font: 16px/1 sans-serif;
-  pointer-events: none;
-}
-
-.map-page svg .map-note:hover > .map-note-delete,
-.map-page svg .map-note:focus-within > .map-note-delete,
-.map-page svg .map-note-delete:hover,
-.map-page svg .map-note-delete:focus,
-.map-page svg .map-note:hover > .map-note-background,
-.map-page svg .map-note:focus-within > .map-note-background,
-.map-page svg .map-note-background:hover,
-.map-page svg .map-note-background:focus,
-.map-page svg .map-note:hover > .map-note-resize,
-.map-page svg .map-note:focus-within > .map-note-resize,
-.map-page svg .map-note-resize:hover,
-.map-page svg .map-note-resize:focus {
-  opacity: 1;
-  pointer-events: all;
-}
-
-.map-page svg .map-arrow-editor:hover > .map-arrow-handle,
-.map-page svg .map-arrow-editor:focus > .map-arrow-handle,
-.map-page svg .map-arrow-editor:focus-within > .map-arrow-handle,
-.map-page svg .map-arrow-handle:hover,
-.map-page svg .map-arrow-editor:hover > .map-arrow-delete,
-.map-page svg .map-arrow-editor:focus > .map-arrow-delete,
-.map-page svg .map-arrow-editor:focus-within > .map-arrow-delete,
-.map-page svg .map-arrow-delete:hover,
-.map-page svg .map-arrow-delete:focus,
-.map-page svg .map-arrow-editor:hover > .map-arrow-style,
-.map-page svg .map-arrow-editor:focus > .map-arrow-style,
-.map-page svg .map-arrow-editor:focus-within > .map-arrow-style,
-.map-page svg .map-arrow-style:hover,
-.map-page svg .map-arrow-style:focus,
-.map-page svg .map-arrow-editor:hover > .map-arrow-label-add,
-.map-page svg .map-arrow-editor:focus > .map-arrow-label-add,
-.map-page svg .map-arrow-editor:focus-within > .map-arrow-label-add,
-.map-page svg .map-arrow-label-add:hover,
-.map-page svg .map-arrow-label-add:focus,
-.map-page svg .map-arrow-editor:hover > .map-arrow-colors,
-.map-page svg .map-arrow-editor:focus > .map-arrow-colors,
-.map-page svg .map-arrow-editor:focus-within > .map-arrow-colors,
-.map-page svg .map-arrow-colors:hover,
-.map-page svg .map-arrow-colors:focus-within {
-  opacity: 1;
-  pointer-events: all;
-}
-
 .map-page svg .map-arrow-editor:focus:not(:focus-visible) {
   outline: none;
-}
-
-.map-page svg.is-dragging .map-arrow-handle {
-  transition: none;
-}
-
-.map-page svg .map-draggable:hover > .map-resize-handle,
-.map-page svg .map-draggable:focus > .map-resize-handle,
-.map-page svg .map-draggable:focus-within > .map-resize-handle,
-.map-page svg .map-resize-handle:hover,
-.map-page svg .map-draggable:hover > .map-rotate-handle,
-.map-page svg .map-draggable:focus > .map-rotate-handle,
-.map-page svg .map-draggable:focus-within > .map-rotate-handle,
-.map-page svg .map-rotate-handle:hover,
-.map-page svg .map-draggable:hover > .map-connect-handle,
-.map-page svg .map-draggable:focus > .map-connect-handle,
-.map-page svg .map-draggable:focus-within > .map-connect-handle,
-.map-page svg .map-connect-handle:hover,
-.map-page svg .map-connect-handle:focus,
-.map-page svg .map-draggable:hover > .map-shape-flip,
-.map-page svg .map-draggable:focus > .map-shape-flip,
-.map-page svg .map-draggable:focus-within > .map-shape-flip,
-.map-page svg .map-shape-flip:hover {
-  opacity: 1;
-}
-
-.map-page svg.is-dragging .map-resize-handle,
-.map-page svg.is-dragging .map-rotate-handle,
-.map-page svg.is-dragging .map-connect-handle,
-.map-page svg.is-dragging .map-shape-flip {
-  transition: none;
 }
 
 .app-dialog {
@@ -740,6 +531,138 @@ summary:focus-visible {
   inset: 0;
   overflow: auto;
   padding: 24px;
+}
+
+.preview-pane.has-map-inspector .map-scroller {
+  top: 112px;
+}
+
+.map-inspector {
+  position: absolute;
+  z-index: 7;
+  top: 12px;
+  right: 12px;
+  left: 12px;
+  display: flex;
+  height: 88px;
+  align-items: stretch;
+  gap: 16px;
+  padding: 10px 12px;
+  border: 1px solid #c9cfc9;
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, rgb(30 122 74 / 5%), transparent 22%),
+    rgb(252 252 250 / 96%);
+  box-shadow: 0 5px 18px rgb(28 36 34 / 12%);
+  backdrop-filter: blur(8px);
+  font-family: 'Public Sans', 'Segoe UI', sans-serif;
+}
+
+.map-inspector-heading {
+  display: flex;
+  min-width: 154px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-right: 14px;
+  border-right: 1px solid #dde1dc;
+}
+
+.map-inspector-heading div {
+  display: grid;
+  gap: 3px;
+}
+
+.map-inspector-heading span,
+.map-inspector-label {
+  color: #5b6663;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.map-inspector-heading strong {
+  max-width: 180px;
+  overflow: hidden;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-inspector-controls,
+.map-inspector-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.map-inspector-controls {
+  min-width: 0;
+  flex: 1;
+  flex-wrap: nowrap;
+  gap: 8px 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.map-inspector-group,
+.map-inspector-field {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  color: #5b6663;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-inspector button,
+.map-inspector select {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.map-inspector button {
+  padding: 4px 9px;
+}
+
+.map-inspector select {
+  max-width: 160px;
+  padding: 4px 26px 4px 8px;
+  color: #1c2422;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.map-inspector button:focus-visible,
+.map-inspector select:focus-visible {
+  outline: 2px solid #1e7a4a;
+  outline-offset: 2px;
+}
+
+.map-inspector-danger {
+  align-self: flex-end;
+  border-color: #e1b6af;
+  color: #a82f24;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .map-inspector {
+    animation: map-inspector-enter 150ms ease-out both;
+  }
+
+  @keyframes map-inspector-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+  }
 }
 
 .map-stage {
@@ -1758,53 +1681,6 @@ summary:focus-visible {
 }
 
 /* S30 — map objects */
-.map-page svg .map-note-background,
-.map-page svg .map-note-resize,
-.map-page svg .map-arrow-colors {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 120ms ease;
-}
-
-.map-page svg .map-note-background {
-  cursor: pointer;
-}
-
-.map-page svg .map-note-background > rect:first-child {
-  fill: #fcfcfa;
-  stroke: #5b6663;
-  stroke-width: 1;
-}
-
-.map-page svg .map-note-background-glyph {
-  stroke: #5b6663;
-  stroke-width: 1;
-  pointer-events: none;
-}
-
-.map-page svg .map-note-resize {
-  cursor: ew-resize;
-  fill: #fcfcfa;
-  stroke: #5b6663;
-  stroke-width: 1;
-}
-
-.map-page svg .map-arrow-color-swatch {
-  cursor: pointer;
-}
-
-.map-page svg .map-arrow-color-ring {
-  fill: #fcfcfa;
-  stroke: #1c2422;
-  stroke-width: 1.5;
-  pointer-events: none;
-}
-
-.map-page svg.is-dragging .map-note-resize,
-.map-page svg.is-dragging .map-arrow-colors {
-  transition: none;
-}
-
 /* S34 */
 .map-page svg .map-editable-hit {
   fill: transparent;
@@ -1814,7 +1690,7 @@ summary:focus-visible {
 
 .map-page svg .map-editable-hit:hover,
 .map-page svg .map-editable-hit:focus-visible {
-  fill: rgb(30 122 74 / 8%);
+  fill: transparent;
 }
 
 .map-page svg .map-editable-hit:hover ~ .map-editable-line,
@@ -2004,22 +1880,14 @@ summary:focus-visible {
     forced-color-adjust: none;
   }
 
-  .map-page svg .map-resize-handle,
-  .map-page svg .map-rotate-handle,
-  .map-page svg .map-arrow-handle,
-  .map-page svg .map-note-resize,
-  .map-page svg .map-shape-flip-surface,
-  .map-page svg .map-connect-handle circle,
-  .map-page svg .map-note-background > rect:first-child,
-  .map-page svg .map-arrow-style rect,
-  .map-page svg .map-arrow-delete circle {
+  .map-page svg .map-arrow-handle {
     fill: Canvas;
     stroke: CanvasText;
   }
 
   .map-page svg .map-editable-hit:hover,
   .map-page svg .map-editable-hit:focus-visible {
-    fill: Highlight;
+    fill: transparent;
   }
 }
 
@@ -2030,9 +1898,18 @@ summary:focus-visible {
 
 .map-interactive .map-editable-hit:hover,
 .map-interactive .map-editable-hit:focus-visible {
-  fill: rgb(30 122 74 / 0.08);
-  stroke: rgb(30 122 74 / 0.7);
-  stroke-width: 1.5;
+  fill: transparent;
+  stroke: none;
+}
+
+.map-interactive .map-calculated-text:hover,
+.map-interactive .map-calculated-text:focus-visible,
+.map-interactive .map-calculated-text[data-map-selected='true'] {
+  filter: drop-shadow(0 1px 2px rgb(30 122 74 / 35%));
+  outline: none;
+  text-decoration: underline;
+  text-decoration-color: rgb(30 122 74 / 60%);
+  text-underline-offset: 3px;
 }
 
 .map-interactive [data-account-id][data-map-target]:hover,
@@ -2040,102 +1917,15 @@ summary:focus-visible {
   filter: drop-shadow(0 0 5px rgb(30 122 74 / 0.5));
 }
 
-.map-interactive[data-connect-mode='true']
-  [data-connect-id]:not([data-account-controls-for]) {
-  filter: drop-shadow(0 0 7px rgb(47 107 171 / 0.75));
+.map-note[data-map-selected='true'] .map-note-text {
+  filter: drop-shadow(0 1px 2px rgb(30 122 74 / 35%));
+  text-decoration: underline;
+  text-decoration-color: rgb(30 122 74 / 60%);
+  text-underline-offset: 3px;
 }
 
-.map-account-controls,
-.map-account-controls .map-resize-handle,
-.map-account-controls .map-rotate-handle {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.map-control-panel,
-.map-control-button,
-.map-control-surface {
-  fill: rgb(255 255 255 / 0.97);
-  stroke: #77837e;
-  stroke-width: 2;
-}
-
-.map-control-panel {
-  filter: drop-shadow(0 4px 7px rgb(28 36 34 / 0.18));
-}
-
-.map-shape-option,
-.map-adjust-button,
-.map-connect-flow-control {
-  cursor: pointer;
-}
-
-.map-shape-option.is-active .map-control-button,
-.map-shape-option:hover .map-control-button,
-.map-adjust-button:hover .map-control-button,
-.map-connect-flow-control:hover .map-control-button {
-  fill: #dcefe4;
-  stroke: #1e7a4a;
-  stroke-width: 3;
-}
-
-.map-control-label,
-.map-adjust-glyph,
-.map-connect-flow-label {
-  fill: #1c2422;
-  font-family: 'Public Sans', 'Segoe UI', sans-serif;
-  font-size: 24px;
-  font-weight: 700;
-  pointer-events: none;
-}
-
-.map-adjust-glyph {
-  font-size: 21px;
-}
-
-.map-shape-option-glyph,
-.map-rotate-glyph,
-.map-resize-glyph,
-.map-connect-flow-glyph {
-  fill: none;
-  pointer-events: none;
-  stroke: #2a3230;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 5;
-}
-
-.map-control-hit {
-  fill: transparent;
-  pointer-events: all;
-  stroke: none;
-}
-
-.map-account-controls .map-rotate-handle {
-  cursor: grab;
-}
-
-.map-account-controls .map-resize-handle {
-  cursor: nwse-resize;
-}
-
-.map-account-controls .map-control-surface {
-  fill: #fff;
-  stroke: #1e7a4a;
-  stroke-width: 3;
-}
-
-.map-connect-flow-label {
-  font-size: 22px;
-}
-
-@media print {
-  .map-interaction-control,
-  .map-connect-handle,
-  .map-resize-handle,
-  .map-rotate-handle {
-    display: none !important;
-  }
+.map-arrow-editor[data-map-selected='true'] > [data-arrow-kind] {
+  filter: drop-shadow(0 0 4px rgb(30 122 74 / 45%));
 }
 /* Session 40 map control review fixes */
 .map-account-body-hit {
@@ -2145,47 +1935,6 @@ summary:focus-visible {
 }
 
 @media (forced-colors: active) {
-  .map-account-controls,
-  .map-shape-option,
-  .map-adjust-button,
-  .map-connect-flow-control {
-    forced-color-adjust: none;
-  }
-
-  .map-control-panel,
-  .map-control-button,
-  .map-control-surface {
-    fill: Canvas;
-    stroke: CanvasText;
-  }
-
-  .map-shape-option-glyph,
-  .map-rotate-glyph,
-  .map-resize-glyph,
-  .map-connect-flow-glyph {
-    fill: none;
-    stroke: CanvasText;
-  }
-
-  .map-control-label,
-  .map-adjust-glyph,
-  .map-connect-flow-label {
-    fill: CanvasText;
-  }
-
-  .map-shape-option:focus-visible,
-  .map-adjust-button:focus-visible,
-  .map-connect-flow-control:focus-visible {
-    outline: 2px solid Highlight;
-    outline-color: Highlight;
-    outline-offset: 2px;
-  }
-
-  .map-shape-option.is-active .map-control-button {
-    fill: Highlight;
-    stroke: HighlightText;
-  }
-
   .map-interactive
     [data-account-id][data-map-selected='true']
     .map-account-body-hit {

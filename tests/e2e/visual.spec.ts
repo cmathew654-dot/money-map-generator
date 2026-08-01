@@ -51,4 +51,50 @@ test.describe('desktop visual baselines', () => {
     await stabilize(page)
     await compareOrAttachReflow(page, info, 'present')
   })
+
+  test('selected account, arrow, note, and calculated text', async ({ page }, info) => {
+    test.skip(info.project.name !== 'chromium-1440x900', 'Selected-state baselines use the canonical editor viewport.')
+    test.slow()
+    await openApp(page)
+    await fullForm(page)
+
+    const account = page.locator('[data-account-id][role="group"]').first()
+    await account.locator('.map-account-body-hit:not(ellipse)').click({ position: { x: 18, y: 18 } })
+    await expect(page.locator('.map-inspector')).toBeVisible()
+    await stabilize(page)
+    await expect(page).toHaveScreenshot('selected-account.png', screenshotOptions)
+
+    const arrowHit = page.getByRole('group', { name: 'Adjust custom arrow' }).first().locator('.map-arrow-hit')
+    const arrowPoint = await arrowHit.evaluate((element) => {
+      const path = element as SVGPathElement
+      const point = path.getPointAtLength(path.getTotalLength() / 2)
+      const matrix = path.getScreenCTM()
+      if (!matrix) throw new Error('Arrow has no screen transform')
+      return {
+        x: matrix.a * point.x + matrix.c * point.y + matrix.e,
+        y: matrix.b * point.x + matrix.d * point.y + matrix.f,
+      }
+    })
+    await page.mouse.click(arrowPoint.x, arrowPoint.y)
+    await expect(page.locator('.map-inspector')).toBeVisible()
+    await stabilize(page)
+    await expect(page).toHaveScreenshot('selected-arrow.png', screenshotOptions)
+
+    await page.getByRole('button', { name: '+ Note', exact: true }).click()
+    const editor = page.locator('.map-text-editor-input')
+    await editor.fill('Selected state note')
+    await editor.press('Enter')
+    await page.getByRole('group', { name: 'Adjust note: Selected state note' }).focus()
+    await expect(page.locator('.map-inspector')).toBeVisible()
+    await stabilize(page)
+    await expect(page).toHaveScreenshot('selected-note.png', screenshotOptions)
+
+    const asNeeded = page.getByLabel('Draw from Short-Term Bucket')
+    await asNeeded.fill('9100')
+    await asNeeded.press('Tab')
+    await page.getByRole('button', { name: 'Adjust need supporting text' }).focus()
+    await expect(page.locator('.map-inspector')).toBeVisible()
+    await stabilize(page)
+    await expect(page).toHaveScreenshot('selected-supporting-text.png', screenshotOptions)
+  })
 })

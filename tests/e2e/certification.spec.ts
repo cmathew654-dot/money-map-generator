@@ -72,6 +72,22 @@ test.describe('desktop behavioral certification', () => {
     await expect(page.getByRole('button', { name: 'Take over editing' })).toHaveCount(0)
   })
 
+  test('writer ownership survives rapid tab handoffs with edits', async ({ context, page }) => {
+    const second = await context.newPage(); await openApp(second)
+    await focusPage(page)
+    await page.getByLabel('Title').fill('Rapid handoff seed')
+    await page.getByLabel('Title').press('Tab')
+
+    for (let switchIndex = 0; switchIndex < 25; switchIndex += 1) {
+      const active = switchIndex % 2 === 0 ? second : page
+      await focusPage(active)
+      const value = `Rapid handoff ${switchIndex + 1}`
+      await active.getByLabel('Title').fill(value)
+      await active.getByLabel('Title').press('Tab')
+      await expect.poll(() => active.getByLabel('Title').inputValue()).toBe(value)
+    }
+  })
+
   test('legacy storage migrates without loss', async ({ browser, page }) => {
     await page.waitForTimeout(600)
     const raw = await page.evaluate((key) => localStorage.getItem(key), BOOK_KEY)

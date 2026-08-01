@@ -17,13 +17,27 @@ export async function fullForm(page: Page) {
   await expect(page.locator('.client-form')).toBeVisible()
 }
 export async function focusPage(page: Page) {
-  for (const other of page.context().pages()) {
-    if (other !== page && !other.isClosed()) {
-      await other.evaluate(() => window.dispatchEvent(new Event('blur')))
-    }
-  }
   await page.bringToFront()
-  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await expect.poll(() => page.evaluate(() => ({
+    focused: document.hasFocus(),
+    visibility: document.visibilityState,
+  }))).toEqual({ focused: true, visibility: 'visible' })
+
+  const pages = page.context().pages().filter((candidate) => !candidate.isClosed())
+  for (const other of pages) {
+    if (other !== page) await other.evaluate(() => window.dispatchEvent(new FocusEvent('blur')))
+  }
+  await page.evaluate(() => window.dispatchEvent(new FocusEvent('focus')))
+  await expect.poll(async () => {
+    const enabled = await Promise.all(pages.map(async (candidate) => {
+      const title = candidate.getByLabel('Title')
+      return await title.count() > 0 && await title.isEnabled()
+    }))
+    return {
+      active: await page.getByLabel('Title').isEnabled(),
+      writers: enabled.filter(Boolean).length,
+    }
+  }).toEqual({ active: true, writers: 1 })
 }
 export async function assertWcag22AA(page: Page, info: TestInfo, state: string) {
   // No axe rules are disabled. Any future exclusion requires a reproduced engine/axe false positive.
