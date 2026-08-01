@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { BOOK_KEY, fullForm, openApp } from './helpers'
+import { BOOK_KEY, focusPage, fullForm, openApp } from './helpers'
 
 test('external writer snapshot invalidates stale undo history before ownership returns', async ({ context, page }) => {
   await openApp(page)
@@ -13,11 +13,11 @@ test('external writer snapshot invalidates stale undo history before ownership r
   const second = await context.newPage()
   await openApp(second)
   await fullForm(second)
-  await expect(second.getByText('Read-only tab')).toBeVisible()
   const authoritativeTitle = second.getByLabel('Title')
   await expect(authoritativeTitle).toHaveValue('Page A history seed')
-  await second.getByRole('button', { name: 'Take over editing' }).click()
-  await expect(page.getByText('Read-only tab')).toBeVisible()
+  await focusPage(second)
+  await expect(authoritativeTitle).toBeEnabled()
+  await expect(firstTitle).toBeDisabled()
 
   await expect(authoritativeTitle).toHaveValue('Page A history seed')
   await authoritativeTitle.fill('Page B authoritative edit')
@@ -25,8 +25,9 @@ test('external writer snapshot invalidates stale undo history before ownership r
   await expect.poll(() => second.evaluate((key) => localStorage.getItem(key), BOOK_KEY)).toContain('Page B authoritative edit')
   await expect(firstTitle).toHaveValue('Page B authoritative edit')
 
-  await page.getByRole('button', { name: 'Take over editing' }).click()
-  await expect(second.getByText('Read-only tab')).toBeVisible()
+  await focusPage(page)
+  await expect(firstTitle).toBeEnabled()
+  await expect(authoritativeTitle).toBeDisabled()
   await page.keyboard.press('Control+z')
 
   await expect(firstTitle).toHaveValue('Page B authoritative edit')
@@ -42,7 +43,9 @@ test('writer takeover waits for a delayed incumbent to flush its pending edit', 
   const second = await context.newPage()
   await openApp(second)
   await fullForm(second)
-  await expect(second.getByText('Read-only tab')).toBeVisible()
+  await focusPage(page)
+  await expect(page.getByLabel('Title')).toBeEnabled()
+  await expect(second.getByLabel('Title')).toBeDisabled()
 
   await page.getByLabel('Title').fill('Page A pending handoff edit')
   const incumbentBlock = page.evaluate(() => {
@@ -51,9 +54,9 @@ test('writer takeover waits for a delayed incumbent to flush its pending edit', 
     while (performance.now() < releaseAt) { /* Deliberately delay the storage event. */ }
   })
   await expect.poll(() => second.evaluate(() => localStorage.getItem('money-map-generator:test-incumbent-blocked'))).toBe('true')
-  await second.getByRole('button', { name: 'Take over editing' }).click()
+  await focusPage(second)
   await incumbentBlock
-  await expect(page.getByText('Read-only tab')).toBeVisible()
+  await expect(page.getByLabel('Title')).toBeDisabled()
 
   await second.waitForTimeout(650)
   await expect(second.getByLabel('Title')).toHaveValue('Page A pending handoff edit')
@@ -68,10 +71,8 @@ test('takeover waits for a crashed lease to expire and then succeeds', async ({ 
     }))
   })
   await openApp(page)
-  await expect(page.getByText('Read-only tab')).toBeVisible()
-
-  await page.getByRole('button', { name: 'Take over editing' }).click()
-  await expect(page.getByText('Read-only tab')).toHaveCount(0, { timeout: 4_000 })
+  await focusPage(page)
+  await expect(page.getByLabel('Title')).toBeEnabled({ timeout: 4_000 })
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('money-map-generator:writer') || '{}').tabId)).not.toBe('crashed-tab')
 })
 
@@ -92,9 +93,10 @@ test('navigation pagehide hands ownership to the follower immediately', async ({
   await openApp(page)
   const second = await context.newPage()
   await openApp(second)
-  await expect(second.getByText('Read-only tab')).toBeVisible()
+  await focusPage(page)
+  await expect(second.getByLabel('Title')).toBeDisabled()
 
   await page.goto('about:blank')
-  await expect(second.getByText('Read-only tab')).toHaveCount(0, { timeout: 2_000 })
+  await expect(second.getByLabel('Title')).toBeEnabled({ timeout: 2_000 })
   await page.close()
 })

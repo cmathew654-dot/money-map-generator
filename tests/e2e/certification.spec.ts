@@ -1,10 +1,10 @@
 ﻿import { expect, test } from '@playwright/test'
-import { BOOK_KEY, LEGACY_BOOK_KEY, evidence, fullForm, openApp } from './helpers'
+import { BOOK_KEY, LEGACY_BOOK_KEY, evidence, focusPage, fullForm, openApp } from './helpers'
 
 test.describe('desktop behavioral certification', () => {
   test.beforeEach(async ({ page }) => openApp(page))
 
-  test('untouched Whitfield is warning-free', async ({ page }, info) => {
+  test('untouched Whitfield keeps output controls available', async ({ page }, info) => {
     await expect(page.getByText('Export paused')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Print' })).toBeEnabled()
     await evidence(page, info, 'whitfield-warning-free')
@@ -54,12 +54,22 @@ test.describe('desktop behavioral certification', () => {
     await expect(page.locator('.app-shell')).not.toHaveClass(/is-presenting/)
   })
 
-  test('writer ownership transfers between pages', async ({ context, page }) => {
+  test('writer ownership follows the focused page without guard UI', async ({ context, page }) => {
+    const firstTitle = page.getByLabel('Title')
     const second = await context.newPage(); await openApp(second)
-    await expect(second.getByText('Read-only tab')).toBeVisible()
-    await second.getByRole('button', { name: 'Take over editing' }).click()
+    const secondTitle = second.getByLabel('Title')
+
+    await focusPage(second)
+    await expect(secondTitle).toBeEnabled()
+    await expect(firstTitle).toBeDisabled()
     await expect(second.getByText('Read-only tab')).toHaveCount(0)
-    await expect(page.getByText('Read-only tab')).toBeVisible()
+    await expect(second.getByRole('button', { name: 'Take over editing' })).toHaveCount(0)
+
+    await focusPage(page)
+    await expect(firstTitle).toBeEnabled()
+    await expect(secondTitle).toBeDisabled()
+    await expect(page.getByText('Read-only tab')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Take over editing' })).toHaveCount(0)
   })
 
   test('legacy storage migrates without loss', async ({ browser, page }) => {
@@ -76,16 +86,25 @@ test.describe('desktop behavioral certification', () => {
     await context.close()
   })
 
-  test('Save Book and PNG download', async ({ page }) => {
+  test('Save Book and map exports download', async ({ page }) => {
     await page.getByRole('button', { name: 'Book menu' }).click()
     const book = page.waitForEvent('download'); await page.getByRole('menuitem', { name: 'Save book' }).click()
     expect((await book).suggestedFilename()).toBe('money-map-book.json')
-    await page.getByRole('button', { name: 'Save map' }).click()
-    const png = page.waitForEvent('download'); await page.getByRole('menuitem', { name: 'PNG image' }).click()
-    expect((await png).suggestedFilename()).toMatch(/Money Map.*\.png$/)
+    for (const [name, extension] of [
+      ['PNG image', 'png'],
+      ['PDF document', 'pdf'],
+      ['SVG image', 'svg'],
+    ] as const) {
+      await page.getByRole('button', { name: 'Save map' }).click()
+      const download = page.waitForEvent('download')
+      await page.getByRole('menuitem', { name }).click()
+      expect((await download).suggestedFilename()).toMatch(
+        new RegExp(`Money Map.*\\.${extension}$`),
+      )
+    }
   })
 
-  test('layout warning guards output', async ({ browser, page }, info) => {
+  test('layout warnings remain diagnostic and never gate output', async ({ browser, page }, info) => {
     await page.waitForTimeout(600)
     const payload = await page.evaluate((key) => {
       const book = JSON.parse(localStorage.getItem(key) || '{}'); const client = book.clients?.[0]
@@ -98,9 +117,21 @@ test.describe('desktop behavioral certification', () => {
       if (location.origin === expectedOrigin) localStorage.setItem(key, value)
     }, { key: BOOK_KEY, value: payload, expectedOrigin: new URL(page.url()).origin })
     const stressed = await context.newPage(); await openApp(stressed)
-    await expect(stressed.getByText('Export paused')).toBeVisible()
-    await expect(stressed.getByRole('button', { name: 'Print' })).toBeDisabled()
-    await evidence(stressed, info, 'layout-warning-guard')
+    await expect(stressed.getByText('Export paused')).toHaveCount(0)
+    await stressed.evaluate(() => {
+      ;(window as Window & { __printCalls?: number }).__printCalls = 0
+      window.print = () => {
+        ;(window as Window & { __printCalls?: number }).__printCalls! += 1
+      }
+    })
+    await expect(stressed.getByRole('button', { name: 'Print' })).toBeEnabled()
+    await stressed.getByRole('button', { name: 'Print' }).click()
+    await expect.poll(() => stressed.evaluate(() => (window as Window & { __printCalls?: number }).__printCalls)).toBe(1)
+    await stressed.getByRole('button', { name: 'Save map' }).click()
+    for (const name of ['PNG image', 'PDF document', 'SVG image']) {
+      await expect(stressed.getByRole('menuitem', { name })).toBeEnabled()
+    }
+    await evidence(stressed, info, 'layout-warning-diagnostics')
     await context.close()
   })
 

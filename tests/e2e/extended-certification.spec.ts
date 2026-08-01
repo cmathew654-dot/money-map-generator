@@ -706,7 +706,6 @@ test.describe('extended desktop certification', () => {
 
   test('WCAG text spacing and forced colors preserve content and boundaries', async ({
     browserName,
-    context,
     page,
   }, testInfo) => {
     test.setTimeout(120_000)
@@ -794,37 +793,6 @@ test.describe('extended desktop certification', () => {
         URL.createObjectURL = extendedWindow.__extendedOriginalObjectUrl
       }
     })
-
-    const statusPage = await context.newPage()
-    try {
-      await openApp(statusPage)
-      await applyRequiredTextSpacing(statusPage)
-      const statusBanner = statusPage
-        .locator('.app-status-banner')
-        .filter({ hasText: 'Read-only tab' })
-      await expect(statusBanner).toBeVisible()
-      painted.push(
-        await paintedTargetState(
-          'Read-only status',
-          statusBanner,
-          '.app-shell',
-        ),
-      )
-      painted.push(
-        await paintedTargetState(
-          'Take over editing',
-          statusPage.getByRole('button', { name: 'Take over editing' }),
-          '.app-shell',
-        ),
-      )
-      await assertWcag22AA(
-        statusPage,
-        testInfo,
-        'text-spacing-read-only-status',
-      )
-    } finally {
-      await statusPage.close()
-    }
 
     const paintedFailures = painted.filter(
       (state) =>
@@ -968,7 +936,7 @@ test.describe('extended desktop certification', () => {
     expect(forcedColorPaintFailures, 'Forced-colors paint/focus failure').toEqual([])
   })
 
-  test('axe covers open menus, native dialog, status warning, and focused map controls', async ({
+  test('axe covers open menus, native dialog, layout overflow, and focused map controls', async ({
     browser,
     page,
   }, testInfo) => {
@@ -1064,12 +1032,18 @@ test.describe('extended desktop certification', () => {
     const stressedPage = await stressedContext.newPage()
     try {
       await openApp(stressedPage)
-      await expect(stressedPage.getByText('Export paused')).toBeVisible()
+      await expect(stressedPage.getByText('Export paused')).toHaveCount(0)
       await expect(
         stressedPage.getByRole('button', { name: 'Print' }),
-      ).toBeDisabled()
-      await audit(stressedPage, 'layout-warning-status')
-      await evidence(stressedPage, testInfo, 'axe-layout-warning-status')
+      ).toBeEnabled()
+      await stressedPage.getByRole('button', { name: 'Save map' }).click()
+      for (const name of ['PNG image', 'PDF document', 'SVG image']) {
+        await expect(
+          stressedPage.getByRole('menuitem', { name }),
+        ).toBeEnabled()
+      }
+      await audit(stressedPage, 'layout-warning-output')
+      await evidence(stressedPage, testInfo, 'axe-layout-warning-output')
     } finally {
       await stressedContext.close()
     }

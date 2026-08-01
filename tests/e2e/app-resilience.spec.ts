@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { openApp } from './helpers'
+import { focusPage, openApp } from './helpers'
 
 test.describe('App resilience', () => {
   test('file input is named and account summaries contain no nested controls', async ({ page }) => {
@@ -73,7 +73,7 @@ test.describe('App resilience', () => {
     await expect(page.getByRole('menuitem', { name: 'PNG image' })).toBeDisabled()
     await download
   })
-  test('follower exposes disabled mutation controls until ownership transfers', async ({ context, page }) => {
+  test('focused follower enables mutation controls after ownership transfers', async ({ context, page }) => {
     await openApp(page)
     await page.getByRole('button', { name: 'Full form' }).click()
     const writerTitle = page.getByLabel('Title')
@@ -83,6 +83,8 @@ test.describe('App resilience', () => {
     await openApp(follower)
     await follower.getByRole('button', { name: 'Full form' }).click()
     const followerTitle = follower.getByLabel('Title')
+    await focusPage(page)
+    await expect(writerTitle).toBeEnabled()
     await expect(followerTitle).toBeDisabled()
     await expect(follower.getByRole('button', { name: 'New', exact: true })).toBeDisabled()
 
@@ -96,9 +98,7 @@ test.describe('App resilience', () => {
     await expect(follower.getByRole('menuitem', { name: 'Clear map…' })).toBeDisabled()
     await follower.keyboard.press('Escape')
 
-    const takeover = follower.getByRole('button', { name: 'Take over editing' })
-    await expect(takeover).toBeEnabled()
-    await takeover.click()
+    await focusPage(follower)
     await expect(followerTitle).toBeEnabled()
     await expect(follower.getByRole('button', { name: 'New', exact: true })).toBeEnabled()
     await expect(writerTitle).toBeDisabled()

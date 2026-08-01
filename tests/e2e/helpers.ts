@@ -16,6 +16,15 @@ export async function fullForm(page: Page) {
   await page.getByRole('button', { name: 'Full form' }).click()
   await expect(page.locator('.client-form')).toBeVisible()
 }
+export async function focusPage(page: Page) {
+  for (const other of page.context().pages()) {
+    if (other !== page && !other.isClosed()) {
+      await other.evaluate(() => window.dispatchEvent(new Event('blur')))
+    }
+  }
+  await page.bringToFront()
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+}
 export async function assertWcag22AA(page: Page, info: TestInfo, state: string) {
   // No axe rules are disabled. Any future exclusion requires a reproduced engine/axe false positive.
   const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()

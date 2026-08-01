@@ -5,7 +5,6 @@ import {
   browserPersistenceLabel,
   canMutateBook,
   canWriteConnectedBook,
-  layoutOutputBlockMessage,
 } from '../src/App'
 
 describe('Session 40 App safety boundaries', () => {
@@ -23,6 +22,9 @@ describe('Session 40 App safety boundaries', () => {
     expect(browserPersistenceLabel('real', false, 'saved')).toBe(
       'Read only — another tab owns browser saves',
     )
+    expect(browserPersistenceLabel('real', false, 'saved', true)).toBe(
+      'Switching editing…',
+    )
     expect(browserPersistenceLabel('real', true, 'saving')).toBe(
       'Saving in this browser…',
     )
@@ -38,13 +40,6 @@ describe('Session 40 App safety boundaries', () => {
     expect(appMapFileName('New Client', '', 'png')).toBe(
       'New Client — Money Map.png',
     )
-  })
-
-  it('uses one warning gate for every map output path', () => {
-    expect(layoutOutputBlockMessage([])).toBeNull()
-    expect(
-      layoutOutputBlockMessage([{ message: 'Accounts exceed the page.' }]),
-    ).toBe('Accounts exceed the page.')
   })
 
   it('guards connected writes and destructive loads behind writer authority', () => {

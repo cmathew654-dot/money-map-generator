@@ -43,7 +43,7 @@ import {
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
-import { layoutMap, NOTE_WIDTH } from './layout/layout'
+import { NOTE_WIDTH } from './layout/layout'
 import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import {
   exportPdf,
@@ -100,16 +100,13 @@ export function canWriteConnectedBook(canMutate: boolean, connected: boolean) {
   return canMutate && connected
 }
 
-export function browserPersistenceLabel(dataMode: 'demo' | 'real', isWriter: boolean, status: BrowserSaveStatus) {
+export function browserPersistenceLabel(dataMode: 'demo' | 'real', isWriter: boolean, status: BrowserSaveStatus, switching = false) {
   if (dataMode === 'demo') return 'Demo mode — changes are temporary'
+  if (switching) return 'Switching editing…'
   if (!isWriter) return 'Read only — another tab owns browser saves'
   if (status === 'saving') return 'Saving in this browser…'
   if (status === 'error') return 'Browser save failed'
   return 'Saved in this browser'
-}
-
-export function layoutOutputBlockMessage(warnings: ReadonlyArray<{ message: string }>) {
-  return warnings.length ? warnings.map((warning) => warning.message).join(' ') : null
 }
 
 export function appMapFileName(
@@ -205,6 +202,8 @@ export default function App() {
   const fileSaveRevision = useRef(0)
   const fileWriteQueue = useRef<Promise<void>>(Promise.resolve())
   const writerTakeoverTimerRef = useRef<number | null>(null)
+  const writerFocusRequestedRef = useRef(false)
+  const writerFocusInitializedRef = useRef(false)
   const exportInFlightRef = useRef<'png' | 'pdf' | 'svg' | null>(null)
   const snapshotRef = useRef(snapshot)
   const historyRef = useRef(history)
@@ -250,8 +249,6 @@ export default function App() {
       mapTextEdit.fontSize,
     )
   })()
-  const layoutWarnings = useMemo(() => layoutMap(previewClient).warnings ?? [], [previewClient])
-
   useEffect(() => {
     setMapZoom('fit')
     setShapePopoverOpen(false)
@@ -396,15 +393,39 @@ export default function App() {
     window.clearTimeout(writerTakeoverTimerRef.current)
     writerTakeoverTimerRef.current = null
   }, [])
+  const adoptLatestBrowserBook = useCallback(() => {
+    const latest = loadBrowserBook(localStorage)
+    if (latest.status === 'ready') {
+      showHistory(emptyHistory())
+      showSnapshot({ book: latest.book, activeClientId: latest.book.clients[0].id })
+      return true
+    }
+    if (latest.status === 'recovery') {
+      setRecovery({ raw: latest.raw, message: latest.message })
+    } else {
+      setBrowserSaveStatus('error')
+      setBrowserSaveError(latest.message)
+    }
+    return false
+  }, [showHistory, showSnapshot])
+  const finishBrowserWriterTakeover = useCallback(() => {
+    clearWriterTakeoverTimer()
+    setWriterTakeoverPending(false)
+    if (!adoptLatestBrowserBook()) {
+      releaseBrowserWriter(localStorage, tabId)
+      setIsWriter(false)
+      return
+    }
+    setIsWriter(true)
+  }, [adoptLatestBrowserBook, clearWriterTakeoverTimer, tabId])
   const requestBrowserWriterTakeover = useCallback(() => {
+    if (writerTakeoverTimerRef.current !== null) return
     setWriterTakeoverPending(true)
     const tryTakeover = () => {
       const result = acquireBrowserWriter(localStorage, tabId, true)
       if (result.status === 'acquired') {
-        clearWriterTakeoverTimer()
         try { localStorage.removeItem(WRITER_TAKEOVER_REQUEST_KEY) } catch { /* The acquired lease remains valid. */ }
-        setWriterTakeoverPending(false)
-        setIsWriter(true)
+        finishBrowserWriterTakeover()
         return
       }
       if (result.status === 'error') {
@@ -417,10 +438,36 @@ export default function App() {
     try {
       localStorage.setItem(WRITER_TAKEOVER_REQUEST_KEY, JSON.stringify({ requester: tabId, requestedAt: Date.now() }))
     } catch {
-      // Polling reports storage failure by restoring the retry button.
+      // A later focus retries ownership.
     }
     writerTakeoverTimerRef.current = window.setTimeout(tryTakeover, WRITER_TAKEOVER_POLL_MS)
-  }, [clearWriterTakeoverTimer, tabId])
+  }, [clearWriterTakeoverTimer, finishBrowserWriterTakeover, tabId])
+  useEffect(() => {
+    if (DATA_MODE !== 'real') return
+    const checkInitialFocus = !writerFocusInitializedRef.current
+    writerFocusInitializedRef.current = true
+    const requestOnFocus = () => {
+      if (
+        document.visibilityState !== 'visible' ||
+        !document.hasFocus() ||
+        isWriter ||
+        writerTakeoverPending ||
+        writerFocusRequestedRef.current
+      ) return
+      writerFocusRequestedRef.current = true
+      requestBrowserWriterTakeover()
+    }
+    const resetFocusRequest = () => {
+      writerFocusRequestedRef.current = false
+    }
+    window.addEventListener('focus', requestOnFocus)
+    window.addEventListener('blur', resetFocusRequest)
+    if (checkInitialFocus) requestOnFocus()
+    return () => {
+      window.removeEventListener('focus', requestOnFocus)
+      window.removeEventListener('blur', resetFocusRequest)
+    }
+  }, [isWriter, requestBrowserWriterTakeover, writerTakeoverPending])
   useEffect(() => {
     if (DATA_MODE !== 'real' || !isWriter || recovery) return
     setBrowserSaveStatus('saving'); const timeout = window.setTimeout(flushBrowserSave, 400)
@@ -437,7 +484,13 @@ export default function App() {
     if (DATA_MODE !== 'real') return
     const flush = () => flushBrowserSave(); const hidden = () => { if (document.visibilityState === 'hidden') flush() }
     const handlePageHide = () => { flushBrowserSave(); releaseBrowserWriter(localStorage, tabId) }
-    const handlePageShow = () => setIsWriter(acquireBrowserWriter(localStorage, tabId).status === 'acquired')
+    const handlePageShow = () => {
+      if (acquireBrowserWriter(localStorage, tabId).status === 'acquired') {
+        finishBrowserWriterTakeover()
+      } else {
+        setIsWriter(false)
+      }
+    }
     const storage = (event: StorageEvent) => {
       if (event.key === WRITER_TAKEOVER_REQUEST_KEY && event.newValue && isWriter && currentBrowserWriter(localStorage) === tabId) {
         try {
@@ -455,10 +508,10 @@ export default function App() {
       if (event.key === WRITER_STORAGE_KEY) {
         const result = acquireBrowserWriter(localStorage, tabId)
         if (result.status === 'acquired') {
-          clearWriterTakeoverTimer()
-          setWriterTakeoverPending(false)
+          finishBrowserWriterTakeover()
+        } else {
+          setIsWriter(false)
         }
-        setIsWriter(result.status === 'acquired')
       }
       if (event.key === BOOK_STORAGE_KEY && currentBrowserWriter(localStorage) !== tabId) {
         const latest = loadBrowserBook(localStorage)
@@ -470,7 +523,7 @@ export default function App() {
     }
     window.addEventListener('pagehide', handlePageHide); window.addEventListener('beforeunload', handlePageHide); window.addEventListener('pageshow', handlePageShow); document.addEventListener('visibilitychange', hidden); window.addEventListener('storage', storage)
     return () => { window.removeEventListener('pagehide', handlePageHide); window.removeEventListener('beforeunload', handlePageHide); window.removeEventListener('pageshow', handlePageShow); document.removeEventListener('visibilitychange', hidden); window.removeEventListener('storage', storage) }
-  }, [clearWriterTakeoverTimer, flushBrowserSave, isWriter, showHistory, showSnapshot, tabId])
+  }, [finishBrowserWriterTakeover, flushBrowserSave, isWriter, showHistory, showSnapshot, tabId])
 
   useEffect(
     () => () => {
@@ -776,8 +829,6 @@ export default function App() {
   const handleExport = async (format: 'png' | 'pdf' | 'svg') => {
     if (exportInFlightRef.current) return
     const label = format.toUpperCase()
-    const blocked = layoutOutputBlockMessage(layoutWarnings)
-    if (blocked) { showError(`Could not export ${label}`, new Error(blocked), `The ${label} could not be exported.`); return }
     const svg = printMapRef.current?.querySelector('svg')
     if (!svg) {
       showError(
@@ -824,8 +875,6 @@ export default function App() {
   }
 
   const handlePrint = () => {
-    const blocked = layoutOutputBlockMessage(layoutWarnings)
-    if (blocked) { showError('Could not print', new Error(blocked), 'The Money Map could not be printed.'); return }
     window.print()
   }
 
@@ -1232,7 +1281,6 @@ export default function App() {
             <button
               className="primary-button"
               type="button"
-              disabled={layoutWarnings.length > 0}
               onClick={handlePrint}
             >
               Print
@@ -1265,7 +1313,7 @@ export default function App() {
               >
                 {exporting ? `Exporting ${exporting.toUpperCase()}…` : connectedFile && canMutate
                   ? `${fileSaveStatus === 'saving' ? 'Saving' : 'Saved'} — connected to ${connectedFile.name}`
-                  : browserPersistenceLabel(DATA_MODE, isWriter, browserSaveStatus)}
+                  : browserPersistenceLabel(DATA_MODE, isWriter, browserSaveStatus, writerTakeoverPending)}
               </div>
             </Menu>
           </div>
@@ -1286,10 +1334,8 @@ export default function App() {
       </header>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
         {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes are temporary. Do not enter real client data. Real use requires a private separate-origin deployment with <code>VITE_DATA_MODE=real</code>.</span></section>}
-        {DATA_MODE === 'real' && !isWriter && <section className="app-status-banner is-warning"><strong>Read-only tab</strong><span>Another tab owns browser saves.</span><button disabled={writerTakeoverPending} type="button" onClick={requestBrowserWriterTakeover}>{writerTakeoverPending ? 'Waiting for current editor…' : 'Take over editing'}</button></section>}
         {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
         {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Browser save failed</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Retry</button></section>}
-        {layoutWarnings.length > 0 && <section className="app-status-banner is-warning"><strong>Export paused</strong><span>{layoutWarnings.map((warning) => warning.message).join(' ')}</span></section>}
       </div>}
       <div className="workspace">
         <aside className="form-pane" aria-label="Client editor">
