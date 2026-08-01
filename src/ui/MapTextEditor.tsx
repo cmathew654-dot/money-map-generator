@@ -16,6 +16,7 @@ import {
   MAX_ACCOUNT_TEXT_FONT_SIZE,
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
+  mapItemTextOverrideKey,
   mapTextOverrideKey,
 } from '../model/types'
 import { addMapNote } from '../render/mapInteraction'
@@ -36,13 +37,18 @@ export type MapTextEditTarget =
   | { kind: 'accountCaption'; accountId: string }
   | { kind: 'accountRows'; accountId: string }
   | { kind: 'accountSub'; accountId: string }
+  | { kind: 'accountPositionLabel'; accountId: string; positionIndex: number }
+  | { kind: 'accountPositionValue'; accountId: string; positionIndex: number }
+  | { kind: 'accountSubLabel'; accountId: string; subAccountIndex: number }
+  | { kind: 'accountSubCaption'; accountId: string; subAccountIndex: number }
+  | { kind: 'accountSubValue'; accountId: string; subAccountIndex: number }
   | { kind: 'incomeHeader' }
-  | { kind: 'incomeAmount'; incomeIndex: number }
+  | { kind: 'incomeAmount'; incomeIndex: number; incomeId?: string }
   | { kind: 'afterTaxIncome' }
   | { kind: 'needLabel' }
   | { kind: 'monthlyNeed' }
   | { kind: 'mastheadLabel' }
-  | { kind: 'footnoteText' }
+  | { kind: 'footnoteText'; footnoteId?: string }
   | { kind: 'asNeededAmount' }
   | { kind: 'flowLabel'; arrowId: string }
   | { kind: 'noteText'; noteId: string; x?: number; y?: number }
@@ -88,8 +94,17 @@ export function mapTextEditTargetKey(target: MapTextEditTarget): string {
     case 'accountRows':
     case 'accountSub':
       return `${target.kind}:${target.accountId}`
+    case 'accountPositionLabel':
+    case 'accountPositionValue':
+      return `${target.kind}:${target.accountId}:${target.positionIndex}`
+    case 'accountSubLabel':
+    case 'accountSubCaption':
+    case 'accountSubValue':
+      return `${target.kind}:${target.accountId}:${target.subAccountIndex}`
     case 'incomeAmount':
-      return `${target.kind}:${target.incomeIndex}`
+      return `${target.kind}:${target.incomeId ?? target.incomeIndex}`
+    case 'footnoteText':
+      return target.footnoteId ? `${target.kind}:${target.footnoteId}` : target.kind
     case 'flowLabel':
       return `${target.kind}:${target.arrowId}`
     case 'noteText':
@@ -136,6 +151,21 @@ const MAP_TEXT_EDITOR_STYLES: Record<
   accountSub: {
     color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'center',
   },
+  accountPositionLabel: {
+    color: INK, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'left',
+  },
+  accountPositionValue: {
+    color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'right',
+  },
+  accountSubLabel: {
+    color: INK, fontFamily: FONT_SANS, fontWeight: 600, textAlign: 'center',
+  },
+  accountSubCaption: {
+    color: MUTED, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'center',
+  },
+  accountSubValue: {
+    color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'center',
+  },
   accountValue: {
     color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'center',
   },
@@ -179,6 +209,11 @@ const MAP_TEXT_EDITOR_FONT_SIZES: Record<MapTextEditKind, number> = {
   accountLabel: TYPE.accountTitle,
   accountRows: TYPE.row,
   accountSub: TYPE.subValue,
+  accountPositionLabel: TYPE.row,
+  accountPositionValue: TYPE.row,
+  accountSubLabel: TYPE.subAccountTitle,
+  accountSubCaption: TYPE.subAccountCaption,
+  accountSubValue: TYPE.subValue,
   accountValue: TYPE.value,
   afterTaxIncome: TYPE.incomeTotalValue,
   asNeededAmount: TYPE.arrowLabel,
@@ -261,21 +296,20 @@ export function mapTextEditFsInfo(
 
   switch (target.kind) {
     case 'accountRows':
+    case 'accountPositionLabel':
+    case 'accountPositionValue':
       return {
         key: accountTextOverrideKey(target.accountId, 'rows'),
         fallback: TYPE.row,
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
     case 'accountSub':
+    case 'accountSubLabel':
+    case 'accountSubCaption':
+    case 'accountSubValue':
       return {
         key: accountTextOverrideKey(target.accountId, 'sub'),
         fallback: TYPE.subValue,
-        max: MAX_MAP_TEXT_FONT_SIZE,
-      }
-    case 'incomeHeader':
-      return {
-        key: mapTextOverrideKey('income', 'header'),
-        fallback: TYPE.panelHeader,
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
     case 'incomeAmount':
@@ -304,7 +338,9 @@ export function mapTextEditFsInfo(
       }
     case 'footnoteText':
       return {
-        key: mapTextOverrideKey('footnotes', 'line'),
+        key: target.footnoteId
+          ? mapItemTextOverrideKey('footnotes', 'line', target.footnoteId)
+          : mapTextOverrideKey('footnotes', 'line'),
         fallback: TYPE.footnote,
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
@@ -383,6 +419,21 @@ export function mapTextEditRawValue(
         data.accounts.find((account) => account.id === target.accountId)
           ?.caption ?? ''
       )
+    case 'accountPositionLabel':
+      return data.accounts.find((account) => account.id === target.accountId)
+        ?.positions?.[target.positionIndex]?.label ?? ''
+    case 'accountPositionValue':
+      return money(data.accounts.find((account) => account.id === target.accountId)
+        ?.positions?.[target.positionIndex]?.value ?? null)
+    case 'accountSubLabel':
+      return data.accounts.find((account) => account.id === target.accountId)
+        ?.subAccounts?.[target.subAccountIndex]?.label ?? ''
+    case 'accountSubCaption':
+      return data.accounts.find((account) => account.id === target.accountId)
+        ?.subAccounts?.[target.subAccountIndex]?.caption ?? ''
+    case 'accountSubValue':
+      return money(data.accounts.find((account) => account.id === target.accountId)
+        ?.subAccounts?.[target.subAccountIndex]?.value ?? null)
     case 'incomeAmount':
       return money(
         data.incomeSources[target.incomeIndex]?.amount ?? null,
@@ -420,7 +471,10 @@ export function applyMapTextEdit(
   if (isSizeOnlyTarget(target)) return data
   if (
     target.kind === 'accountLabel' ||
-    target.kind === 'accountCaption'
+    target.kind === 'accountCaption' ||
+    target.kind === 'accountPositionLabel' ||
+    target.kind === 'accountSubLabel' ||
+    target.kind === 'accountSubCaption'
   ) {
     const text = rawValue.trim()
     return {
@@ -429,7 +483,28 @@ export function applyMapTextEdit(
         account.id === target.accountId
           ? target.kind === 'accountLabel'
             ? { ...account, label: text }
-            : { ...account, caption: text }
+            : target.kind === 'accountCaption'
+              ? { ...account, caption: text }
+              : target.kind === 'accountPositionLabel'
+                ? {
+                    ...account,
+                    positions: account.positions?.map((position, index) =>
+                      index === target.positionIndex
+                        ? { ...position, label: text }
+                        : position,
+                    ),
+                  }
+                : {
+                    ...account,
+                    subAccounts: account.subAccounts?.map((subAccount, index) =>
+                      index === target.subAccountIndex
+                        ? {
+                            ...subAccount,
+                            [target.kind === 'accountSubLabel' ? 'label' : 'caption']: text,
+                          }
+                        : subAccount,
+                    ),
+                  }
           : account,
       ),
     }
@@ -494,6 +569,38 @@ export function applyMapTextEdit(
           account.id === target.accountId ? { ...account, value } : account,
         ),
       }
+    case 'accountPositionValue':
+      return {
+        ...data,
+        accounts: data.accounts.map((account) =>
+          account.id === target.accountId
+            ? {
+                ...account,
+                positions: account.positions?.map((position, index) =>
+                  index === target.positionIndex
+                    ? { ...position, value }
+                    : position,
+                ),
+              }
+            : account,
+        ),
+      }
+    case 'accountSubValue':
+      return {
+        ...data,
+        accounts: data.accounts.map((account) =>
+          account.id === target.accountId
+            ? {
+                ...account,
+                subAccounts: account.subAccounts?.map((subAccount, index) =>
+                  index === target.subAccountIndex
+                    ? { ...subAccount, value }
+                    : subAccount,
+                ),
+              }
+            : account,
+        ),
+      }
     case 'incomeAmount':
       return {
         ...data,
@@ -516,6 +623,11 @@ function editorLabel(target: MapTextEditTarget): string {
   if (target.kind === 'accountCaption') return 'Edit account caption'
   if (target.kind === 'accountRows') return 'Resize position rows'
   if (target.kind === 'accountSub') return 'Resize sub-account text'
+  if (target.kind === 'accountPositionLabel') return 'Edit position label'
+  if (target.kind === 'accountPositionValue') return 'Edit position value'
+  if (target.kind === 'accountSubLabel') return 'Edit sub-account label'
+  if (target.kind === 'accountSubCaption') return 'Edit sub-account caption'
+  if (target.kind === 'accountSubValue') return 'Edit sub-account value'
   if (target.kind === 'incomeHeader') return 'Resize income heading'
   if (target.kind === 'incomeAmount') return 'Edit income source amount'
   if (target.kind === 'afterTaxIncome') return 'Edit after-tax income'
@@ -630,6 +742,9 @@ export function MapTextEditor({
   const inputMode: 'decimal' | 'text' =
     edit.target.kind === 'accountLabel' ||
     edit.target.kind === 'accountCaption' ||
+    edit.target.kind === 'accountPositionLabel' ||
+    edit.target.kind === 'accountSubLabel' ||
+    edit.target.kind === 'accountSubCaption' ||
     edit.target.kind === 'mastheadLabel' ||
     edit.target.kind === 'flowLabel' ||
     edit.target.kind === 'noteText'

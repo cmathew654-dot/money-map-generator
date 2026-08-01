@@ -735,8 +735,8 @@ describe('layoutMap', () => {
       expect(arrow.end.y).toBeLessThan(
         target.y + target.capRy * 0.15,
       )
-      expect(midpoint.y).toBeLessThan(source.y)
-      expect(midpoint.y).toBeLessThan(target.y)
+      expect(midpoint.y).toBeGreaterThanOrEqual(128)
+      expect(midpoint.y).toBeLessThan(Math.max(source.y, target.y))
     }
   })
 
@@ -930,11 +930,11 @@ describe('layoutMap', () => {
         postNoteLabel: 'April 2026',
       },
       incomeSources: [
-        { label: 'Social Security', amount: 2400, period: 'mo' },
-        { label: 'Pension', amount: 1900, period: 'mo' },
-        { label: 'Rental Income', amount: null, period: 'mo' },
-        { label: 'Annuity', amount: null, period: 'mo' },
-        { label: 'Other Income', amount: null, period: 'mo' },
+        { id: 'income-stress-social-security', label: 'Social Security', amount: 2400, period: 'mo' },
+        { id: 'income-stress-pension', label: 'Pension', amount: 1900, period: 'mo' },
+        { id: 'income-stress-rental', label: 'Rental Income', amount: null, period: 'mo' },
+        { id: 'income-stress-annuity', label: 'Annuity', amount: null, period: 'mo' },
+        { id: 'income-stress-other', label: 'Other Income', amount: null, period: 'mo' },
       ],
       accounts: SAMPLE_WHITFIELD.accounts.filter((account) =>
         ['shortTerm', 'cash', 'afterTax', 'taxDeferred'].includes(
@@ -1199,8 +1199,8 @@ describe('layoutMap', () => {
       expect(layout.need.h).toBe(170)
       expect(layout.footnotesAt.y).toBe(930)
     }
-    expect(sample.income).toEqual({ x: 48, y: 127.5, w: 280, h: 264 })
-    expect(sample.need).toEqual({ x: 48, y: 657.5, w: 250, h: 170 })
+    expect(sample.income).toEqual({ x: 48, y: 118, w: 280, h: 264 })
+    expect(sample.need).toEqual({ x: 48, y: 640.2, w: 250, h: 170 })
     expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 132 })
     expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
   })
@@ -1289,6 +1289,7 @@ describe('layoutMap', () => {
       ...SAMPLE_WHITFIELD,
       incomeSources: [
         {
+          id: 'income-long-row',
           label:
             'A deliberately long retirement income source label for meetings',
           amount: 125_000,

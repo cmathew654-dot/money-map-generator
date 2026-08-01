@@ -1,4 +1,7 @@
 node_modules/
 dist/
+demo-dist/
+playwright-report/
+test-results/
 *.local
 tsconfig.tsbuildinfo

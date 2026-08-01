@@ -88,7 +88,7 @@ describe('seamless map text editor geometry and typography', () => {
     [{ kind: 'accountCaption', accountId }, "'Public Sans', 'Segoe UI', sans-serif", 14.5, 400],
     [{ kind: 'accountValue', accountId }, "'Literata', Georgia, serif", 25, 600],
     [{ kind: 'accountRows', accountId }, "'Public Sans', 'Segoe UI', sans-serif", 14.5, 400],
-    [{ kind: 'accountSub', accountId }, "'Literata', Georgia, serif", 17, 600],
+    [{ kind: 'accountSub', accountId }, "'Literata', Georgia, serif", 19, 600],
     [{ kind: 'incomeHeader' }, "'Public Sans', 'Segoe UI', sans-serif", 17.5, 700],
     [{ kind: 'incomeAmount', incomeIndex: 0 }, "'Literata', Georgia, serif", 15, 600],
     [{ kind: 'afterTaxIncome' }, "'Literata', Georgia, serif", 17, 600],
@@ -151,7 +151,7 @@ describe('seamless map text editor geometry and typography', () => {
       'data-edit-line-node="monthlyNeed"',
     )
     expect(interactive).toContain(
-      'data-edit-line-node="footnoteText"',
+      'data-edit-line-node="footnoteText:',
     )
     expect(interactive).toContain(
       'data-edit-line-node="noteText:line-audit-note"',
@@ -209,7 +209,7 @@ describe('applyMapTextEdit', () => {
     ],
     [
       { kind: 'accountSub', accountId },
-      { key: `text:${accountId}:sub`, fallback: 17, max: 40 },
+      { key: `text:${accountId}:sub`, fallback: 19, max: 40 },
     ],
   ] as [MapTextEditTarget, { key: string; fallback: number; max: number }][])(
     'maps the %s target to its font-size override',
@@ -607,7 +607,12 @@ describe('noninteractive map rendering', () => {
       ...SAMPLE_WHITFIELD,
       footnotes: [
         ...SAMPLE_WHITFIELD.footnotes,
-        { label: 'Dana 2026 RMD', gross: 80_000, net: 61_000 },
+        {
+          id: 'footnote-dana-2026-rmd',
+          label: 'Dana 2026 RMD',
+          gross: 80_000,
+          net: 61_000,
+        },
       ],
       layoutOverrides: {
         'text:income:header': { fs: 19 },
@@ -720,13 +725,19 @@ describe('noninteractive map rendering', () => {
       },
     }
     const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+    const subTitleSize = layoutMap(data).accounts.find(
+      (account) => account.account.id === 'managed-ira-jordan',
+    )!.subAccountLayouts[0].titleFontSize
 
     expect(markup).toMatch(
       /font-size="24"[^>]*><tspan[^>]*>S&amp;P<\/tspan>/,
     )
     expect(markup).toMatch(/font-size="24"[^>]*>\$380,000/)
+    expect(subTitleSize).toBeCloseTo((14.5 / 19) * 34)
     expect(markup).toMatch(
-      /font-size="25"[^>]*font-weight="600"[^>]*><tspan[^>]*>Short-Ter/,
+      new RegExp(
+        `font-size="${subTitleSize}"[^>]*font-weight="600"[^>]*><tspan[^>]*>Short-Ter`,
+      ),
     )
     expect(markup).toMatch(/font-size="34"[^>]*>\$240,000/)
   })
@@ -880,7 +891,12 @@ describe('noninteractive map rendering', () => {
     )
 
     expect(markup).toContain('map-interactive')
-    expect(markup).toContain('aria-label="Resize income sources"')
+    expect(markup).toContain(
+      'aria-hidden="true" class="map-resize-handle"',
+    )
+    expect(markup).toMatch(
+      /data-connect-id="income"(?=[^>]*aria-keyshortcuts="[^"]*Alt\+ArrowRight")[^>]*>/,
+    )
     expect(markup).toContain('class="map-editable-hit"')
     for (const className of editorChrome) {
       expect(markup).toContain(className)

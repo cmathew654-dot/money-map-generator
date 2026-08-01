@@ -57,8 +57,15 @@ export function saveBookToFile(book: MoneyMapFile): void {
   const link = document.createElement('a')
   link.href = url
   link.download = 'money-map-book.json'
-  link.click()
-  URL.revokeObjectURL(url)
+  let attached = false
+  try {
+    document.body.append(link)
+    attached = true
+    link.click()
+  } finally {
+    if (attached) link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 0)
+  }
 }
 
 export async function loadBookFromFile(
@@ -193,7 +200,7 @@ async function renderMapCanvas(
   }
 }
 
-function downloadBlob(blob: Blob, fileName: string): void {
+export function downloadBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob)
   try {
     const link = document.createElement('a')
@@ -203,7 +210,7 @@ function downloadBlob(blob: Blob, fileName: string): void {
     link.click()
     link.remove()
   } finally {
-    URL.revokeObjectURL(url)
+    setTimeout(() => URL.revokeObjectURL(url), 0)
   }
 }
 

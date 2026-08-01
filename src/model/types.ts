@@ -48,6 +48,7 @@ export interface Account {
 }
 
 export interface IncomeSource {
+  id: string
   label: string
   amount: number | null
   period: 'mo' | 'yr'
@@ -56,6 +57,7 @@ export interface IncomeSource {
 }
 
 export interface Footnote {
+  id: string
   label: string // e.g. "Dan 2026 RMD"
   gross: number | null
   net: number | null // after withholding — rendered in green
@@ -141,6 +143,16 @@ export function mapTextOverrideKey<
   role: (typeof MAP_TEXT_ELEMENTS)[Element][number],
 ): string {
   return `text:${element}:${role}`
+}
+
+export function mapItemTextOverrideKey<
+  Element extends MapTextElement,
+>(
+  element: Element,
+  role: (typeof MAP_TEXT_ELEMENTS)[Element][number],
+  itemId: string,
+): string {
+  return `${mapTextOverrideKey(element, role)}:${itemId}`
 }
 
 export interface LayoutOverride {

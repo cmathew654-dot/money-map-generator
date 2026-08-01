@@ -1,5 +1,5 @@
 import {
-  useEffect,
+  useLayoutEffect,
   useId,
   useRef,
   useState,
@@ -52,18 +52,15 @@ export function Menu({
     }
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return
 
-    const frame = window.requestAnimationFrame(() => {
-      menuItems(popoverRef.current)[0]?.focus()
-    })
+    menuItems(popoverRef.current)[0]?.focus()
     const handleClickAway = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) closeMenu()
     }
     document.addEventListener('mousedown', handleClickAway)
     return () => {
-      window.cancelAnimationFrame(frame)
       document.removeEventListener('mousedown', handleClickAway)
     }
   }, [open])
@@ -95,6 +92,14 @@ export function Menu({
       if (current instanceof HTMLElement && items.includes(current)) {
         current.click()
       }
+      return
+    }
+    if (event.key === 'Home' || event.key === 'End') { event.preventDefault(); items[event.key === 'Home' ? 0 : items.length - 1]?.focus(); return }
+    if (event.key.length === 1 && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      const query = event.key.toLocaleLowerCase(); const currentIndex = items.indexOf(document.activeElement as HTMLElement)
+      const ordered = [...items.slice(currentIndex + 1), ...items.slice(0, currentIndex + 1)]
+      const match = ordered.find((item) => item.textContent?.trim().toLocaleLowerCase().startsWith(query))
+      if (match) { event.preventDefault(); match.focus() }
       return
     }
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return

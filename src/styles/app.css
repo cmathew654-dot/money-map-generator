@@ -690,6 +690,8 @@ summary:focus-visible {
 }
 
 .form-pane {
+  display: flex;
+  flex-direction: column;
   overflow-x: hidden;
   overflow-y: auto;
   border-right: 1px solid #dde1dc;
@@ -1245,6 +1247,28 @@ summary:focus-visible {
   line-height: 1.45;
 }
 
+.mutation-fieldset {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mutation-fieldset > .wizard {
+  min-height: 100%;
+}
+.account-card-shell {
+  position: relative;
+  margin: 0 -4px 16px;
+}
+
+.account-card-shell > .account-card {
+  margin: 0;
+}
 .account-card {
   margin: 0 -4px 16px;
   border-top: 1px solid #dde1dc;
@@ -1814,4 +1838,187 @@ summary:focus-visible {
 
 .map-page svg.is-dragging .map-editable-hit {
   cursor: move;
+}
+
+/* S40 storage states */
+.app-status-stack{position:fixed;z-index:30;top:54px;right:18px;display:grid;width:min(620px,calc(100vw - 36px));gap:7px;pointer-events:none}.app-status-banner{display:flex;align-items:center;gap:10px;border:1px solid #9ba49d;border-radius:4px;padding:8px 10px;background:#f7f5ed;box-shadow:0 5px 18px rgb(28 36 34 / 16%);font-size:12px;pointer-events:auto}.app-status-banner strong{font-family:'Literata',Georgia,serif}.app-status-banner span{flex:1}.app-status-banner button{background:transparent;color:inherit}.app-status-banner.is-demo{border-color:#155f4a;background:#eef5ef;color:#174b3d}.app-status-banner.is-warning{border-color:#a97812;background:#fff6d9;color:#654806}.app-status-banner.is-danger{border-color:#9f3d2f;background:#fff0eb;color:#792d23}
+
+@media (max-width: 900px) {
+  html,
+  body,
+  #root,
+  .app-shell {
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+  }
+
+  body,
+  .app-shell {
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  .app-header {
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    min-height: 52px;
+    overflow: visible;
+    flex-wrap: wrap;
+  }
+
+  .app-header > * {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .workspace {
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    overflow: visible;
+  }
+
+  .form-pane {
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  .preview-pane {
+    min-width: 0;
+    width: 100%;
+    min-height: 100vh;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+.zoom-cluster > button:nth-child(4) {
+  color: #47504d;
+}
+
+.wizard-step-button {
+  color: #47504d;
+}
+
+@media (max-width: 900px) {
+  .save-menu-trigger + .menu-popover {
+    position: fixed;
+    top: auto;
+    right: 8px;
+    bottom: 8px;
+    left: auto;
+    width: min(320px, calc(100vw - 16px));
+    min-width: 0;
+    max-height: calc(100vh - 16px);
+    overflow: auto;
+  }
+
+  .app-status-stack {
+    position: static;
+    width: 100%;
+    padding: 7px 8px;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-header .client-select {
+    width: 240px;
+    min-width: 240px;
+  }
+
+  .app-shell.is-presenting .map-scroller {
+    padding: 8px 8px 57px;
+  }
+
+  .app-shell.is-presenting .map-page:not(.is-zoomed) {
+    width: min(
+      calc(100vw - 16px),
+      calc((100vh - 65px) * 1.294117647)
+    );
+  }
+
+  .app-shell.is-presenting .present-zoom {
+    right: 8px;
+    bottom: 8px;
+  }
+}
+
+@media (forced-colors: active) {
+  button,
+  input,
+  select,
+  summary,
+  .menu-popover,
+  .menu-item,
+  .zoom-cluster,
+  .zoom-cluster output,
+  .app-status-banner {
+    forced-color-adjust: none;
+    border-color: ButtonText !important;
+    background-color: ButtonFace !important;
+    color: ButtonText !important;
+    box-shadow: none;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled {
+    border-color: GrayText !important;
+    color: GrayText !important;
+    opacity: 1;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  summary:focus-visible,
+  .menu-item:focus-visible,
+  .map-page svg [role='button']:focus-visible,
+  .map-page svg [role='group']:focus-visible {
+    border-color: Highlight;
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .menu-item:hover,
+  .menu-item:focus-visible {
+    background-color: Highlight !important;
+    color: HighlightText !important;
+  }
+
+  .map-page svg [role='button'],
+  .map-page svg [role='group'] {
+    forced-color-adjust: none;
+  }
+
+  .map-page svg .map-resize-handle,
+  .map-page svg .map-rotate-handle,
+  .map-page svg .map-arrow-handle,
+  .map-page svg .map-note-resize,
+  .map-page svg .map-shape-flip-surface,
+  .map-page svg .map-connect-handle circle,
+  .map-page svg .map-note-background > rect:first-child,
+  .map-page svg .map-arrow-style rect,
+  .map-page svg .map-arrow-delete circle {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+
+  .map-page svg .map-editable-hit:hover,
+  .map-page svg .map-editable-hit:focus-visible {
+    fill: Highlight;
+  }
 }

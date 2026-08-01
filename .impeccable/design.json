@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-29T12:00:00.000-05:00",
+  "source": "scan",
+  "extensions": {
+    "colorMeta": {
+      "paper": { "value": "#fcfcfa", "role": "Client-facing map paper" },
+      "surface": { "value": "#ffffff", "role": "Controls and stacked rows" },
+      "workspace": { "value": "#eceeea", "role": "Preview field around the map" },
+      "section": { "value": "#f4f6f2", "role": "Form section fill" },
+      "ink": { "value": "#1c2422", "role": "Primary text and primary actions" },
+      "muted": { "value": "#47504d", "role": "Secondary copy" },
+      "hairline": { "value": "#dde1dc", "role": "Rules and structural borders" },
+      "flow": { "value": "#1e7a4a", "role": "Money flow and active editing" },
+      "need": { "value": "#c03a2d", "role": "Planning need and danger" },
+      "afterTax": { "value": "#b98a1e", "role": "After-tax accounts" },
+      "taxDeferred": { "value": "#2f6bab", "role": "Tax-deferred accounts" },
+      "taxPreferred": { "value": "#2e8577", "role": "Tax-preferred accounts" },
+      "charitable": { "value": "#6b4fa0", "role": "Charitable accounts" }
+    },
+    "typographyMeta": {
+      "document": {
+        "fontFamily": "'Literata', Georgia, serif",
+        "roles": ["map masthead", "workspace title", "account title", "financial value"]
+      },
+      "interface": {
+        "fontFamily": "'Public Sans', 'Segoe UI', sans-serif",
+        "roles": ["controls", "labels", "rows", "captions", "annotations"]
+      },
+      "numericStyle": "tabular-nums"
+    },
+    "shadows": {
+      "dialog": "0 14px 42px rgb(28 36 34 / 20%)",
+      "toast": "0 5px 18px rgb(28 36 34 / 14%)",
+      "status": "0 5px 18px rgb(28 36 34 / 16%)",
+      "compactControl": "0 3px 10px rgb(28 36 34 / 16%)"
+    },
+    "motion": {
+      "entrance": "160ms ease-out",
+      "interaction": "120ms ease",
+      "reducedMotion": "Animations are enabled only under prefers-reduced-motion: no-preference."
+    },
+    "layout": {
+      "workspaceColumns": "420px minmax(520px, 1fr)",
+      "mapArtboard": "1320px by 1020px",
+      "headerHeight": "52px",
+      "primaryContext": "Desktop and laptop advisor workflow"
+    }
+  },
+  "components": [
+    {
+      "id": "primary-button",
+      "name": "Primary Button",
+      "category": "button",
+      "html": "<button class=\"mm-primary\" type=\"button\">Continue</button>",
+      "css": ".mm-primary { min-height: 32px; padding: 6px 10px; border: 1px solid #1c2422; border-radius: 4px; background: #1c2422; color: #ffffff; font: 600 13px/1.4 'Public Sans', 'Segoe UI', sans-serif; cursor: pointer; } .mm-primary:focus-visible { outline: 2px solid #1e7a4a; outline-offset: 2px; }"
+    },
+    {
+      "id": "money-input",
+      "name": "Money Input",
+      "category": "input",
+      "html": "<label class=\"mm-field\"><span>Monthly income</span><input inputmode=\"decimal\" value=\"$12,500\" aria-label=\"Monthly income\"></label>",
+      "css": ".mm-field { display: grid; gap: 4px; color: #1c2422; font-family: 'Public Sans', 'Segoe UI', sans-serif; } .mm-field span { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; } .mm-field input { box-sizing: border-box; width: 100%; height: 32px; padding: 5px 8px; border: 1px solid #dde1dc; border-radius: 4px; background: #ffffff; color: #1c2422; font: 400 14px/1.4 'Public Sans', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; text-align: right; } .mm-field input:focus-visible { outline: 2px solid #1e7a4a; outline-offset: 1px; }"
+    },
+    {
+      "id": "action-menu",
+      "name": "Action Menu",
+      "category": "menu",
+      "html": "<div class=\"mm-menu\" role=\"menu\" aria-label=\"Map actions\"><button role=\"menuitem\">Duplicate map</button><button role=\"menuitem\">Rename map</button><hr><button class=\"is-danger\" role=\"menuitem\">Delete map</button></div>",
+      "css": ".mm-menu { box-sizing: border-box; width: 210px; padding: 6px; border: 1px solid #dde1dc; border-radius: 8px; background: #ffffff; box-shadow: 0 5px 18px rgb(28 36 34 / 14%); font-family: 'Public Sans', 'Segoe UI', sans-serif; } .mm-menu button { display: block; width: 100%; padding: 7px 8px; border: 0; border-radius: 4px; background: transparent; color: #1c2422; font: 400 13px/1.4 inherit; text-align: left; } .mm-menu button:hover, .mm-menu button:focus-visible { background: #f4f6f2; outline: none; } .mm-menu .is-danger { color: #c03a2d; } .mm-menu hr { margin: 5px 0; border: 0; border-top: 1px solid #dde1dc; }"
+    },
+    {
+      "id": "form-panel",
+      "name": "Form Panel",
+      "category": "panel",
+      "html": "<section class=\"mm-panel\"><h2>Household income</h2><div class=\"mm-row\"><strong>Primary salary</strong><span>$150,000</span></div></section>",
+      "css": ".mm-panel { box-sizing: border-box; padding: 16px 14px; border: 1px solid #dde1dc; border-radius: 10px; background: #f4f6f2; color: #1c2422; font-family: 'Public Sans', 'Segoe UI', sans-serif; } .mm-panel h2 { margin: 0 0 10px; font-size: 12px; line-height: 1.4; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; } .mm-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px; border: 1px solid #e3e7e0; border-radius: 8px; background: #ffffff; font-size: 14px; line-height: 1.45; } .mm-row span { font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "id": "money-map-paper",
+      "name": "Money Map Paper",
+      "category": "map",
+      "html": "<article class=\"mm-paper\"><header><p>Household money map</p><h1>The Morgan Family</h1></header><section class=\"mm-account\"><span>Tax-deferred</span><h2>Retirement accounts</h2><strong>$842,000</strong></section></article>",
+      "css": ".mm-paper { box-sizing: border-box; width: 660px; min-height: 510px; padding: 32px; background: #fcfcfa; color: #1c2422; border: 1px solid #dde1dc; font-family: 'Public Sans', 'Segoe UI', sans-serif; } .mm-paper header p { margin: 0 0 4px; color: #47504d; font-size: 14px; } .mm-paper h1 { margin: 0 0 28px; font: 600 30px/1.3 'Literata', Georgia, serif; } .mm-account { width: 240px; padding: 16px; border: 1px solid #2f6bab; border-radius: 10px; background: #f2f7fc; } .mm-account span { color: #2f6bab; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; } .mm-account h2 { margin: 8px 0 14px; font: 600 19px/1.3 'Literata', Georgia, serif; } .mm-account strong { font: 600 25px/1.2 'Literata', Georgia, serif; font-variant-numeric: tabular-nums; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "A carefully prepared advisor working paper whose map remains more prominent than its controls.",
+    "personality": ["calm", "authoritative", "human"],
+    "principles": [
+      "Data integrity over decorative polish.",
+      "Explicit saves, recovery, and errors.",
+      "The money map is the product.",
+      "Present mode removes application chrome.",
+      "Complex household structures remain understandable."
+    ],
+    "avoid": [
+      "Bloomberg-terminal density",
+      "Consumer-finance gamification",
+      "Generic SaaS-dashboard styling"
+    ]
+  }
+}
