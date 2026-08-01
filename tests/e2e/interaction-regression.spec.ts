@@ -137,35 +137,6 @@ async function clickBlankAccountBody(account: Locator) {
   })
 }
 
-async function connectByPointer(
-  page: Page,
-  source: Locator,
-  target: Locator,
-  cancel: boolean,
-) {
-  const [sourceBox, targetBox] = await Promise.all([
-    source.boundingBox(),
-    target.boundingBox(),
-  ])
-  if (!sourceBox || !targetBox) {
-    throw new Error('Connector endpoints have no measurable bounds')
-  }
-  const start = {
-    x: sourceBox.x + sourceBox.width / 2,
-    y: sourceBox.y + sourceBox.height / 2,
-  }
-  const end = {
-    x: targetBox.x + targetBox.width / 2,
-    y: targetBox.y + targetBox.height / 2,
-  }
-  await page.mouse.move(start.x, start.y)
-  await page.mouse.down()
-  await page.mouse.move(start.x + 24, start.y, { steps: 4 })
-  await page.mouse.move(end.x, end.y, { steps: 10 })
-  if (cancel) await page.keyboard.press('Escape')
-  await page.mouse.up()
-}
-
 test.describe('approved desktop interaction regression', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
@@ -202,9 +173,9 @@ test.describe('approved desktop interaction regression', () => {
     await clickBlankAccountBody(account)
     await expect(account).toHaveAttribute('data-map-selected', 'true')
 
-    const accountControls = page.locator(
-      `[data-account-controls-for="${subject.id}"]`,
-    )
+    const accountControls = page.getByRole('region', {
+      name: `Adjust ${subject.label}`,
+    })
     await expect(accountControls).toBeVisible()
     for (const option of [
       { label: 'Card', shape: 'card' },
@@ -212,12 +183,7 @@ test.describe('approved desktop interaction regression', () => {
       { label: 'Bucket', shape: 'rect' },
       { label: 'Pill', shape: 'pill' },
     ] as const) {
-      await accountControls
-        .getByRole('button', {
-          name: `Use ${option.label} shape for ${subject.label}`,
-          exact: true,
-        })
-        .click()
+      await accountControls.getByLabel('Shape').selectOption(option.shape)
       await expect(account).toHaveAttribute(
         'data-account-shape',
         option.shape,
@@ -378,21 +344,14 @@ test.describe('approved desktop interaction regression', () => {
       `[data-account-id="${sourceId}"][role="group"]`,
     )
     await clickBlankAccountBody(source)
-    const sourceControls = page.locator(
-      `[data-account-controls-for="${sourceId}"]`,
-    )
-    await expect(sourceControls).toBeVisible()
-    const sourceHandle = sourceControls.getByRole('button', {
-      name: 'Connect flow from Blurred Source Rename',
-      exact: true,
+    const sourceControls = page.getByRole('region', {
+      name: 'Adjust Blurred Source Rename',
     })
-    const target = page.locator(
-      `[data-account-id="${targetId}"][data-connect-id="${targetId}"]`,
-    )
+    await expect(sourceControls).toBeVisible()
     const arrowsBefore =
       (await currentClient(page)).customArrows?.length ?? 0
-    await sourceHandle.focus()
-    await connectByPointer(page, sourceHandle, target, true)
+    await page.keyboard.press('Escape')
+    await expect(sourceControls).toHaveCount(0)
     await expect
       .poll(
         async () =>
@@ -402,8 +361,7 @@ test.describe('approved desktop interaction regression', () => {
 
     await clickBlankAccountBody(source)
     await expect(sourceControls).toBeVisible()
-    await sourceHandle.focus()
-    await connectByPointer(page, sourceHandle, target, false)
+    await sourceControls.getByLabel('Connect to').selectOption(targetId)
     await expect
       .poll(async () => {
         const arrows = (await currentClient(page)).customArrows ?? []
@@ -413,6 +371,13 @@ test.describe('approved desktop interaction regression', () => {
         )
       })
       .toBe(true)
+
+    const incomeFlow = page.getByRole('group', { name: 'Adjust income arrow' })
+    await incomeFlow.focus()
+    const flowInspector = page.locator('.map-inspector')
+    await flowInspector.getByRole('button', { name: 'Hide flow' }).click()
+    await expect(flowInspector).toHaveCount(0)
+    await expect(incomeFlow).toHaveCount(0)
   })
 
   test('large as-needed values stay compact and selected controls leave Present Mode', async ({
@@ -472,21 +437,26 @@ test.describe('approved desktop interaction regression', () => {
       ).toBeVisible()
     }
 
+    await page.setViewportSize({ width: 1280, height: 720 })
     const accountId = (await currentClient(page)).accounts[0]?.id
     if (!accountId) throw new Error('No account available for selection')
     const account = page.locator(
       `[data-account-id="${accountId}"][role="group"]`,
     )
     await clickBlankAccountBody(account)
-    const accountControls = page.locator(
-      `[data-account-controls-for="${accountId}"]`,
-    )
+    const accountControls = page.locator('.map-inspector')
     await expect(accountControls).toBeVisible()
-    await expect(accountControls.locator('.map-shape-picker')).toBeVisible()
-    await expect(accountControls.locator('.map-adjust-controls')).toBeVisible()
-    await expect(
-      accountControls.locator('.map-connect-flow-control'),
-    ).toBeVisible()
+    for (const label of ['Shape', 'Connect to', 'Move', 'Size', 'Rotate']) {
+      await expect(accountControls.getByLabel(label, { exact: true })).toBeVisible()
+    }
+    const [inspectorBox, mapBox, transform] = await Promise.all([
+      accountControls.boundingBox(),
+      interactiveMap.boundingBox(),
+      accountControls.evaluate((element) => getComputedStyle(element).transform),
+    ])
+    if (!inspectorBox || !mapBox) throw new Error('Inspector or map has no measurable bounds')
+    expect(inspectorBox.y + inspectorBox.height).toBeLessThanOrEqual(mapBox.y)
+    expect(transform).toBe('none')
 
     await page.getByRole('button', { name: 'Present' }).click()
     await expect(page.locator('.app-shell')).toHaveClass(/is-presenting/)
@@ -496,10 +466,7 @@ test.describe('approved desktop interaction regression', () => {
     await expect(
       page.getByRole('button', { name: '+ Note', exact: true }),
     ).toHaveCount(0)
-    await expect(page.locator('[data-account-controls-for]')).toHaveCount(0)
-    await expect(page.locator('.map-shape-picker')).toHaveCount(0)
-    await expect(page.locator('.map-adjust-controls')).toHaveCount(0)
-    await expect(page.locator('.map-connect-flow-control')).toHaveCount(0)
+    await expect(page.locator('.map-inspector')).toHaveCount(0)
     await expect(page.locator('.map-text-editor-input')).toHaveCount(0)
     await expect(page.getByLabel('Map zoom')).toBeVisible()
 

@@ -479,6 +479,19 @@ function validateLayoutOverrides(
         `Client ${clientIndex + 1} has invalid layout overrides.`,
       )
     }
+    const generatedArrow = key === 'arrow:income' || key === 'arrow:asNeeded'
+    if (
+      (override.style !== undefined &&
+        (!generatedArrow ||
+          !['dotted', 'dashed', 'solid'].includes(String(override.style)))) ||
+      (override.color !== undefined &&
+        (!generatedArrow ||
+          !CUSTOM_ARROW_COLORS.includes(override.color as never)))
+    ) {
+      throw new Error(
+        `Client ${clientIndex + 1} has invalid layout overrides.`,
+      )
+    }
     for (const field of ['startAt', 'endAt'] as const) {
       const point = override[field]
       if (

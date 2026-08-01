@@ -520,8 +520,11 @@ describe('custom arrow edits', () => {
     const dotted = cycleCustomArrowStyle(solid, 'style-target')
 
     expect(dashed.customArrows?.[0].style).toBe('dashed')
+    expect(dashed.customArrows?.[0].color).toBe('green')
     expect(solid.customArrows?.[0].style).toBe('solid')
+    expect(solid.customArrows?.[0].color).toBe('green')
     expect(dotted.customArrows?.[0].style).toBe('dotted')
+    expect(dotted.customArrows?.[0].color).toBe('green')
     expect(cycleCustomArrowStyle(base, 'missing')).toBe(base)
   })
 
@@ -547,6 +550,45 @@ describe('custom arrow edits', () => {
 })
 
 describe('generated arrow edits', () => {
+  it('renders generated arrow style and color overrides independently', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        ...SAMPLE_WHITFIELD.layoutOverrides,
+        'arrow:income': { style: 'dotted', color: 'blue' },
+        'arrow:asNeeded': { style: 'solid', color: 'red' },
+      },
+    } as typeof SAMPLE_WHITFIELD
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    expect(markup).toMatch(
+      /data-arrow-kind="income"[^>]*data-arrow-style="dotted"[^>]*stroke="#2f6bab"/,
+    )
+    expect(markup).toMatch(
+      /data-arrow-kind="asNeeded"[^>]*data-arrow-style="solid"[^>]*stroke="#c03a2d"/,
+    )
+  })
+
+  it('uses fixed arrowhead geometry and one stroke width for every style', () => {
+    const markup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data: {
+          ...SAMPLE_WHITFIELD,
+          customArrows: SAMPLE_WHITFIELD.customArrows?.map((arrow) => ({
+            ...arrow,
+            style: 'dotted' as const,
+          })),
+        },
+      }),
+    )
+
+    expect(markup).not.toContain('markerUnits="strokeWidth"')
+    expect(markup).toContain('markerUnits="userSpaceOnUse"')
+    expect(markup).toContain('markerWidth="8"')
+    expect(markup).toContain('markerHeight="8"')
+    expect(markup).not.toContain('stroke-width=3.5')
+  })
+
   it('hides one generated arrow and restores all generated arrows', () => {
     const hidden = hideGeneratedArrow(SAMPLE_WHITFIELD, 'income')
     const restored = restoreGeneratedArrows(hidden)
@@ -613,6 +655,17 @@ describe('map note edits', () => {
 })
 
 describe('noninteractive map rendering', () => {
+  it('renders calculated need supporting text as a movable non-editable target', () => {
+    const markup = renderToStaticMarkup(createElement(MapSvg, {
+      data: { ...SAMPLE_WHITFIELD, asNeededAmount: 9_000 },
+      onChange: () => undefined,
+      onElementClick: () => undefined,
+    }))
+
+    expect(markup).toContain('text:need:supporting')
+    expect(markup).not.toContain('Edit needSupporting')
+  })
+
   const editorChrome = [
     'map-arrow-delete',
     'map-arrow-editor',
@@ -627,15 +680,6 @@ describe('noninteractive map rendering', () => {
     'map-note-background',
     'map-note-resize',
   ]
-  const selectedAccountChrome = [
-    'data-account-controls-for=',
-    'map-account-controls',
-    'map-shape-picker',
-    'map-adjust-controls',
-    'map-connect-flow-control',
-    'map-rotate-handle',
-  ]
-
   it('emits zero editor chrome nodes without edit callbacks', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
@@ -662,9 +706,7 @@ describe('noninteractive map rendering', () => {
     for (const className of editorChrome) {
       expect(markup).not.toContain(className)
     }
-    for (const className of selectedAccountChrome) {
-      expect(markup).not.toContain(className)
-    }
+    expect(markup).not.toContain('data-account-controls-for=')
     expect(markup).not.toContain('map-interactive')
     expect(markup).not.toContain('map-editable-text')
     expect(markup).not.toContain('data-connect-id')
@@ -931,11 +973,12 @@ describe('noninteractive map rendering', () => {
     )
 
     expect(markup).toMatch(
-      /data-arrow-color="green"[^>]*data-arrow-style="dotted"[^>]*marker-end="url\(#custom-arrowhead-green-[^)]+\)"[^>]*stroke="#1e7a4a"/,
+      /data-arrow-color="green"[^>]*data-arrow-style="dotted"[^>]*stroke="#1e7a4a"/,
     )
     expect(interactiveMarkup).toContain(
-      'class="map-arrow-color-ring" cx="16"',
+      `data-map-target="arrow:custom:${data.customArrows[0].id}"`,
     )
+    expect(interactiveMarkup).not.toContain('map-arrow-color-ring')
   })
 
   it('compacts only constrained as-needed money while retaining exact accessible text', () => {
@@ -967,7 +1010,7 @@ describe('noninteractive map rendering', () => {
     expect(placeholder).toContain('~$ ______')
   })
 
-  it('keeps global chrome interactive and account chrome selected-only', () => {
+  it('keeps selection geometry in the SVG and all actions in HTML', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
       notes: [
@@ -989,7 +1032,7 @@ describe('noninteractive map rendering', () => {
         onElementClick: () => undefined,
       }),
     )
-    const selectedMarkup = renderToStaticMarkup(
+    const selectedAccount = renderToStaticMarkup(
       createElement(MapSvg, {
         data,
         onChange: () => undefined,
@@ -997,22 +1040,26 @@ describe('noninteractive map rendering', () => {
         selectedTargetKey: 'account:' + data.accounts[0].id,
       }),
     )
+    const selectedArrow = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data,
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+        selectedTargetKey: 'arrow:custom:test-arrow',
+      }),
+    )
 
     expect(markup).toContain('map-interactive')
-    expect(markup).not.toContain('data-account-controls-for=')
-    expect(markup).toMatch(
-      /data-connect-id="income"(?=[^>]*aria-keyshortcuts="[^"]*Alt\+ArrowRight Enter Space")[^>]*>/,
-    )
+    expect(markup).toContain('map-arrow-editor')
     expect(markup).toContain('class="map-editable-hit"')
-    for (const className of editorChrome) {
-      expect(markup).toContain(className)
+    expect(markup).not.toContain('map-arrow-handle-hit')
+    for (const className of editorChrome.filter(
+      (name) => name !== 'map-arrow-editor' && name !== 'map-arrow-handle',
+    )) {
+      expect(markup).not.toContain(className)
     }
-    for (const className of selectedAccountChrome) {
-      expect(selectedMarkup).toContain(className)
-    }
-    expect(markup).toContain('class="map-arrow-color-ring" cx="0"')
-    expect(selectedMarkup).toContain('>×</text>')
-    expect(selectedMarkup).toContain('>—</text>')
-    expect(selectedMarkup).toContain(' → ')
+    expect(selectedAccount).toContain('data-map-selected="true"')
+    expect(selectedAccount).not.toContain('map-account-controls')
+    expect(selectedArrow.match(/class="map-arrow-handle-hit"/g)).toHaveLength(3)
   })
 })

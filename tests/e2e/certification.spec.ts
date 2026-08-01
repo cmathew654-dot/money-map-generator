@@ -33,8 +33,8 @@ test.describe('desktop behavioral certification', () => {
     const field = page.locator('.money-input').first()
     const original = await field.inputValue()
     await field.fill('92000'); await field.press('Tab')
-    await page.keyboard.press('Control+z'); await expect(field).toHaveValue(original)
-    await page.keyboard.press('Control+Shift+z'); await expect(field).toHaveValue(/92,?000|\$92,?000/)
+    await page.keyboard.press('ControlOrMeta+z'); await expect(field).toHaveValue(original)
+    await page.keyboard.press('ControlOrMeta+Shift+z'); await expect(field).toHaveValue(/92,?000|\$92,?000/)
   })
 
   test('new client completes the wizard', async ({ page }, info) => {
@@ -70,6 +70,24 @@ test.describe('desktop behavioral certification', () => {
     await expect(secondTitle).toBeDisabled()
     await expect(page.getByText('Read-only tab')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Take over editing' })).toHaveCount(0)
+  })
+
+  test('writer ownership survives rapid tab handoffs with edits', async ({ context, page }) => {
+    test.setTimeout(180_000)
+    const second = await context.newPage(); await openApp(second)
+    await focusPage(page)
+    await page.getByLabel('Title').fill('Rapid handoff seed')
+    await page.getByLabel('Title').press('Tab')
+
+    for (let switchIndex = 0; switchIndex < 25; switchIndex += 1) {
+      const active = switchIndex % 2 === 0 ? second : page
+      await focusPage(active)
+      const value = `Rapid handoff ${switchIndex + 1}`
+      await active.getByLabel('Title').fill(value)
+      await active.getByLabel('Title').press('Tab')
+    }
+    await focusPage(page)
+    await expect(page.getByLabel('Title')).toHaveValue('Rapid handoff 25')
   })
 
   test('legacy storage migrates without loss', async ({ browser, page }) => {

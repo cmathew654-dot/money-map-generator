@@ -62,6 +62,7 @@ import {
   MapSvg,
   type MapElementTarget,
 } from './render/MapSvg'
+import { MapInspector } from './render/MapInspector'
 import {
   pannedScrollPosition,
   restoreGeneratedArrows,
@@ -174,6 +175,9 @@ export default function App() {
   const [highlightId, setHighlightId] = useState<string | null>(null)
   const [mapTextEdit, setMapTextEdit] =
     useState<ActiveMapTextEdit | null>(null)
+  const [selectedMapTargetKey, setSelectedMapTargetKey] = useState<
+    string | null
+  >(null)
   const [dialog, setDialog] = useState<AppDialog | null>(null)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [connectedFile, setConnectedFile] =
@@ -252,7 +256,17 @@ export default function App() {
   useEffect(() => {
     setMapZoom('fit')
     setShapePopoverOpen(false)
+    setSelectedMapTargetKey(null)
   }, [activeClient.id])
+
+  useEffect(() => {
+    if (!selectedMapTargetKey) return
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedMapTargetKey(null)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [selectedMapTargetKey])
 
   useEffect(() => {
     if (!shapePopoverOpen) return
@@ -1385,9 +1399,17 @@ export default function App() {
           </fieldset>
         </aside>
         <section
-          className="preview-pane"
+          className={`preview-pane${selectedMapTargetKey && !mapTextEdit && !presentMode && canMutate ? ' has-map-inspector' : ''}`}
           aria-label="Money Map preview"
         >
+          {selectedMapTargetKey && !mapTextEdit && !presentMode && canMutate && (
+            <MapInspector
+              data={activeClient}
+              selectedTargetKey={selectedMapTargetKey}
+              onChange={handleMapChange}
+              onClose={() => setSelectedMapTargetKey(null)}
+            />
+          )}
           <div
             ref={previewPaneRef}
             className={`map-scroller${
@@ -1422,6 +1444,8 @@ export default function App() {
                   onElementClick={
                     presentMode || !canMutate ? undefined : handleMapElementClick
                   }
+                  onSelectedTargetChange={setSelectedMapTargetKey}
+                  selectedTargetKey={selectedMapTargetKey}
                 />
               </div>
             </div>

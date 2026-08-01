@@ -119,7 +119,7 @@ export const MIN_ACCOUNT_TEXT_FONT_SIZE = 9
 export const MAX_ACCOUNT_TEXT_FONT_SIZE = 28
 export const MAP_TEXT_ELEMENTS = {
   income: ['header', 'row', 'total'],
-  need: ['label', 'value'],
+  need: ['label', 'value', 'supporting'],
   footnotes: ['line'],
   masthead: ['label'],
 } as const
@@ -167,6 +167,8 @@ export interface LayoutOverride {
   endT?: number
   startAt?: { dx: number; dy: number }
   endAt?: { dx: number; dy: number }
+  style?: CustomArrow['style']
+  color?: CustomArrowColor
 }
 
 export interface MoneyMapData {

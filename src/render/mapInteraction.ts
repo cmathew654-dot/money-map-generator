@@ -85,7 +85,15 @@ export function cycleCustomArrowStyle(
   return {
     ...data,
     customArrows: data.customArrows?.map((item) =>
-      item.id === id ? { ...item, style: next[item.style] } : item,
+      item.id === id
+        ? {
+            ...item,
+            style: next[item.style],
+            color:
+              item.color ??
+              (item.style === 'solid' ? 'ink' : 'green'),
+          }
+        : item,
     ),
   }
 }

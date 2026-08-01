@@ -190,6 +190,34 @@ describe('map interaction helpers', () => {
     )
   })
 
+  it('round-trips generated-arrow appearance and need supporting text overrides', () => {
+    const book = newBook()
+    book.clients[0].layoutOverrides = {
+      'arrow:income': { style: 'dotted', color: 'blue' },
+      'arrow:asNeeded': { style: 'solid', color: 'red' },
+      'text:need:supporting': { dx: 12, dy: -8, fs: 16 },
+    }
+
+    expect(parseBook(JSON.stringify(book)).clients[0].layoutOverrides).toEqual(
+      book.clients[0].layoutOverrides,
+    )
+  })
+
+  it('rejects invalid generated-arrow appearance overrides', () => {
+    const book = newBook() as unknown as {
+      clients: Array<{
+        layoutOverrides: Record<string, Record<string, unknown>>
+      }>
+    }
+    book.clients[0].layoutOverrides = {
+      'arrow:income': { style: 'wavy', color: 'orange' },
+    }
+
+    expect(() => parseBook(JSON.stringify(book))).toThrow(
+      'invalid layout overrides',
+    )
+  })
+
   it('moves a custom flow label on its arrow record without mutation', () => {
     const data: MoneyMapData = {
       ...SAMPLE_WHITFIELD,

@@ -4,12 +4,91 @@ import { describe, expect, it } from 'vitest'
 import {
   footnoteLineLayouts,
   layoutMap,
+  layoutOverrideRect,
   mapTextOffset,
+  nudgeLayoutOverride,
+  OVERRIDE_BOUNDS,
 } from '../src/layout/layout'
-import { SAMPLE_WHITFIELD } from '../src/model/samples'
+import {
+  SAMPLE_CALLOWAY,
+  SAMPLE_VENKAT,
+  SAMPLE_WHITFIELD,
+} from '../src/model/samples'
 import { MapSvg } from '../src/render/MapSvg'
 
 describe('Session 40 layout/render repair', () => {
+  it.each([
+    ['Card', 'card', 'cash-at-bank'],
+    ['Cylinder', 'drum', 'cash-at-bank'],
+    ['Bucket', 'rect', 'cash-at-bank'],
+    ['Pill', 'pill', 'cash-at-bank'],
+    ['income', undefined, 'income'],
+    ['Need', undefined, 'need'],
+    ['chip', undefined, 'asNeededChip'],
+    ['text', undefined, 'text:need:supporting'],
+  ] as const)(
+    'normalizes %s movement at a boundary so the first reverse nudge renders',
+    (_name, shape, key) => {
+      const data = {
+        ...SAMPLE_WHITFIELD,
+        accounts: SAMPLE_WHITFIELD.accounts.map((account) =>
+          shape && account.id === 'cash-at-bank'
+            ? { ...account, shape }
+            : account,
+        ),
+        layoutOverrides: {
+          ...SAMPLE_WHITFIELD.layoutOverrides,
+          [key]: { dx: 10_000 },
+        },
+      }
+      const atBoundary = layoutOverrideRect(data, key)!
+      const outward = nudgeLayoutOverride(data, key, { x: 12, y: 0 })
+      const reversed = nudgeLayoutOverride(outward, key, { x: -12, y: 0 })
+
+      expect(layoutOverrideRect(outward, key)?.x).toBeCloseTo(atBoundary.x)
+      expect(layoutOverrideRect(reversed, key)?.x).toBeCloseTo(
+        atBoundary.x - 12,
+      )
+      expect(outward.layoutOverrides?.[key]?.dx).toBeLessThan(10_000)
+    },
+  )
+
+  it.each([
+    ['Whitfield', SAMPLE_WHITFIELD],
+    ['Calloway', SAMPLE_CALLOWAY],
+    ['Venkat', SAMPLE_VENKAT],
+  ])('fits every default %s object inside edit bounds', (_name, data) => {
+    const layout = layoutMap(data)
+
+    for (const placed of [layout.income, layout.need, ...layout.accounts]) {
+      expect(placed.x).toBeGreaterThanOrEqual(OVERRIDE_BOUNDS.left)
+      expect(placed.y).toBeGreaterThanOrEqual(OVERRIDE_BOUNDS.top)
+      expect(placed.x + placed.w).toBeLessThanOrEqual(OVERRIDE_BOUNDS.right)
+      expect(placed.y + placed.h).toBeLessThanOrEqual(OVERRIDE_BOUNDS.bottom)
+    }
+  })
+
+  it('does not reroute generated flows when a non-endpoint moves', () => {
+    const base = layoutMap(SAMPLE_WHITFIELD)
+    const moved = layoutMap({
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        ...SAMPLE_WHITFIELD.layoutOverrides,
+        'cash-at-bank': { dx: 74, dy: -45 },
+      },
+    })
+    const generated = (layout: ReturnType<typeof layoutMap>) =>
+      layout.arrows
+        .filter((arrow) => arrow.kind !== 'custom')
+        .map((arrow) => ({
+          d: arrow.d,
+          kind: arrow.kind,
+          labelAt: arrow.labelAt,
+        }))
+
+    expect(generated(moved)).toEqual(generated(base))
+  })
+
   it('keeps untouched Whitfield primary panels inside the artboard', () => {
     expect(
       layoutMap(SAMPLE_WHITFIELD).warnings.map((warning) => warning.code),

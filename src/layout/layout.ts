@@ -200,20 +200,11 @@ export const NOTE_MIN_WIDTH = 120
 export const NOTE_MAX_WIDTH = 600
 export const NOTE_LEADING = 21
 const MIGRATED_FLOW_MIN_Y = 128
-const AS_NEEDED_LABEL_WIDTH = 260
-const AS_NEEDED_LABEL_HEIGHT = 34
-const AS_NEEDED_LABEL_CLEARANCE = 10
 const AS_NEEDED_CHIP_WIDTH = 250
 const AS_NEEDED_CHIP_HEIGHT = 38
-const CURVE_SAMPLES = 32
 const OUTLINE_SAMPLES = 512
 const DEFAULT_BOW_FRACTION = 0.15
 const MAX_BOW_FRACTION = 0.5
-const AS_NEEDED_LABEL_TS = [
-  0.4, 0.35, 0.45, 0.3, 0.5, 0.25, 0.55, 0.2, 0.6, 0.15, 0.65, 0.7,
-  0.75, 0.8,
-]
-
 const COLUMNS: Column[] = [
   { x: 390, y: 200, w: 250, buckets: ['shortTerm', 'cash', 'note'] },
   { x: 700, y: 240, w: 260, buckets: ['afterTax'] },
@@ -1300,61 +1291,10 @@ function controlForBow(start: Point, end: Point, bow: number): Point {
   }
 }
 
-function segmentIntersectsBox(
-  start: Point,
-  end: Point,
-  box: Placed,
-): boolean {
-  let entry = 0
-  let exit = 1
-
-  for (const [origin, delta, minimum, maximum] of [
-    [start.x, end.x - start.x, box.x, box.x + box.w],
-    [start.y, end.y - start.y, box.y, box.y + box.h],
-  ]) {
-    if (delta === 0) {
-      if (origin <= minimum || origin >= maximum) return false
-      continue
-    }
-    const first = (minimum - origin) / delta
-    const second = (maximum - origin) / delta
-    entry = Math.max(entry, Math.min(first, second))
-    exit = Math.min(exit, Math.max(first, second))
-  }
-
-  return entry < exit && exit > 0 && entry < 1
-}
-
-function routePenalty(
-  start: Point,
-  control: Point,
-  end: Point,
-  obstacles: Placed[],
-  minimumY = MASTHEAD_RULE_Y,
-): number {
-  let penalty = 0
-  let previous = start
-  for (let sample = 1; sample <= CURVE_SAMPLES; sample += 1) {
-    const point = pointOnQuadratic(
-      start,
-      control,
-      end,
-      sample / CURVE_SAMPLES,
-    )
-    penalty += obstacles.filter((obstacle) =>
-      segmentIntersectsBox(previous, point, obstacleBounds(obstacle)),
-    ).length * 10_000
-    penalty += Math.max(0, minimumY - point.y) * 100
-    previous = point
-  }
-  return penalty
-}
-
 function routedArrow({
   kind,
   source,
   target,
-  obstacles,
   override,
   preferredStartT,
   preferredEndT,
@@ -1366,7 +1306,6 @@ function routedArrow({
   kind: Arrow['kind']
   source: OutlineElement
   target: OutlineElement
-  obstacles: Placed[]
   override?: LayoutOverride
   preferredStartT?: number
   preferredEndT?: number
@@ -1417,41 +1356,10 @@ function routedArrow({
     override?.bow === undefined
       ? undefined
       : clamp(override.bow, -maximumBow, maximumBow)
-  const candidates =
-    requestedBow === undefined
-      ? [1, -1, 1.35, -1.35, 1.7, -1.7, 2.1, -2.1, 0].map(
-          (scale) =>
-            clamp(
-              preferredSign * baseMagnitude * scale,
-              -maximumBow,
-              maximumBow,
-            ),
-        )
-      : [requestedBow]
-  let bow = candidates[0] ?? 0
+  const bow =
+    requestedBow ??
+    clamp(preferredSign * baseMagnitude, -maximumBow, maximumBow)
   let control = controlForBow(start, end, bow)
-  let bestPenalty = Number.POSITIVE_INFINITY
-  for (const candidateBow of candidates) {
-    const candidateControl = controlForBow(start, end, candidateBow)
-    const penalty = routePenalty(
-      start,
-      candidateControl,
-      end,
-      obstacles,
-      minimumY,
-    )
-    if (
-      penalty < bestPenalty ||
-      (candidateBow === 0 &&
-        penalty === bestPenalty &&
-        bestPenalty > 0)
-    ) {
-      bow = candidateBow
-      control = candidateControl
-      bestPenalty = penalty
-    }
-    if (penalty === 0) break
-  }
   if (preferAbove && control.y < minimumY) {
     control = { ...control, y: minimumY }
   }
@@ -1468,6 +1376,8 @@ function routedArrow({
     endT,
     startAt: override?.startAt,
     endAt: override?.endAt,
+    style: override?.style,
+    color: override?.color,
     d: [
       `M ${coordinate(start.x)} ${coordinate(start.y)}`,
       `Q ${coordinate(control.x)} ${coordinate(control.y)}`,
@@ -1479,14 +1389,12 @@ function routedArrow({
 function incomeArrow(
   income: Placed,
   need: Placed,
-  obstacles: Placed[],
   override?: LayoutOverride,
 ): Arrow {
   return routedArrow({
     kind: 'income',
     source: income,
     target: need,
-    obstacles,
     override,
   })
 }
@@ -1505,7 +1413,6 @@ function customArrowLayouts(
       (placed) => [placed.account.id, placed] as [string, OutlineElement],
     ),
   ])
-  const obstacles = [income, need, ...accounts]
   const migratedAccountIds = new Set(
     (customArrows ?? []).flatMap((record) =>
       isMigratedFlowId(record.id)
@@ -1535,9 +1442,6 @@ function customArrowLayouts(
       kind: 'custom',
       source,
       target,
-      obstacles: obstacles.filter(
-        (element) => element !== source && element !== target,
-      ),
       override: overrides?.[`arrow:custom:${record.id}`],
       preferredStartT: isDrum(source) ? capT : undefined,
       preferredEndT: isDrum(target) ? capT : undefined,
@@ -1583,110 +1487,33 @@ export function visibleGeneratedArrowKinds(
   )
 }
 
-function boxesIntersect(
-  first: Placed,
-  second: Placed,
-): boolean {
-  return (
-    first.x < second.x + second.w &&
-    first.x + first.w > second.x &&
-    first.y < second.y + second.h &&
-    first.y + first.h > second.y
-  )
-}
-
-function labelBox(labelAt: { x: number; y: number }): Placed {
-  return {
-    x:
-      labelAt.x -
-      AS_NEEDED_LABEL_WIDTH / 2 -
-      AS_NEEDED_LABEL_CLEARANCE,
-    y:
-      labelAt.y -
-      AS_NEEDED_LABEL_HEIGHT / 2 -
-      AS_NEEDED_LABEL_CLEARANCE,
-    w: AS_NEEDED_LABEL_WIDTH + AS_NEEDED_LABEL_CLEARANCE * 2,
-    h: AS_NEEDED_LABEL_HEIGHT + AS_NEEDED_LABEL_CLEARANCE * 2,
-  }
-}
-
-function chipStaysInBounds(labelAt: Point): boolean {
-  const halfWidth = AS_NEEDED_CHIP_WIDTH / 2
-  const halfHeight = AS_NEEDED_CHIP_HEIGHT / 2
-  return (
-    labelAt.x - halfWidth >= PAGE_MARGIN &&
-    labelAt.x + halfWidth <= ARTBOARD.width - PAGE_MARGIN &&
-    labelAt.y - halfHeight >= MASTHEAD_RULE_Y &&
-    labelAt.y + halfHeight <= ARTBOARD.height - PAGE_MARGIN
-  )
-}
-
-function clearAsNeededLabel(
-  labelAt: { x: number; y: number },
-  start: { x: number; y: number },
-  control: { x: number; y: number },
-  end: { x: number; y: number },
-  obstacles: Placed[],
-): { x: number; y: number } {
-  const clears = (candidate: { x: number; y: number }) =>
-    chipStaysInBounds(candidate) &&
-    obstacles.every(
-      (obstacle) => !boxesIntersect(labelBox(candidate), obstacle),
-    )
-  for (const t of AS_NEEDED_LABEL_TS) {
-    const candidate = pointOnQuadratic(start, control, end, t)
-    if (clears(candidate)) return candidate
-  }
-
-  for (let offset = 8; offset <= ARTBOARD.height; offset += 8) {
-    for (const t of AS_NEEDED_LABEL_TS) {
-      const pathPoint = pointOnQuadratic(start, control, end, t)
-      const tangent = {
-        x: 2 * ((1 - t) * (control.x - start.x) + t * (end.x - control.x)),
-        y: 2 * ((1 - t) * (control.y - start.y) + t * (end.y - control.y)),
-      }
-      const length = Math.hypot(tangent.x, tangent.y) || 1
-      const normal = { x: -tangent.y / length, y: tangent.x / length }
-      for (const direction of [-1, 1]) {
-        const candidate = {
-          x: pathPoint.x + normal.x * offset * direction,
-          y: pathPoint.y + normal.y * offset * direction,
-        }
-        if (clears(candidate)) return candidate
-      }
-    }
-  }
-  return labelAt
-}
-
 function asNeededArrow(
   shortTerm: PlacedAccount,
   need: Placed,
-  obstacles: Placed[],
   override?: LayoutOverride,
 ): Arrow {
   const arrow = routedArrow({
     kind: 'asNeeded',
     source: shortTerm,
     target: need,
-    obstacles: obstacles.filter(
-      (obstacle) => obstacle !== shortTerm,
-    ),
     override,
     sourceId: shortTerm.account.id,
   })
   const { start, control, end } = arrow
-  const labelAt = clearAsNeededLabel(
-    pointOnQuadratic(start, control, end, 0.4),
-    start,
-    control,
-    end,
-    obstacles,
-  )
+  const t = 0.7
+  const point = pointOnQuadratic(start, control, end, t)
+  const tangent = {
+    x: 2 * (1 - t) * (control.x - start.x) + 2 * t * (end.x - control.x),
+    y: 2 * (1 - t) * (control.y - start.y) + 2 * t * (end.y - control.y),
+  }
+  const tangentLength = Math.hypot(tangent.x, tangent.y) || 1
 
   return {
     ...arrow,
-    labelAt,
+    labelAt: {
+      x: point.x - (tangent.y / tangentLength) * 70,
+      y: point.y + (tangent.x / tangentLength) * 70,
+    },
   }
 }
 
@@ -2286,7 +2113,6 @@ function arrowsForFinalGeometry(
     arrows.push(incomeArrow(
       income,
       need,
-      accounts,
       overrides?.['arrow:income'],
     ))
   }
@@ -2299,7 +2125,6 @@ function arrowsForFinalGeometry(
         asNeededArrow(
           shortTerm,
           need,
-          [income, need, ...accounts],
           overrides?.['arrow:asNeeded'],
         ),
         chipOverride,
@@ -2334,21 +2159,19 @@ function baseLayout(data: MoneyMapData): MapLayout {
   const hidden = new Set(data.hiddenArrows)
   const arrows: Arrow[] = []
   if (!hidden.has('income')) {
-    arrows.push(incomeArrow(income, need, accounts))
+    arrows.push(incomeArrow(income, need))
   }
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
   )
   if (shortTerm && !hidden.has('asNeeded')) {
-    arrows.push(
-      asNeededArrow(shortTerm, need, [income, need, ...accounts]),
-    )
+    arrows.push(asNeededArrow(shortTerm, need))
   }
   arrows.push(
     ...customArrowLayouts(data.customArrows, income, need, accounts),
   )
 
-  return centerComposition(
+  const centered = centerComposition(
     {
       artboard: ARTBOARD,
       income,
@@ -2361,6 +2184,28 @@ function baseLayout(data: MoneyMapData): MapLayout {
     },
     data.footnotes.some(footnoteHasContent),
   )
+  const shiftByBucket = new Map(
+    COLUMNS.flatMap((column) => {
+      const placed = centered.accounts.filter((account) =>
+        column.buckets.includes(account.account.bucket),
+      )
+      if (placed.length === 0) return []
+      const top = Math.min(...placed.map((account) => account.y))
+      const bottom = Math.max(...placed.map((account) => account.y + account.h))
+      const dy = constrainedOffset(
+        0,
+        OVERRIDE_BOUNDS.top - top,
+        OVERRIDE_BOUNDS.bottom - bottom,
+      )
+      return column.buckets.map((bucket) => [bucket, dy] as const)
+    }),
+  )
+  return {
+    ...centered,
+    accounts: centered.accounts.map((account) =>
+      translatePlaced(account, 0, shiftByBucket.get(account.account.bucket) ?? 0),
+    ),
+  }
 }
 
 export function layoutMap(data: MoneyMapData): MapLayout {
@@ -2558,5 +2403,175 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       y: footnoteBaseline,
     },
     warnings,
+  }
+}
+
+function movedTextBlock(
+  data: MoneyMapData,
+  element: MapTextElement,
+  role: MapTextElementRole,
+  block: Placed,
+  itemId?: string,
+): Placed {
+  const offset = mapTextOffset(data, element, role, block, itemId)
+  return { ...block, x: block.x + offset.dx, y: block.y + offset.dy }
+}
+
+export function layoutOverrideRect(
+  data: MoneyMapData,
+  key: string,
+): Placed | null {
+  const layout = layoutMap(data)
+  if (key === 'income') return layout.income
+  if (key === 'need') return layout.need
+  if (key === 'asNeededChip') {
+    const labelAt = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
+      ?.labelAt
+    return labelAt
+      ? {
+          x: labelAt.x - AS_NEEDED_CHIP_WIDTH / 2,
+          y: labelAt.y - AS_NEEDED_CHIP_HEIGHT / 2,
+          w: AS_NEEDED_CHIP_WIDTH,
+          h: AS_NEEDED_CHIP_HEIGHT,
+        }
+      : null
+  }
+  const account = layout.accounts.find((placed) => placed.account.id === key)
+  if (account) return obstacleBounds(account)
+  if (!key.startsWith('text:')) return null
+
+  const [, element, role, itemId] = key.split(':')
+  const accountText = layout.accounts.find(
+    (placed) => placed.account.id === element,
+  )
+  if (
+    accountText &&
+    ACCOUNT_TEXT_ROLES.includes(role as AccountTextRole)
+  ) {
+    return accountTextBlock(accountText, role as AccountTextRole)
+  }
+  if (element === 'masthead' && role === 'label') {
+    return movedTextBlock(data, 'masthead', 'label', {
+      x: 454,
+      y: 58,
+      w: 818,
+      h: 40,
+    })
+  }
+  if (element === 'need') {
+    const block =
+      role === 'label'
+        ? { x: layout.need.x + 12, y: layout.need.y + 31, w: layout.need.w - 24, h: 38 }
+        : role === 'value'
+          ? { x: layout.need.x + 12, y: layout.need.y + 75, w: layout.need.w - 24, h: 52 }
+          : role === 'supporting'
+            ? { x: layout.need.x + 12, y: layout.need.y + 120, w: layout.need.w - 24, h: 28 }
+            : null
+    return block
+      ? movedTextBlock(data, 'need', role as MapTextElementRole, block)
+      : null
+  }
+  if (element === 'income') {
+    const metrics = incomePanelMetrics(data)
+    const sizes = incomeTextSizes(data)
+    if (role === 'header') {
+      return movedTextBlock(data, 'income', 'header', {
+        x: layout.income.x + 12,
+        y: layout.income.y + 7,
+        w: layout.income.w - 24,
+        h: 35,
+      })
+    }
+    if (role === 'total') {
+      return movedTextBlock(data, 'income', 'total', {
+        x: layout.income.x + 12,
+        y: layout.income.y + metrics.dividerY + 7,
+        w: layout.income.w - 24,
+        h: 48,
+      })
+    }
+    const index = data.incomeSources.findIndex((source) => source.id === itemId)
+    if (role !== 'row' || index < 0) return null
+    const source = data.incomeSources[index]
+    const visibleWidth = Math.min(
+      layout.income.w - 24,
+      Math.max(
+        textWidth(source.label, sizes.rowValue * (13 / 14)),
+        textWidth(moneyPer(source.amount, source.period), sizes.rowValue) +
+          (source.qualifier
+            ? 7 + textWidth(source.qualifier, sizes.rowValue * (12 / 14))
+            : 0),
+      ) + 16,
+    )
+    return movedTextBlock(
+      data,
+      'income',
+      'row',
+      {
+        x: layout.income.x + 12,
+        y:
+          layout.income.y +
+          metrics.firstRowY +
+          index * metrics.rowPitch -
+          sizes.rowValue * (13 / 14) -
+          5,
+        w: visibleWidth,
+        h: metrics.rowPitch,
+      },
+      itemId,
+    )
+  }
+  if (element === 'footnotes' && role === 'line') {
+    const line = footnoteLineLayouts(data, layout.footnotesAt.y).find(
+      (candidate) => candidate.footnote.id === itemId,
+    )
+    return line
+      ? movedTextBlock(
+          data,
+          'footnotes',
+          'line',
+          {
+            x: layout.footnotesAt.x - 360,
+            y: line.y - line.fontSize - 3,
+            w: 720,
+            h: line.fontSize + 9,
+          },
+          itemId,
+        )
+      : null
+  }
+  return null
+}
+
+export function nudgeLayoutOverride(
+  data: MoneyMapData,
+  key: string,
+  delta: Point,
+): MoneyMapData {
+  const previous = data.layoutOverrides?.[key] ?? {}
+  const baseData = {
+    ...data,
+    layoutOverrides: {
+      ...data.layoutOverrides,
+      [key]: { ...previous, dx: undefined, dy: undefined },
+    },
+  }
+  const base = layoutOverrideRect(baseData, key)
+  const rendered = layoutOverrideRect(data, key)
+  if (!base || !rendered) return data
+  const next = clampRectToBounds(
+    { ...rendered, x: rendered.x + delta.x, y: rendered.y + delta.y },
+    OVERRIDE_BOUNDS,
+  )
+  return {
+    ...data,
+    layoutOverrides: {
+      ...data.layoutOverrides,
+      [key]: {
+        ...previous,
+        dx: next.x - base.x,
+        dy: next.y - base.y,
+      },
+    },
   }
 }
