@@ -14,10 +14,12 @@ test('external writer snapshot invalidates stale undo history before ownership r
   await openApp(second)
   await fullForm(second)
   await expect(second.getByText('Read-only tab')).toBeVisible()
+  const authoritativeTitle = second.getByLabel('Title')
+  await expect(authoritativeTitle).toHaveValue('Page A history seed')
   await second.getByRole('button', { name: 'Take over editing' }).click()
   await expect(page.getByText('Read-only tab')).toBeVisible()
 
-  const authoritativeTitle = second.getByLabel('Title')
+  await expect(authoritativeTitle).toHaveValue('Page A history seed')
   await authoritativeTitle.fill('Page B authoritative edit')
   await authoritativeTitle.press('Tab')
   await expect.poll(() => second.evaluate((key) => localStorage.getItem(key), BOOK_KEY)).toContain('Page B authoritative edit')
