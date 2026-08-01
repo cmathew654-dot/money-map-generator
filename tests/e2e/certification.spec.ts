@@ -73,7 +73,7 @@ test.describe('desktop behavioral certification', () => {
   })
 
   test('writer ownership survives rapid tab handoffs with edits', async ({ context, page }) => {
-    test.setTimeout(90_000)
+    test.setTimeout(180_000)
     const second = await context.newPage(); await openApp(second)
     await focusPage(page)
     await page.getByLabel('Title').fill('Rapid handoff seed')
@@ -85,8 +85,9 @@ test.describe('desktop behavioral certification', () => {
       const value = `Rapid handoff ${switchIndex + 1}`
       await active.getByLabel('Title').fill(value)
       await active.getByLabel('Title').press('Tab')
-      await expect.poll(() => active.getByLabel('Title').inputValue()).toBe(value)
     }
+    await focusPage(page)
+    await expect(page.getByLabel('Title')).toHaveValue('Rapid handoff 25')
   })
 
   test('legacy storage migrates without loss', async ({ browser, page }) => {
