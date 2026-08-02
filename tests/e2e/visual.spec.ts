@@ -40,6 +40,9 @@ test.describe('desktop visual baselines', () => {
     await openApp(page)
     await fullForm(page)
     await page.locator('.account-card').first().locator('summary').click()
+    await page.locator('.form-pane').evaluate((pane) => {
+      pane.scrollTop = 658
+    })
     await stabilize(page)
     await compareOrAttachReflow(page, info, 'editor')
   })
