@@ -33,17 +33,26 @@ type StoredAccount = {
 
 type StoredClient = {
   accounts: StoredAccount[]
+  afterTaxIncome?: number | null
   asNeededAmount?: number | null
   customArrows?: Array<{
     id: string
     sourceId: string
     targetId: string
   }>
+  footnotes?: Array<{ gross: number | null; label: string; net: number | null }>
   id: string
+  incomeSources?: Array<{
+    amount: number | null
+    id: string
+    label: string
+    period: string
+  }>
   layoutOverrides?: Record<
     string,
     { dx?: number; dy?: number; fs?: number }
   >
+  monthlyNeed?: number | null
   notes?: Array<{ text: string }>
 }
 
@@ -63,6 +72,25 @@ async function currentClient(page: Page): Promise<StoredClient> {
   const client = await storedClient(page)
   if (!client) throw new Error('Active client was not persisted')
   return client
+}
+
+function financialContent(client: StoredClient) {
+  return {
+    accounts: client.accounts,
+    afterTaxIncome: client.afterTaxIncome ?? null,
+    asNeededAmount: client.asNeededAmount ?? null,
+    footnotes: client.footnotes ?? [],
+    incomeSources: client.incomeSources ?? [],
+    monthlyNeed: client.monthlyNeed ?? null,
+    notes: client.notes ?? [],
+  }
+}
+
+async function svgPosition(locator: Locator) {
+  return locator.evaluate((element) => {
+    const bounds = (element as SVGGraphicsElement).getBBox()
+    return { x: Math.round(bounds.x), y: Math.round(bounds.y) }
+  })
 }
 
 async function spawnPreset(
@@ -139,9 +167,15 @@ async function clickBlankAccountBody(account: Locator) {
 
 test.describe('approved desktop interaction regression', () => {
   test.beforeEach(async ({ page }, testInfo) => {
+    const crossBrowserStateTest =
+      testInfo.title.includes('Tidy map is one undoable action') ||
+      testInfo.title.includes(
+        'drag preview yields to reset, clear, Salary edits, and reload',
+      )
     test.skip(
-      testInfo.project.name !== 'chromium-1280x720',
-      'Combined interaction regression runs once in bundled Chromium.',
+      testInfo.project.name !== 'chromium-1280x720' &&
+        !(crossBrowserStateTest && testInfo.project.name === 'webkit-1280x720'),
+      'Combined interaction regression runs once in Chromium; the state regression also runs in WebKit.',
     )
     await openApp(page)
     await expect.poll(() => storedClient(page)).not.toBeNull()
@@ -504,17 +538,21 @@ test.describe('approved desktop interaction regression', () => {
     const account = page.locator(
       `[data-account-id=${accountId}][role=group]`,
     )
-    await clickBlankAccountBody(account)
-    const moveRight = page
-      .getByRole('region', { name: /Adjust / })
-      .getByRole('button', { name: 'Move right', exact: true })
-    await moveRight.click()
+    const bodyHit = account.locator('.map-account-body-hit:not(ellipse)')
+    const generatedPosition = await svgPosition(bodyHit)
+    await pointerDrag(page, bodyHit, { x: 38, y: 20 }, { x: 0.16, y: 0.84 })
     await expect
       .poll(
-        async () =>
-          (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
+        async () => {
+          const override = (await currentClient(page)).layoutOverrides?.[
+            accountId
+          ]
+          return Math.abs(override?.dx ?? 0) + Math.abs(override?.dy ?? 0)
+        },
       )
-      .toBe(12)
+      .toBeGreaterThan(0)
+    const movedPosition = await svgPosition(bodyHit)
+    expect(movedPosition).not.toEqual(generatedPosition)
 
     await page.getByRole('button', { name: 'Tidy map', exact: true }).click()
     await expect
@@ -523,14 +561,102 @@ test.describe('approved desktop interaction regression', () => {
           (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
       )
       .toBeUndefined()
+    await expect.poll(() => svgPosition(bodyHit)).toEqual(generatedPosition)
 
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect
       .poll(
-        async () =>
-          (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
+        async () => {
+          const override = (await currentClient(page)).layoutOverrides?.[
+            accountId
+          ]
+          return Math.abs(override?.dx ?? 0) + Math.abs(override?.dy ?? 0)
+        },
       )
-      .toBe(12)
+      .toBeGreaterThan(0)
+    await expect.poll(() => svgPosition(bodyHit)).toEqual(movedPosition)
+  })
+
+  test('drag preview yields to reset, clear, Salary edits, and reload', async ({
+    page,
+  }) => {
+    test.slow()
+    const incomeCard = page.locator('[data-map-target=income]')
+    const incomeBody = incomeCard.locator('rect').first()
+    const generatedPosition = await svgPosition(incomeBody)
+    const originalContent = financialContent(await currentClient(page))
+
+    await pointerDrag(page, incomeCard, { x: 24, y: 16 }, { x: 0.92, y: 0.92 })
+    await expect
+      .poll(async () => financialContent(await currentClient(page)))
+      .toEqual(originalContent)
+    expect(await svgPosition(incomeBody)).not.toEqual(generatedPosition)
+
+    await page.getByRole('button', { name: 'Reset menu' }).click()
+    await page.getByRole('menuitem', { name: 'Reset arrangement' }).click()
+    await page
+      .getByRole('dialog', { name: 'Reset arrangement' })
+      .getByRole('button', { name: 'Reset', exact: true })
+      .click()
+    await expect.poll(() => svgPosition(incomeBody)).toEqual(generatedPosition)
+    await page.reload()
+    await expect.poll(() => svgPosition(incomeBody)).toEqual(generatedPosition)
+
+    await pointerDrag(page, incomeCard, { x: 24, y: 16 }, { x: 0.92, y: 0.92 })
+    await fullForm(page)
+    const socialSecurityAmount = page
+      .locator(".income-row:has(input[value='Social Security'])")
+      .getByLabel('Amount', { exact: true })
+    await expect(socialSecurityAmount).toBeVisible()
+    await socialSecurityAmount.fill('5000')
+
+    await page.getByRole('button', { name: 'Reset menu' }).click()
+    await page.getByRole('menuitem', { name: /Clear map/ }).click()
+    await page
+      .getByRole('dialog', { name: 'Clear map' })
+      .getByRole('button', { name: 'Clear map', exact: true })
+      .click()
+    await expect(page.getByRole('group', { name: 'Cash at Bank' })).toHaveCount(0)
+    await expect(incomeCard).not.toContainText('Social Security')
+    await expect
+      .poll(async () => financialContent(await currentClient(page)))
+      .toEqual({
+        accounts: [],
+        afterTaxIncome: null,
+        asNeededAmount: null,
+        footnotes: [],
+        incomeSources: [],
+        monthlyNeed: null,
+        notes: [],
+      })
+
+    await page
+      .getByLabel('Add income source')
+      .getByRole('button', { name: 'Salary / Wages', exact: true })
+      .click()
+    const salaryAmount = page
+      .locator(".income-row:has(input[value='Salary / Wages'])")
+      .getByLabel('Amount', { exact: true })
+    await expect(salaryAmount).toBeVisible()
+    await salaryAmount.fill('5000')
+    await expect(incomeCard).toContainText('Salary / Wages')
+    await expect(incomeCard).toContainText('$5,000 mo.')
+
+    await expect
+      .poll(async () => (await currentClient(page)).incomeSources?.length)
+      .toBe(1)
+    const clearedWithSalary = financialContent(await currentClient(page))
+    await pointerDrag(page, incomeCard, { x: 0, y: 12 }, { x: 0.92, y: 0.92 })
+    await expect
+      .poll(async () => financialContent(await currentClient(page)))
+      .toEqual(clearedWithSalary)
+    await expect(page.getByRole('group', { name: 'Cash at Bank' })).toHaveCount(0)
+    await expect(incomeCard).toContainText('$5,000 mo.')
+
+    await page.reload()
+    await expect(page.getByRole('group', { name: 'Cash at Bank' })).toHaveCount(0)
+    await expect(incomeCard).toContainText('Salary / Wages')
+    await expect(incomeCard).toContainText('$5,000 mo.')
   })
 
   test('large as-needed values stay compact and selected controls leave Present Mode', async ({
