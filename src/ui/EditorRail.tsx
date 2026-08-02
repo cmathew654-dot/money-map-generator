@@ -13,6 +13,12 @@ const panelLabels: Record<EditorPanel, string> = {
   contents: 'Contents',
   help: 'Help',
 }
+const panelIcons: Record<EditorPanel, string> = {
+  add: '+',
+  data: '▤',
+  contents: '☰',
+  help: '?',
+}
 
 export function EditorRail({ activePanel, onToggle }: EditorRailProps) {
   const buttons = useRef<Partial<Record<EditorPanel, HTMLButtonElement>>>({})
@@ -37,7 +43,10 @@ export function EditorRail({ activePanel, onToggle }: EditorRailProps) {
           type="button"
           onClick={() => onToggle(panel)}
         >
-          {panelLabels[panel]}
+          <span aria-hidden={true} className={'editor-rail-icon'}>
+            {panelIcons[panel]}
+          </span>
+          <span>{panelLabels[panel]}</span>
         </button>
       ))}
     </aside>

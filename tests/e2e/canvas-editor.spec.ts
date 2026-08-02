@@ -30,6 +30,17 @@ test('existing clients open on the canvas and Data restores rail focus when it c
   await expect(data).toBeFocused()
 })
 
+test('each editor rail button pairs its accessible text label with a visible decorative icon', async ({ page }) => {
+  await openApp(page)
+
+  const rail = page.getByRole('complementary', { name: 'Editor tools' })
+  for (const name of ['Add', 'Data', 'Contents', 'Help']) {
+    const button = rail.getByRole('button', { name, exact: true })
+    await expect(button).toContainText(name)
+    await expect(button.locator('[aria-hidden=true]')).toBeVisible()
+  }
+})
+
 test('Data overlays the canvas below the desktop breakpoint', async ({ page }) => {
   await page.setViewportSize({ width: 1179, height: 720 })
   await openApp(page)
