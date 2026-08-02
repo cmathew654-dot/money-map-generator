@@ -37,9 +37,9 @@ import {
   moveMapNote,
   resizeMapNote,
   retargetCustomArrow,
+  resetTextPosition,
   setCustomArrowColor,
   setMapNoteBackground,
-  snapRectToAlignment,
   withOverride,
 } from './mapInteraction'
 import { ARROW_COLORS, ARTBOARD, TYPE } from './tokens'
@@ -218,25 +218,6 @@ export function MapInspector({
       ? []
       : [candidate.rect],
   )
-  const tidyResult = tidyRect
-    ? snapRectToAlignment(tidyRect, tidyCandidates, 24)
-    : null
-  const canTidy = Boolean(
-    tidyRect &&
-      tidyResult &&
-      (tidyResult.rect.x !== tidyRect.x || tidyResult.rect.y !== tidyRect.y),
-  )
-  const tidy = () => {
-    if (!tidyRect || !tidyResult || !canTidy) return
-    if (tidyKey) {
-      onChange(nudgeLayoutOverride(data, tidyKey, {
-        x: tidyResult.rect.x - tidyRect.x,
-        y: tidyResult.rect.y - tidyRect.y,
-      }))
-    } else if (noteId) {
-      onChange(moveMapNote(data, noteId, tidyResult.rect.x, tidyResult.rect.y))
-    }
-  }
   const duplicate = () => {
     const sourceAccount = accountId
       ? layout.accounts.find((placed) => placed.account.id === accountId)
@@ -424,18 +405,6 @@ export function MapInspector({
       </div>
       <div className="map-inspector-controls">
         {(layoutKey || note) && <MoveControls move={move} />}
-        {(tidyKey || note) && (
-          <InspectorGroup label="Align">
-            <button
-              aria-label="Snap to alignment"
-              disabled={!canTidy}
-              type="button"
-              onClick={tidy}
-            >
-              Snap to alignment
-            </button>
-          </InspectorGroup>
-        )}
         {(account || note) && <button type="button" onClick={duplicate}>Duplicate</button>}
 
         {account && (
@@ -589,15 +558,15 @@ export function MapInspector({
           </InspectorGroup>
         )}
 
-        <InspectorGroup label={arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text' : 'Reset item'}>
+        <InspectorGroup label={arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text position' : 'Reset item'}>
           <button type="button" onClick={() => {
             if (arrowKey) resetArrow()
             else if (noteId) onChange({
               ...moveMapNote(data, noteId, (ARTBOARD.width - NOTE_WIDTH) / 2, ARTBOARD.height / 2),
               notes: data.notes?.map((candidate) => candidate.id === noteId ? { ...candidate, x: (ARTBOARD.width - NOTE_WIDTH) / 2, y: ARTBOARD.height / 2, w: undefined, bg: undefined, fs: undefined } : candidate),
             })
-            else if (layoutKey) onChange(withoutOverride(data, layoutKey))
-          }}>{arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text' : 'Reset item'}</button>
+            else if (layoutKey) onChange(isText ? resetTextPosition(data, layoutKey) : withoutOverride(data, layoutKey))
+          }}>{arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text position' : 'Reset item'}</button>
         </InspectorGroup>
 
         {customArrowId && <button className="map-inspector-danger" type="button" onClick={() => { onChange(deleteCustomArrow(data, customArrowId)); onClose() }}>Delete flow</button>}

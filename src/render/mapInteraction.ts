@@ -43,6 +43,26 @@ export interface AlignmentMatch {
   guide: AlignmentGuide
 }
 
+export function resetTextPosition(data: MoneyMapData, key: string): MoneyMapData {
+  const override = data.layoutOverrides?.[key]
+  if (!key.startsWith('text:') || !override || (override.dx === undefined && override.dy === undefined)) return data
+  const { dx: _dx, dy: _dy, ...appearance } = override
+  const { [key]: _removed, ...layoutOverrides } = data.layoutOverrides ?? {}
+  return {
+    ...data,
+    layoutOverrides: Object.keys(appearance).length
+      ? { ...layoutOverrides, [key]: appearance }
+      : layoutOverrides,
+  }
+}
+
+export function resetTextPositions(data: MoneyMapData): MoneyMapData {
+  return Object.keys(data.layoutOverrides ?? {}).reduce(
+    (current, key) => resetTextPosition(current, key),
+    data,
+  )
+}
+
 export interface AlignmentSnap {
   rect: Rect
   x?: AlignmentGuide

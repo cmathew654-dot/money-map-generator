@@ -297,16 +297,17 @@ test.describe('approved desktop interaction regression', () => {
       subject.id
     ]
 
+    const beforeTextDrag = (await currentClient(page)).layoutOverrides?.[
+      `text:${subject.id}:label`
+    ]
     await pointerDrag(page, labelTarget, { x: 30, y: 18 })
-    await expect(page.locator('.map-text-editor-input')).toHaveCount(0)
     await expect
-      .poll(async () => {
-        const override = (await currentClient(page)).layoutOverrides?.[
+      .poll(async () =>
+        (await currentClient(page)).layoutOverrides?.[
           `text:${subject.id}:label`
-        ]
-        return Math.abs(override?.dx ?? 0) + Math.abs(override?.dy ?? 0)
-      })
-      .toBeGreaterThan(0)
+        ],
+      )
+      .toEqual(beforeTextDrag)
 
     const afterTextDrag = await currentClient(page)
     expect(afterTextDrag.layoutOverrides?.[subject.id]?.dx).toBe(
@@ -531,6 +532,64 @@ test.describe('approved desktop interaction regression', () => {
     await page.mouse.up()
     await expect(page.locator('.map-text-editor-input')).toBeVisible()
     await expect(addTextNote).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  test('text and card bodies expose different hover affordances', async ({ page }) => {
+    const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+    const label = account.locator('[data-map-edit-key="accountLabel:cash-at-bank"]').first()
+    const body = account.locator('.map-account-body-hit:not(ellipse)')
+    await label.hover()
+    await expect.poll(() => account.evaluate((node) => getComputedStyle(node).filter)).toBe('none')
+    await body.hover()
+    await expect.poll(() => account.evaluate((node) => getComputedStyle(node).filter)).not.toBe('none')
+  })
+
+  test('Reset offers recovery for accidental text positions', async ({ page }) => {
+    const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+    await account.focus()
+    await page.keyboard.press('ArrowRight')
+    const label = account.locator('[data-map-edit-key="accountLabel:cash-at-bank"]').first()
+    await label.click()
+    await page.getByRole('button', { name: 'Increase font size' }).click()
+    await page.getByRole('button', { name: 'Close text editor' }).click()
+    await label.focus()
+    await page.keyboard.press('Shift+ArrowRight')
+    await expect
+      .poll(async () => {
+        const overrides = (await currentClient(page)).layoutOverrides
+        return Boolean(
+          overrides?.['cash-at-bank']?.dx &&
+          overrides?.['text:cash-at-bank:label']?.dx &&
+          overrides?.['text:cash-at-bank:label']?.fs,
+        )
+      })
+      .toBe(true)
+    const before = (await currentClient(page)).layoutOverrides!
+    await page.getByRole('button', { name: 'Reset menu' }).click()
+    await page.getByRole('menuitem', { name: 'Reset all text positions…' }).click()
+    await page
+      .getByRole('dialog', { name: 'Reset all text positions?' })
+      .getByRole('button', { name: 'Reset text positions' })
+      .click()
+    await expect
+      .poll(async () => {
+        const overrides = (await currentClient(page)).layoutOverrides
+        return {
+          account: overrides?.['cash-at-bank'],
+          text: overrides?.['text:cash-at-bank:label'],
+        }
+      })
+      .toEqual({
+        account: before['cash-at-bank'],
+        text: { fs: before['text:cash-at-bank:label'].fs },
+      })
+    await expect(page.getByText('Text positions reset')).toBeVisible()
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect
+      .poll(async () =>
+        (await currentClient(page)).layoutOverrides?.['text:cash-at-bank:label'],
+      )
+      .toEqual(before['text:cash-at-bank:label'])
   })
 
   test('Tidy map is one undoable action after a manual move', async ({ page }) => {

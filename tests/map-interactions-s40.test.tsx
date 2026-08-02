@@ -127,6 +127,7 @@ describe('Session 40 map interaction affordances', () => {
     )
     expect(markup).not.toContain('map-rotate-handle')
     expect(markup).not.toContain('map-resize-handle')
+    expect(markup).toContain('data-pointer-action')
   })
 
 

@@ -69,6 +69,7 @@ import {
 import { MapInspector } from './render/MapInspector'
 import {
   pannedScrollPosition,
+  resetTextPositions,
   restoreGeneratedArrows,
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
@@ -129,6 +130,7 @@ type AppDialog =
   | { kind: 'error'; title: string; message: string }
   | { kind: 'loadBook'; book: MoneyMapFile }
   | { kind: 'resetLayout' }
+  | { kind: 'resetTextPositions' }
   | { kind: 'clearMap'; clientId: string; name: string }
 
 function initialBrowserBook(): BrowserBookLoad { return loadBrowserBook(localStorage) }
@@ -268,6 +270,9 @@ export default function App() {
     activeClient.customArrows?.some(
       (arrow) => arrow.labelDx !== undefined || arrow.labelDy !== undefined,
     ) === true
+  const hasTextPositionOverrides = Object.entries(activeClient.layoutOverrides ?? {}).some(
+    ([key, override]) => key.startsWith('text:') && (override.dx !== undefined || override.dy !== undefined),
+  )
   const tidiedClient = tidyArrangement(activeClient)
   const canTidyMap = tidiedClient !== activeClient
   const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
@@ -845,6 +850,14 @@ export default function App() {
     handleClientChange(resetArrangement(activeClient))
     setDialog(null)
     addToast('Arrangement reset')
+  }
+
+  const handleResetTextPositions = () => {
+    const next = resetTextPositions(activeClient)
+    if (next !== activeClient) handleMapChange(next)
+    setMapTextEdit(null)
+    setDialog(null)
+    addToast('Text positions reset')
   }
 
   const handleTidyMap = () => {
@@ -1447,6 +1460,12 @@ export default function App() {
             >
               Reset arrangement
             </MenuItem>
+            <MenuItem
+              disabled={!canMutate || !hasTextPositionOverrides}
+              onClick={() => setDialog({ kind: 'resetTextPositions' })}
+            >
+              Reset all text positions…
+            </MenuItem>
             {hasHiddenArrows && (
               <MenuItem disabled={!canMutate} onClick={handleRestoreGeneratedArrows}>
                 Restore automatic flows
@@ -1824,6 +1843,17 @@ export default function App() {
           onConfirm={handleResetLayout}
         >
           Return every map item to its automatic position?
+        </Dialog>
+      )}
+      {dialog?.kind === 'resetTextPositions' && (
+        <Dialog
+          confirmLabel="Reset text positions"
+          open
+          title="Reset all text positions?"
+          onClose={() => setDialog(null)}
+          onConfirm={handleResetTextPositions}
+        >
+          Return all map text to its default position? You can undo this action.
         </Dialog>
       )}
       {dialog?.kind === 'clearMap' && (

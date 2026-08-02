@@ -51,9 +51,10 @@ describe('persistent map inspector', () => {
   it('provides complete click alternatives for selected accounts', () => {
     const markup = render('account:cash-at-bank')
 
-    for (const label of ['Shape', 'Account type', 'Move', 'Size', 'Rotate', 'Add flow to', 'Reset item', 'Snap to alignment']) {
+    for (const label of ['Shape', 'Account type', 'Move', 'Size', 'Rotate', 'Add flow to', 'Reset item']) {
       expect(markup).toContain(label)
     }
+    expect(markup).not.toContain('Snap to alignment')
     expect(markup).toContain('Short-term')
     expect(markup).not.toContain('Bucket color')
     expect(markup).not.toContain('Color follows bucket')

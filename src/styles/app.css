@@ -2092,8 +2092,12 @@ summary:focus-visible {
   cursor: pointer;
 }
 
-.map-interactive .map-draggable:hover {
+.map-interactive [data-account-id]:has(.map-account-body-hit:hover) {
   filter: drop-shadow(0 2px 6px rgb(28 36 34 / 35%));
+}
+
+.map-interactive .map-editable-hit {
+  cursor: text;
 }
 
 .map-interactive [data-account-id][data-map-selected='true'] {
@@ -2112,6 +2116,7 @@ summary:focus-visible {
 }
 /* Session 40 map control review fixes */
 .map-account-body-hit {
+  cursor: grab;
   fill: transparent;
   pointer-events: all;
   stroke: transparent;

@@ -156,6 +156,7 @@ interface MapEditDataAttributes {
   'data-map-edit-visual'?: string
   'data-map-target'?: string
   'data-layout-key'?: string
+  'data-pointer-action'?: string
 }
 
 type DragMode =
@@ -166,7 +167,6 @@ type DragMode =
   | 'arrowStart'
   | 'arrowEnd'
   | 'noteMove'
-  | 'textMove'
   | 'flowLabelMove'
 
 interface DragSession {
@@ -327,11 +327,12 @@ function editableHitAreaProps(
     'aria-label': `Edit ${mapTextEditorTargetLabel(edit)}`,
     className: 'map-editable-hit',
     'data-map-edit-hit': mapTextEditTargetKey(edit),
+    'data-pointer-action': 'edit',
     'data-map-target': 'text:' + mapTextEditTargetKey(edit),
     'data-layout-key': fixedTextOverrideKey(edit) ?? undefined,
     'aria-keyshortcuts': fixedTextOverrideKey(edit) ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined,
     fill: 'transparent',
-    onPointerDown,
+    onPointerDown: onPointerDown ?? ((event) => event.stopPropagation()),
     onClick: (event) => {
       event.stopPropagation()
       activate(event.currentTarget)
@@ -2157,8 +2158,7 @@ export function MapSvg({
     const currentScreen = { x: event.clientX, y: event.clientY }
     if (
       !session.active &&
-      (session.mode === 'textMove' ||
-      session.mode === 'flowLabelMove'
+      (session.mode === 'flowLabelMove'
         ? accountTextPointerAction(
             session.startScreen,
             currentScreen,
@@ -2375,17 +2375,6 @@ export function MapSvg({
       suppressNextClickRef.current = false
     }, 0)
     onChange?.(session.latestData)
-  }
-
-  const beginAccountTextDrag = (
-    accountId: string,
-    role: AccountTextRole,
-  ) => beginDrag(accountTextOverrideKey(accountId, role), 'textMove')
-  const beginFixedTextDrag: TextPointerDown = (target) => {
-    const key = fixedTextOverrideKey(target)
-    return key
-      ? beginDrag(key, 'textMove')
-      : (event) => event.stopPropagation()
   }
 
   const handleMapClickCapture = (event: MouseEvent<SVGSVGElement>) => {
@@ -2636,7 +2625,6 @@ export function MapSvg({
       <Masthead
         data={displayData}
         onElementClick={onElementClick}
-        onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
       />
       <g
         data-connect-id={onChange ? 'income' : undefined}
@@ -2658,7 +2646,6 @@ export function MapSvg({
         <IncomePanel
           data={displayData}
           onElementClick={onElementClick}
-          onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
           placed={layout.income}
         />
       </g>
@@ -2693,13 +2680,9 @@ export function MapSvg({
           }
           onSupportingPointerDown={
             onChange
-              ? beginDrag(
-                  mapTextOverrideKey('need', 'supporting'),
-                  'textMove',
-                )
+              ? (event) => event.stopPropagation()
               : undefined
           }
-          onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
           tag={displayData.needTag}
           value={displayData.monthlyNeed}
           placed={layout.need}
@@ -2772,18 +2755,12 @@ export function MapSvg({
               {shape === 'drum' ? (
                 <Cylinder
                   onElementClick={onElementClick}
-                  onTextPointerDown={
-                    onChange ? beginAccountTextDrag : undefined
-                  }
                   placed={placed}
                   runway={runway}
                 />
               ) : (
                 <FlatAccount
                   onElementClick={onElementClick}
-                  onTextPointerDown={
-                    onChange ? beginAccountTextDrag : undefined
-                  }
                   placed={placed}
                   runway={runway}
                   shape={shape}
@@ -2848,7 +2825,6 @@ export function MapSvg({
       <Footnotes
         data={displayData}
         onElementClick={onElementClick}
-        onTextPointerDown={onChange ? beginFixedTextDrag : undefined}
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
       />
