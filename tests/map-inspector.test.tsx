@@ -84,6 +84,23 @@ describe('persistent map inspector', () => {
     expect(generated).not.toContain('To</label>')
   })
 
+  it('exposes Details for semantic records and forwards the request', () => {
+    let detailRequests = 0
+    const inspector = MapInspector({
+      data: SAMPLE_WHITFIELD,
+      onChange: () => undefined,
+      onClose: () => undefined,
+      onDetails: () => { detailRequests += 1 },
+      onSelect: () => undefined,
+      selectedTargetKey: 'account:cash-at-bank',
+    })
+
+    const details = findControl(inspector, 'Details')
+    details.props.onClick?.()
+
+    expect(detailRequests).toBe(1)
+  })
+
   it('materializes a generated arrows resolved color only when its style changes', () => {
     const changes: MoneyMapData[] = []
     const inspector = MapInspector({

@@ -69,3 +69,28 @@ test('New still opens the guided setup', async ({ page }) => {
     page.getByRole('heading', { name: 'Who is this map for?' }),
   ).toBeVisible()
 })
+
+test('Data filters records and Details focuses the selected account', async ({ page }) => {
+  await openApp(page)
+
+  const dataButton = page.getByRole('button', { name: 'Data', exact: true })
+  await dataButton.click()
+  const panel = page.getByRole('dialog', { name: 'Data' })
+  const filter = panel.getByLabel('Filter data')
+  await filter.fill('Managed IRA')
+  await expect(panel.locator('[data-form-section="accounts"]')).toBeVisible()
+  await expect(panel.locator('[data-form-section="client"]')).toHaveCount(0)
+  await expect(panel.getByText('Managed IRA', { exact: true })).toBeVisible()
+
+  await filter.fill('')
+  await dataButton.click()
+  const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+  await account.locator('.map-account-body-hit:not(ellipse)').click()
+  await expect(account).toHaveAttribute('data-map-selected', 'true')
+  const inspector = page.getByRole('region', { name: /Adjust Cash at Bank/ })
+  await expect(inspector.getByRole('button', { name: 'Details' })).toBeVisible()
+  await inspector.getByRole('button', { name: 'Details' }).click()
+  await expect(panel).toBeVisible()
+  await expect(panel.locator('[data-form-section="accounts"]')).toHaveClass(/is-active/)
+  await expect(panel.locator('[data-account-id="cash-at-bank"] input').first()).toBeFocused()
+})

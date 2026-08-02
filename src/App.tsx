@@ -57,7 +57,7 @@ import {
   moneyMapAlternativeText,
   saveBookToFile,
 } from './export/export'
-import { Form } from './form/Form'
+import { Form, type FormSection } from './form/Form'
 import {
   Wizard,
   wizardStepNumberForMapTarget,
@@ -181,6 +181,9 @@ export default function App() {
   })
   const [history, setHistory] = useState<BookHistory>(emptyHistory)
   const [editorPanel, setEditorPanel] = useState<EditorPanel | null>(null)
+  const [dataFilter, setDataFilter] = useState('')
+  const [dataSection, setDataSection] = useState<FormSection>()
+  const [formRevision, setFormRevision] = useState(0)
   const [guidedSetup, setGuidedSetup] = useState(false)
   const [wizardStep, setWizardStep] = useState(0)
   const [wizardDone, setWizardDone] = useState(false)
@@ -257,6 +260,11 @@ export default function App() {
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
+  useEffect(() => {
+    setDataFilter('')
+    setDataSection(undefined)
+    setFocusRequest(undefined)
+  }, [activeClient.id])
   const hasLayoutOverrides =
     Object.keys(activeClient.layoutOverrides ?? {}).length > 0 ||
     activeClient.customArrows?.some(
@@ -357,6 +365,10 @@ export default function App() {
     setHistory(next)
   }, [])
 
+  const bumpFormRevision = useCallback(() => {
+    setFormRevision((revision) => revision + 1)
+  }, [])
+
   const commitSnapshot = useCallback(
     (next: BookSnapshot, targetClientId: string | null) => {
       if (!canMutate) return
@@ -380,6 +392,7 @@ export default function App() {
 
   const restoreHistorySnapshot = useCallback(
     (next: BookSnapshot) => {
+      bumpFormRevision()
       showSnapshot(next)
       setSelectedMapTargetKey(null)
       setMapTextEdit(null)
@@ -388,7 +401,7 @@ export default function App() {
       setGuidedSetup(false)
       resetWizard()
     },
-    [resetWizard, showSnapshot],
+    [bumpFormRevision, resetWizard, showSnapshot],
   )
 
   const handleUndo = useCallback(() => {
@@ -443,6 +456,7 @@ export default function App() {
   const adoptLatestBrowserBook = useCallback(() => {
     const latest = loadBrowserBook(localStorage)
     if (latest.status === 'ready') {
+      bumpFormRevision()
       showHistory(emptyHistory())
       showSnapshot({ book: latest.book, activeClientId: latest.book.clients[0].id })
       return true
@@ -454,7 +468,7 @@ export default function App() {
       setBrowserSaveError(latest.message)
     }
     return false
-  }, [showHistory, showSnapshot])
+  }, [bumpFormRevision, showHistory, showSnapshot])
   const finishBrowserWriterTakeover = useCallback(() => {
     clearWriterTakeoverTimer()
     setWriterTakeoverPending(false)
@@ -644,8 +658,9 @@ export default function App() {
 
   useEffect(() => {
     if (editorPanel !== 'data' || guidedSetup || presentMode) return
+    if (focusRequest) return
     window.requestAnimationFrame(() => editorPanelHeadingRef.current?.focus())
-  }, [editorPanel, guidedSetup, presentMode])
+  }, [editorPanel, focusRequest, guidedSetup, presentMode])
 
   useEffect(() => {
     const handleEditorEscape = (event: globalThis.KeyboardEvent) => {
@@ -796,6 +811,7 @@ export default function App() {
   }
 
   const selectClient = (id: string) => {
+    bumpFormRevision()
     setMapTextEdit(null)
     setGuidedSetup(false)
     showSnapshot({ ...snapshotRef.current, activeClientId: id })
@@ -837,6 +853,7 @@ export default function App() {
   }
 
   const handleResetLayout = () => {
+    bumpFormRevision()
     handleClientChange(resetArrangement(activeClient))
     setDialog(null)
     addToast('Arrangement reset')
@@ -870,6 +887,7 @@ export default function App() {
       setDialog(null)
       return
     }
+    bumpFormRevision()
     commitSnapshot(
       {
         book: updateClient(current.book, clientId, clearedClient(client)),
@@ -987,6 +1005,30 @@ export default function App() {
 
   const handleExportPng = () => handleExport('png')
 
+  const focusDataTarget = (section: FormSection, id: string) => {
+    setEditorPanel('data')
+    setDataFilter('')
+    setDataSection(section)
+    focusRequestCounter.current += 1
+    setFocusRequest({ id, at: focusRequestCounter.current })
+  }
+
+  const handleMapDetails = () => {
+    const targetKey = selectedMapTargetKey
+    if (!targetKey) return
+    if (targetKey === 'income' || targetKey === 'need') {
+      focusDataTarget(targetKey, targetKey)
+      return
+    }
+    if (targetKey.startsWith('account:')) {
+      focusDataTarget('accounts', targetKey.slice('account:'.length))
+      return
+    }
+    if (targetKey.startsWith('note:')) {
+      focusDataTarget('notes', targetKey.slice('note:'.length))
+    }
+  }
+
   const handleMapElementClick = (target: MapElementTarget) => {
     if (target.kind === 'edit') {
       setMapTextEdit({
@@ -1006,13 +1048,21 @@ export default function App() {
         setWizardStep(stepNumber - 1)
         setWizardDone(false)
       }
-    } else {
-      setEditorPanel('data')
+      const id = target.kind === 'account' ? target.id : target.kind
+      if (id) {
+        focusRequestCounter.current += 1
+        setFocusRequest({ id, at: focusRequestCounter.current })
+      }
+    } else if (editorPanel === 'data') {
+      const section =
+        target.kind === 'account'
+          ? 'accounts'
+          : target.kind === 'income'
+            ? 'income'
+            : 'need'
+      const id = target.kind === 'account' ? target.id : target.kind
+      if (id) focusDataTarget(section, id)
     }
-    const id = target.kind === 'account' ? target.id : target.kind
-    if (!id) return
-    focusRequestCounter.current += 1
-    setFocusRequest({ id, at: focusRequestCounter.current })
   }
 
   const handleClientChange = (next: typeof activeClient) => {
@@ -1027,6 +1077,7 @@ export default function App() {
   }
 
   const handleMapChange = (next: typeof activeClient) => {
+    bumpFormRevision()
     const current = snapshotRef.current
     commitSnapshot(
       {
@@ -1616,9 +1667,14 @@ export default function App() {
                 <fieldset className="mutation-fieldset" disabled={!canMutate}>
                   <Form
                     data={activeClient}
+                    key={activeClient.id + ':' + formRevision}
+                    filter={dataFilter}
                     focusRequest={focusRequest}
                     onChange={handleClientChange}
+                    onFilterChange={setDataFilter}
                     onHoverAccount={setHighlightId}
+                    activeSection={dataSection}
+                    onSectionFocus={setDataSection}
                     selectedAccountId={
                       selectedMapTargetKey?.startsWith('account:')
                         ? selectedMapTargetKey.slice('account:'.length)
@@ -1644,6 +1700,7 @@ export default function App() {
               selectedTargetKey={selectedMapTargetKey}
               onChange={handleMapChange}
               onClose={() => setSelectedMapTargetKey(null)}
+              onDetails={handleMapDetails}
               onSelect={setSelectedMapTargetKey}
             />
           )}

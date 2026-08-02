@@ -42,9 +42,15 @@ import { NOTE_WIDTH } from '../layout/layout'
 import { ARTBOARD } from '../render/tokens'
 import { Autocomplete } from '../ui/Autocomplete'
 
+export type FormSection = 'client' | 'income' | 'accounts' | 'need' | 'notes'
+
 export interface FormProps {
   data: MoneyMapData
   onChange(next: MoneyMapData): void
+  filter?: string
+  onFilterChange?: (filter: string) => void
+  activeSection?: FormSection
+  onSectionFocus?: (section: FormSection) => void
   focusRequest?: { id: string; at: number }
   onHoverAccount?: (id: string | null) => void
   selectedAccountId?: string | null
@@ -413,9 +419,11 @@ export function NeedSection({
   onChange,
   embedded = false,
   sectionRef,
+  active = false,
 }: Pick<FormProps, 'data' | 'onChange'> & {
   embedded?: boolean
   sectionRef?: Ref<HTMLElement>
+  active?: boolean
 }) {
   const fields = (
     <div className="value-tag-fields need-fields">
@@ -450,7 +458,7 @@ export function NeedSection({
   if (embedded) return fields
 
   return (
-    <section className="form-section" ref={sectionRef}>
+    <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="need" ref={sectionRef}>
       <h2>Need</h2>
       {fields}
       <FinePrintSection data={data} onChange={onChange} />
@@ -463,10 +471,12 @@ export function IncomeSection({
   onChange,
   sectionRef,
   includeNeed = true,
+  active = false,
   vocabulary = [],
 }: Pick<FormProps, 'data' | 'onChange'> & {
   sectionRef?: Ref<HTMLElement>
   includeNeed?: boolean
+  active?: boolean
   vocabulary?: readonly VocabularyTerm[]
 }) {
   const labelInputs = useRef<(HTMLInputElement | null)[]>([])
@@ -482,7 +492,7 @@ export function IncomeSection({
     )
 
   return (
-    <section className="form-section" ref={sectionRef}>
+    <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="income" ref={sectionRef}>
       <h2>Income</h2>
       <div className="row-list">
         {data.incomeSources.map((source, index) => (
@@ -809,6 +819,7 @@ function AccountCard({
     >
       <details
         className={`account-card bucket-${account.bucket}${selected ? ' is-selected' : ''}`}
+        data-account-id={account.id}
         data-selected={selected ? 'true' : undefined}
         ref={detailsRef}
         onFocusCapture={() => onSelectAccount?.(account.id)}
@@ -937,9 +948,13 @@ export function AccountsSection({
   onHoverAccount,
   selectedAccountId,
   onSelectAccount,
+  sectionRef,
+  active = false,
   presetLabel = 'Add:',
   vocabulary = [],
 }: FormProps & {
+  sectionRef?: Ref<HTMLElement>
+  active?: boolean
   presetLabel?: string
 }) {
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
@@ -971,7 +986,7 @@ export function AccountsSection({
   }, [focusRequest])
 
   return (
-    <section className="form-section accounts-section">
+    <section className={active ? 'form-section accounts-section is-active' : 'form-section accounts-section'} data-form-section="accounts" ref={sectionRef}>
       <h2>Accounts</h2>
       {data.accounts.map((account, index) => (
         <AccountCard
@@ -1119,16 +1134,31 @@ export function FinePrintSection({
 
 export function NotesSection({
   data,
+  focusRequest,
   onChange,
-}: Pick<FormProps, 'data' | 'onChange'>) {
+  sectionRef,
+  active = false,
+}: Pick<FormProps, 'data' | 'onChange'> & {
+  focusRequest?: FormProps['focusRequest']
+  sectionRef?: Ref<HTMLElement>
+  active?: boolean
+}) {
   const textareaRefs = useRef<
     Record<string, HTMLTextAreaElement | null>
   >({})
   const notes = data.notes ?? []
   const requestFocus = usePendingFocus(notes.length)
 
+  useEffect(() => {
+    if (!focusRequest) return
+    const textarea = textareaRefs.current[focusRequest.id]
+    if (!textarea) return
+    textarea.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    textarea.focus()
+  }, [focusRequest])
+
   return (
-    <section className="form-section">
+    <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="notes" ref={sectionRef}>
       <h2>Notes</h2>
       <div className="row-list">
         {notes.map((note, index) => (
@@ -1177,13 +1207,18 @@ export function NotesSection({
 export function ClientSection({
   data,
   onChange,
-}: Pick<FormProps, 'data' | 'onChange'>) {
+  sectionRef,
+  active = false,
+}: Pick<FormProps, 'data' | 'onChange'> & {
+  sectionRef?: Ref<HTMLElement>
+  active?: boolean
+}) {
   const updateClient = (
     client: Partial<MoneyMapData['client']>,
   ) => onChange({ ...data, client: { ...data.client, ...client } })
 
   return (
-    <section className="form-section">
+    <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="client" ref={sectionRef}>
       <h2>Client</h2>
       <div className="client-fields">
         <div className="client-title-row">
@@ -1296,6 +1331,10 @@ export function nextEnterFocusTarget<T>(
 
 export function Form({
   data,
+  filter,
+  onFilterChange,
+  activeSection,
+  onSectionFocus,
   focusRequest,
   onChange,
   onHoverAccount,
@@ -1303,8 +1342,64 @@ export function Form({
   onSelectAccount,
   vocabulary,
 }: FormProps) {
+  const [localFilter, setLocalFilter] = useState(filter ?? '')
+  const filterValue = onFilterChange ? filter ?? localFilter : localFilter
   const incomeSectionRef = useRef<HTMLElement>(null)
   const needSectionRef = useRef<HTMLElement>(null)
+  const sectionRefs = useRef<
+    Partial<Record<FormSection, HTMLElement | null>>
+  >({})
+
+  useEffect(() => {
+    if (onFilterChange) setLocalFilter(filter ?? '')
+  }, [filter, onFilterChange])
+
+  const sectionLabels: Record<FormSection, string> = {
+    client: 'Client',
+    income: 'Income',
+    accounts: 'Accounts',
+    need: 'Need',
+    notes: 'Notes',
+  }
+  const query = filterValue.trim().toLocaleLowerCase()
+  const sectionMatches = (section: FormSection) => {
+    const sectionData =
+      section === 'client'
+        ? data.client
+        : section === 'income'
+          ? data.incomeSources
+          : section === 'accounts'
+            ? data.accounts
+            : section === 'need'
+              ? {
+                  monthlyNeed: data.monthlyNeed,
+                  needTag: data.needTag,
+                  asNeededAmount: data.asNeededAmount,
+                  footnotes: data.footnotes,
+                }
+              : data.notes
+    return !query ||
+      (section + ' ' + sectionLabels[section] + ' ' + JSON.stringify(sectionData))
+        .toLocaleLowerCase()
+        .includes(query)
+  }
+  const registerSection = (section: FormSection) => (node: HTMLElement | null) => {
+    sectionRefs.current[section] = node
+  }
+  const focusSection = (section: FormSection) => {
+    onSectionFocus?.(section)
+    const target =
+      sectionRefs.current[section] ??
+      (section === 'income'
+        ? incomeSectionRef.current
+        : section === 'need'
+          ? needSectionRef.current
+          : null)
+    target?.scrollIntoView({
+      block: 'center',
+      behavior: 'smooth',
+    })
+  }
 
   useEffect(() => {
     if (!focusRequest) return
@@ -1326,29 +1421,87 @@ export function Form({
       onKeyDown={handleFormKeyDown}
       onSubmit={(event) => event.preventDefault()}
     >
-      <ClientSection data={data} onChange={onChange} />
-      <IncomeSection
-        data={data}
-        includeNeed={false}
-        onChange={onChange}
-        sectionRef={incomeSectionRef}
-        vocabulary={vocabulary}
-      />
-      <AccountsSection
-        data={data}
-        focusRequest={focusRequest}
-        onChange={onChange}
-        onHoverAccount={onHoverAccount}
-        selectedAccountId={selectedAccountId}
-        onSelectAccount={onSelectAccount}
-        vocabulary={vocabulary}
-      />
-      <NeedSection
-        data={data}
-        onChange={onChange}
-        sectionRef={needSectionRef}
-      />
-      <NotesSection data={data} onChange={onChange} />
+      <div className="data-form-tools">
+        <label className="data-form-filter">
+          <span>Filter</span>
+          <input
+            aria-label="Filter data"
+            type="search"
+            value={filterValue}
+            onChange={(event) => {
+              setLocalFilter(event.target.value)
+              onFilterChange?.(event.target.value)
+            }}
+          />
+          {filterValue.trim() && (
+            <span className="data-filter-query">{filterValue.trim()}</span>
+          )}
+        </label>
+        <nav aria-label="Data sections" className="data-form-sections">
+          {(Object.keys(sectionLabels) as FormSection[]).map((section) => (
+            <button
+              aria-current={activeSection === section ? 'true' : undefined}
+              className={activeSection === section ? 'is-active' : undefined}
+              key={section}
+              type="button"
+              onClick={() => focusSection(section)}
+            >
+              {sectionLabels[section]}
+            </button>
+          ))}
+        </nav>
+      </div>
+      {sectionMatches('client') && (
+        <ClientSection
+          active={activeSection === 'client'}
+          data={data}
+          onChange={onChange}
+          sectionRef={registerSection('client')}
+        />
+      )}
+      {sectionMatches('income') && (
+        <IncomeSection
+          active={activeSection === 'income'}
+          data={data}
+          includeNeed={false}
+          onChange={onChange}
+          sectionRef={incomeSectionRef}
+          vocabulary={vocabulary}
+        />
+      )}
+      {sectionMatches('accounts') && (
+        <AccountsSection
+          active={activeSection === 'accounts'}
+          data={data}
+          focusRequest={focusRequest}
+          onChange={onChange}
+          onHoverAccount={onHoverAccount}
+          selectedAccountId={selectedAccountId}
+          onSelectAccount={onSelectAccount}
+          sectionRef={registerSection('accounts')}
+          vocabulary={vocabulary}
+        />
+      )}
+      {sectionMatches('need') && (
+        <NeedSection
+          active={activeSection === 'need'}
+          data={data}
+          onChange={onChange}
+          sectionRef={needSectionRef}
+        />
+      )}
+      {sectionMatches('notes') && (
+        <NotesSection
+          active={activeSection === 'notes'}
+          data={data}
+          focusRequest={focusRequest}
+          onChange={onChange}
+          sectionRef={registerSection('notes')}
+        />
+      )}
+      {!(Object.keys(sectionLabels) as FormSection[]).some(sectionMatches) && (
+        <p className="empty-state">No matching data sections.</p>
+      )}
     </form>
   )
 }

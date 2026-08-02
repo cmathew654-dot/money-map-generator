@@ -49,6 +49,7 @@ interface MapInspectorProps {
   selectedTargetKey: string
   onChange: (data: MoneyMapData) => void
   onClose: () => void
+  onDetails?: () => void
   onSelect: (key: string) => void
 }
 
@@ -140,6 +141,7 @@ export function MapInspector({
   selectedTargetKey,
   onChange,
   onClose,
+  onDetails,
   onSelect,
 }: MapInspectorProps) {
   const layout = layoutMap(data)
@@ -394,6 +396,9 @@ export function MapInspector({
     (generatedKind === 'asNeeded' ? `Flow from ${endpointLabel(arrow?.sourceId ?? '')} to Monthly need` : undefined) ??
     (note ? note.text : undefined) ??
     (isText ? textTargetTitle(data, selectedTargetKey) : 'Map item')
+  const canOpenDetails =
+    Boolean(onDetails) &&
+    Boolean(account || note || selectedTargetKey === 'income' || selectedTargetKey === 'need')
 
   if (!account && !layoutKey && !arrow && !note) return null
 
@@ -401,6 +406,7 @@ export function MapInspector({
     <section className="map-inspector" aria-label={`Adjust ${title}`}>
       <div className="map-inspector-heading">
         <div><span>Selected</span><strong>{title}</strong></div>
+        {canOpenDetails && <button aria-label="Details" type="button" onClick={onDetails}>Details</button>}
         <button aria-label="Close inspector" type="button" onClick={onClose}>×</button>
       </div>
       <div className="map-inspector-controls">

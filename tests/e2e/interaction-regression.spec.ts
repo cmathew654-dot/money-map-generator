@@ -4,7 +4,7 @@ import {
   type Locator,
   type Page,
 } from '@playwright/test'
-import { BOOK_KEY, fullForm, openApp } from './helpers'
+import { BOOK_KEY, openApp } from './helpers'
 
 const CLIENT_ID = 'sample-whitfield'
 const DESKTOP_VIEWPORTS = [
@@ -662,7 +662,8 @@ test.describe('approved desktop interaction regression', () => {
     await expect.poll(() => svgPosition(incomeBody)).toEqual(generatedPosition)
 
     await pointerDrag(page, incomeCard, { x: 24, y: 16 }, { x: 0.92, y: 0.92 })
-    await fullForm(page)
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: 'Data' })).toBeVisible()
     const socialSecurityAmount = page
       .locator(".income-row:has(input[value='Social Security'])")
       .getByLabel('Amount', { exact: true })
@@ -721,7 +722,8 @@ test.describe('approved desktop interaction regression', () => {
   test('large as-needed values stay compact and selected controls leave Present Mode', async ({
     page,
   }) => {
-    await fullForm(page)
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: 'Data' })).toBeVisible()
     const asNeeded = page.getByLabel('Monthly account withdrawal', { exact: true })
     const noisyValue = '$999,999,999,999.49'
     await asNeeded.fill(noisyValue)
