@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   ACCOUNT_PRESETS,
+  changeAccountBucket,
   accountDefaultsFor,
   addClient,
   appendBlankAccount,
@@ -12,6 +13,7 @@ import {
   newBook,
   parseBook,
   resetArrangement,
+  tidyArrangement,
   updateClient,
 } from '../src/model/book'
 import { layoutMap } from '../src/layout/layout'
@@ -298,6 +300,89 @@ describe('book operations', () => {
 
     expect(reset.notes?.[0].fs).toBe(20)
     expect(reset.layoutOverrides).toBeUndefined()
+  })
+
+  it('tidies visual offsets and preserves authored map details', () => {
+    const source = structuredClone(SAMPLE_WHITFIELD)
+    const accountId = source.accounts[0].id
+    source.notes = [
+      { id: 'keep-note', text: 'Keep me here.', x: 512, y: 418, fs: 18 },
+    ]
+    source.customArrows = source.customArrows?.map((arrow, index) =>
+      index === 0 ? { ...arrow, labelDx: 26, labelDy: -14 } : arrow,
+    )
+    source.layoutOverrides = {
+      income: { dx: 24, dy: -12, w: 320, rot: 5 },
+      need: { dx: -30, dy: 18 },
+      asNeededChip: { dx: 12, dy: 9 },
+      [accountId]: { dx: 42, dy: 33, w: 280, h: 240, rot: 15 },
+      [`text:${accountId}:label`]: { dx: 18, dy: -6, fs: 22 },
+      'arrow:income': {
+        bow: 31,
+        startAt: { dx: 4, dy: 7 },
+        endAt: { dx: -2, dy: 5 },
+        style: 'dashed',
+        color: 'blue',
+      },
+    }
+
+    const tidied = tidyArrangement(source)
+
+    expect(tidied.layoutOverrides).toEqual({
+      income: { w: 320, rot: 5 },
+      [accountId]: { w: 280, h: 240, rot: 15 },
+      [`text:${accountId}:label`]: { fs: 22 },
+      'arrow:income': {
+        bow: 31,
+        startAt: { dx: 4, dy: 7 },
+        endAt: { dx: -2, dy: 5 },
+        style: 'dashed',
+        color: 'blue',
+      },
+    })
+    expect(tidied.notes).toEqual(source.notes)
+    expect(tidied.accounts).toEqual(source.accounts)
+    expect(tidied.customArrows?.[0]).not.toHaveProperty('labelDx')
+    expect(tidied.customArrows?.[0]).not.toHaveProperty('labelDy')
+    expect(tidied.customArrows?.[0]).toMatchObject({
+      id: source.customArrows?.[0].id,
+      sourceId: source.customArrows?.[0].sourceId,
+      targetId: source.customArrows?.[0].targetId,
+      style: source.customArrows?.[0].style,
+    })
+    expect(tidied.customArrows?.[0]?.color).toBe(
+      source.customArrows?.[0]?.color,
+    )
+    expect(source.layoutOverrides.income).toMatchObject({ dx: 24, dy: -12 })
+  })
+
+  it('keeps the same client reference when no item position needs tidying', () => {
+    const source = structuredClone(SAMPLE_WHITFIELD)
+    source.layoutOverrides = {
+      'text:masthead:label': { fs: 16 },
+    }
+
+    expect(tidyArrangement(source)).toBe(source)
+  })
+
+  it('changes semantic account type without changing effective shape', () => {
+    const note = {
+      id: 'note-account',
+      bucket: 'note' as const,
+      label: 'Installment note',
+      value: 80_000,
+    }
+
+    expect(changeAccountBucket(note, 'cash')).toEqual({
+      ...note,
+      bucket: 'cash',
+      shape: 'card',
+    })
+    expect(changeAccountBucket({ ...note, shape: 'pill' }, 'afterTax')).toEqual({
+      ...note,
+      bucket: 'afterTax',
+      shape: 'pill',
+    })
   })
 
   it('lays out and validates a cleared client', () => {

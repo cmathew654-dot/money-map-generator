@@ -92,7 +92,7 @@ test('a delayed writer handoff offers a retry without replacing the live lease',
     writer: localStorage.getItem(writerKey),
   }), { requestKey: TAKEOVER_REQUEST_KEY, writerKey: WRITER_KEY })
 
-  const retriedAt = (await page.evaluate(() => Date.now())) + 1
+  const retriedAt = (await page.evaluate(() => Date.now())) + 1_000
   expect(retriedAt).toBeGreaterThan(before.request.requestedAt ?? 0)
   await page.clock.pauseAt(retriedAt)
   await status.getByRole('button', { name: 'Try again' }).click()
@@ -111,7 +111,8 @@ test('the first-run hint does not displace or cover map controls at 200 percent'
   await openApp(page)
 
   const targets = [
-    page.getByRole('button', { name: '+ Note' }),
+    page.getByRole('button', { name: 'Tidy map' }),
+    page.getByRole('button', { name: 'Add text note' }),
     page.getByRole('button', { name: '+ Account' }),
     page.getByLabel('Map zoom'),
     page.locator('.pan-zoom-hint'),

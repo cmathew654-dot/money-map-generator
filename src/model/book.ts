@@ -17,6 +17,7 @@ import {
   ACCOUNT_TEXT_ROLES,
   CUSTOM_ARROW_COLORS,
   MAP_TEXT_ELEMENTS,
+  accountShape,
   accountTextOverrideKey,
   mapItemTextOverrideKey,
   migratedFlowId,
@@ -39,6 +40,19 @@ const BUCKET_DEFAULTS: Record<Bucket, { shape: AccountShape }> = {
   note: { shape: 'card' },
 }
 
+export const ACCOUNT_TYPE_OPTIONS: readonly {
+  value: Bucket
+  label: string
+}[] = [
+  { value: 'shortTerm', label: 'Short-term' },
+  { value: 'afterTax', label: 'After-tax' },
+  { value: 'taxDeferred', label: 'Tax-deferred' },
+  { value: 'taxPreferred', label: 'Tax-preferred' },
+  { value: 'charitable', label: 'Charitable' },
+  { value: 'cash', label: 'Cash' },
+  { value: 'note', label: 'Note' },
+]
+
 const LEGACY_WATERFALL_ORDER: Bucket[] = [
   'taxDeferred',
   'afterTax',
@@ -47,6 +61,10 @@ const LEGACY_WATERFALL_ORDER: Bucket[] = [
 
 export function accountDefaultsFor(bucket: Bucket) {
   return { bucket, ...BUCKET_DEFAULTS[bucket] }
+}
+
+export function changeAccountBucket(account: Account, bucket: Bucket): Account {
+  return { ...account, bucket, shape: accountShape(account) }
 }
 
 export const ACCOUNT_PRESETS = [
@@ -330,6 +348,34 @@ export function resetArrangement(data: MoneyMapData): MoneyMapData {
     })
   }
   return reset
+}
+
+export function tidyArrangement(data: MoneyMapData): MoneyMapData {
+  const layoutOverrides = { ...data.layoutOverrides }
+  let changed = false
+
+  for (const [key, override] of Object.entries(layoutOverrides)) {
+    if (override.dx === undefined && override.dy === undefined) continue
+    const { dx: _dx, dy: _dy, ...preserved } = override
+    changed = true
+    if (Object.keys(preserved).length > 0) layoutOverrides[key] = preserved
+    else delete layoutOverrides[key]
+  }
+
+  const customArrows = data.customArrows?.map((arrow) => {
+    if (arrow.labelDx === undefined && arrow.labelDy === undefined) return arrow
+    const { labelDx: _labelDx, labelDy: _labelDy, ...preserved } = arrow
+    changed = true
+    return preserved
+  })
+
+  if (!changed) return data
+  return {
+    ...data,
+    layoutOverrides:
+      Object.keys(layoutOverrides).length > 0 ? layoutOverrides : undefined,
+    customArrows,
+  }
 }
 
 export function newBook(): MoneyMapFile {

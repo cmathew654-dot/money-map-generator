@@ -477,7 +477,11 @@ export function needTextLayout(
       width,
       valueSize,
     ),
-    supporting: fittedTextLine(supporting ?? '', width, supportingSize),
+    supporting: fittedCalculatedTextLine(
+      supporting ?? '',
+      width,
+      supportingSize,
+    ),
   }
 }
 
@@ -496,6 +500,28 @@ export function mastheadTitleFontSize(data: MoneyMapData): number {
 export interface FittedText {
   display: string
   exact: string
+}
+
+export interface FittedCalculatedText extends FittedText {
+  fontSize: number
+}
+
+export function fittedCalculatedTextLine(
+  text: string,
+  maxWidth: number,
+  size: number,
+  minimumSize = MIN_MAP_TEXT_FONT_SIZE,
+): FittedCalculatedText {
+  const naturalWidth = textWidth(text, size)
+  const readableFloor = Math.min(size, minimumSize)
+  const fontSize = naturalWidth <= maxWidth || naturalWidth === 0
+    ? size
+    : Math.max(readableFloor, size * (maxWidth / naturalWidth))
+  return {
+    display: textWidth(text, fontSize) <= maxWidth ? text : '',
+    exact: text,
+    fontSize,
+  }
 }
 
 export function fittedTextLine(

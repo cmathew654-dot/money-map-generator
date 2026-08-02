@@ -9,10 +9,14 @@ import {
 } from '../layout/layout'
 import type {
   AccountShape,
-  CustomArrowColor,
+  Bucket,
   LayoutOverride,
   MoneyMapData,
 } from '../model/types'
+import {
+  ACCOUNT_TYPE_OPTIONS,
+  changeAccountBucket,
+} from '../model/book'
 import {
   ACCOUNT_SHAPES,
   CUSTOM_ARROW_COLORS,
@@ -38,7 +42,7 @@ import {
   snapRectToAlignment,
   withOverride,
 } from './mapInteraction'
-import { ARTBOARD, TYPE } from './tokens'
+import { ARROW_COLORS, ARTBOARD, TYPE } from './tokens'
 
 interface MapInspectorProps {
   data: MoneyMapData
@@ -167,6 +171,9 @@ export function MapInspector({
           : candidate.kind === generatedKind,
       )
     : undefined
+  const resolvedArrowColor =
+    arrow?.color ??
+    (arrow?.kind === 'custom' && arrow.style === 'solid' ? 'ink' : 'green')
   const noteId = selectedTargetKey.startsWith('note:')
     ? selectedTargetKey.slice('note:'.length)
     : null
@@ -391,7 +398,11 @@ export function MapInspector({
       }
       return
     }
-    onChange(withOverride(data, arrowKey, patch))
+    onChange(withOverride(
+      data,
+      arrowKey,
+      patch.style ? { ...patch, color: resolvedArrowColor } : patch,
+    ))
   }
   const title = account?.label ??
     (selectedTargetKey === 'income' ? 'Income sources' : undefined) ??
@@ -416,12 +427,12 @@ export function MapInspector({
         {(tidyKey || note) && (
           <InspectorGroup label="Align">
             <button
-              aria-label="Tidy alignment"
+              aria-label="Snap to alignment"
               disabled={!canTidy}
               type="button"
               onClick={tidy}
             >
-              Tidy
+              Snap to alignment
             </button>
           </InspectorGroup>
         )}
@@ -443,6 +454,29 @@ export function MapInspector({
                 })}
               >
                 {ACCOUNT_SHAPES.map((shape) => <option key={shape} value={shape}>{SHAPE_LABELS[shape]}</option>)}
+              </select>
+            </label>
+            <label className="map-inspector-field">Account type
+              <select
+                aria-label="Account type"
+                value={account.bucket}
+                onChange={(event) => onChange({
+                  ...data,
+                  accounts: data.accounts.map((candidate) =>
+                    candidate.id === account.id
+                      ? changeAccountBucket(
+                          candidate,
+                          event.target.value as Bucket,
+                        )
+                      : candidate,
+                  ),
+                })}
+              >
+                {ACCOUNT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </label>
             <InspectorGroup label="Size">
@@ -487,11 +521,20 @@ export function MapInspector({
                 <option value="dotted">Dotted</option><option value="dashed">Dashed</option><option value="solid">Solid</option>
               </select>
             </label>
-            <label className="map-inspector-field">Color
-              <select aria-label="Color" value={arrow.color ?? (arrow.kind === 'custom' && arrow.style === 'solid' ? 'ink' : 'green')} onChange={(event) => setArrowAppearance({ color: event.target.value as CustomArrowColor })}>
-                {CUSTOM_ARROW_COLORS.map((color) => <option key={color} value={color}>{color[0].toUpperCase() + color.slice(1)}</option>)}
-              </select>
-            </label>
+            <InspectorGroup label="Color">
+              {CUSTOM_ARROW_COLORS.map((color) => (
+                <button
+                  aria-label={`${color[0].toUpperCase() + color.slice(1)} flow color`}
+                  aria-pressed={resolvedArrowColor === color}
+                  className="map-inspector-color"
+                  key={color}
+                  style={{ backgroundColor: ARROW_COLORS[color] }}
+                  title={color[0].toUpperCase() + color.slice(1)}
+                  type="button"
+                  onClick={() => setArrowAppearance({ color })}
+                />
+              ))}
+            </InspectorGroup>
             <InspectorGroup label="Curve">
               <button aria-label="Decrease curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow - 12 }))}>−</button>
               <button aria-label="Increase curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow + 12 }))}>+</button>

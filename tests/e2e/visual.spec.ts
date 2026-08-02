@@ -97,7 +97,9 @@ test.describe('desktop visual baselines', () => {
     await stabilize(page)
     await expect(preview).toHaveScreenshot('selected-arrow.png', elementScreenshotOptions)
 
-    await page.getByRole('button', { name: '+ Note', exact: true }).click()
+    await page.getByRole('button', { name: 'Add text note', exact: true }).click()
+    await expect(page.locator('.text-placement-hint')).toBeVisible()
+    await page.locator('.map-page svg > [data-map-background="true"]').first().click()
     const editor = page.locator('.map-text-editor-input')
     await editor.fill('Selected state note')
     await editor.press('Enter')
@@ -109,9 +111,8 @@ test.describe('desktop visual baselines', () => {
     const asNeeded = page.getByLabel('Monthly account withdrawal', { exact: true })
     await asNeeded.fill('9100')
     await asNeeded.press('Tab')
-    await page.getByRole('button', { name: /^Adjust coverage note:/ }).focus()
-    await expect(page.locator('.map-inspector')).toBeVisible()
-    await stabilize(page)
-    await expect(preview).toHaveScreenshot('selected-supporting-text.png', elementScreenshotOptions)
+    await expect(
+      page.getByRole('button', { name: /^Adjust coverage note:/ }),
+    ).toHaveCount(0)
   })
 })

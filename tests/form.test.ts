@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import {
   ClientSection,
+  AccountsSection,
   IncomeSection,
   NeedSection,
   NotesSection,
@@ -253,5 +254,32 @@ describe('map note form helpers', () => {
     expect(markup).toContain('+ Add note')
     expect(markup).toContain('Remove note 1')
     expect(remaining).toEqual([data.notes?.[1]])
+  })
+})
+
+describe('account editor hierarchy', () => {
+  it('uses a selected outline and keeps account type and shape in the expanded body', () => {
+    const data = blankClient()
+    data.accounts = [
+      {
+        id: 'selected-note',
+        bucket: 'note',
+        label: 'Installment note',
+        value: 80_000,
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      createElement(AccountsSection, {
+        data,
+        selectedAccountId: 'selected-note',
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('account-card bucket-note is-selected')
+    expect(markup).toContain('Account type')
+    expect(markup).toContain('Shape for Installment note')
+    expect(markup).not.toContain('position:absolute')
   })
 })

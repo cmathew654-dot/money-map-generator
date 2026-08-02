@@ -747,6 +747,17 @@ summary:focus-visible {
   gap: 8px;
 }
 
+@media (max-width: 700px) {
+  .map-chrome {
+    right: 16px;
+    left: 16px;
+    max-width: calc(100% - 32px);
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
 .pan-zoom-hint {
   position: absolute;
   right: 0;
@@ -1220,6 +1231,11 @@ summary:focus-visible {
 .account-card-shell > .account-card {
   margin: 0;
 }
+.account-shape-control {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
 .account-card {
   margin: 0 -4px 16px;
   border-top: 1px solid #dde1dc;
@@ -1447,6 +1463,124 @@ summary:focus-visible {
   color: #5b6663;
   font-size: 12px;
   line-height: 1.45;
+}
+
+/* Editor congruence */
+.form-pane {
+  background: #f4f6f2;
+}
+
+.form-mode-toggle {
+  border-bottom: 1px solid #dde1dc;
+  padding: 10px 14px 8px;
+  background: #fcfcfa;
+}
+
+.form-mode-toggle button.is-active {
+  border-color: #1e7a4a;
+  background: #eef5ef;
+  color: #155f4a;
+}
+
+.client-form {
+  padding: 12px 14px 32px;
+}
+
+.form-section {
+  border-color: #c9cfc9;
+  background: #fcfcfa;
+}
+
+.form-section > h2 {
+  margin-bottom: 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #dde1dc;
+  color: #1c2422;
+}
+
+.stacked-row {
+  background: #f7f8f5;
+}
+
+.account-card {
+  border: 1px solid #c9cfc9;
+  border-radius: 8px;
+}
+
+.account-card.is-selected {
+  border-color: #1e7a4a;
+  box-shadow: 0 0 0 1px #1e7a4a;
+}
+
+.account-card.is-selected > .account-summary {
+  background: #eef5ef;
+}
+
+.account-summary {
+  grid-template-columns: 12px 10px minmax(0, 1fr) auto;
+}
+
+.account-appearance-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.shape-option {
+  width: 32px;
+  height: 32px;
+}
+
+.account-preset-row {
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f1f3f0;
+}
+
+.add-button {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 32px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 5px 8px;
+  border: 1px solid #c9cfc9;
+  border-radius: 4px;
+}
+
+.add-button:hover {
+  text-decoration: none;
+}
+
+.map-inspector-color {
+  width: 32px;
+  padding: 0;
+  border-color: rgb(28 36 34 / 34%);
+}
+
+.map-inspector-color[aria-pressed='true'] {
+  outline: 2px solid #1c2422;
+  outline-offset: 1px;
+}
+
+.map-page.is-placing-text [data-map-background] {
+  cursor: crosshair;
+}
+
+.text-placement-hint {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 7px 9px;
+  border: 1px solid #1e7a4a;
+  border-radius: 4px;
+  background: #fcfcfa;
+  color: #155f4a;
+  font-size: 12px;
 }
 
 .nested-list {
@@ -1733,6 +1867,10 @@ summary:focus-visible {
 
 .map-page.is-zoomed svg [data-map-background] {
   cursor: grab;
+}
+
+.map-page.is-zoomed.is-placing-text svg [data-map-background] {
+  cursor: crosshair;
 }
 
 .map-scroller.is-panning,

@@ -115,6 +115,8 @@ export function Wizard({
   onExportPng,
   onFullForm,
   onHoverAccount,
+  selectedAccountId,
+  onSelectAccount,
   onPrint,
   vocabulary,
 }: WizardProps) {
@@ -149,6 +151,8 @@ export function Wizard({
             focusRequest={focusRequest}
             onChange={onChange}
             onHoverAccount={onHoverAccount}
+            selectedAccountId={selectedAccountId}
+            onSelectAccount={onSelectAccount}
             presetLabel="Tap to add:"
             vocabulary={vocabulary}
           />

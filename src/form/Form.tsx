@@ -14,11 +14,14 @@ import {
   parseMoneyInput,
   stepMoney,
 } from '../model/format'
-import { ACCOUNT_PRESETS } from '../model/book'
+import {
+  ACCOUNT_PRESETS,
+  ACCOUNT_TYPE_OPTIONS,
+  changeAccountBucket,
+} from '../model/book'
 import type {
   Account,
   AccountShape,
-  Bucket,
   Footnote,
   IncomeSource,
   MoneyMapData,
@@ -44,6 +47,8 @@ export interface FormProps {
   onChange(next: MoneyMapData): void
   focusRequest?: { id: string; at: number }
   onHoverAccount?: (id: string | null) => void
+  selectedAccountId?: string | null
+  onSelectAccount?: (id: string) => void
   vocabulary?: readonly VocabularyTerm[]
 }
 
@@ -53,16 +58,6 @@ interface MoneyFieldProps {
   value: number | null
   onChange(value: number | null): void
 }
-
-const bucketOptions: { value: Bucket; label: string }[] = [
-  { value: 'shortTerm', label: 'Short-Term Bucket' },
-  { value: 'afterTax', label: 'After-Tax' },
-  { value: 'taxDeferred', label: 'Tax-Deferred' },
-  { value: 'taxPreferred', label: 'Tax-Preferred' },
-  { value: 'charitable', label: 'Charitable' },
-  { value: 'cash', label: 'Cash' },
-  { value: 'note', label: 'Note' },
-]
 
 const incomePresets = [
   { chipLabel: 'Social Security', label: 'Social Security' },
@@ -764,7 +759,9 @@ function SubAccountRows({
 function AccountCard({
   account,
   initiallyOpen,
+  selected,
   onHoverAccount,
+  onSelectAccount,
   registerFocusRefs,
   onChange,
   onRemove,
@@ -772,7 +769,9 @@ function AccountCard({
 }: {
   account: Account
   initiallyOpen: boolean
+  selected: boolean
   onHoverAccount?: (id: string | null) => void
+  onSelectAccount?: (id: string) => void
   registerFocusRefs(
     id: string,
     refs: AccountFocusRefs | null,
@@ -809,10 +808,16 @@ function AccountCard({
       onMouseLeave={() => onHoverAccount?.(null)}
     >
       <details
-        className={`account-card bucket-${account.bucket}`}
+        className={`account-card bucket-${account.bucket}${selected ? ' is-selected' : ''}`}
+        data-selected={selected ? 'true' : undefined}
         ref={detailsRef}
+        onFocusCapture={() => onSelectAccount?.(account.id)}
       >
-      <summary className="account-summary">
+      <summary
+        className="account-summary"
+        onClick={() => onSelectAccount?.(account.id)}
+        onFocus={() => onSelectAccount?.(account.id)}
+      >
         <span aria-hidden="true" className="account-swatch" />
         <span
           className={`account-summary-label${
@@ -822,7 +827,7 @@ function AccountCard({
           {accountDisplayName(account)}
         </span>
         <span className="account-summary-value">{money(account.value)}</span>
-        <span aria-hidden="true" style={{ width: 108 }} />
+        <span aria-hidden="true" style={{ width: 136 }} />
       </summary>
 
       <div className="account-body">
@@ -831,17 +836,17 @@ function AccountCard({
         </button>
         <div className="account-fields">
           <label className="form-field">
-            <span>Bucket</span>
+            <span>Account type</span>
             <select
               value={account.bucket}
               onChange={(event) =>
-                onChange({
-                  ...account,
-                  bucket: event.target.value as Bucket,
-                })
+                onChange(changeAccountBucket(
+                  account,
+                  event.target.value as Account['bucket'],
+                ))
               }
             >
-              {bucketOptions.map((option) => (
+              {ACCOUNT_TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -895,9 +900,8 @@ function AccountCard({
       </details>
       <span
         aria-label={`Shape for ${accountDisplayName(account)}`}
-        className="shape-segmented-control"
+        className="shape-segmented-control account-shape-control"
         role="group"
-        style={{ position: 'absolute', right: 12, top: 12 }}
       >
         {ACCOUNT_SHAPES.map((shape) => (
           <button
@@ -931,6 +935,8 @@ export function AccountsSection({
   focusRequest,
   onChange,
   onHoverAccount,
+  selectedAccountId,
+  onSelectAccount,
   presetLabel = 'Add:',
   vocabulary = [],
 }: FormProps & {
@@ -971,8 +977,10 @@ export function AccountsSection({
         <AccountCard
           account={account}
           initiallyOpen={account.id === newAccountId}
+          selected={account.id === selectedAccountId}
           key={account.id}
           onHoverAccount={onHoverAccount}
+          onSelectAccount={onSelectAccount}
           registerFocusRefs={registerFocusRefs}
           vocabulary={vocabulary}
           onChange={(next) =>
@@ -1291,6 +1299,8 @@ export function Form({
   focusRequest,
   onChange,
   onHoverAccount,
+  selectedAccountId,
+  onSelectAccount,
   vocabulary,
 }: FormProps) {
   const incomeSectionRef = useRef<HTMLElement>(null)
@@ -1329,6 +1339,8 @@ export function Form({
         focusRequest={focusRequest}
         onChange={onChange}
         onHoverAccount={onHoverAccount}
+        selectedAccountId={selectedAccountId}
+        onSelectAccount={onSelectAccount}
         vocabulary={vocabulary}
       />
       <NeedSection

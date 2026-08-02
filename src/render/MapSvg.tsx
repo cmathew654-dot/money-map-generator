@@ -12,6 +12,7 @@ import {
   incomePanelMetrics,
   footnoteLineLayouts,
   flowLabelText,
+  fittedCalculatedTextLine,
   incomeSourceTextLayout,
   incomeTotalTextLayout,
   incomeTextSizes,
@@ -23,6 +24,7 @@ import {
   needTextLayout,
   nudgeLayoutOverride,
   OVERRIDE_BOUNDS,
+  usableTextWidth,
 } from '../layout/layout'
 import { textWidth } from '../layout/textfit'
 import type {
@@ -767,12 +769,6 @@ function NeedCard({
   const fitted = needTextLayout(data, placed, mathLine)
   const labelFs = fixedTextFs(data, 'need', 'label', TYPE.needLabel)
   const valueFs = fixedTextFs(data, 'need', 'value', TYPE.needValue)
-  const supportingFs = fixedTextFs(
-    data,
-    'need',
-    'supporting',
-    TYPE.mathNote,
-  )
   const labelEdit = { kind: 'needLabel' } as const
   const labelRow = {
     x: placed.x + 12,
@@ -886,7 +882,7 @@ function NeedCard({
           )}
         </text>
       </g>
-      {mathLine && (
+      {mathLine && fitted.supporting.display ? (
         <g transform={`translate(${supportingOffset.dx} ${supportingOffset.dy})`}>
           <text
             aria-label={`Adjust coverage note: ${fitted.supporting.exact}`}
@@ -896,7 +892,7 @@ function NeedCard({
             data-map-target={supportingKey}
             fill={MUTED}
             fontFamily={FONT_SANS}
-            fontSize={supportingFs}
+            fontSize={fitted.supporting.fontSize}
             onFocus={onSupportingFocus}
             onPointerDown={onSupportingPointerDown}
             role={onSupportingPointerDown ? 'button' : undefined}
@@ -908,7 +904,7 @@ function NeedCard({
             {fitted.supporting.display}
           </text>
         </g>
-      )}
+      ) : null}
     </g>
   )
 }
@@ -1131,10 +1127,24 @@ function AccountContent({
     text,
     titleLines,
     valueText,
+    h,
     x,
     y,
     w,
   } = placed
+  const fittedRunway = runway && text.runwayY !== undefined
+    ? fittedCalculatedTextLine(
+        runway,
+        usableTextWidth(
+          accountShape(account),
+          w,
+          h,
+          text.runwayY,
+          TYPE.runway,
+        ),
+        TYPE.runway,
+      )
+    : null
   const style = BUCKETS[account.bucket]
   const titleEdit: MapTextEditTarget = {
     kind: 'accountLabel',
@@ -1403,18 +1413,19 @@ function AccountContent({
           pointerEvents="all"
         />
       )}
-      {runway && (
+      {fittedRunway?.display ? (
         <text
+          aria-label={fittedRunway.exact}
           x={x + w / 2}
           y={y + text.runwayY!}
           fill={MUTED}
           fontFamily={FONT_SANS}
-          fontSize={TYPE.runway}
+          fontSize={fittedRunway.fontSize}
           textAnchor="middle"
         >
-          {runway}
+          {fittedRunway.display}
         </text>
-      )}
+      ) : null}
       {subAccountLayouts.map((layout, index) => {
         return (
           <SubAccountDrum

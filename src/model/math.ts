@@ -19,9 +19,15 @@ export function runwayLine(
     return null
   }
 
-  const runway = accountValue / asNeededAmount / 12
-  if (!Number.isFinite(runway) || runway > 99) return null
-  return `Approximately ${runway.toFixed(1)} years at ${money(asNeededAmount)} per month.`
+  const runwayMonths = accountValue / asNeededAmount
+  if (!Number.isFinite(runwayMonths) || runwayMonths < 1) return null
+  if (runwayMonths < 12) {
+    const months = Math.min(11, Math.max(1, Math.floor(runwayMonths)))
+    return `Approximately ${months} ${months === 1 ? 'month' : 'months'} at ${money(asNeededAmount)} per month.`
+  }
+  const runwayYears = runwayMonths / 12
+  if (runwayYears > 99) return null
+  return `Approximately ${runwayYears.toFixed(1)} years at ${money(asNeededAmount)} per month.`
 }
 
 export function gapLine(

@@ -11,7 +11,7 @@ import {
   needTextLayout,
 } from '../src/layout/layout'
 import { money } from '../src/model/format'
-import { gapLine } from '../src/model/math'
+import { gapLine, runwayLine } from '../src/model/math'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import { MapSvg } from '../src/render/MapSvg'
 
@@ -94,5 +94,35 @@ describe('MapSvg bounded text', () => {
       }
       expect(markup).toContain(html(pair.display))
     }
+  })
+
+  it('does not render an extreme monthly withdrawal as zero years', () => {
+    const data = structuredClone(SAMPLE_WHITFIELD)
+    data.asNeededAmount = 32_453_435
+    const shortTerm = data.accounts.find(
+      (account) => account.bucket === 'shortTerm',
+    )!
+    const exact = runwayLine(shortTerm.value, data.asNeededAmount, true)
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    expect(exact).toBeNull()
+    expect(markup).not.toContain('Approximately 0.0 years at $32,453,435')
+    expect(markup).not.toContain('$32,453,435 per month.')
+  })
+
+  it('suppresses a valid extreme-withdrawal runway instead of overflowing it', () => {
+    const data = structuredClone(SAMPLE_WHITFIELD)
+    data.asNeededAmount = 32_453_435
+    const shortTerm = data.accounts.find(
+      (account) => account.bucket === 'shortTerm',
+    )!
+    shortTerm.value = data.asNeededAmount
+    const exact = runwayLine(shortTerm.value, data.asNeededAmount, true)!
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    expect(exact).toBe(
+      'Approximately 1 month at $32,453,435 per month.',
+    )
+    expect(markup).not.toContain(html(exact))
   })
 })

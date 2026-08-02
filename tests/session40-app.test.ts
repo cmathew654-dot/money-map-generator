@@ -2,6 +2,7 @@ import appSource from '../src/App.tsx?raw'
 import { describe, expect, it } from 'vitest'
 import {
   appMapFileName,
+  artboardPointFromClient,
   browserPersistenceLabel,
   canMutateBook,
   canWriteConnectedBook,
@@ -60,5 +61,16 @@ describe('Session 40 App safety boundaries', () => {
     expect(appSource).toMatch(
       /useEffect\(\s*\(\) => \(\) => \{[\s\S]*?releaseBrowserWriter\(localStorage, tabId\)[\s\S]*?\[tabId\],\s*\)/,
     )
+  })
+})
+
+describe('map text placement', () => {
+  it('converts a client point into fixed artboard coordinates', () => {
+    expect(
+      artboardPointFromClient(
+        { x: 430, y: 305 },
+        { left: 100, top: 50, width: 660, height: 510 },
+      ),
+    ).toEqual({ x: 660, y: 510 })
   })
 })

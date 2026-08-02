@@ -329,7 +329,9 @@ test.describe('approved desktop interaction regression', () => {
 
     const notesBefore =
       (await currentClient(page)).notes?.map((note) => note.text) ?? []
-    await page.getByRole('button', { name: '+ Note', exact: true }).click()
+    await page.getByRole('button', { name: 'Add text note', exact: true }).click()
+    await expect(page.locator('.text-placement-hint')).toBeVisible()
+    await page.locator('.map-page svg > [data-map-background="true"]').first().click()
     await expect(editor).toBeVisible()
     await editor.fill('Escape cancels a new note')
     await editor.press('Escape')
@@ -378,6 +380,157 @@ test.describe('approved desktop interaction regression', () => {
     await flowInspector.getByRole('button', { name: 'Hide flow' }).click()
     await expect(flowInspector).toHaveCount(0)
     await expect(incomeFlow).toHaveCount(0)
+  })
+
+  test('text-note placement cancels cleanly and pointer activation toggles the armed state', async ({
+    page,
+  }) => {
+    const addTextNote = page.getByRole('button', {
+      name: 'Add text note',
+      exact: true,
+    })
+    const notesBefore = (await currentClient(page)).notes ?? []
+
+    await addTextNote.click()
+    await expect(addTextNote).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('.text-placement-hint')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(addTextNote).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.locator('.text-placement-hint')).toHaveCount(0)
+    await expect(page.locator('.map-text-editor-input')).toHaveCount(0)
+    expect((await currentClient(page)).notes ?? []).toEqual(notesBefore)
+
+    await addTextNote.click()
+    await expect(addTextNote).toHaveAttribute('aria-pressed', 'true')
+    await addTextNote.click()
+    await expect(addTextNote).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.locator('.text-placement-hint')).toHaveCount(0)
+    await expect(page.locator('.map-text-editor-input')).toHaveCount(0)
+    expect((await currentClient(page)).notes ?? []).toEqual(notesBefore)
+  })
+
+  test('keyboard activation opens a text-note editor at the visible map center', async ({
+    page,
+  }) => {
+    const addTextNote = page.getByRole('button', {
+      name: 'Add text note',
+      exact: true,
+    })
+    await addTextNote.focus()
+    await page.keyboard.press('Enter')
+
+    const editor = page.locator('.map-text-editor-input')
+    await expect(editor).toBeVisible()
+    await expect(addTextNote).toHaveAttribute('aria-pressed', 'false')
+    const [editorBox, mapBox, viewportBox] = await Promise.all([
+      editor.boundingBox(),
+      page.locator('.map-page:visible svg.map-interactive').boundingBox(),
+      page.locator('.map-scroller').boundingBox(),
+    ])
+    if (!editorBox || !mapBox || !viewportBox) {
+      throw new Error('Editor, map, or viewport has no measurable bounds')
+    }
+    const expectedCenter = {
+      x:
+        (Math.max(mapBox.x, viewportBox.x) +
+          Math.min(mapBox.x + mapBox.width, viewportBox.x + viewportBox.width)) /
+        2,
+      y:
+        (Math.max(mapBox.y, viewportBox.y) +
+          Math.min(mapBox.y + mapBox.height, viewportBox.y + viewportBox.height)) /
+        2,
+    }
+    expect(editorBox.x + editorBox.width / 2).toBeCloseTo(expectedCenter.x, 0)
+    expect(editorBox.y + editorBox.height / 2).toBeCloseTo(expectedCenter.y, 0)
+  })
+
+  test('panning while text placement is armed suppresses only the drag click', async ({
+    page,
+  }) => {
+    const addTextNote = page.getByRole('button', {
+      name: 'Add text note',
+      exact: true,
+    })
+    await addTextNote.click()
+    await page.getByRole('button', { name: 'Zoom in' }).click()
+
+    const pan = await page.locator('.map-scroller').evaluate((element) => {
+      const bounds = element.getBoundingClientRect()
+      for (let y = Math.ceil(bounds.top) + 48; y < bounds.bottom - 48; y += 8) {
+        for (let x = Math.ceil(bounds.left) + 48; x < bounds.right - 48; x += 8) {
+          if (document.elementFromPoint(x, y)?.closest('[data-map-background]')) {
+            return {
+              end: { x: x - 40, y: y - 40 },
+              start: { x, y },
+            }
+          }
+        }
+      }
+      throw new Error('No visible map background point found')
+    })
+    await page.mouse.move(pan.start.x, pan.start.y)
+    await page.mouse.down()
+    await page.mouse.move(pan.end.x, pan.end.y, { steps: 4 })
+    await page.mouse.up()
+
+    await expect(page.locator('.map-text-editor-input')).toHaveCount(0)
+    await expect(addTextNote).toHaveAttribute('aria-pressed', 'true')
+    const nextBackgroundPoint = await page
+      .locator('.map-scroller')
+      .evaluate((element) => {
+        const bounds = element.getBoundingClientRect()
+        for (let y = Math.ceil(bounds.top) + 48; y < bounds.bottom - 48; y += 8) {
+          for (let x = Math.ceil(bounds.left) + 48; x < bounds.right - 48; x += 8) {
+            if (document.elementFromPoint(x, y)?.closest('[data-map-background]')) {
+              return { x, y }
+            }
+          }
+        }
+        throw new Error('No visible map background point found after panning')
+      })
+    await page.mouse.move(nextBackgroundPoint.x, nextBackgroundPoint.y)
+    await page.mouse.down()
+    await page.mouse.move(
+      nextBackgroundPoint.x + 2,
+      nextBackgroundPoint.y + 1,
+    )
+    await page.mouse.up()
+    await expect(page.locator('.map-text-editor-input')).toBeVisible()
+    await expect(addTextNote).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  test('Tidy map is one undoable action after a manual move', async ({ page }) => {
+    const accountId = 'cash-at-bank'
+    const account = page.locator(
+      `[data-account-id=${accountId}][role=group]`,
+    )
+    await clickBlankAccountBody(account)
+    const moveRight = page
+      .getByRole('region', { name: /Adjust / })
+      .getByRole('button', { name: 'Move right', exact: true })
+    await moveRight.click()
+    await expect
+      .poll(
+        async () =>
+          (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
+      )
+      .toBe(12)
+
+    await page.getByRole('button', { name: 'Tidy map', exact: true }).click()
+    await expect
+      .poll(
+        async () =>
+          (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
+      )
+      .toBeUndefined()
+
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect
+      .poll(
+        async () =>
+          (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
+      )
+      .toBe(12)
   })
 
   test('large as-needed values stay compact and selected controls leave Present Mode', async ({
@@ -433,7 +586,7 @@ test.describe('approved desktop interaction regression', () => {
         page.getByRole('button', { name: '+ Account', exact: true }),
       ).toBeVisible()
       await expect(
-        page.getByRole('button', { name: '+ Note', exact: true }),
+        page.getByRole('button', { name: 'Add text note', exact: true }),
       ).toBeVisible()
     }
 
@@ -464,7 +617,7 @@ test.describe('approved desktop interaction regression', () => {
       page.getByRole('button', { name: '+ Account', exact: true }),
     ).toHaveCount(0)
     await expect(
-      page.getByRole('button', { name: '+ Note', exact: true }),
+      page.getByRole('button', { name: 'Add text note', exact: true }),
     ).toHaveCount(0)
     await expect(page.locator('.map-inspector')).toHaveCount(0)
     await expect(page.locator('.map-text-editor-input')).toHaveCount(0)
