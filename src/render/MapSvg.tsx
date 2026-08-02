@@ -16,6 +16,7 @@ import {
   incomeTotalTextLayout,
   incomeTextSizes,
   layoutMap,
+  layoutOverrideRect,
   mapTextOffset,
   mastheadTextLayout,
   mastheadTitleFontSize,
@@ -72,11 +73,13 @@ import {
   moveCustomArrowLabel,
   moveMapNote,
   retargetCustomArrow,
+  snapRectToAlignment,
   snapRotation,
   screenDeltaToArtboard,
   screenPointToArtboard,
   signedPerpendicularOffset,
   withOverride,
+  type AlignmentSnap,
   type Point,
   type TransformMatrix,
 } from './mapInteraction'
@@ -2051,6 +2054,7 @@ export function MapSvg({
     null,
   )
   const [dragging, setDragging] = useState(false)
+  const [snapping, setSnapping] = useState<AlignmentSnap | null>(null)
   const [localSelectedTargetKey, setLocalSelectedTargetKey] = useState<
     string | null
   >(null)
@@ -2069,6 +2073,18 @@ export function MapSvg({
   const displayData = previewData ?? data
   const layout = layoutMap(displayData)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
+  const alignmentRectsFor = (key: string) => {
+    const asNeededChip = layoutOverrideRect(displayData, 'asNeededChip')
+    return [
+      { key: 'income', rect: layout.income },
+      { key: 'need', rect: layout.need },
+      ...layout.accounts.map((rect) => ({ key: rect.account.id, rect })),
+      ...layout.notes.map((rect) => ({ key: rect.note.id, rect })),
+      { key: 'asNeededChip', rect: asNeededChip },
+    ].flatMap((candidate) =>
+      candidate.key === key || !candidate.rect ? [] : [candidate.rect],
+    )
+  }
   const outlineForId = (endpointId: string | undefined) =>
     endpointId === 'income'
       ? layout.income
@@ -2090,6 +2106,10 @@ export function MapSvg({
     event.stopPropagation()
     const screenCtm = svgRef.current?.getScreenCTM()
     if (!screenCtm) return
+    const dragStartPlaced =
+      mode === 'move'
+        ? layoutOverrideRect(data, key) ?? startPlaced
+        : startPlaced
 
     dragRef.current = {
       active: false,
@@ -2101,7 +2121,7 @@ export function MapSvg({
       pointerId: event.pointerId,
       startArrow,
       startOutline,
-      startPlaced,
+      startPlaced: dragStartPlaced,
       startScreen: { x: event.clientX, y: event.clientY },
       startedAt: performance.now(),
     }
@@ -2110,6 +2130,7 @@ export function MapSvg({
     dragRef.current = null
     setDragging(false)
     setPreviewData(null)
+    setSnapping(null)
   }
   const previewDrag = (event: PointerEvent<SVGSVGElement>) => {
     const session = dragRef.current
@@ -2183,7 +2204,43 @@ export function MapSvg({
         },
         OVERRIDE_BOUNDS,
       )
-      const nextData = moveMapNote(data, session.key, clamped.x, clamped.y)
+      const snapped = snapRectToAlignment(
+        clamped,
+        alignmentRectsFor(session.key),
+        6,
+        event.altKey,
+      )
+      setSnapping(snapped.x || snapped.y ? snapped : null)
+      const nextData = moveMapNote(
+        data,
+        session.key,
+        snapped.rect.x,
+        snapped.rect.y,
+      )
+      session.latestData = nextData
+      setPreviewData(nextData)
+      return
+    }
+    if (session.mode === 'move' && session.startPlaced) {
+      const clamped = clampRectToBounds(
+        {
+          ...session.startPlaced,
+          x: session.startPlaced.x + delta.x,
+          y: session.startPlaced.y + delta.y,
+        },
+        OVERRIDE_BOUNDS,
+      )
+      const snapped = snapRectToAlignment(
+        clamped,
+        alignmentRectsFor(session.key),
+        6,
+        event.altKey,
+      )
+      setSnapping(snapped.x || snapped.y ? snapped : null)
+      const nextData = nudgeLayoutOverride(data, session.key, {
+        x: snapped.rect.x - session.startPlaced.x,
+        y: snapped.rect.y - session.startPlaced.y,
+      })
       session.latestData = nextData
       setPreviewData(nextData)
       return
@@ -2289,6 +2346,7 @@ export function MapSvg({
     }
     dragRef.current = null
     setDragging(false)
+    setSnapping(null)
     if (!session.active) return
 
     event.preventDefault()
@@ -2769,6 +2827,46 @@ export function MapSvg({
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
       />
+      {onChange && dragging && snapping && (
+        <g
+          aria-hidden="true"
+          className="map-alignment-guides"
+          pointerEvents="none"
+        >
+          {snapping.x && (
+            <line
+              data-map-alignment-guide="x"
+              stroke={MUTED}
+              strokeDasharray="4 4"
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+              x1={snapping.x.value}
+              x2={snapping.x.value}
+              y1={Math.min(snapping.rect.y, snapping.x.rect.y) - 24}
+              y2={Math.max(
+                snapping.rect.y + snapping.rect.h,
+                snapping.x.rect.y + snapping.x.rect.h,
+              ) + 24}
+            />
+          )}
+          {snapping.y && (
+            <line
+              data-map-alignment-guide="y"
+              stroke={MUTED}
+              strokeDasharray="4 4"
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+              x1={Math.min(snapping.rect.x, snapping.y.rect.x) - 24}
+              x2={Math.max(
+                snapping.rect.x + snapping.rect.w,
+                snapping.y.rect.x + snapping.y.rect.w,
+              ) + 24}
+              y1={snapping.y.value}
+              y2={snapping.y.value}
+            />
+          )}
+        </g>
+      )}
     </svg>
   )
 }

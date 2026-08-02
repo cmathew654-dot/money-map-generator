@@ -17,6 +17,7 @@ import {
   restoreGeneratedArrows,
   setCustomArrowColor,
   setMapNoteBackground,
+  snapRectToAlignment,
 } from '../src/render/mapInteraction'
 import {
   MapSvg,
@@ -38,6 +39,75 @@ import {
 } from '../src/ui/MapTextEditor'
 
 const accountId = 'managed-ira-jordan'
+
+describe('alignment snapping', () => {
+  it('engages within the snap radius', () => {
+    const snapped = snapRectToAlignment(
+      { x: 95, y: 100, w: 100, h: 100 },
+      [{ x: 200, y: 300, w: 100, h: 100 }],
+      6,
+    )
+
+    expect(snapped.rect).toEqual({ x: 100, y: 100, w: 100, h: 100 })
+    expect(snapped.x?.value).toBe(200)
+  })
+
+  it('does not engage outside the snap radius', () => {
+    const rect = { x: 93, y: 100, w: 100, h: 100 }
+
+    expect(
+      snapRectToAlignment(rect, [{ x: 200, y: 300, w: 100, h: 100 }], 6),
+    ).toEqual({ rect })
+  })
+
+  it('bypasses snapping when Alt is held', () => {
+    const rect = { x: 95, y: 100, w: 100, h: 100 }
+
+    expect(
+      snapRectToAlignment(
+        rect,
+        [{ x: 200, y: 300, w: 100, h: 100 }],
+        6,
+        true,
+      ),
+    ).toEqual({ rect })
+  })
+
+  it('uses the nearest eligible line', () => {
+    const snapped = snapRectToAlignment(
+      { x: 94, y: 100, w: 100, h: 100 },
+      [
+        { x: 200, y: 300, w: 100, h: 100 },
+        { x: 198, y: 500, w: 100, h: 100 },
+      ],
+      6,
+    )
+
+    expect(snapped.rect.x).toBe(98)
+    expect(snapped.x?.value).toBe(198)
+  })
+
+  it('snaps x and y independently', () => {
+    expect(
+      snapRectToAlignment(
+        { x: 97, y: 297, w: 100, h: 100 },
+        [{ x: 200, y: 400, w: 100, h: 100 }],
+        6,
+      ).rect,
+    ).toEqual({ x: 100, y: 300, w: 100, h: 100 })
+  })
+
+  it('uses the 24-unit tidy radius and leaves distant axes alone', () => {
+    const other = [{ x: 200, y: 300, w: 100, h: 100 }]
+
+    expect(
+      snapRectToAlignment({ x: 80, y: 80, w: 100, h: 100 }, other, 24).rect,
+    ).toEqual({ x: 100, y: 80, w: 100, h: 100 })
+    expect(
+      snapRectToAlignment({ x: 70, y: 80, w: 100, h: 100 }, other, 24).rect,
+    ).toEqual({ x: 70, y: 80, w: 100, h: 100 })
+  })
+})
 
 describe('seamless map text editor geometry and typography', () => {
   it('renders a visible close control with the required accessible name', () => {

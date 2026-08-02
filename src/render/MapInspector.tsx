@@ -32,6 +32,7 @@ import {
   retargetCustomArrow,
   setCustomArrowColor,
   setMapNoteBackground,
+  snapRectToAlignment,
   withOverride,
 } from './mapInteraction'
 import { ARTBOARD, TYPE } from './tokens'
@@ -185,6 +186,45 @@ export function MapInspector({
       : id === 'need'
         ? layout.need
         : layout.accounts.find((candidate) => candidate.account.id === id)
+  const tidyKey = accountId ??
+    (selectedTargetKey === 'income' || selectedTargetKey === 'need'
+      ? selectedTargetKey
+      : null)
+  const tidyRect = tidyKey
+    ? layoutOverrideRect(data, tidyKey)
+    : noteId
+      ? layout.notes.find((candidate) => candidate.note.id === noteId)
+      : undefined
+  const tidyCandidates = [
+    { key: 'income', rect: layout.income },
+    { key: 'need', rect: layout.need },
+    ...layout.accounts.map((rect) => ({ key: rect.account.id, rect })),
+    ...layout.notes.map((rect) => ({ key: rect.note.id, rect })),
+    { key: 'asNeededChip', rect: layoutOverrideRect(data, 'asNeededChip') },
+  ].flatMap((candidate) =>
+    candidate.key === (tidyKey ?? noteId) || !candidate.rect
+      ? []
+      : [candidate.rect],
+  )
+  const tidyResult = tidyRect
+    ? snapRectToAlignment(tidyRect, tidyCandidates, 24)
+    : null
+  const canTidy = Boolean(
+    tidyRect &&
+      tidyResult &&
+      (tidyResult.rect.x !== tidyRect.x || tidyResult.rect.y !== tidyRect.y),
+  )
+  const tidy = () => {
+    if (!tidyRect || !tidyResult || !canTidy) return
+    if (tidyKey) {
+      onChange(nudgeLayoutOverride(data, tidyKey, {
+        x: tidyResult.rect.x - tidyRect.x,
+        y: tidyResult.rect.y - tidyRect.y,
+      }))
+    } else if (noteId) {
+      onChange(moveMapNote(data, noteId, tidyResult.rect.x, tidyResult.rect.y))
+    }
+  }
   const move = (x: number, y: number) => {
     if (layoutKey) onChange(nudgeLayoutOverride(data, layoutKey, { x, y }))
     else if (noteId) {
@@ -305,6 +345,18 @@ export function MapInspector({
       </div>
       <div className="map-inspector-controls">
         {(layoutKey || note) && <MoveControls move={move} />}
+        {(tidyKey || note) && (
+          <InspectorGroup label="Align">
+            <button
+              aria-label="Tidy alignment"
+              disabled={!canTidy}
+              type="button"
+              onClick={tidy}
+            >
+              Tidy
+            </button>
+          </InspectorGroup>
+        )}
 
         {account && (
           <>
