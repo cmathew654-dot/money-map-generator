@@ -827,6 +827,7 @@ function AccountCard({
           {accountDisplayName(account)}
         </span>
         <span className="account-summary-value">{money(account.value)}</span>
+        <span aria-hidden="true" style={{ width: 136 }} />
       </summary>
 
       <div className="account-body">
@@ -834,47 +835,24 @@ function AccountCard({
           Remove account
         </button>
         <div className="account-fields">
-          <div className="account-appearance-fields">
-            <label className="form-field">
-              <span>Account type</span>
-              <select
-                value={account.bucket}
-                onChange={(event) =>
-                  onChange(changeAccountBucket(
-                    account,
-                    event.target.value as Account['bucket'],
-                  ))
-                }
-              >
-                {ACCOUNT_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="form-field">
-              <span>Shape</span>
-              <span
-                aria-label={`Shape for ${accountDisplayName(account)}`}
-                className="shape-segmented-control"
-                role="group"
-              >
-                {ACCOUNT_SHAPES.map((shape) => (
-                  <button
-                    aria-label={`${shapeLabels[shape]} shape`}
-                    aria-pressed={accountShape(account) === shape}
-                    className="shape-option"
-                    key={shape}
-                    type="button"
-                    onClick={() => onChange({ ...account, shape })}
-                  >
-                    <ShapeGlyph shape={shape} />
-                  </button>
-                ))}
-              </span>
-            </div>
-          </div>
+          <label className="form-field">
+            <span>Account type</span>
+            <select
+              value={account.bucket}
+              onChange={(event) =>
+                onChange(changeAccountBucket(
+                  account,
+                  event.target.value as Account['bucket'],
+                ))
+              }
+            >
+              {ACCOUNT_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <TextField
             autocomplete={{
               bookTerms: vocabulary,
@@ -920,6 +898,29 @@ function AccountCard({
         />
       </div>
       </details>
+      <span
+        aria-label={`Shape for ${accountDisplayName(account)}`}
+        className="shape-segmented-control account-shape-control"
+        role="group"
+      >
+        {ACCOUNT_SHAPES.map((shape) => (
+          <button
+            aria-label={`${shapeLabels[shape]} shape`}
+            aria-pressed={accountShape(account) === shape}
+            className="shape-option"
+            key={shape}
+            type="button"
+            onClick={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              onChange({ ...account, shape })
+            }}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <ShapeGlyph shape={shape} />
+          </button>
+        ))}
+      </span>
     </div>
   )
 }

@@ -1231,6 +1231,11 @@ summary:focus-visible {
 .account-card-shell > .account-card {
   margin: 0;
 }
+.account-shape-control {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
 .account-card {
   margin: 0 -4px 16px;
   border-top: 1px solid #dde1dc;
