@@ -39,10 +39,17 @@ test.describe('desktop visual baselines', () => {
   test('editor', async ({ page }, info) => {
     await openApp(page)
     await fullForm(page)
-    await page.locator('.account-card').first().locator('summary').click()
-    await page.locator('.form-pane').evaluate((pane) => {
-      pane.scrollTop = 658
+    const firstAccountSummary = page.locator('.account-card').first().locator('summary')
+    await firstAccountSummary.evaluate((element) => {
+      const pane = element.closest<HTMLElement>('.form-pane')
+      if (!pane) throw new Error('Account summary is outside form pane')
+      const paneRect = pane.getBoundingClientRect()
+      const summaryRect = element.getBoundingClientRect()
+      if (summaryRect.top < paneRect.top || summaryRect.bottom > paneRect.bottom) {
+        element.scrollIntoView({ block: 'center', inline: 'nearest' })
+      }
     })
+    await firstAccountSummary.click()
     await stabilize(page)
     await compareOrAttachReflow(page, info, 'editor')
   })
