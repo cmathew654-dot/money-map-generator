@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
+  type MouseEvent as ReactMouseEvent,
   type WheelEvent as ReactWheelEvent,
 } from 'react'
 import {
@@ -21,6 +22,7 @@ import {
   pushHistory,
   redoHistory,
   resetArrangement,
+  tidyArrangement,
   undoHistory,
   updateClient,
   type BookHistory,
@@ -44,7 +46,7 @@ import {
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
-import { layoutMap, NOTE_WIDTH } from './layout/layout'
+import { layoutMap, NOTE_WIDTH, OVERRIDE_BOUNDS } from './layout/layout'
 import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import {
   exportPdf,
@@ -141,6 +143,16 @@ function initialFormMode(): FormMode {
   }
 }
 
+export function artboardPointFromClient(
+  point: { x: number; y: number },
+  mapRect: Pick<DOMRect, 'left' | 'top' | 'width' | 'height'>,
+) {
+  return {
+    x: ((point.x - mapRect.left) / mapRect.width) * ARTBOARD.width,
+    y: ((point.y - mapRect.top) / mapRect.height) * ARTBOARD.height,
+  }
+}
+
 function initialPanZoomHintVisible(): boolean {
   try {
     return localStorage.getItem(PAN_ZOOM_HINT_STORAGE_KEY) !== 'dismissed'
@@ -211,6 +223,7 @@ export default function App() {
   )
   const [fitZoom, setFitZoom] = useState(100)
   const [isMapPanning, setIsMapPanning] = useState(false)
+  const [placingTextNote, setPlacingTextNote] = useState(false)
   const [shapePopoverOpen, setShapePopoverOpen] = useState(false)
   const [exporting, setExporting] = useState<'png' | 'pdf' | 'svg' | null>(null)
   const [fileStoreSupported] = useState(() =>
@@ -239,7 +252,9 @@ export default function App() {
     pointerId: number
     startPointer: { x: number; y: number }
     startScroll: { x: number; y: number }
+    moved: boolean
   } | null>(null)
+  const suppressNextTextPlacementRef = useRef(false)
   const shapePopoverRef = useRef<HTMLDivElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const { book, activeClientId } = snapshot
@@ -249,7 +264,12 @@ export default function App() {
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
   const hasLayoutOverrides =
-    Object.keys(activeClient.layoutOverrides ?? {}).length > 0
+    Object.keys(activeClient.layoutOverrides ?? {}).length > 0 ||
+    activeClient.customArrows?.some(
+      (arrow) => arrow.labelDx !== undefined || arrow.labelDy !== undefined,
+    ) === true
+  const tidiedClient = tidyArrangement(activeClient)
+  const canTidyMap = tidiedClient !== activeClient
   const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
   const mapWarnings = layoutMap(activeClient).warnings
   const previewClient = (() => {
@@ -272,8 +292,32 @@ export default function App() {
   useEffect(() => {
     setMapZoom('fit')
     setShapePopoverOpen(false)
+    setPlacingTextNote(false)
     setSelectedMapTargetKey(null)
   }, [activeClient.id])
+
+  useEffect(() => {
+    if (
+      selectedMapTargetKey?.startsWith('account:') &&
+      !activeClient.accounts.some(
+        (account) =>
+          account.id === selectedMapTargetKey.slice('account:'.length),
+      )
+    ) {
+      setSelectedMapTargetKey(null)
+    }
+  }, [activeClient.accounts, selectedMapTargetKey])
+
+  useEffect(() => {
+    if (!placingTextNote) return
+    const cancelPlacement = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setPlacingTextNote(false)
+      event.preventDefault()
+    }
+    window.addEventListener('keydown', cancelPlacement)
+    return () => window.removeEventListener('keydown', cancelPlacement)
+  }, [placingTextNote])
 
   useEffect(() => {
     if (!selectedMapTargetKey) return
@@ -803,6 +847,14 @@ export default function App() {
     addToast('Arrangement reset')
   }
 
+  const handleTidyMap = () => {
+    if (!canTidyMap) return
+    handleMapChange(tidiedClient)
+    setSelectedMapTargetKey(null)
+    setMapTextEdit(null)
+    addToast('Map tidied')
+  }
+
   const handleRestoreGeneratedArrows = () => {
     handleMapChange(restoreGeneratedArrows(activeClient))
     addToast('Automatic flows restored')
@@ -1062,19 +1114,26 @@ export default function App() {
       pointerId: event.pointerId,
       startPointer: { x: event.clientX, y: event.clientY },
       startScroll: { x: scroller.scrollLeft, y: scroller.scrollTop },
+      moved: false,
     }
-    scroller.setPointerCapture(event.pointerId)
+    if (!placingTextNote) scroller.setPointerCapture(event.pointerId)
     setIsMapPanning(true)
-    event.preventDefault()
+    if (!placingTextNote) event.preventDefault()
   }
 
   const continueMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
     const session = mapPanRef.current
     if (!session || session.pointerId !== event.pointerId) return
     if (
-      event.clientX !== session.startPointer.x ||
-      event.clientY !== session.startPointer.y
+      Math.hypot(
+        event.clientX - session.startPointer.x,
+        event.clientY - session.startPointer.y,
+      ) >= 4
     ) {
+      session.moved = true
+      if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.setPointerCapture(event.pointerId)
+      }
       dismissPanZoomHint()
     }
     const next = pannedScrollPosition(
@@ -1084,7 +1143,7 @@ export default function App() {
     )
     event.currentTarget.scrollLeft = next.x
     event.currentTarget.scrollTop = next.y
-    event.preventDefault()
+    if (session.moved || !placingTextNote) event.preventDefault()
   }
 
   const finishMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -1092,6 +1151,9 @@ export default function App() {
     if (!session || session.pointerId !== event.pointerId) return
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    if (session.moved && placingTextNote) {
+      suppressNextTextPlacementRef.current = true
     }
     mapPanRef.current = null
     setIsMapPanning(false)
@@ -1127,14 +1189,21 @@ export default function App() {
     })
   }
 
-  const handleAddNote = () => {
+  const openTextNoteAt = (point: { x: number; y: number }) => {
     const svg = mapPageRef.current?.querySelector('svg')
     if (!svg) return
     const svgRect = svg.getBoundingClientRect()
     const scale = svgRect.width / ARTBOARD.width
-    const x = (ARTBOARD.width - NOTE_WIDTH) / 2
-    const y = ARTBOARD.height / 2
+    const x = Math.min(
+      OVERRIDE_BOUNDS.right - NOTE_WIDTH,
+      Math.max(OVERRIDE_BOUNDS.left, point.x - NOTE_WIDTH / 2),
+    )
+    const y = Math.min(
+      OVERRIDE_BOUNDS.bottom - 28,
+      Math.max(OVERRIDE_BOUNDS.top, point.y - 14),
+    )
     const target = { kind: 'noteText' as const, noteId: newId('note'), x, y }
+    setPlacingTextNote(false)
     setMapTextEdit({
       target,
       rect: {
@@ -1146,6 +1215,63 @@ export default function App() {
       rawValue: '',
       ...mapTextEditFontState(activeClient, target),
     })
+  }
+
+  const beginTextNotePlacement = (keyboard: boolean) => {
+    if (!canMutate) return
+    if (!keyboard && placingTextNote) {
+      setPlacingTextNote(false)
+      return
+    }
+    suppressNextTextPlacementRef.current = false
+    dismissPanZoomHint()
+    setSelectedMapTargetKey(null)
+    setMapTextEdit(null)
+    if (!keyboard) {
+      setPlacingTextNote(true)
+      return
+    }
+    const svg = mapPageRef.current?.querySelector('svg')
+    const scroller = previewPaneRef.current
+    if (!svg || !scroller) return
+    const mapRect = svg.getBoundingClientRect()
+    const viewport = scroller.getBoundingClientRect()
+    openTextNoteAt(artboardPointFromClient({
+      x: (Math.max(mapRect.left, viewport.left) + Math.min(mapRect.right, viewport.right)) / 2,
+      y: (Math.max(mapRect.top, viewport.top) + Math.min(mapRect.bottom, viewport.bottom)) / 2,
+    }, mapRect))
+  }
+
+  const placeTextNote = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!placingTextNote) return
+    if (suppressNextTextPlacementRef.current) {
+      suppressNextTextPlacementRef.current = false
+      return
+    }
+    if (
+      !(event.target instanceof Element) ||
+      !event.target.closest('[data-map-background]')
+    ) {
+      return
+    }
+    const svg = mapPageRef.current?.querySelector('svg')
+    if (!svg) return
+    openTextNoteAt(artboardPointFromClient(
+      { x: event.clientX, y: event.clientY },
+      svg.getBoundingClientRect(),
+    ))
+  }
+
+  const consumePanPlacementClick = () => {
+    if (placingTextNote && suppressNextTextPlacementRef.current) {
+      suppressNextTextPlacementRef.current = false
+    }
+  }
+
+  const consumePanPlacementPointerDown = () => {
+    if (placingTextNote && suppressNextTextPlacementRef.current) {
+      suppressNextTextPlacementRef.current = false
+    }
   }
 
   const zoomControls = (
@@ -1458,6 +1584,14 @@ export default function App() {
               onExportPng={() => void handleExportPng()}
               onFullForm={() => setFormMode('full')}
               onHoverAccount={setHighlightId}
+              selectedAccountId={
+                selectedMapTargetKey?.startsWith('account:')
+                  ? selectedMapTargetKey.slice('account:'.length)
+                  : null
+              }
+              onSelectAccount={(id) =>
+                setSelectedMapTargetKey(`account:${id}`)
+              }
               onPrint={handlePrint}
               vocabulary={vocabulary}
             />
@@ -1467,6 +1601,14 @@ export default function App() {
               focusRequest={focusRequest}
               onChange={handleClientChange}
               onHoverAccount={setHighlightId}
+              selectedAccountId={
+                selectedMapTargetKey?.startsWith('account:')
+                  ? selectedMapTargetKey.slice('account:'.length)
+                  : null
+              }
+              onSelectAccount={(id) =>
+                setSelectedMapTargetKey(`account:${id}`)
+              }
               vocabulary={vocabulary}
             />
           )}
@@ -1490,8 +1632,12 @@ export default function App() {
             className={`map-scroller${
               mapZoom === 'fit' ? '' : ' is-pan-enabled'
             }${isMapPanning ? ' is-panning' : ''}`}
+            onClick={consumePanPlacementClick}
             onPointerCancel={finishMapPan}
-            onPointerDown={beginMapPan}
+            onPointerDown={(event) => {
+              consumePanPlacementPointerDown()
+              beginMapPan(event)
+            }}
             onPointerMove={continueMapPan}
             onPointerUp={finishMapPan}
             onWheel={handleMapWheel}
@@ -1505,7 +1651,8 @@ export default function App() {
                 ref={mapPageRef}
                 className={`map-page${
                   mapZoom === 'fit' ? '' : ' is-zoomed'
-                }`}
+                }${placingTextNote ? ' is-placing-text' : ''}`}
+                onClick={placeTextNote}
                 style={
                   mapZoom === 'fit'
                     ? undefined
@@ -1568,8 +1715,20 @@ export default function App() {
           </div>
           {!presentMode && (
             <div className="map-chrome">
-              <button type="button" onClick={handleAddNote}>
-                + Note
+              <button
+                disabled={!canMutate || !canTidyMap}
+                type="button"
+                onClick={handleTidyMap}
+              >
+                Tidy map
+              </button>
+              <button
+                aria-label="Add text note"
+                aria-pressed={placingTextNote}
+                type="button"
+                onClick={(event) => beginTextNotePlacement(event.detail === 0)}
+              >
+                + Text note
               </button>
               <div ref={shapePopoverRef} className="shape-quick-add">
                 <button
@@ -1595,6 +1754,11 @@ export default function App() {
                   </div>
                 )}
               </div>
+              {placingTextNote && (
+                <span className="text-placement-hint" role="status">
+                  Click the map to place text. Escape cancels.
+                </span>
+              )}
               {panZoomHintVisible && (
                 <aside className="pan-zoom-hint">
                   <span>Hold Ctrl (or ⌘ on Mac) while scrolling to zoom. Drag the map background to pan.</span>

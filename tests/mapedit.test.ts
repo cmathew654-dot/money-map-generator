@@ -834,7 +834,12 @@ describe('noninteractive map rendering', () => {
 
   it('renders calculated need supporting text as a movable non-editable target', () => {
     const markup = renderToStaticMarkup(createElement(MapSvg, {
-      data: { ...SAMPLE_WHITFIELD, asNeededAmount: 9_000 },
+      data: {
+        ...SAMPLE_WHITFIELD,
+        asNeededAmount: 10_000,
+        afterTaxIncome: Number.MAX_SAFE_INTEGER,
+        monthlyNeed: Number.MAX_SAFE_INTEGER,
+      },
       onChange: () => undefined,
       onElementClick: () => undefined,
     }))

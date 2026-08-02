@@ -1,10 +1,40 @@
-import { createElement } from 'react'
+import {
+  Children,
+  createElement,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 // @ts-expect-error Browser-only tsconfig intentionally omits Node ambient types.
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
+import type { MoneyMapData } from '../src/model/types'
 import { MapInspector } from '../src/render/MapInspector'
+
+type InspectorControl = ReactElement<{
+  'aria-label'?: string
+  children?: ReactNode
+  onChange?: (event: { target: { value: string } }) => void
+  onClick?: () => void
+}>
+
+function findControl(node: ReactNode, label: string): InspectorControl {
+  for (const child of Children.toArray(node)) {
+    if (!isValidElement(child)) continue
+    const element = child as InspectorControl
+    if (element.props['aria-label'] === label) return element
+    if (element.props.children !== undefined) {
+      try {
+        return findControl(element.props.children, label)
+      } catch {
+        // Keep searching sibling branches.
+      }
+    }
+  }
+  throw new Error(`Missing inspector control: ${label}`)
+}
 
 const render = (selectedTargetKey: string, data = SAMPLE_WHITFIELD) =>
   renderToStaticMarkup(
@@ -21,9 +51,13 @@ describe('persistent map inspector', () => {
   it('provides complete click alternatives for selected accounts', () => {
     const markup = render('account:cash-at-bank')
 
-    for (const label of ['Shape', 'Move', 'Size', 'Rotate', 'Add flow to', 'Reset item']) {
+    for (const label of ['Shape', 'Account type', 'Move', 'Size', 'Rotate', 'Add flow to', 'Reset item', 'Snap to alignment']) {
       expect(markup).toContain(label)
     }
+    expect(markup).toContain('Short-term')
+    expect(markup).not.toContain('Bucket color')
+    expect(markup).not.toContain('Color follows bucket')
+    expect(markup).not.toContain('Tidy alignment')
   })
 
   it('gives custom and generated arrows the appropriate visual controls', () => {
@@ -39,11 +73,38 @@ describe('persistent map inspector', () => {
     for (const label of ['Style', 'Color', 'Curve', 'Start point', 'End point', 'Label position', 'From', 'To', 'Reset flow', 'Delete flow']) {
       expect(custom).toContain(label)
     }
+    expect(custom).toContain('aria-label="Blue flow color"')
+    expect(custom).toContain('aria-pressed="false"')
+    expect(custom).not.toContain('<select aria-label="Color"')
     for (const label of ['Style', 'Color', 'Curve', 'Start point', 'End point', 'Reset flow', 'Hide flow']) {
       expect(generated).toContain(label)
     }
     expect(generated).not.toContain('From</label>')
     expect(generated).not.toContain('To</label>')
+  })
+
+  it('materializes a generated arrows resolved color only when its style changes', () => {
+    const changes: MoneyMapData[] = []
+    const inspector = MapInspector({
+      data: SAMPLE_WHITFIELD,
+      selectedTargetKey: 'arrow:income',
+      onChange: (next) => { changes.push(next) },
+      onClose: () => undefined,
+      onSelect: () => undefined,
+    })
+
+    findControl(inspector, 'Style').props.onChange?.({
+      target: { value: 'dotted' },
+    })
+    expect(changes.at(-1)?.layoutOverrides?.['arrow:income']).toEqual({
+      color: 'green',
+      style: 'dotted',
+    })
+
+    findControl(inspector, 'Blue flow color').props.onClick?.()
+    expect(changes.at(-1)?.layoutOverrides?.['arrow:income']).toEqual({
+      color: 'blue',
+    })
   })
 
   it('provides note and calculated-text click alternatives', () => {

@@ -8,6 +8,20 @@ describe('runwayLine', () => {
     )
   })
 
+  it('uses months below a year and suppresses less than one month', () => {
+    expect(runwayLine(5_500, 1_000)).toBe(
+      'Approximately 5 months at $1,000 per month.',
+    )
+    expect(runwayLine(1_000, 1_000)).toBe(
+      'Approximately 1 month at $1,000 per month.',
+    )
+    expect(runwayLine(11_600, 1_000)).toBe(
+      'Approximately 11 months at $1,000 per month.',
+    )
+    expect(runwayLine(999, 1_000)).toBeNull()
+    expect(runwayLine(165_000, 32_453_435)).toBeNull()
+  })
+
   it.each([
     [null, 6_000],
     [165_000, null],

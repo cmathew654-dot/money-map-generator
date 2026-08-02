@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   flowLabelText,
+  fittedCalculatedTextLine,
   footnoteText,
   hexagonInset,
   incomePanelMetrics,
@@ -392,7 +393,6 @@ describe('layoutMap', () => {
       ['text:masthead:label', 'Map heading'],
       ['text:income:row:extreme-income', 'Income source'],
       ['text:need:value', 'Monthly income need'],
-      ['text:need:supporting', 'Monthly income calculation'],
       ['text:extreme-account:label', 'Account name'],
       ['text:extreme-account:caption', 'Account description'],
       ['text:extreme-account:rows', 'Investment name'],
@@ -443,7 +443,7 @@ describe('layoutMap', () => {
       [total.value, (layout.income.w - 56) / 2, incomeTextSizes(data).totalValue],
       [need.label, layout.need.w - 40, 40],
       [need.value, layout.need.w - 40, TYPE.needValue],
-      [need.supporting, layout.need.w - 40, 40],
+      [need.supporting, layout.need.w - 40, need.supporting.fontSize],
       [flow, 236, TYPE.arrowLabel],
       [finePrint, 720, TYPE.footnote],
     ] as const
@@ -471,6 +471,31 @@ describe('layoutMap', () => {
     expect(data.accounts[0].valueTag).toBe(text)
     expect(data.customArrows?.[0].label).toBe(text)
     expect(data.footnotes[0].label).toBe(text)
+  })
+
+  it('keeps calculated lines whole above the readable floor and hides them below it', () => {
+    const exact = 'Approximately 1 month at $32,453,435 per month.'
+    const scaled = fittedCalculatedTextLine(exact, 280, TYPE.runway)
+    const hidden = fittedCalculatedTextLine(exact, 210, TYPE.runway)
+
+    expect(scaled).toMatchObject({ display: exact, exact })
+    expect(scaled.fontSize).toBeGreaterThanOrEqual(9)
+    expect(scaled.fontSize).toBeLessThan(TYPE.runway)
+    expect(textWidth(scaled.display, scaled.fontSize)).toBeLessThanOrEqual(280)
+    expect(hidden).toMatchObject({ display: '', exact, fontSize: 9 })
+
+    const data = blankClient()
+    const supporting = gapLine(Number.MAX_SAFE_INTEGER, 0, 0, true)!
+    const need = needTextLayout(
+      data,
+      { x: 0, y: 0, w: 250, h: 170 },
+      supporting,
+    )
+    expect(need.supporting).toMatchObject({
+      display: '',
+      exact: supporting,
+      fontSize: 9,
+    })
   })
 
   it('clamps custom note widths and re-wraps to the stored width', () => {
