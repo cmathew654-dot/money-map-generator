@@ -167,6 +167,8 @@ Help opens a compact keyboard and interaction reference. Required shortcuts:
 
 Income and Need are semantic singletons and cannot be copied, duplicated, or deleted as objects.
 
+Selection shortcuts do not run while focus is in a text field, select, or editable text overlay. In those contexts, native editing behavior wins.
+
 ## Feedback, history, and saving
 
 Every command that changes the model produces one history entry and plain-language feedback. Examples include **Account duplicated**, **Flow added**, **Text position reset**, and **Map layout reset**.
@@ -230,4 +232,3 @@ No slice may introduce a second canonical data owner or temporarily allow a pane
 - Present, print, PNG, PDF, and SVG output contain no editor UI.
 - Existing books with manual layout and text offsets load without data loss.
 - Windows Chrome and Edge plus macOS Chrome, WebKit, and native Safari certification remain green.
-
