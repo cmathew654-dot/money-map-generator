@@ -5,3 +5,5 @@ playwright-report/
 test-results/
 *.local
 tsconfig.tsbuildinfo
+dist-real
+.impeccable/hook.cache.json
