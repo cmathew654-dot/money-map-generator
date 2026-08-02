@@ -1916,6 +1916,10 @@ summary:focus-visible {
   text-underline-offset: 3px;
 }
 
+.map-page svg:not(.map-interactive) g[role='group'] {
+  cursor: pointer;
+}
+
 .map-interactive .map-draggable:hover {
   filter: drop-shadow(0 2px 6px rgb(28 36 34 / 35%));
 }

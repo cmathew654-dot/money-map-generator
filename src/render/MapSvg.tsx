@@ -201,7 +201,6 @@ function interactiveGroupProps(
     'aria-label': label,
     onClick: activate,
     role: 'group',
-    style: { cursor: 'pointer' },
     tabIndex: 0,
   }
 }
