@@ -5,7 +5,7 @@ import { focusPage, openApp } from './helpers'
 test.describe('App resilience', () => {
   test('file input is named and account summaries contain no nested controls', async ({ page }) => {
     await openApp(page)
-    await expect(page.locator('input[type="file"]')).toHaveAccessibleName('Load book file')
+    await expect(page.locator('input[type="file"]')).toHaveAccessibleName('Open book backup file')
     await page.getByRole('button', { name: 'Full form' }).click()
     const account = page.locator('.account-card').first()
     await expect(account).not.toHaveAttribute('open', '')
@@ -57,7 +57,7 @@ test.describe('App resilience', () => {
     await openApp(page)
     await page.evaluate(() => { URL.createObjectURL = () => { throw new Error('blob blocked') } })
     await page.getByRole('button', { name: 'Book menu' }).click()
-    await page.getByRole('menuitem', { name: 'Save book' }).click()
+    await page.getByRole('menuitem', { name: 'Download book backup' }).click()
     await expect(page.getByRole('dialog', { name: 'Could not save book' })).toBeVisible()
     await expect(page.getByText('Book saved')).toHaveCount(0)
   })
@@ -65,10 +65,10 @@ test.describe('App resilience', () => {
   test('PNG export exposes busy status and prevents duplicate export', async ({ page }) => {
     await openApp(page)
     await page.route('**/*.woff2', async (route) => { await new Promise((resolve) => setTimeout(resolve, 1200)); await route.continue() })
-    await page.getByRole('button', { name: 'Save map' }).click()
+    await page.getByRole('button', { name: 'Export map' }).click()
     const download = page.waitForEvent('download')
     await page.getByRole('menuitem', { name: 'PNG image' }).click()
-    await page.getByRole('button', { name: 'Save map' }).click()
+    await page.getByRole('button', { name: 'Export map' }).click()
     await expect(page.getByText('Exporting PNG…')).toBeVisible()
     await expect(page.getByRole('menuitem', { name: 'PNG image' })).toBeDisabled()
     await download
@@ -92,7 +92,7 @@ test.describe('App resilience', () => {
     await expect(follower.getByRole('menuitem', { name: 'Delete' })).toBeDisabled()
     await follower.keyboard.press('Escape')
     await follower.getByRole('button', { name: 'Book menu' }).click()
-    await expect(follower.getByRole('menuitem', { name: 'Load book' })).toBeDisabled()
+    await expect(follower.getByRole('menuitem', { name: 'Open book backup' })).toBeDisabled()
     await follower.keyboard.press('Escape')
     await follower.getByRole('button', { name: 'Reset menu' }).click()
     await expect(follower.getByRole('menuitem', { name: 'Clear map…' })).toBeDisabled()

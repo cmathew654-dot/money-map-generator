@@ -10,6 +10,7 @@ import {
 } from 'react'
 import {
   ACCOUNT_PRESETS,
+  BookValidationError,
   addClient,
   appendBlankAccount,
   clearedClient,
@@ -43,14 +44,15 @@ import {
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
-import { NOTE_WIDTH } from './layout/layout'
-import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
+import { layoutMap, NOTE_WIDTH } from './layout/layout'
+import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import {
   exportPdf,
   exportPng,
   exportSvg,
   loadBookFromFile,
   mapFileName,
+  moneyMapAlternativeText,
   saveBookToFile,
 } from './export/export'
 import { Form } from './form/Form'
@@ -102,11 +104,11 @@ export function canWriteConnectedBook(canMutate: boolean, connected: boolean) {
 }
 
 export function browserPersistenceLabel(dataMode: 'demo' | 'real', isWriter: boolean, status: BrowserSaveStatus, switching = false) {
-  if (dataMode === 'demo') return 'Demo mode — changes are temporary'
-  if (switching) return 'Switching editing…'
-  if (!isWriter) return 'Read only — another tab owns browser saves'
+  if (dataMode === 'demo') return 'Public demo — changes are temporary'
+  if (switching) return 'Getting this tab ready to edit…'
+  if (!isWriter) return 'View only — editing is active in another Money Map tab.'
   if (status === 'saving') return 'Saving in this browser…'
-  if (status === 'error') return 'Browser save failed'
+  if (status === 'error') return 'Changes could not be saved in this browser.'
   return 'Saved in this browser'
 }
 
@@ -236,6 +238,7 @@ export default function App() {
   const hasLayoutOverrides =
     Object.keys(activeClient.layoutOverrides ?? {}).length > 0
   const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
+  const mapWarnings = layoutMap(activeClient).warnings
   const previewClient = (() => {
     const fsInfo = mapTextEdit
       ? mapTextEditFsInfo(activeClient, mapTextEdit.target)
@@ -447,10 +450,11 @@ export default function App() {
         setWriterTakeoverPending(false)
         return
       }
+      try { publishBrowserWriterTakeoverRequest(localStorage, tabId) } catch { /* Lease expiry remains the fallback. */ }
       writerTakeoverTimerRef.current = window.setTimeout(tryTakeover, WRITER_TAKEOVER_POLL_MS)
     }
     try {
-      localStorage.setItem(WRITER_TAKEOVER_REQUEST_KEY, JSON.stringify({ requester: tabId, requestedAt: Date.now() }))
+      publishBrowserWriterTakeoverRequest(localStorage, tabId)
     } catch {
       // A later focus retries ownership.
     }
@@ -568,7 +572,7 @@ export default function App() {
           setConnectedFile(null)
           setReconnectFile(connectedFile)
           addToast(
-            `Could not save ${connectedFile.name}; browser copy kept`,
+            `Could not save to ${connectedFile.name}. Changes are still saved in this browser.`,
           )
         },
       )
@@ -635,7 +639,7 @@ export default function App() {
       setReconnectFile(null)
       setFileSaveStatus('saved')
       void storeBookFileHandle(handle).catch(() => {
-        addToast('Connected, but this file cannot be remembered')
+        addToast('Saving to this file for this visit only')
       })
     },
     [addToast],
@@ -677,7 +681,7 @@ export default function App() {
       setMapTextEdit(null)
       resetWizard()
       rememberConnectedFile(handle)
-      addToast(isReconnect ? 'Book restored from file' : 'Book loaded from file')
+      addToast(isReconnect ? 'Saving to this file again' : 'Changes will now save to this file')
     },
     [addToast, canMutate, commitSnapshot, rememberConnectedFile, resetWizard],
   )
@@ -687,7 +691,7 @@ export default function App() {
       const handle = await chooseNewBookFile()
       await writeBookFile(handle, snapshotRef.current.book)
       rememberConnectedFile(handle)
-      addToast('Book file connected')
+      addToast('Changes will now save to this file')
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return
       addToast('Could not create the book file')
@@ -710,7 +714,7 @@ export default function App() {
     setReconnectFile(null)
     setFileSaveStatus('saved')
     void clearStoredBookFileHandle().catch(() => undefined)
-    addToast('Book file disconnected')
+    addToast('Stopped saving to this file')
   }
 
   const handlePresent = async () => {
@@ -767,12 +771,12 @@ export default function App() {
   const handleResetLayout = () => {
     handleClientChange(resetArrangement(activeClient))
     setDialog(null)
-    addToast('Layout reset')
+    addToast('Arrangement reset')
   }
 
   const handleRestoreGeneratedArrows = () => {
     handleMapChange(restoreGeneratedArrows(activeClient))
-    addToast('Generated arrows restored')
+    addToast('Automatic flows restored')
   }
 
   const confirmClearMap = (clientId: string) => {
@@ -810,7 +814,7 @@ export default function App() {
     setDialog({
       kind: 'error',
       title,
-      message: error instanceof Error ? error.message : fallback,
+      message: error instanceof BookValidationError ? error.message : fallback,
     })
   }
 
@@ -822,7 +826,7 @@ export default function App() {
     setMapTextEdit(null)
     resetWizard()
     setDialog(null)
-    addToast('Book loaded')
+    addToast('Book backup opened')
   }
 
   const handleLoad = async (file: File) => {
@@ -836,7 +840,7 @@ export default function App() {
   }
 
   const handleSaveBook = () => {
-    try { saveBookToFile(book); addToast('Book saved') }
+    try { saveBookToFile(book); addToast('Book backup downloaded') }
     catch (error) { showError('Could not save book', error, 'The book could not be saved.') }
   }
 
@@ -856,14 +860,19 @@ export default function App() {
     exportInFlightRef.current = format
     setExporting(format)
     try {
-      await { png: exportPng, pdf: exportPdf, svg: exportSvg }[format](
-        svg,
-        appMapFileName(
-          activeClient.client.title,
-          activeClient.client.year,
-          format,
-        ),
+      const fileName = appMapFileName(
+        activeClient.client.title,
+        activeClient.client.year,
+        format,
       )
+      if (format === 'pdf') {
+        await exportPdf(svg, fileName, {
+          title: `Money Map for ${activeClient.client.title || 'Untitled client'}, ${activeClient.client.year}`,
+          language: 'en-US',
+          alternativeText: moneyMapAlternativeText(activeClient),
+        })
+      } else if (format === 'png') await exportPng(svg, fileName)
+      else await exportSvg(svg, fileName)
       addToast(`${label} exported`)
     } catch (error) {
       showError(
@@ -1208,19 +1217,19 @@ export default function App() {
           triggerClassName="book-menu-trigger"
         >
           <MenuItem onClick={handleSaveBook}>
-            Save book
+            Download book backup
           </MenuItem>
           <MenuItem disabled={!canMutate} onClick={() => fileInputRef.current?.click()}>
-            Load book
+            Open book backup
           </MenuItem>
           {fileStoreSupported && <MenuSeparator />}
           {fileStoreSupported && !connectedFile && (
             <>
               <MenuItem onClick={() => void handleCreateConnectedFile()}>
-                Keep in a file…
+                Save changes to a file…
               </MenuItem>
               <MenuItem onClick={() => void handleOpenConnectedFile()}>
-                Open existing
+                Open and keep saving…
               </MenuItem>
             </>
           )}
@@ -1230,7 +1239,7 @@ export default function App() {
               title={reconnectFile.name}
               onClick={() => void replaceBookFromFile(reconnectFile, true)}
             >
-              Reconnect {reconnectFile.name}
+              Resume saving to {reconnectFile.name}
             </MenuItem>
           )}
           {connectedFile && (
@@ -1241,7 +1250,7 @@ export default function App() {
                   {fileSaveStatus === 'saving' ? 'Saving…' : 'Saved'}
                 </span>
               </div>
-              <MenuItem onClick={handleDisconnectFile}>Disconnect</MenuItem>
+              <MenuItem onClick={handleDisconnectFile}>Stop saving to this file</MenuItem>
             </>
           )}
         </Menu>
@@ -1267,7 +1276,7 @@ export default function App() {
             </MenuItem>
             {hasHiddenArrows && (
               <MenuItem disabled={!canMutate} onClick={handleRestoreGeneratedArrows}>
-                Restore generated arrows
+                Restore automatic flows
               </MenuItem>
             )}
             <MenuItem
@@ -1300,10 +1309,10 @@ export default function App() {
               Print
             </button>
             <Menu
-              ariaLabel="Save map"
+              ariaLabel="Export map"
               trigger={
                 <>
-                  <span>Save</span>
+                  <span>Export</span>
                   <span aria-hidden="true" className="menu-caret">
                     ▾
                   </span>
@@ -1315,7 +1324,7 @@ export default function App() {
                 PNG image
               </MenuItem>
               <MenuItem disabled={Boolean(exporting)} onClick={() => void handleExport('pdf')}>
-                PDF document
+                PDF snapshot
               </MenuItem>
               <MenuItem disabled={Boolean(exporting)} onClick={() => void handleExport('svg')}>
                 SVG image
@@ -1326,7 +1335,7 @@ export default function App() {
                 title={connectedFile?.name}
               >
                 {exporting ? `Exporting ${exporting.toUpperCase()}…` : connectedFile && canMutate
-                  ? `${fileSaveStatus === 'saving' ? 'Saving' : 'Saved'} — connected to ${connectedFile.name}`
+                  ? `${fileSaveStatus === 'saving' ? 'Saving to' : 'Saved to'} ${connectedFile.name}`
                   : browserPersistenceLabel(DATA_MODE, isWriter, browserSaveStatus, writerTakeoverPending)}
               </div>
             </Menu>
@@ -1335,7 +1344,7 @@ export default function App() {
         <input
           ref={fileInputRef}
           accept=".json"
-          aria-label="Load book file"
+          aria-label="Open book backup file"
           disabled={!canMutate}
           className="visually-hidden"
           type="file"
@@ -1347,9 +1356,16 @@ export default function App() {
         />
       </header>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
-        {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes are temporary. Do not enter real client data. Real use requires a private separate-origin deployment with <code>VITE_DATA_MODE=real</code>.</span></section>}
+        {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information.</span></section>}
+        {mapWarnings.length > 0 && <details className="app-status-banner is-danger"><summary>Map needs attention</summary>{mapWarnings.map((warning, index) => {
+          const targetKey = warning.targetKey
+          const key = `${warning.code}:${targetKey ?? index}`
+          return targetKey && targetKey !== 'client'
+            ? <button key={key} type="button" onClick={() => setSelectedMapTargetKey(targetKey)}>{warning.message}</button>
+            : <span key={key}>{warning.message}</span>
+        })}</details>}
         {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
-        {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Browser save failed</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Retry</button></section>}
+        {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Changes are not being saved</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Try again</button></section>}
       </div>}
       <div className="workspace">
         <aside className="form-pane" aria-label="Client editor">
@@ -1377,6 +1393,7 @@ export default function App() {
               currentStep={wizardStep}
               data={activeClient}
               done={wizardDone}
+              hasWarnings={mapWarnings.length > 0}
               focusRequest={focusRequest}
               onChange={handleClientChange}
               onCurrentStepChange={setWizardStep}
@@ -1502,10 +1519,10 @@ export default function App() {
                   type="button"
                   onClick={() => setShapePopoverOpen((open) => !open)}
                 >
-                  + Shape
+                  + Account
                 </button>
                 {shapePopoverOpen && (
-                  <div className="shape-popover" aria-label="Add blank shape">
+                  <div className="shape-popover" aria-label="Add account">
                     {ACCOUNT_PRESETS.map((preset) => (
                       <button
                         className={`account-preset-button bucket-${preset.bucket}`}
@@ -1548,7 +1565,7 @@ export default function App() {
       )}
       {dialog?.kind === 'error' && (
         <Dialog
-          confirmLabel="OK"
+          confirmLabel="Close"
           open
           title={dialog.title}
           onClose={() => setDialog(null)}
@@ -1559,14 +1576,14 @@ export default function App() {
       )}
       {dialog?.kind === 'loadBook' && (
         <Dialog
-          confirmLabel="Disconnect and load"
+          confirmLabel="Stop saving and open"
           danger
           open
-          title="Replace connected book"
+          title="Open another book?"
           onClose={() => setDialog(null)}
           onConfirm={() => applyLoadedBook(dialog.book)}
         >
-          Loading another book disconnects {connectedFile?.name}. The existing connected file will not be overwritten.
+          Opening another book stops saving changes to {connectedFile?.name}. That file will not be changed.
         </Dialog>
       )}
       {dialog?.kind === 'resetLayout' && (
@@ -1574,11 +1591,11 @@ export default function App() {
           confirmLabel="Reset"
           danger
           open
-          title="Reset layout"
+          title="Reset arrangement"
           onClose={() => setDialog(null)}
           onConfirm={handleResetLayout}
         >
-          Restore the generated layout for this client?
+          Return every map item to its automatic position?
         </Dialog>
       )}
       {dialog?.kind === 'clearMap' && (
@@ -1591,7 +1608,7 @@ export default function App() {
           onConfirm={() => confirmClearMap(dialog.clientId)}
         >
           Clear the map for {dialog.name}? This removes all accounts, income
-          sources, monthly need, draw amount, after-tax income, fine print, and
+          sources, monthly amount needed, account withdrawal, after-tax income, fine print, and
           arrangement. The client stays in your book. One Undo brings
           everything back.
         </Dialog>

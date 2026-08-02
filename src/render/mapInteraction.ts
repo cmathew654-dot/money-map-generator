@@ -98,6 +98,50 @@ export function cycleCustomArrowStyle(
   }
 }
 
+export function retargetCustomArrow(
+  data: MoneyMapData,
+  id: string,
+  field: 'sourceId' | 'targetId',
+  endpointId: string,
+): MoneyMapData {
+  const arrow = data.customArrows?.find((item) => item.id === id)
+  if (!arrow || !isArrowEndpoint(data, endpointId)) return data
+  const otherField = field === 'sourceId' ? 'targetId' : 'sourceId'
+  if (
+    endpointId === arrow[otherField] ||
+    data.customArrows?.some(
+      (item) =>
+        item.id !== id &&
+        item[field] === endpointId &&
+        item[otherField] === arrow[otherField],
+    )
+  ) {
+    return data
+  }
+
+  const key = `arrow:custom:${id}`
+  const override = { ...(data.layoutOverrides?.[key] ?? {}) }
+  if (field === 'sourceId') {
+    delete override.startAt
+    delete override.startT
+  } else {
+    delete override.endAt
+    delete override.endT
+  }
+  const layoutOverrides = { ...data.layoutOverrides }
+  if (Object.keys(override).length > 0) layoutOverrides[key] = override
+  else delete layoutOverrides[key]
+
+  return {
+    ...data,
+    customArrows: data.customArrows?.map((item) =>
+      item.id === id ? { ...item, [field]: endpointId } : item,
+    ),
+    layoutOverrides:
+      Object.keys(layoutOverrides).length > 0 ? layoutOverrides : undefined,
+  }
+}
+
 export function setCustomArrowColor(
   data: MoneyMapData,
   id: string,

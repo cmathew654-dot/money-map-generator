@@ -32,7 +32,7 @@ export const WIZARD_STEPS = [
   {
     id: 'need',
     label: 'Need',
-    title: 'What does the month need to cover?',
+    title: 'How much is needed each month?',
     mapTargets: ['need'],
   },
   {
@@ -64,7 +64,7 @@ export function WizardProgress({
   onDoneChange,
 }: WizardProgressProps) {
   return (
-    <div className="wizard-progress" aria-label="Wizard progress">
+    <div className="wizard-progress" aria-label="Setup progress">
       {WIZARD_STEPS.map((item, index) => (
         <button
           aria-current={index === currentStep ? 'step' : undefined}
@@ -95,6 +95,7 @@ export function WizardProgress({
 interface WizardProps extends FormProps {
   currentStep: number
   done: boolean
+  hasWarnings?: boolean
   onCurrentStepChange(step: number): void
   onDoneChange(done: boolean): void
   onExportPng(): void
@@ -106,6 +107,7 @@ export function Wizard({
   currentStep,
   data,
   done,
+  hasWarnings = false,
   focusRequest,
   onChange,
   onCurrentStepChange,
@@ -170,7 +172,7 @@ export function Wizard({
           />
         </header>
         <div className="wizard-done-content">
-          <h1>The map is ready.</h1>
+          <h1>{hasWarnings ? 'Review the map before sharing.' : 'The map is ready.'}</h1>
           <div className="wizard-done-primary">
             <button
               className="primary-button"
@@ -194,7 +196,7 @@ export function Wizard({
               type="button"
               onClick={onFullForm}
             >
-              Fine-tune in full form
+              Review all details
             </button>
             <button
               className="text-button wizard-start-over"

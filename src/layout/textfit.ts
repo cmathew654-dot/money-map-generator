@@ -49,6 +49,7 @@ export function fitLines(
   text: string,
   maxWidth: number,
   size: number,
+  maxLines?: number,
 ): string[] {
   const words = text.trim().split(/\s+/).filter(Boolean)
   if (words.length === 0) return []
@@ -80,5 +81,16 @@ export function fitLines(
 
   words.forEach(pushWord)
   if (line) lines.push(line)
-  return lines
+  if (maxLines === undefined || lines.length <= maxLines) return lines
+
+  const displayed = lines.slice(0, Math.max(0, maxLines))
+  const lastIndex = displayed.length - 1
+  if (lastIndex < 0) return displayed
+
+  let last = displayed[lastIndex]
+  while (last && textWidth(`${last}…`, size) > maxWidth) {
+    last = [...last].slice(0, -1).join('')
+  }
+  displayed[lastIndex] = last ? `${last}…` : '…'
+  return displayed
 }

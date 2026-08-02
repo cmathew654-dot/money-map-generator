@@ -53,7 +53,7 @@ describe('income source presets', () => {
     )
 
     expect(markup).toContain('Income source')
-    expect(markup).toContain('Shown as')
+    expect(markup).toContain('Amount note')
     expect(markup).toContain('e.g. Gross, After-Tax')
     expect(markup).toContain('Social Security')
     expect(markup).toContain('Something else')

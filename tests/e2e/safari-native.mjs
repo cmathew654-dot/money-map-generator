@@ -606,7 +606,7 @@ async function run() {
     const beforeDownload = await snapshotFiles(downloadDir)
     const downloadStartedAt = Date.now()
     await clickButton(driver, 'Book menu')
-    await clickButton(driver, 'Save book')
+    await clickButton(driver, 'Download book backup')
     const downloaded = await waitForStableDownload(
       downloadDir,
       beforeDownload,
@@ -697,7 +697,7 @@ async function run() {
       }
     `)
     await clickButton(driver, 'Book menu')
-    await clickButton(driver, 'Save book')
+    await clickButton(driver, 'Download book backup')
     const failureDialog = await waitFor('Could not save book dialog', () =>
       driver.execute(`
         return Array.from(document.querySelectorAll('dialog, [role="dialog"]'))

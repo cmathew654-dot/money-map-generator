@@ -90,10 +90,10 @@ test.describe('desktop visual baselines', () => {
     await stabilize(page)
     await expect(preview).toHaveScreenshot('selected-note.png', elementScreenshotOptions)
 
-    const asNeeded = page.getByLabel('Draw from Short-Term Bucket')
+    const asNeeded = page.getByLabel('Monthly account withdrawal', { exact: true })
     await asNeeded.fill('9100')
     await asNeeded.press('Tab')
-    await page.getByRole('button', { name: 'Adjust need supporting text' }).focus()
+    await page.getByRole('button', { name: /^Adjust coverage note:/ }).focus()
     await expect(page.locator('.map-inspector')).toBeVisible()
     await stabilize(page)
     await expect(preview).toHaveScreenshot('selected-supporting-text.png', elementScreenshotOptions)

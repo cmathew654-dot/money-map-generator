@@ -3,7 +3,7 @@ import { openApp } from './helpers'
 
 test('Menu supports Home, End, and printable-character navigation', async ({ page }) => {
   await openApp(page)
-  const trigger = page.getByRole('button', { name: 'Save map' })
+  const trigger = page.getByRole('button', { name: 'Export map' })
   await trigger.click()
   await expect(page.getByRole('menuitem', { name: 'PNG image' })).toBeFocused()
   await page.keyboard.press('End')

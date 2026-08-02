@@ -1,7 +1,8 @@
-﻿import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   acquireBrowserWriter,
   currentBrowserWriter,
+  publishBrowserWriterTakeoverRequest,
   WRITER_HEARTBEAT_MS,
   WRITER_LEASE_TTL_MS,
   WRITER_STORAGE_KEY,
@@ -17,6 +18,17 @@ class MemoryStorage implements StorageLike {
 }
 
 describe('browser writer lease expiry', () => {
+  it('republishes a blocked takeover request with a fresh timestamp', () => {
+    const storage = new MemoryStorage()
+
+    publishBrowserWriterTakeoverRequest(storage, 'requester', 1_000)
+    publishBrowserWriterTakeoverRequest(storage, 'requester', 1_250)
+
+    expect(storage.getItem('money-map-generator:writer-takeover-request')).toBe(
+      JSON.stringify({ requester: 'requester', requestedAt: 1_250 }),
+    )
+  })
+
   it('rejects forced takeover of a fresh foreign lease', () => {
     const storage = new MemoryStorage()
     storage.setItem(WRITER_STORAGE_KEY, JSON.stringify({ tabId: 'incumbent', updatedAt: 1_000 }))

@@ -27,6 +27,8 @@ import {
 export const HISTORY_LIMIT = 50
 export const HISTORY_COALESCE_MS = 800
 
+export class BookValidationError extends Error {}
+
 const BUCKET_DEFAULTS: Record<Bucket, { shape: AccountShape }> = {
   shortTerm: { shape: 'drum' },
   afterTax: { shape: 'drum' },
@@ -632,7 +634,39 @@ function validateClient(value: unknown, index: number, allowMissingItemIds = fal
     const arrows = value.customArrows as unknown[]
     uniqueIds(arrows, index, 'custom arrow')
     const endpoints = new Set(['income', 'need', ...accountIds])
-    if (arrows.some((arrow) => isRecord(arrow) && (!endpoints.has(String(arrow.sourceId)) || !endpoints.has(String(arrow.targetId))))) throw new Error(`Client ${index + 1} has custom arrows with invalid references.`)
+    if (arrows.some((arrow) => isRecord(arrow) && (!endpoints.has(String(arrow.sourceId)) || !endpoints.has(String(arrow.targetId))))) {
+      throw new BookValidationError(`${details.title} has a flow connected to an item that is no longer in the map. This book was not opened, and your current work was not changed.`)
+    }
+    const endpointLabel = (id: string) => {
+      if (id === 'income') return 'Income sources'
+      if (id === 'need') return 'Monthly need'
+      const account = accounts.find(
+        (candidate) => isRecord(candidate) && candidate.id === id,
+      )
+      return isRecord(account) && typeof account.label === 'string'
+        ? account.label
+        : 'Unknown item'
+    }
+    const connections = new Set<string>()
+    for (const arrow of arrows) {
+      if (!isRecord(arrow)) continue
+      const sourceId = String(arrow.sourceId)
+      const targetId = String(arrow.targetId)
+      const sourceLabel = endpointLabel(sourceId)
+      const targetLabel = endpointLabel(targetId)
+      if (sourceId === targetId) {
+        throw new BookValidationError(
+          `${details.title} has a flow that connects ${sourceLabel} to itself. This book was not opened, and your current work was not changed.`,
+        )
+      }
+      const connection = `${sourceId}\u0000${targetId}`
+      if (connections.has(connection)) {
+        throw new BookValidationError(
+          `${details.title} has more than one flow from ${sourceLabel} to ${targetLabel}. This book was not opened, and your current work was not changed.`,
+        )
+      }
+      connections.add(connection)
+    }
   }
   if (
     value.hiddenArrows !== undefined &&

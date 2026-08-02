@@ -26,8 +26,10 @@ import {
   deleteCustomArrow,
   deleteMapNote,
   hideGeneratedArrow,
+  moveCustomArrowLabel,
   moveMapNote,
   resizeMapNote,
+  retargetCustomArrow,
   setCustomArrowColor,
   setMapNoteBackground,
   withOverride,
@@ -66,13 +68,19 @@ function InspectorGroup({ label, children }: { label: string; children: ReactNod
   )
 }
 
-function MoveControls({ move }: { move: (x: number, y: number) => void }) {
+function MoveControls({
+  label = 'Move',
+  move,
+}: {
+  label?: string
+  move: (x: number, y: number) => void
+}) {
   return (
-    <InspectorGroup label="Move">
-      <button aria-label="Move left" type="button" onClick={() => move(-12, 0)}>←</button>
-      <button aria-label="Move up" type="button" onClick={() => move(0, -12)}>↑</button>
-      <button aria-label="Move down" type="button" onClick={() => move(0, 12)}>↓</button>
-      <button aria-label="Move right" type="button" onClick={() => move(12, 0)}>→</button>
+    <InspectorGroup label={label}>
+      <button aria-label={`${label} left`} type="button" onClick={() => move(-12, 0)}>←</button>
+      <button aria-label={`${label} up`} type="button" onClick={() => move(0, -12)}>↑</button>
+      <button aria-label={`${label} down`} type="button" onClick={() => move(0, 12)}>↓</button>
+      <button aria-label={`${label} right`} type="button" onClick={() => move(12, 0)}>→</button>
     </InspectorGroup>
   )
 }
@@ -85,6 +93,37 @@ function textDefaultSize(key: string): number {
   if (key.startsWith('text:footnotes:')) return TYPE.footnote
   if (key.startsWith('text:masthead:')) return TYPE.mastheadLabel
   return role === 'value' ? TYPE.value : role === 'caption' ? TYPE.caption : role === 'rows' ? TYPE.row : role === 'sub' ? TYPE.subValue : TYPE.accountTitle
+}
+
+function textTargetTitle(data: MoneyMapData, key: string): string {
+  const [, element, role, itemId] = key.split(':')
+  if (element === 'need') {
+    return role === 'supporting'
+      ? 'Coverage note'
+      : role === 'value'
+        ? 'Monthly need amount'
+        : 'Monthly need heading'
+  }
+  if (element === 'income') {
+    if (role === 'header') return 'Income heading'
+    if (role === 'total') return 'After-tax income'
+    const source = data.incomeSources.find((candidate) => candidate.id === itemId)
+    return source ? `Income amount for ${source.label}` : 'Income amount'
+  }
+  if (element === 'footnotes') {
+    const footnote = data.footnotes.find((candidate) => candidate.id === itemId)
+    return footnote ? `Footnote for ${footnote.label}` : 'Footnote'
+  }
+  if (element === 'masthead') return 'Map heading'
+  const account = data.accounts.find((candidate) => candidate.id === element)
+  const roleLabel = {
+    label: 'Account name',
+    caption: 'Supporting note',
+    value: 'Account value',
+    rows: 'Account details',
+    sub: 'Subaccount details',
+  }[role] ?? 'Account text'
+  return account ? `${roleLabel} for ${account.label}` : roleLabel
 }
 
 export function MapInspector({
@@ -138,6 +177,14 @@ export function MapInspector({
     { id: 'need', label: 'Monthly need' },
     ...data.accounts.map((candidate) => ({ id: candidate.id, label: candidate.label })),
   ]
+  const endpointLabel = (id: string) =>
+    endpoints.find((endpoint) => endpoint.id === id)?.label ?? 'Map item'
+  const outlineFor = (id: string) =>
+    id === 'income'
+      ? layout.income
+      : id === 'need'
+        ? layout.need
+        : layout.accounts.find((candidate) => candidate.account.id === id)
   const move = (x: number, y: number) => {
     if (layoutKey) onChange(nudgeLayoutOverride(data, layoutKey, { x, y }))
     else if (noteId) {
@@ -173,6 +220,45 @@ export function MapInspector({
     }
     onChange(next)
   }
+  const nudgeArrowEndpoint = (
+    endpoint: 'start' | 'end',
+    x: number,
+    y: number,
+  ) => {
+    if (!arrow || !arrowKey) return
+    const endpointId =
+      endpoint === 'start'
+        ? customArrow?.sourceId ??
+          (generatedKind === 'income' ? 'income' : arrow.sourceId)
+        : customArrow?.targetId ?? 'need'
+    if (!endpointId) return
+    const outline = outlineFor(endpointId)
+    if (!outline) return
+    const point = endpoint === 'start' ? arrow.start : arrow.end
+    const next = clampRectToBounds(
+      { x: point.x + x, y: point.y + y, w: 0, h: 0 },
+      OVERRIDE_BOUNDS,
+    )
+    onChange(withOverride(data, arrowKey, {
+      [endpoint === 'start' ? 'startAt' : 'endAt']: {
+        dx: next.x - (outline.x + outline.w / 2),
+        dy: next.y - (outline.y + outline.h / 2),
+      },
+    }))
+  }
+  const nudgeArrowLabel = (x: number, y: number) => {
+    if (!customArrow || !arrow?.labelAt) return
+    const next = clampRectToBounds(
+      { x: arrow.labelAt.x + x, y: arrow.labelAt.y + y, w: 0, h: 0 },
+      OVERRIDE_BOUNDS,
+    )
+    onChange(moveCustomArrowLabel(
+      data,
+      customArrow.id,
+      (customArrow.labelDx ?? 0) + next.x - arrow.labelAt.x,
+      (customArrow.labelDy ?? 0) + next.y - arrow.labelAt.y,
+    ))
+  }
   const setArrowAppearance = (
     patch: Pick<LayoutOverride, 'style' | 'color'>,
   ) => {
@@ -203,9 +289,11 @@ export function MapInspector({
     (selectedTargetKey === 'income' ? 'Income sources' : undefined) ??
     (selectedTargetKey === 'need' ? 'Monthly income need' : undefined) ??
     (selectedTargetKey === 'asNeededChip' ? 'As-needed label' : undefined) ??
-    (arrow ? `${arrow.kind === 'asNeeded' ? 'As-needed' : arrow.kind} flow` : undefined) ??
+    (customArrow ? `Flow from ${endpointLabel(customArrow.sourceId)} to ${endpointLabel(customArrow.targetId)}` : undefined) ??
+    (generatedKind === 'income' ? 'Flow from Income sources to Monthly need' : undefined) ??
+    (generatedKind === 'asNeeded' ? `Flow from ${endpointLabel(arrow?.sourceId ?? '')} to Monthly need` : undefined) ??
     (note ? note.text : undefined) ??
-    (isText ? selectedTargetKey.split(':').slice(1).join(' ') : 'Map item')
+    (isText ? textTargetTitle(data, selectedTargetKey) : 'Map item')
 
   if (!account && !layoutKey && !arrow && !note) return null
 
@@ -248,9 +336,9 @@ export function MapInspector({
         )}
 
         {(account || selectedTargetKey === 'income' || selectedTargetKey === 'need') && (
-          <label className="map-inspector-field">Connect to
+          <label className="map-inspector-field">Add flow to
             <select
-              aria-label="Connect to"
+              aria-label="Add flow to"
               defaultValue=""
               onChange={(event) => {
                 if (!event.target.value) return
@@ -283,25 +371,30 @@ export function MapInspector({
                 {CUSTOM_ARROW_COLORS.map((color) => <option key={color} value={color}>{color[0].toUpperCase() + color.slice(1)}</option>)}
               </select>
             </label>
-            <InspectorGroup label="Bend">
-              <button aria-label="Decrease bend" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow - 12 }))}>−</button>
-              <button aria-label="Increase bend" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow + 12 }))}>+</button>
+            <InspectorGroup label="Curve">
+              <button aria-label="Decrease curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow - 12 }))}>−</button>
+              <button aria-label="Increase curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow + 12 }))}>+</button>
             </InspectorGroup>
+            <MoveControls label="Start point" move={(x, y) => nudgeArrowEndpoint('start', x, y)} />
+            <MoveControls label="End point" move={(x, y) => nudgeArrowEndpoint('end', x, y)} />
+            {customArrow?.label && arrow.labelAt && (
+              <MoveControls label="Label position" move={nudgeArrowLabel} />
+            )}
             {customArrow && (
               <>
                 {(['sourceId', 'targetId'] as const).map((field) => (
-                  <label className="map-inspector-field" key={field}>{field === 'sourceId' ? 'Source' : 'Target'}
+                  <label className="map-inspector-field" key={field}>{field === 'sourceId' ? 'From' : 'To'}
                     <select
-                      aria-label={field === 'sourceId' ? 'Source' : 'Target'}
+                      aria-label={field === 'sourceId' ? 'From' : 'To'}
                       value={customArrow[field]}
-                      onChange={(event) => onChange({
-                        ...data,
-                        customArrows: data.customArrows?.map((candidate) =>
-                          candidate.id === customArrow.id
-                            ? { ...candidate, [field]: event.target.value }
-                            : candidate,
+                      onChange={(event) => onChange(
+                        retargetCustomArrow(
+                          data,
+                          customArrow.id,
+                          field,
+                          event.target.value,
                         ),
-                      })}
+                      )}
                     >
                       {endpoints.filter((endpoint) => endpoint.id !== customArrow[field === 'sourceId' ? 'targetId' : 'sourceId']).map((endpoint) => <option key={endpoint.id} value={endpoint.id}>{endpoint.label}</option>)}
                     </select>
@@ -332,7 +425,7 @@ export function MapInspector({
           </InspectorGroup>
         )}
 
-        <InspectorGroup label="Reset">
+        <InspectorGroup label={arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text' : 'Reset item'}>
           <button type="button" onClick={() => {
             if (arrowKey) resetArrow()
             else if (noteId) onChange({
@@ -340,7 +433,7 @@ export function MapInspector({
               notes: data.notes?.map((candidate) => candidate.id === noteId ? { ...candidate, x: (ARTBOARD.width - NOTE_WIDTH) / 2, y: ARTBOARD.height / 2, w: undefined, bg: undefined, fs: undefined } : candidate),
             })
             else if (layoutKey) onChange(withoutOverride(data, layoutKey))
-          }}>Reset</button>
+          }}>{arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text' : 'Reset item'}</button>
         </InspectorGroup>
 
         {customArrowId && <button className="map-inspector-danger" type="button" onClick={() => { onChange(deleteCustomArrow(data, customArrowId)); onClose() }}>Delete flow</button>}

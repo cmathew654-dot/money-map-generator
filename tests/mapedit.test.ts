@@ -13,6 +13,7 @@ import {
   deleteMapNote,
   hideGeneratedArrow,
   resizeMapNote,
+  retargetCustomArrow,
   restoreGeneratedArrows,
   setCustomArrowColor,
   setMapNoteBackground,
@@ -113,8 +114,8 @@ describe('seamless map text editor geometry and typography', () => {
 
     expect(sizes.totalLabel).toBeCloseTo(30 * (13 / 17))
     expect(sizes.totalValue).toBe(30)
-    expect(markup).toContain(
-      `font-size="${sizes.totalLabel}" font-weight="600">After-Tax Income`,
+    expect(markup).toMatch(
+      new RegExp(`font-size="${sizes.totalLabel}"[^>]*>After-Tax…`),
     )
     expect(markup).toMatch(
       new RegExp(`font-size="${sizes.totalValue}"[^>]*>\\$5,900`),
@@ -490,6 +491,53 @@ describe('custom arrow edits', () => {
     expect(reverse.customArrows).toHaveLength(2)
   })
 
+  it('retargets through one validator and clears only the moved endpoint placement', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: [
+        {
+          id: 'retarget-me',
+          sourceId: 'income',
+          targetId: SAMPLE_WHITFIELD.accounts[0].id,
+          style: 'solid' as const,
+        },
+      ],
+      layoutOverrides: {
+        'arrow:custom:retarget-me': {
+          startAt: { dx: 90, dy: 20 },
+          startT: 0.2,
+          endAt: { dx: -80, dy: -10 },
+          endT: 0.7,
+          bow: 30,
+        },
+      },
+    }
+
+    const retargeted = retargetCustomArrow(
+      data,
+      'retarget-me',
+      'sourceId',
+      SAMPLE_WHITFIELD.accounts[1].id,
+    )
+
+    expect(retargeted.customArrows?.[0].sourceId).toBe(
+      SAMPLE_WHITFIELD.accounts[1].id,
+    )
+    expect(retargeted.layoutOverrides?.['arrow:custom:retarget-me']).toEqual({
+      endAt: { dx: -80, dy: -10 },
+      endT: 0.7,
+      bow: 30,
+    })
+    expect(
+      retargetCustomArrow(
+        retargeted,
+        'retarget-me',
+        'sourceId',
+        SAMPLE_WHITFIELD.accounts[0].id,
+      ),
+    ).toBe(retargeted)
+  })
+
   it('deletes by id and leaves unknown deletes untouched', () => {
     const withArrow = addCustomArrow(
       { ...SAMPLE_WHITFIELD, customArrows: [] },
@@ -663,6 +711,7 @@ describe('noninteractive map rendering', () => {
     }))
 
     expect(markup).toContain('text:need:supporting')
+    expect(markup).toContain('aria-label="Adjust coverage note:')
     expect(markup).not.toContain('Edit needSupporting')
   })
 
@@ -746,7 +795,7 @@ describe('noninteractive map rendering', () => {
     expect(markup).toMatch(/font-size="20"[^>]*><tspan>\$2,400 mo\./)
     expect(markup).toMatch(/font-size="17\.142857142857142"[^>]*>Gross/)
     expect(markup).toMatch(/font-size="21"[^>]*>\$5,900/)
-    expect(markup).toMatch(/font-size="22"[^>]*>MONTHLY INCOME NEED/)
+    expect(markup).toMatch(/font-size="22"[^>]*>MONTHLY…/)
     expect(markup).toMatch(/font-size="40"[^>]*><tspan[^>]*>\$15,000/)
     expect(markup).toContain(
       'y="930" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
@@ -849,10 +898,10 @@ describe('noninteractive map rendering', () => {
     expect(subTitleSize).toBeCloseTo((14.5 / 19) * 34)
     expect(markup).toMatch(
       new RegExp(
-        `font-size="${subTitleSize}"[^>]*font-weight="600"[^>]*><tspan[^>]*>Short-Ter`,
+        `font-size="${subTitleSize}"[^>]*font-weight="600"[^>]*><tspan[^>]*>Short-Te`,
       ),
     )
-    expect(markup).toMatch(/font-size="34"[^>]*>\$240,000/)
+    expect(markup).toMatch(/font-size="34"[^>]*>\$240,0…/)
   })
 
   it('prints solid notes and semantic flow colors without editor chrome', () => {

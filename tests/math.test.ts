@@ -4,7 +4,7 @@ import { gapLine, runwayLine } from '../src/model/math'
 describe('runwayLine', () => {
   it('renders one decimal place from account value and monthly draw', () => {
     expect(runwayLine(165_000, 6_000)).toBe(
-      '≈ 2.3 yrs at $6,000/mo',
+      'Approximately 2.3 years at $6,000 per month.',
     )
   })
 
@@ -22,7 +22,7 @@ describe('runwayLine', () => {
   it('suppresses a runway over 99 years', () => {
     expect(runwayLine(600_000, 500)).toBeNull()
     expect(runwayLine(594_000, 500)).toBe(
-      '≈ 99.0 yrs at $500/mo',
+      'Approximately 99.0 years at $500 per month.',
     )
   })
 
@@ -45,25 +45,25 @@ describe('gapLine', () => {
 
   it('renders a positive gap from stated after-tax income and draw', () => {
     expect(gapLine(15_000, 5_900, 2_000)).toBe(
-      '≈ $7,100/mo gap after income + draw',
+      '$7,100 per month is still needed after income and account withdrawals.',
     )
   })
 
   it('renders covered for zero and negative gaps', () => {
     expect(gapLine(15_000, 5_000, 10_000)).toBe(
-      '≈ covered by income + draw',
+      'Approximately covered by income and account withdrawals.',
     )
     expect(gapLine(15_000, 6_000, 10_000)).toBe(
-      '≈ covered by income + draw',
+      'Approximately covered by income and account withdrawals.',
     )
   })
 
   it('uses a stated zero or negative draw without guessing', () => {
     expect(gapLine(15_000, 5_000, 0)).toBe(
-      '≈ $10,000/mo gap after income + draw',
+      '$10,000 per month is still needed after income and account withdrawals.',
     )
     expect(gapLine(15_000, 5_000, -1_000)).toBe(
-      '≈ $11,000/mo gap after income + draw',
+      '$11,000 per month is still needed after income and account withdrawals.',
     )
   })
 

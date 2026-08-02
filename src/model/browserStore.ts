@@ -6,6 +6,18 @@ export const LEGACY_BOOK_STORAGE_KEY = 'money-map-book:v1'
 export const WRITER_STORAGE_KEY = 'money-map-generator:writer'
 export const WRITER_LEASE_TTL_MS = 10_000
 export const WRITER_HEARTBEAT_MS = 2_000
+export const WRITER_TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
+
+export function publishBrowserWriterTakeoverRequest(
+  storage: StorageLike,
+  tabId: string,
+  now = Date.now(),
+): void {
+  storage.setItem(
+    WRITER_TAKEOVER_REQUEST_KEY,
+    JSON.stringify({ requester: tabId, requestedAt: now }),
+  )
+}
 
 export interface StorageLike {
   getItem(key: string): string | null
@@ -32,24 +44,24 @@ export function loadBrowserBook(storage: StorageLike): BrowserBookLoad {
   let raw: string | null
   try {
     raw = storage.getItem(BOOK_STORAGE_KEY)
-  } catch (error) {
+  } catch {
     return {
       status: 'error',
       book: newBook(),
       raw: null,
-      message: error instanceof Error ? error.message : 'Browser storage could not be read.',
+      message: 'Money Map could not read saved changes from this browser.',
     }
   }
 
   if (raw) {
     try {
       return { status: 'ready', book: parseBook(raw), raw }
-    } catch (error) {
+    } catch {
       return {
         status: 'recovery',
         book: newBook(),
         raw,
-        message: error instanceof Error ? error.message : 'The saved book is not valid.',
+        message: 'The saved Money Map could not be opened.',
       }
     }
   }
@@ -57,12 +69,12 @@ export function loadBrowserBook(storage: StorageLike): BrowserBookLoad {
   let legacyRaw: string | null
   try {
     legacyRaw = storage.getItem(LEGACY_BOOK_STORAGE_KEY)
-  } catch (error) {
+  } catch {
     return {
       status: 'error',
       book: newBook(),
       raw: null,
-      message: error instanceof Error ? error.message : 'Browser storage could not be read.',
+      message: 'Money Map could not read saved changes from this browser.',
     }
   }
   if (!legacyRaw) return { status: 'ready', book: newBook(), raw: null }
@@ -70,24 +82,24 @@ export function loadBrowserBook(storage: StorageLike): BrowserBookLoad {
   let legacyBook: MoneyMapFile
   try {
     legacyBook = parseBook(legacyRaw)
-  } catch (error) {
+  } catch {
     return {
       status: 'recovery',
       book: newBook(),
       raw: legacyRaw,
-      message: error instanceof Error ? error.message : 'The saved book is not valid.',
+      message: 'The saved Money Map could not be opened.',
     }
   }
 
   try {
     storage.setItem(BOOK_STORAGE_KEY, legacyRaw)
     storage.removeItem(LEGACY_BOOK_STORAGE_KEY)
-  } catch (error) {
+  } catch {
     return {
       status: 'error',
       book: legacyBook,
       raw: legacyRaw,
-      message: error instanceof Error ? error.message : 'Browser storage could not be written.',
+      message: 'Money Map could not save changes in this browser.',
     }
   }
   return { status: 'ready', book: legacyBook, raw: legacyRaw }
@@ -97,8 +109,8 @@ export function saveBrowserBook(storage: StorageLike, book: MoneyMapFile): strin
   try {
     storage.setItem(BOOK_STORAGE_KEY, JSON.stringify(book))
     return null
-  } catch (error) {
-    return error instanceof Error ? error.message : 'Browser storage could not be written.'
+  } catch {
+    return 'Money Map could not save changes in this browser.'
   }
 }
 

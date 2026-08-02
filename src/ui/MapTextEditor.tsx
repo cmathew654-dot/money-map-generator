@@ -642,27 +642,27 @@ export function applyMapTextEdit(
   }
 }
 
-function editorLabel(target: MapTextEditTarget): string {
-  if (target.kind === 'mastheadLabel') return 'Edit masthead label'
-  if (target.kind === 'accountLabel') return 'Edit account label'
-  if (target.kind === 'accountCaption') return 'Edit account caption'
-  if (target.kind === 'accountRows') return 'Resize position rows'
-  if (target.kind === 'accountSub') return 'Resize sub-account text'
-  if (target.kind === 'accountPositionLabel') return 'Edit position label'
-  if (target.kind === 'accountPositionValue') return 'Edit position value'
-  if (target.kind === 'accountSubLabel') return 'Edit sub-account label'
-  if (target.kind === 'accountSubCaption') return 'Edit sub-account caption'
-  if (target.kind === 'accountSubValue') return 'Edit sub-account value'
-  if (target.kind === 'incomeHeader') return 'Resize income heading'
-  if (target.kind === 'incomeAmount') return 'Edit income source amount'
-  if (target.kind === 'afterTaxIncome') return 'Edit after-tax income'
-  if (target.kind === 'needLabel') return 'Resize monthly income need label'
-  if (target.kind === 'monthlyNeed') return 'Edit monthly income need'
-  if (target.kind === 'footnoteText') return 'Resize fine print'
-  if (target.kind === 'asNeededAmount') return 'Edit as-needed draw amount'
-  if (target.kind === 'flowLabel') return 'Edit flow label'
-  if (target.kind === 'noteText') return 'Edit map note'
-  return 'Edit account value'
+export function mapTextEditorTargetLabel(target: MapTextEditTarget): string {
+  if (target.kind === 'mastheadLabel') return 'map heading'
+  if (target.kind === 'accountLabel') return 'account name'
+  if (target.kind === 'accountCaption') return 'account supporting note'
+  if (target.kind === 'accountRows') return 'position rows'
+  if (target.kind === 'accountSub') return 'sub-account text'
+  if (target.kind === 'accountPositionLabel') return 'position label'
+  if (target.kind === 'accountPositionValue') return 'position value'
+  if (target.kind === 'accountSubLabel') return 'sub-account label'
+  if (target.kind === 'accountSubCaption') return 'sub-account supporting note'
+  if (target.kind === 'accountSubValue') return 'sub-account value'
+  if (target.kind === 'incomeHeader') return 'income heading'
+  if (target.kind === 'incomeAmount') return 'income source amount'
+  if (target.kind === 'afterTaxIncome') return 'after-tax income'
+  if (target.kind === 'needLabel') return 'monthly amount needed heading'
+  if (target.kind === 'monthlyNeed') return 'monthly amount needed'
+  if (target.kind === 'footnoteText') return 'fine print'
+  if (target.kind === 'asNeededAmount') return 'monthly account withdrawal'
+  if (target.kind === 'flowLabel') return 'flow label'
+  if (target.kind === 'noteText') return 'map note'
+  return 'account value'
 }
 
 export function MapTextEditor({
@@ -823,7 +823,7 @@ export function MapTextEditor({
       ? 'text'
       : 'decimal'
   const controlProps = {
-    'aria-label': editorLabel(edit.target),
+    'aria-label': `${sizeOnly ? 'Adjust' : 'Edit'} ${mapTextEditorTargetLabel(edit.target)}`,
     autoFocus: true,
     className: 'map-text-editor-input',
     inputMode,
@@ -867,7 +867,7 @@ export function MapTextEditor({
       )}
       <div
         ref={sizeControlsRef}
-        aria-label={sizeOnly ? editorLabel(edit.target) : undefined}
+        aria-label={sizeOnly ? `Adjust ${mapTextEditorTargetLabel(edit.target)}` : undefined}
         className={`map-text-size-controls is-${pillScreenPosition.placement}`}
         role={sizeOnly ? 'group' : undefined}
         style={pillStyle}

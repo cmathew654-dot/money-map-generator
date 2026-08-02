@@ -21,7 +21,7 @@ export function runwayLine(
 
   const runway = accountValue / asNeededAmount / 12
   if (!Number.isFinite(runway) || runway > 99) return null
-  return `≈ ${runway.toFixed(1)} yrs at ${money(asNeededAmount)}/mo`
+  return `Approximately ${runway.toFixed(1)} years at ${money(asNeededAmount)} per month.`
 }
 
 export function gapLine(
@@ -42,6 +42,6 @@ export function gapLine(
   const gap = monthlyNeed - afterTaxIncome - asNeededAmount
   if (!Number.isFinite(gap)) return null
   return gap > 0
-    ? `≈ ${money(gap)}/mo gap after income + draw`
-    : '≈ covered by income + draw'
+    ? `${money(gap)} per month is still needed after income and account withdrawals.`
+    : 'Approximately covered by income and account withdrawals.'
 }

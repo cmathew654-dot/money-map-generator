@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   mapFileName,
+  moneyMapAlternativeText,
   serializeMapSvg,
 } from '../src/export/export'
+import { SAMPLE_WHITFIELD } from '../src/model/samples'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -93,5 +95,22 @@ describe('serializeMapSvg', () => {
     expect(serialized).not.toMatch(
       /map-interactive|map-editable|map-arrow-editor/,
     )
+  })
+})
+
+describe('moneyMapAlternativeText', () => {
+  it('describes the complete map in a logical plain-language order', () => {
+    const description = moneyMapAlternativeText(SAMPLE_WHITFIELD)
+
+    expect(description).toContain('Money Map for Jordan & Dana Whitfield, 2026.')
+    expect(description).toContain('Income sources:')
+    expect(description).toContain('Social Security: $2,400 mo.')
+    expect(description).toContain('After-tax income: $5,900.')
+    expect(description).toContain('Monthly need: $15,000')
+    expect(description).toContain('Managed IRA — Jordan: $2,450,000')
+    expect(description).toContain('Flow from Income sources to Monthly need.')
+    expect(description).toContain('Footnotes:')
+    expect(description).toContain('gross $96,500; net $74,300')
+    expect(description).not.toContain('mo..')
   })
 })

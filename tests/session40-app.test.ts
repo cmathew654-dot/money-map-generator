@@ -17,13 +17,13 @@ describe('Session 40 App safety boundaries', () => {
 
   it('reports persistence without claiming demo autosave', () => {
     expect(browserPersistenceLabel('demo', false, 'saved')).toBe(
-      'Demo mode — changes are temporary',
+      'Public demo — changes are temporary',
     )
     expect(browserPersistenceLabel('real', false, 'saved')).toBe(
-      'Read only — another tab owns browser saves',
+      'View only — editing is active in another Money Map tab.',
     )
     expect(browserPersistenceLabel('real', false, 'saved', true)).toBe(
-      'Switching editing…',
+      'Getting this tab ready to edit…',
     )
     expect(browserPersistenceLabel('real', true, 'saving')).toBe(
       'Saving in this browser…',
@@ -32,7 +32,7 @@ describe('Session 40 App safety boundaries', () => {
       'Saved in this browser',
     )
     expect(browserPersistenceLabel('real', true, 'error')).toBe(
-      'Browser save failed',
+      'Changes could not be saved in this browser.',
     )
   })
 

@@ -23,8 +23,7 @@
     overflow: visible;
   }
 
-  .app-header,
-  .workspace {
+  .app-shell > :not(.print-map) {
     display: none !important;
   }
 

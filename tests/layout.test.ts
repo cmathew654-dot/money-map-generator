@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
+  flowLabelText,
+  footnoteText,
   hexagonInset,
   incomePanelMetrics,
+  incomeSourceTextLayout,
   incomeTextSizes,
+  incomeTotalTextLayout,
   layoutMap,
+  mastheadTextLayout,
   mapTextOffset,
   MIN_ACCOUNT_WIDTH,
   NOTE_MAX_WIDTH,
   NOTE_MIN_WIDTH,
+  needTextLayout,
   OVERRIDE_BOUNDS,
   POSITION_ROW_VALUE_GAP,
   pointOnOutline,
@@ -18,6 +24,7 @@ import {
 } from '../src/layout/layout'
 import { fitLines, textWidth } from '../src/layout/textfit'
 import { money, moneyPer } from '../src/model/format'
+import { gapLine } from '../src/model/math'
 import { newBook } from '../src/model/book'
 import {
   blankClient,
@@ -170,6 +177,33 @@ function singleAccountData(shape: AccountShape): MoneyMapData {
   return data
 }
 
+function extremeTextData() {
+  const data = blankClient()
+  const text = 'W'.repeat(500)
+  data.client.mastheadLabel = text
+  data.incomeSources = [{ id: 'extreme-income', label: text, amount: Number.MAX_SAFE_INTEGER, period: 'yr', qualifier: text }]
+  data.afterTaxIncome = Number.MAX_SAFE_INTEGER
+  data.monthlyNeed = Number.MAX_SAFE_INTEGER
+  data.needTag = text
+  data.asNeededAmount = Number.MAX_SAFE_INTEGER
+  data.accounts = [{
+    id: 'extreme-account', bucket: 'cash', label: text, caption: text,
+    value: Number.MAX_SAFE_INTEGER, valueTag: text,
+    positions: [{ label: text, value: Number.MAX_SAFE_INTEGER }],
+    subAccounts: [{ label: text, caption: text, value: Number.MAX_SAFE_INTEGER }],
+  }]
+  data.customArrows = [{ id: 'extreme-flow', sourceId: 'income', targetId: 'need', style: 'solid', label: text }]
+  data.footnotes = [{ id: 'extreme-footnote', label: text, gross: Number.MAX_SAFE_INTEGER, net: Number.MAX_SAFE_INTEGER }]
+  data.layoutOverrides = {
+    income: { w: 240 },
+    need: { w: 250 },
+    'text:need:label': { fs: 40 },
+    'text:need:supporting': { fs: 40 },
+    'text:income:total': { fs: 40 },
+  }
+  return { data, text }
+}
+
 const TEXT_DESCENT = 0.22
 
 function textTop(baseline: number, fontSize: number): number {
@@ -315,13 +349,119 @@ describe('layoutMap', () => {
 
     const note = layoutMap(data).notes[0]
 
-    expect(note.lines).toEqual(fitLines(data.notes[0].text, 240, TYPE.note))
-    expect(note.lines.length).toBeGreaterThan(1)
+    expect(note.lines).toHaveLength(1)
+    expect(note.lines[0]).toMatch(/…$/)
     expect(
       note.lines.every((line) => textWidth(line, TYPE.note) <= 240),
     ).toBe(true)
     expect(note.x).toBe(48)
     expect(note.y + note.h).toBe(972)
+  })
+
+  it('uses only the remaining artboard height for a long note', () => {
+    const data = blankClient()
+    const text = 'A long note near the bottom must stay inside its assigned artboard rectangle.'
+    data.notes = [{ id: 'bottom-note', text, x: 100, y: 950 }]
+
+    const note = layoutMap(data).notes[0]
+
+    expect(note.lines).toHaveLength(1)
+    expect(note.lines[0]).toMatch(/…$/)
+    expect(note.h).toBeLessThanOrEqual(22)
+    expect(note.y + note.h).toBeLessThanOrEqual(OVERRIDE_BOUNDS.bottom)
+    expect(data.notes[0].text).toBe(text)
+  })
+
+  it('identifies the client title when masthead text must be abbreviated', () => {
+    const data = blankClient()
+    data.client.title = 'Extraordinarily '.repeat(20)
+
+    expect(layoutMap(data).warnings).toContainEqual({
+      code: 'masthead-title-overflow',
+      targetKey: 'text:masthead:label',
+      fieldLabel: 'Client title',
+      message: 'Shorten the client title so all of it appears at the top of the map.',
+    })
+  })
+
+  it('identifies every extreme editable text role that must be abbreviated', () => {
+    const { data } = extremeTextData()
+
+    const warnings = layoutMap(data).warnings
+    const expected = [
+      ['text:masthead:label', 'Masthead label'],
+      ['text:income:row:extreme-income', 'Income source'],
+      ['text:need:label', 'Monthly need label'],
+      ['text:need:value', 'Monthly need'],
+      ['text:need:supporting', 'Monthly need supporting text'],
+      ['text:extreme-account:label', 'Account name'],
+      ['text:extreme-account:caption', 'Account caption'],
+      ['text:extreme-account:value', 'Account value tag'],
+      ['text:extreme-account:rows', 'Position label'],
+      ['text:extreme-account:sub', 'Sub-account text'],
+      ['arrow:custom:extreme-flow', 'Flow label'],
+      ['text:footnotes:line:extreme-footnote', 'Fine print'],
+    ] as const
+
+    for (const [targetKey, fieldLabel] of expected) {
+      expect(warnings).toContainEqual(expect.objectContaining({
+        code: 'text-abbreviated',
+        targetKey,
+        fieldLabel,
+        message: expect.stringMatching(/^Shorten .+ so all of it appears on the map\.$/),
+      }))
+    }
+  })
+
+  it('returns bounded displayed text while retaining every extreme raw field', () => {
+    const { data, text } = extremeTextData()
+    const layout = layoutMap(data)
+    const account = layout.accounts[0]
+    const income = incomeSourceTextLayout(data, layout.income, data.incomeSources[0])
+    const total = incomeTotalTextLayout(data, layout.income)
+    const need = needTextLayout(data, layout.need, gapLine(
+      data.monthlyNeed,
+      data.afterTaxIncome,
+      data.asNeededAmount,
+    ))
+    const flow = flowLabelText(layout.arrows.find((arrow) => arrow.id === 'extreme-flow')!)
+    const finePrint = footnoteText(data.footnotes[0], TYPE.footnote)
+
+    const oneLine = [
+      [mastheadTextLayout(data).label, 786, TYPE.mastheadLabel],
+      [income.label, layout.income.w - 40, incomeTextSizes(data).rowLabel],
+      [income.amount, layout.income.w - 40, incomeTextSizes(data).rowValue],
+      [total.value, (layout.income.w - 56) / 2, incomeTextSizes(data).totalValue],
+      [need.label, layout.need.w - 40, 40],
+      [need.value, layout.need.w - 40, TYPE.needValue],
+      [need.supporting, layout.need.w - 40, 40],
+      [flow, 236, TYPE.arrowLabel],
+      [finePrint, 720, TYPE.footnote],
+    ] as const
+    for (const [fitted, width, size] of oneLine) {
+      expect(fitted.display.split(/\r?\n/)).toHaveLength(1)
+      expect(textWidth(fitted.display, size)).toBeLessThanOrEqual(width)
+    }
+
+    expect(account.titleLines.at(-1)).toMatch(/…$/)
+    expect(account.captionLines.at(-1)).toMatch(/…$/)
+    expect(account.valueText).toMatch(/…$/)
+    expect(account.positionRows[0].labelLines.at(-1)).toMatch(/…$/)
+    expect(account.subAccountLayouts[0].titleLines.at(-1)).toMatch(/…$/)
+    expect(account.subAccountLayouts[0].captionLines.at(-1)).toMatch(/…$/)
+    expect(account.titleLines.every((line) => textWidth(line, account.text.titleFontSize) <= account.usableTitleWidth)).toBe(true)
+    expect(account.captionLines.every((line) => textWidth(line, account.text.captionFontSize) <= account.usableCaptionWidth)).toBe(true)
+    expect(textWidth(account.valueText, account.text.valueFontSize)).toBeLessThanOrEqual(account.usableValueWidth)
+
+    expect(data.client.mastheadLabel).toBe(text)
+    expect(data.incomeSources[0].label).toBe(text)
+    expect(data.incomeSources[0].qualifier).toBe(text)
+    expect(data.needTag).toBe(text)
+    expect(data.accounts[0].label).toBe(text)
+    expect(data.accounts[0].caption).toBe(text)
+    expect(data.accounts[0].valueTag).toBe(text)
+    expect(data.customArrows?.[0].label).toBe(text)
+    expect(data.footnotes[0].label).toBe(text)
   })
 
   it('clamps custom note widths and re-wraps to the stored width', () => {
@@ -373,7 +513,7 @@ describe('layoutMap', () => {
     expect(largeNote.h).toBeGreaterThan(defaultNote.h)
   })
 
-  it('grows an account so a long tagged value remains on one line', () => {
+  it('keeps a long tagged value inside the assigned account width', () => {
     const data = blankClient()
     data.accounts = [
       {
@@ -387,10 +527,9 @@ describe('layoutMap', () => {
     ]
 
     const placed = layoutMap(data).accounts[0]
-    const line = `${money(placed.account.value)} ${placed.account.valueTag}`
-
-    expect(placed.w).toBeGreaterThan(250)
-    expect(textWidth(line, TYPE.value)).toBeLessThanOrEqual(
+    expect(placed.w).toBe(250)
+    expect(placed.valueText).toMatch(/…$/)
+    expect(textWidth(placed.valueText, TYPE.value)).toBeLessThanOrEqual(
       placed.usableValueWidth,
     )
   })
@@ -476,7 +615,7 @@ describe('layoutMap', () => {
     ).toBeGreaterThan(moved.x + moved.w)
   })
 
-  it('scales tagged value measurement and width at the overridden size', () => {
+  it('refits a tagged value at the overridden size without growing its shape', () => {
     const data = blankClient()
     data.accounts = [
       {
@@ -494,11 +633,10 @@ describe('layoutMap', () => {
     }
 
     const enlarged = layoutMap(data).accounts[0]
-    const valueLine = `${money(enlarged.account.value)} ${enlarged.account.valueTag}`
-
-    expect(enlarged.w).toBeGreaterThan(base.w)
+    expect(enlarged.w).toBe(base.w)
     expect(enlarged.text.valueFontSize).toBe(28)
-    expect(textWidth(valueLine, 28)).toBeLessThanOrEqual(
+    expect(enlarged.valueText).toMatch(/…$/)
+    expect(textWidth(enlarged.valueText, 28)).toBeLessThanOrEqual(
       enlarged.usableValueWidth,
     )
   })

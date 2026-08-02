@@ -1,9 +1,10 @@
 import {
   accountDisplayName,
+  mastheadPeriodLabel,
   money,
   moneyPer,
 } from '../model/format'
-import { runwayLine } from '../model/math'
+import { gapLine, runwayLine } from '../model/math'
 import type {
   Account,
   AccountShape,
@@ -12,6 +13,7 @@ import type {
   CustomArrow,
   Footnote,
   GeneratedArrowKind,
+  IncomeSource,
   LayoutOverride,
   MapNote,
   MapTextElement,
@@ -61,6 +63,7 @@ export interface PlacedAccount extends Placed {
   usableCaptionWidth: number
   usableTitleWidth: number
   usableValueWidth: number
+  valueText: string
 }
 
 export interface PlacedNote extends Placed {
@@ -85,6 +88,7 @@ export interface SubAccountLayout {
   usableCaptionWidth: number
   usableTitleWidth: number
   valueFontSize: number
+  valueText: string
   valueY: number
   y: number
   textDx?: number
@@ -168,7 +172,10 @@ export interface LayoutWarning {
     | 'masthead-title-overflow'
     | 'note-content-overlap'
     | 'panel-out-of-bounds'
+    | 'text-abbreviated'
   message: string
+  targetKey?: string
+  fieldLabel?: string
 }
 
 interface Column {
@@ -186,6 +193,8 @@ const FOOTNOTED_CONTENT_BOTTOM = 900
 const OPEN_CONTENT_BOTTOM = 950
 const FOOTNOTE_BASELINE_Y = 930
 const MASTHEAD_TITLE_MAX_WIDTH = 382
+const MASTHEAD_LABEL_MAX_WIDTH = 786
+const FLOW_LABEL_MAX_WIDTH = 236
 const MIN_MASTHEAD_TITLE_SIZE = 18
 const DEFAULT_GAP = 28
 const COMPRESSED_GAP = 16
@@ -368,11 +377,14 @@ export function incomePanelMetrics(
     textWidth('After-Tax Income', sizes.totalLabel) +
     16 +
     textWidth(money(data.afterTaxIncome), totalFontSize)
-  const minWidth = Math.max(
-    MIN_INCOME_WIDTH,
-    headerWidth + 40,
-    totalWidth + 40,
-    ...sourceWidths.map((width) => width + 40),
+  const minWidth = Math.min(
+    OVERRIDE_BOUNDS.right - OVERRIDE_BOUNDS.left,
+    Math.max(
+      MIN_INCOME_WIDTH,
+      headerWidth + 40,
+      totalWidth + 40,
+      ...sourceWidths.map((width) => width + 40),
+    ),
   )
 
   return {
@@ -388,6 +400,79 @@ export function incomePanelMetrics(
   }
 }
 
+export interface IncomeSourceTextLayout {
+  id: string
+  label: FittedText
+  amount: FittedText
+}
+
+export function incomeSourceTextLayout(
+  data: MoneyMapData,
+  placed: Placed,
+  source: IncomeSource,
+): IncomeSourceTextLayout {
+  const sizes = incomeTextSizes(data)
+  const width = Math.max(1, placed.w - 40)
+  return {
+    id: source.id,
+    label: fittedTextLine(source.label, width, sizes.rowLabel),
+    amount: fittedTextLine(
+      `${moneyPer(source.amount, source.period)}${
+        source.qualifier ? ` ${source.qualifier}` : ''
+      }`,
+      width,
+      sizes.rowValue,
+    ),
+  }
+}
+
+export function incomeTotalTextLayout(
+  data: MoneyMapData,
+  placed: Placed,
+) {
+  const sizes = incomeTextSizes(data)
+  const width = Math.max(1, (placed.w - 56) / 2)
+  return {
+    label: fittedTextLine('After-Tax Income', width, sizes.totalLabel),
+    value: fittedTextLine(money(data.afterTaxIncome), width, sizes.totalValue),
+  }
+}
+
+export function needTextLayout(
+  data: MoneyMapData,
+  placed: Placed,
+  supporting: string | null = null,
+) {
+  const width = Math.max(1, placed.w - 40)
+  const valueSize = clamp(
+    data.layoutOverrides?.[mapTextOverrideKey('need', 'value')]?.fs ??
+      TYPE.needValue,
+    MIN_MAP_TEXT_FONT_SIZE,
+    MAX_MAP_TEXT_FONT_SIZE,
+  )
+  const labelSize = clamp(
+    data.layoutOverrides?.[mapTextOverrideKey('need', 'label')]?.fs ??
+      TYPE.needLabel,
+    MIN_MAP_TEXT_FONT_SIZE,
+    MAX_MAP_TEXT_FONT_SIZE,
+  )
+  const supportingSize = clamp(
+    data.layoutOverrides?.[mapTextOverrideKey('need', 'supporting')]?.fs ??
+      TYPE.mathNote,
+    MIN_MAP_TEXT_FONT_SIZE,
+    MAX_MAP_TEXT_FONT_SIZE,
+  )
+  return {
+    label: fittedTextLine('MONTHLY INCOME NEED', width, labelSize),
+    value: fittedTextLine(
+      taggedMoney(data.monthlyNeed, data.needTag),
+      width,
+      valueSize,
+    ),
+    supporting: fittedTextLine(supporting ?? '', width, supportingSize),
+  }
+}
+
 export function mastheadTitleFontSize(data: MoneyMapData): number {
   const title = data.client.title.trim()
   if (!title) return TYPE.masthead
@@ -397,6 +482,53 @@ export function mastheadTitleFontSize(data: MoneyMapData): number {
     TYPE.masthead * (MASTHEAD_TITLE_MAX_WIDTH / naturalWidth),
     MIN_MASTHEAD_TITLE_SIZE,
     TYPE.masthead,
+  )
+}
+
+export interface FittedText {
+  display: string
+  exact: string
+}
+
+export function fittedTextLine(
+  text: string,
+  maxWidth: number,
+  size: number,
+): FittedText {
+  return {
+    display: fitLines(text, maxWidth, size, 1)[0] ?? '',
+    exact: text,
+  }
+}
+
+function mastheadLabel(data: MoneyMapData): string {
+  const period = mastheadPeriodLabel(data.client)
+  const label = data.client.mastheadLabel?.trim() || 'Money Map'
+  return data.client.variant === 'postNote'
+    ? `${label} — ${period}`
+    : `${label} ${period}`
+}
+
+export function mastheadTextLayout(data: MoneyMapData) {
+  return {
+    title: fittedTextLine(
+      data.client.title,
+      MASTHEAD_TITLE_MAX_WIDTH,
+      mastheadTitleFontSize(data),
+    ),
+    label: fittedTextLine(
+      mastheadLabel(data).toUpperCase(),
+      MASTHEAD_LABEL_MAX_WIDTH,
+      TYPE.mastheadLabel,
+    ),
+  }
+}
+
+export function flowLabelText(arrow: Arrow): FittedText {
+  return fittedTextLine(
+    arrow.label ?? '',
+    FLOW_LABEL_MAX_WIDTH,
+    TYPE.arrowLabel,
   )
 }
 
@@ -442,6 +574,7 @@ function subAccountLayout(
   subAccount: SubAccount,
   width: number,
   valueFontSize: number,
+  textBudget: number,
 ): SubAccountLayout {
   const scale = valueFontSize / TYPE.subValue
   const titleFontSize = TYPE.subAccountTitle * scale
@@ -453,6 +586,7 @@ function subAccountLayout(
     subAccount.label,
     usableWidth,
     titleFontSize,
+    Math.max(1, Math.floor(textBudget / titleLeading)),
   )
   const safeTitleLines = titleLines.length > 0 ? titleLines : ['']
   const captionLines = subAccount.caption
@@ -460,6 +594,7 @@ function subAccountLayout(
         subAccount.caption,
         usableWidth,
         captionFontSize,
+        Math.max(1, Math.floor(textBudget / captionLeading)),
       )
     : []
   const titleY =
@@ -489,6 +624,11 @@ function subAccountLayout(
     valueFontSize,
     VALUE_GAP,
   )
+  const valueText = fittedTextLine(
+    money(subAccount.value),
+    usableWidth,
+    valueFontSize,
+  ).display
   const lastBaseline = valueY
   const h = Math.max(
     88,
@@ -512,6 +652,7 @@ function subAccountLayout(
     usableCaptionWidth: usableWidth,
     usableTitleWidth: usableWidth,
     valueFontSize,
+    valueText,
     valueY,
     y: 0,
   }
@@ -526,6 +667,7 @@ function positionRowLayout(
   firstBaseline: number,
   rowFontSize: number,
   rowLeading: number,
+  textBudget: number,
 ): PositionRowLayout {
   const usableRowWidth = (baseline: number) => {
     const shapeWidth = usableTextWidth(
@@ -542,14 +684,20 @@ function positionRowLayout(
         2 * Math.max(POSITION_ROW_SIDE_PADDING, shapePadding),
     )
   }
-  const valueText = money(value)
+  const firstInnerWidth = usableRowWidth(firstBaseline)
+  const valueText = fittedTextLine(
+    money(value),
+    firstInnerWidth * 0.6,
+    rowFontSize,
+  ).display
   const valueWidth = textWidth(valueText, rowFontSize)
   let innerWidth = usableRowWidth(firstBaseline)
   let labelMaxWidth = Math.max(
     1,
     innerWidth - POSITION_ROW_VALUE_GAP - valueWidth,
   )
-  let labelLines = fitLines(label, labelMaxWidth, rowFontSize)
+  const maxLines = Math.max(1, Math.floor(textBudget / rowLeading))
+  let labelLines = fitLines(label, labelMaxWidth, rowFontSize, maxLines)
   if (labelLines.length === 0) labelLines = ['']
 
   for (let pass = 0; pass < 8; pass += 1) {
@@ -566,6 +714,7 @@ function positionRowLayout(
       label,
       nextLabelMaxWidth,
       rowFontSize,
+      maxLines,
     )
     const safeNextLabelLines =
       nextLabelLines.length > 0 ? nextLabelLines : ['']
@@ -613,6 +762,7 @@ interface AccountSizing {
   usableCaptionWidth: number
   usableTitleWidth: number
   usableValueWidth: number
+  valueText: string
 }
 
 function taggedMoney(value: number | null, tag: string | undefined): string {
@@ -625,6 +775,7 @@ function accountSizing(
   hasRunway: boolean,
   requestedHeight = 0,
   textOverrides: AccountTextOverrides = {},
+  textBudgetLimit?: number,
 ): AccountSizing {
   const shape = accountShape(account)
   const capRy = Math.round(width * 0.13)
@@ -668,6 +819,10 @@ function accountSizing(
     TYPE.caption,
     captionFontSize,
   )
+  const flexibleRoles =
+    2 + (account.positions?.length ?? 0) + 2 * (account.subAccounts?.length ?? 0)
+  const textBudget = textBudgetLimit ??
+    (OVERRIDE_BOUNDS.bottom - OVERRIDE_BOUNDS.top) / flexibleRoles
   let height = Math.max(
     requestedHeight,
     account.bucket === 'shortTerm' ? 250 : MIN_ACCOUNT_HEIGHT,
@@ -696,6 +851,7 @@ function accountSizing(
       accountDisplayName(account),
       usableTitleWidth,
       titleFontSize,
+      Math.max(1, Math.floor(textBudget / titleLeading)),
     )
     const safeTitleLines =
       titleLines.length > 0 ? titleLines : ['']
@@ -720,6 +876,7 @@ function accountSizing(
           account.caption,
           usableCaptionWidth,
           captionFontSize,
+          Math.max(1, Math.floor(textBudget / captionLeading)),
         )
       : []
     const captionY =
@@ -753,6 +910,7 @@ function accountSizing(
           firstBaseline,
           rowFontSize,
           rowLeading,
+          textBudget,
         )
         previousBaseline = row.lastBaseline
         previousLineHeight = rowLeading
@@ -774,6 +932,11 @@ function accountSizing(
       valueY,
       valueFontSize,
     )
+    const valueText = fittedTextLine(
+      taggedMoney(account.value, account.valueTag),
+      usableValueWidth,
+      valueFontSize,
+    ).display
     const runwayY = hasRunway
       ? baselineAfterText(
           valueY,
@@ -788,7 +951,7 @@ function accountSizing(
     const subWidth = width * 0.72
     const rawSubAccountLayouts = (account.subAccounts ?? []).map(
       (subAccount) =>
-        subAccountLayout(subAccount, subWidth, subFontSize),
+        subAccountLayout(subAccount, subWidth, subFontSize, textBudget),
     )
     const firstSubLineHeight =
       rawSubAccountLayouts[0]?.titleLeading ?? subFontSize
@@ -867,6 +1030,7 @@ function accountSizing(
       usableCaptionWidth,
       usableTitleWidth,
       usableValueWidth,
+      valueText,
     }
 
     if (Math.abs(requiredHeight - height) < 0.01) break
@@ -882,36 +1046,17 @@ function fittedAccount(
   hasRunway: boolean,
   requestedHeight = 0,
   textOverrides: AccountTextOverrides = {},
+  textBudgetLimit?: number,
 ): { sizing: AccountSizing; width: number } {
-  let width = minimumWidth
-  let sizing = accountSizing(
+  const sizing = accountSizing(
     account,
-    width,
+    minimumWidth,
     hasRunway,
     requestedHeight,
     textOverrides,
+    textBudgetLimit,
   )
-  const valueFontSize = accountTextFontSize(
-    textOverrides,
-    'value',
-    TYPE.value,
-  )
-  const required = textWidth(
-    taggedMoney(account.value, account.valueTag),
-    valueFontSize,
-  )
-
-  for (let pass = 0; pass < 8 && required > sizing.usableValueWidth; pass += 1) {
-    width += required - sizing.usableValueWidth + 2
-    sizing = accountSizing(
-      account,
-      width,
-      hasRunway,
-      requestedHeight,
-      textOverrides,
-    )
-  }
-  return { sizing, width }
+  return { sizing, width: minimumWidth }
 }
 
 function orderForColumn(accounts: Account[], buckets: Bucket[]): Account[] {
@@ -933,23 +1078,36 @@ function placeColumn(data: MoneyMapData, column: Column): PlacedAccount[] {
   const accounts = orderForColumn(data.accounts, column.buckets)
   if (accounts.length === 0) return []
 
-  const fitted = accounts.map((account) =>
-    fittedAccount(
-      account,
-      column.w,
-      runwayLine(
-        account.value,
-        data.asNeededAmount,
-        data.showMath !== false,
-      ) !== null && account.bucket === 'shortTerm',
-      0,
-      accountTextOverrides(data.layoutOverrides, account.id),
-    ),
-  )
+  const available = STACK_BOTTOM - column.y
+  const roleCount = (account: Account) =>
+    2 + (account.positions?.length ?? 0) +
+      2 * (account.subAccounts?.length ?? 0)
+  let textBudget = available /
+    accounts.reduce((total, account) => total + roleCount(account), 0)
+  let fitted: ReturnType<typeof fittedAccount>[] = []
+  for (let pass = 0; pass < 8; pass += 1) {
+    fitted = accounts.map((account) =>
+      fittedAccount(
+        account,
+        column.w,
+        runwayLine(
+          account.value,
+          data.asNeededAmount,
+          data.showMath !== false,
+        ) !== null && account.bucket === 'shortTerm',
+        0,
+        accountTextOverrides(data.layoutOverrides, account.id),
+        textBudget,
+      ),
+    )
+    const used = fitted.reduce((total, item) => total + item.sizing.h, 0) +
+      8 * Math.max(0, accounts.length - 1)
+    if (used <= available) break
+    textBudget *= Math.max(0.5, available / used)
+  }
   const sizings = fitted.map((item) => item.sizing)
   const heights = sizings.map((sizing) => sizing.h)
   let gap = DEFAULT_GAP
-  const available = STACK_BOTTOM - column.y
   const total =
     heights.reduce((sum, height) => sum + height, 0) +
     gap * Math.max(0, accounts.length - 1)
@@ -1291,6 +1449,95 @@ function controlForBow(start: Point, end: Point, bow: number): Point {
   }
 }
 
+const MIN_ARROW_CHORD = 24
+
+function separatedArrowEnd(
+  start: Point,
+  end: Point,
+  source: OutlineElement,
+  target: OutlineElement,
+): Point {
+  const chord = { x: end.x - start.x, y: end.y - start.y }
+  const chordLength = Math.hypot(chord.x, chord.y)
+  if (chordLength >= MIN_ARROW_CHORD) return end
+
+  const sourceCenter = centerOf(source)
+  const targetCenter = centerOf(target)
+  const semantic = {
+    x: targetCenter.x - sourceCenter.x,
+    y: targetCenter.y - sourceCenter.y,
+  }
+  const direction = chordLength > 0 ? chord : semantic
+  const length = Math.hypot(direction.x, direction.y) || 1
+  const unit = { x: direction.x / length, y: direction.y / length }
+  const candidates = [
+    unit,
+    { x: -unit.x, y: -unit.y },
+    { x: 1, y: 0 },
+    { x: -1, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: -1 },
+  ].map((candidate) => ({
+    x: start.x + candidate.x * MIN_ARROW_CHORD,
+    y: start.y + candidate.y * MIN_ARROW_CHORD,
+  }))
+
+  return candidates.find(
+    (candidate) =>
+      candidate.x >= OVERRIDE_BOUNDS.left &&
+      candidate.x <= OVERRIDE_BOUNDS.right &&
+      candidate.y >= OVERRIDE_BOUNDS.top &&
+      candidate.y <= OVERRIDE_BOUNDS.bottom,
+  ) ?? end
+}
+
+function boundedBow(
+  start: Point,
+  end: Point,
+  requested: number,
+  minimumY: number,
+): number {
+  const chordX = end.x - start.x
+  const chordY = end.y - start.y
+  const chordLength = Math.hypot(chordX, chordY)
+  const maximumBow = chordLength * MAX_BOW_FRACTION
+  const midpoint = {
+    x: (start.x + end.x) / 2,
+    y: (start.y + end.y) / 2,
+  }
+  const normal = {
+    x: -chordY / chordLength,
+    y: chordX / chordLength,
+  }
+  let minimum = -maximumBow
+  let maximum = maximumBow
+  const constrain = (
+    midpointValue: number,
+    normalValue: number,
+    lowerBound: number,
+    upperBound: number,
+  ) => {
+    if (Math.abs(normalValue) < 1e-9) return
+    const first = (lowerBound - midpointValue) / normalValue
+    const second = (upperBound - midpointValue) / normalValue
+    minimum = Math.max(minimum, Math.min(first, second))
+    maximum = Math.min(maximum, Math.max(first, second))
+  }
+  constrain(
+    midpoint.x,
+    normal.x,
+    OVERRIDE_BOUNDS.left,
+    OVERRIDE_BOUNDS.right,
+  )
+  constrain(
+    midpoint.y,
+    normal.y,
+    Math.max(OVERRIDE_BOUNDS.top, minimumY),
+    OVERRIDE_BOUNDS.bottom,
+  )
+  return clamp(requested, minimum, maximum)
+}
+
 function routedArrow({
   kind,
   source,
@@ -1327,24 +1574,26 @@ function routedArrow({
     return {
       x: clamp(
         center.x + offset.dx,
-        PAGE_MARGIN,
-        ARTBOARD.width - PAGE_MARGIN,
+        OVERRIDE_BOUNDS.left,
+        OVERRIDE_BOUNDS.right,
       ),
       y: clamp(
         center.y + offset.dy,
-        PAGE_MARGIN,
-        ARTBOARD.height - PAGE_MARGIN,
+        OVERRIDE_BOUNDS.top,
+        OVERRIDE_BOUNDS.bottom,
       ),
     }
   }
   const start = override?.startAt
     ? freePoint(source, override.startAt)
     : pointOnOutline(source, startT)
-  const end = override?.endAt
+  const rawEnd = override?.endAt
     ? freePoint(target, override.endAt)
     : pointOnOutline(target, endT)
+  const end = override?.startAt || override?.endAt
+    ? separatedArrowEnd(start, rawEnd, source, target)
+    : rawEnd
   const chordLength = Math.hypot(end.x - start.x, end.y - start.y)
-  const maximumBow = chordLength * MAX_BOW_FRACTION
   const baseMagnitude = chordLength * DEFAULT_BOW_FRACTION
   const normalY = chordLength === 0 ? 0 : (end.x - start.x) / chordLength
   const preferredSign = preferAbove
@@ -1352,17 +1601,15 @@ function routedArrow({
       ? 1
       : -1
     : -1
-  const requestedBow =
-    override?.bow === undefined
-      ? undefined
-      : clamp(override.bow, -maximumBow, maximumBow)
-  const bow =
-    requestedBow ??
-    clamp(preferredSign * baseMagnitude, -maximumBow, maximumBow)
-  let control = controlForBow(start, end, bow)
-  if (preferAbove && control.y < minimumY) {
-    control = { ...control, y: minimumY }
-  }
+  const bow = boundedBow(
+    start,
+    end,
+    override?.bow ?? preferredSign * baseMagnitude,
+    preferAbove ? minimumY : OVERRIDE_BOUNDS.top,
+  )
+  const control = controlForBow(start, end, bow)
+  const startCenter = centerOf(source)
+  const endCenter = centerOf(target)
 
   return {
     kind,
@@ -1374,8 +1621,12 @@ function routedArrow({
     bow,
     startT,
     endT,
-    startAt: override?.startAt,
-    endAt: override?.endAt,
+    startAt: override?.startAt
+      ? { dx: start.x - startCenter.x, dy: start.y - startCenter.y }
+      : undefined,
+    endAt: override?.endAt
+      ? { dx: end.x - endCenter.x, dy: end.y - endCenter.y }
+      : undefined,
     style: override?.style,
     color: override?.color,
     d: [
@@ -1548,7 +1799,7 @@ function arrowBounds(arrow: Arrow): Placed[] {
   if (arrow.labelAt) {
     const isFlowLabel = arrow.kind === 'custom' && arrow.label
     const width = isFlowLabel
-      ? textWidth(arrow.label!, TYPE.arrowLabel) + 12
+      ? textWidth(flowLabelText(arrow).display, TYPE.arrowLabel) + 12
       : AS_NEEDED_CHIP_WIDTH
     const height = isFlowLabel
       ? TYPE.arrowLabel + 8
@@ -1719,7 +1970,16 @@ export function mapTextOffset(
 export interface FootnoteLineLayout {
   fontSize: number
   footnote: Footnote
+  text: FittedText
   y: number
+}
+
+export function footnoteText(footnote: Footnote, fontSize: number): FittedText {
+  return fittedTextLine(
+    `${footnote.label}: ${money(footnote.gross)} → ${money(footnote.net)} after withholding`,
+    720,
+    fontSize,
+  )
 }
 
 export function footnoteHasContent(footnote: Footnote): boolean {
@@ -1764,7 +2024,12 @@ export function footnoteLineLayouts(
         adjacentAdvance +
         Math.max(0, previous.dy - spec.dy)
     }
-    return { fontSize: spec.fontSize, footnote: spec.footnote, y }
+    return {
+      fontSize: spec.fontSize,
+      footnote: spec.footnote,
+      text: footnoteText(spec.footnote, spec.fontSize),
+      y,
+    }
   })
   const last = lines.at(-1)!
   const lastDy = specs.at(-1)!.dy
@@ -1788,10 +2053,19 @@ function placedNotes(notes: MapNote[] | undefined): PlacedNote[] {
       MAX_MAP_TEXT_FONT_SIZE,
     )
     const lineAdvance = NOTE_LEADING * (fontSize / TYPE.note)
-    const lines = fitLines(note.text, width, fontSize)
+    const y = clamp(
+      note.y,
+      OVERRIDE_BOUNDS.top,
+      OVERRIDE_BOUNDS.bottom - fontSize,
+    )
+    const maxLines = Math.max(
+      1,
+      Math.floor((OVERRIDE_BOUNDS.bottom - y - fontSize) / lineAdvance) + 1,
+    )
+    const lines = fitLines(note.text, width, fontSize, maxLines)
     const h = Math.max(fontSize, lines.length * lineAdvance)
     const placed = clampRectToBounds(
-      { x: note.x, y: note.y, w: width, h },
+      { x: note.x, y, w: width, h },
       OVERRIDE_BOUNDS,
     )
     return { ...placed, fontSize, lineAdvance, lines, note }
@@ -2148,11 +2422,7 @@ function baseLayout(data: MoneyMapData): MapLayout {
   const need: Placed = {
     x: 48,
     y: Math.max(700, income.y + income.h + 24),
-    w: Math.max(
-      250,
-      textWidth(taggedMoney(data.monthlyNeed, data.needTag), TYPE.needValue) +
-        40,
-    ),
+    w: 250,
     h: 170,
   }
   const accounts = COLUMNS.flatMap((column) => placeColumn(data, column))
@@ -2259,17 +2529,39 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   const footnoteLines = footnoteLineLayouts(data)
   const footnoteBaseline = footnoteLines[0]?.y ?? FOOTNOTE_BASELINE_Y
   const warnings: LayoutWarning[] = []
+  const warnAbbreviation = (
+    fitted: FittedText,
+    targetKey: string,
+    fieldLabel: string,
+    _container: string,
+  ) => {
+    if (
+      fitted.display === fitted.exact ||
+      warnings.some(
+        (warning) =>
+          warning.code === 'text-abbreviated' &&
+          warning.targetKey === targetKey &&
+          warning.fieldLabel === fieldLabel,
+      )
+    ) return
+    warnings.push({
+      code: 'text-abbreviated',
+      targetKey,
+      fieldLabel,
+      message: `Shorten ${fieldLabel.toLowerCase()} so all of it appears on the map.`,
+    })
+  }
   const incomeMetrics = incomePanelMetrics(data)
   const primaryPanels = [
     {
-      name: 'Income sources panel',
+      name: 'Income sources',
       bounds: {
         ...income,
         w: Math.max(income.w, incomeMetrics.minWidth),
         h: Math.max(income.h, incomeMetrics.contentHeight),
       },
     },
-    { name: 'Monthly income need panel', bounds: need },
+    { name: 'Monthly need', bounds: need },
   ]
   for (const panel of primaryPanels) {
     const edges = [
@@ -2281,9 +2573,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     if (edges.length > 0) {
       warnings.push({
         code: 'panel-out-of-bounds',
-        message: `${panel.name} extends beyond the ${edges.join(' and ')} edge${
-          edges.length === 1 ? '' : 's'
-        } of the printable artboard.`,
+        message: `${panel.name} is partly outside the map.`,
       })
     }
   }
@@ -2299,7 +2589,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (accountOverlap) {
     warnings.push({
       code: 'account-overlap',
-      message: 'Account shapes overlap each other.',
+      message: 'Two or more accounts overlap.',
     })
   }
   const accountPanelOverlap = accountRects.some(
@@ -2308,7 +2598,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (accountPanelOverlap) {
     warnings.push({
       code: 'account-panel-overlap',
-      message: 'An account shape overlaps an income panel.',
+      message: 'An account overlaps the income sources.',
     })
   }
   const mapContentRects = [income, need, ...accountRects]
@@ -2318,7 +2608,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (noteContentOverlap) {
     warnings.push({
       code: 'note-content-overlap',
-      message: 'A map note overlaps map content.',
+      message: 'A note overlaps another item on the map.',
     })
   }
   const incomeNeedOverlap =
@@ -2329,7 +2619,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (incomeNeedOverlap) {
     warnings.push({
       code: 'income-need-overlap',
-      message: 'Income sources overlap the monthly income need card.',
+      message: 'Income sources overlap the monthly need.',
     })
   }
   const overflowingAccounts = accounts.filter(
@@ -2340,7 +2630,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       code: 'account-column-overflow',
       message: `${overflowingAccounts.length} account ${
         overflowingAccounts.length === 1 ? 'shape extends' : 'shapes extend'
-      } below the printable map area.`,
+      } below the map.`,
     })
   }
   const footnoteCenterX = finalBounds.x + finalBounds.w / 2
@@ -2379,6 +2669,116 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       message: 'Fine print overlaps the map content.',
     })
   }
+  const mastheadText = mastheadTextLayout(data)
+  warnAbbreviation(
+    mastheadText.label,
+    mapTextOverrideKey('masthead', 'label'),
+    'Masthead label',
+    'the masthead',
+  )
+  for (const source of data.incomeSources) {
+    const text = incomeSourceTextLayout(data, income, source)
+    const targetKey = mapItemTextOverrideKey('income', 'row', source.id)
+    warnAbbreviation(text.label, targetKey, 'Income source', 'its row')
+    warnAbbreviation(text.amount, targetKey, 'Income source', 'its row')
+  }
+  const incomeTotal = incomeTotalTextLayout(data, income)
+  warnAbbreviation(
+    incomeTotal.value,
+    mapTextOverrideKey('income', 'total'),
+    'After-tax income',
+    'the income total row',
+  )
+  const needText = needTextLayout(
+    data,
+    need,
+    gapLine(
+      data.monthlyNeed,
+      data.afterTaxIncome,
+      data.asNeededAmount,
+      data.showMath !== false,
+    ),
+  )
+  warnAbbreviation(
+    needText.label,
+    mapTextOverrideKey('need', 'label'),
+    'Monthly need label',
+    'the monthly need card',
+  )
+  warnAbbreviation(
+    needText.value,
+    mapTextOverrideKey('need', 'value'),
+    'Monthly need',
+    'the monthly need card',
+  )
+  warnAbbreviation(
+    needText.supporting,
+    mapTextOverrideKey('need', 'supporting'),
+    'Monthly need supporting text',
+    'the monthly need card',
+  )
+  for (const account of accounts) {
+    const key = (role: AccountTextRole) =>
+      accountTextOverrideKey(account.account.id, role)
+    if (account.titleLines.at(-1)?.endsWith('…')) {
+      warnAbbreviation(
+        { display: account.titleLines.join(' '), exact: accountDisplayName(account.account) },
+        key('label'),
+        'Account name',
+        'the account shape',
+      )
+    }
+    if (account.captionLines.at(-1)?.endsWith('…')) {
+      warnAbbreviation(
+        { display: account.captionLines.join(' '), exact: account.account.caption ?? '' },
+        key('caption'),
+        'Account caption',
+        'the account shape',
+      )
+    }
+    warnAbbreviation(
+      { display: account.valueText, exact: taggedMoney(account.account.value, account.account.valueTag) },
+      key('value'),
+      'Account value tag',
+      'the account shape',
+    )
+    if (account.positionRows.some((row) => row.labelLines.at(-1)?.endsWith('…'))) {
+      warnings.push({
+        code: 'text-abbreviated',
+        targetKey: key('rows'),
+        fieldLabel: 'Position label',
+        message: 'Shorten the position label so all of it appears on the map.',
+      })
+    }
+    if (account.subAccountLayouts.some((item) =>
+      item.titleLines.at(-1)?.endsWith('…') ||
+      item.captionLines.at(-1)?.endsWith('…') ||
+      item.valueText.endsWith('…')
+    )) {
+      warnings.push({
+        code: 'text-abbreviated',
+        targetKey: key('sub'),
+        fieldLabel: 'Sub-account text',
+        message: 'Shorten the sub-account text so all of it appears on the map.',
+      })
+    }
+  }
+  for (const arrow of arrows.filter((item) => item.kind === 'custom')) {
+    warnAbbreviation(
+      flowLabelText(arrow),
+      `arrow:custom:${arrow.id}`,
+      'Flow label',
+      'the flow label area',
+    )
+  }
+  for (const line of footnoteLines) {
+    warnAbbreviation(
+      line.text,
+      mapItemTextOverrideKey('footnotes', 'line', line.footnote.id),
+      'Fine print',
+      'the fine-print line',
+    )
+  }
   const mastheadSize = mastheadTitleFontSize(data)
   if (
     textWidth(data.client.title, mastheadSize) >
@@ -2386,7 +2786,9 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   ) {
     warnings.push({
       code: 'masthead-title-overflow',
-      message: 'The client title is too long to fit in the masthead.',
+      targetKey: mapTextOverrideKey('masthead', 'label'),
+      fieldLabel: 'Client title',
+      message: 'Shorten the client title so all of it appears at the top of the map.',
     })
   }
 

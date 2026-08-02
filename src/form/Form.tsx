@@ -425,12 +425,12 @@ export function NeedSection({
   const fields = (
     <div className="value-tag-fields need-fields">
       <MoneyField
-        label="Monthly Income Need"
+        label="Monthly amount needed"
         value={data.monthlyNeed}
         onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
       />
       <TextField
-        label="Tag"
+        label="Amount note"
         placeholder="e.g. est., + RMD"
         value={data.needTag ?? ''}
         onChange={(needTag) => onChange({ ...data, needTag })}
@@ -439,15 +439,15 @@ export function NeedSection({
         The red number — what the household must cover each month.
       </p>
       <MoneyField
-        label="Draw from Short-Term Bucket"
+        label="Monthly account withdrawal"
         value={data.asNeededAmount}
         onChange={(asNeededAmount) =>
           onChange({ ...data, asNeededAmount })
         }
       />
       <p className="help-text">
-        Optional monthly draw — appears on the arrow from the short-term
-        bucket.
+        Optional monthly withdrawal — appears on the flow from short-term
+        accounts.
       </p>
     </div>
   )
@@ -549,7 +549,7 @@ export function IncomeSection({
                   bookTerms: vocabulary,
                   seeds: incomeQualifierSeeds,
                 }}
-                label="Shown as"
+                label="Amount note"
                 placeholder="e.g. Gross, After-Tax"
                 value={source.qualifier ?? ''}
                 onChange={(qualifier) =>
@@ -719,7 +719,7 @@ function SubAccountRows({
           </div>
           <div className="subaccount-row-fields">
             <TextField
-              label="Caption"
+              label="Supporting note"
               value={subAccount.caption ?? ''}
               onChange={(caption) =>
                 onChange(
@@ -865,7 +865,7 @@ function AccountCard({
               onChange={(value) => onChange({ ...account, value })}
             />
             <TextField
-              label="Tag"
+              label="Amount note"
               placeholder="e.g. est., + RMD"
               value={account.valueTag ?? ''}
               onChange={(valueTag) => onChange({ ...account, valueTag })}
@@ -876,7 +876,7 @@ function AccountCard({
               bookTerms: vocabulary,
               seeds: noSeeds,
             }}
-            label="Caption"
+            label="Supporting note"
             value={account.caption ?? ''}
             onChange={(caption) => onChange({ ...account, caption })}
           />
@@ -1103,7 +1103,7 @@ export function FinePrintSection({
         + Add fine print line
       </button>
       <p className="help-text">
-        Net renders in green — after withholding.
+        The after-tax amount appears in green.
       </p>
     </div>
   )
@@ -1219,7 +1219,7 @@ export function ClientSection({
         {data.client.variant === 'postNote' && (
           <div className="client-post-note-row">
             <label className="form-field">
-              <span>As Of</span>
+              <span>As of month</span>
               <select
                 value={data.client.postNoteLabel ?? ''}
                 onChange={(event) =>

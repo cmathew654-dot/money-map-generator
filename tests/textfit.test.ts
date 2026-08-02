@@ -71,4 +71,17 @@ describe('fitLines', () => {
     expect(fitLines('', 100, 18)).toEqual([])
     expect(fitLines('   ', 100, 18)).toEqual([])
   })
+
+  it('limits displayed lines and ellipsizes the final one without widening it', () => {
+    const lines = fitLines(
+      'Managed IRA Jordan Most Aggressive Allocation',
+      108,
+      18,
+      2,
+    )
+
+    expect(lines).toEqual(['Managed', 'IRA…'])
+    expect(lines).toHaveLength(2)
+    expect(lines.every((line) => textWidth(line, 18) <= 108)).toBe(true)
+  })
 })

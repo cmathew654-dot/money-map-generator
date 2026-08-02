@@ -611,10 +611,10 @@ test.describe('extended desktop certification', () => {
       downloads.push(download.suggestedFilename())
     })
 
-    await page.getByRole('button', { name: 'Save map' }).click()
+    await page.getByRole('button', { name: 'Export map' }).click()
     await page.getByRole('menuitem', { name: 'PNG image' }).click()
     await expect.poll(() => exportFontRequests).toBe(4)
-    await page.getByRole('button', { name: 'Save map' }).click()
+    await page.getByRole('button', { name: 'Export map' }).click()
     await expect(page.getByText('Exporting PNG…')).toBeVisible()
     const pngItem = page.getByRole('menuitem', { name: 'PNG image' })
     await expect(pngItem).toBeDisabled()
@@ -632,7 +632,7 @@ test.describe('extended desktop certification', () => {
 
     await expect.poll(() => downloads.length).toBe(1)
     expect(downloads[0]).toContain('Certification Client 199')
-    await page.getByRole('button', { name: 'Save map' }).click()
+    await page.getByRole('button', { name: 'Export map' }).click()
     await expect(page.getByRole('menuitem', { name: 'PNG image' })).toBeEnabled()
     await expect(page.getByText('Exporting PNG…')).toHaveCount(0)
     expect(exportFontRequests).toBe(4)
@@ -724,8 +724,8 @@ test.describe('extended desktop certification', () => {
     await capture('New', page.getByRole('button', { name: 'New', exact: true }), '.app-header')
     await capture('Book menu', page.getByRole('button', { name: 'Book menu' }), '.app-header')
     await capture('Present', page.getByRole('button', { name: 'Present' }), '.app-header')
-    await capture('Print', page.getByRole('button', { name: 'Print' }), '.app-header')
-    await capture('Save map', page.getByRole('button', { name: 'Save map' }), '.app-header')
+    await capture('Print', page.getByRole('button', { name: 'Print', exact: true }), '.app-header')
+    await capture('Export map', page.getByRole('button', { name: 'Export map' }), '.app-header')
     await capture('Guide me', page.getByRole('button', { name: 'Guide me' }), '.form-pane')
     await capture('Full form', page.getByRole('button', { name: 'Full form' }), '.form-pane')
     await capture('Wizard Client step', page.getByRole('button', { name: 'Client', exact: true }), '.form-pane')
@@ -762,8 +762,8 @@ test.describe('extended desktop certification', () => {
     await page.getByRole('button', { name: 'Book menu' }).click()
     await capture('Open Book menu', page.getByRole('menu'), 'viewport')
     await capture(
-      'Save book menu item',
-      page.getByRole('menuitem', { name: 'Save book' }),
+      'Download book backup menu item',
+      page.getByRole('menuitem', { name: 'Download book backup' }),
       'viewport',
     )
     await assertWcag22AA(page, testInfo, 'text-spacing-book-menu')
@@ -779,7 +779,7 @@ test.describe('extended desktop certification', () => {
       }
     })
     await page.getByRole('button', { name: 'Book menu' }).click()
-    await page.getByRole('menuitem', { name: 'Save book' }).click()
+    await page.getByRole('menuitem', { name: 'Download book backup' }).click()
     const dialog = page.getByRole('dialog', { name: 'Could not save book' })
     await capture('Open save error dialog', dialog, 'viewport')
     await capture('Dialog action', dialog.getByRole('button'), 'viewport')
@@ -892,7 +892,7 @@ test.describe('extended desktop certification', () => {
     const forcedColorPaint = []
     for (const [label, control] of [
       ['Print', page.getByRole('button', { name: 'Print', exact: true })],
-      ['Save map', page.getByRole('button', { name: 'Save map', exact: true })],
+      ['Export map', page.getByRole('button', { name: 'Export map', exact: true })],
     ] as const) {
       boundaries.push(await focusBoundaryState(label, control))
       forcedColorPaint.push(await control.evaluate((element, controlLabel) => {
@@ -954,11 +954,11 @@ test.describe('extended desktop certification', () => {
     }
 
     await page.getByRole('button', { name: 'Book menu' }).click()
-    await expect(page.getByRole('menuitem', { name: 'Save book' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'Download book backup' })).toBeVisible()
     await audit(page, 'book-menu-open')
     await page.keyboard.press('Escape')
 
-    await page.getByRole('button', { name: 'Save map' }).click()
+    await page.getByRole('button', { name: 'Export map' }).click()
     await expect(page.getByRole('menuitem', { name: 'PNG image' })).toBeVisible()
     await audit(page, 'save-menu-open')
     await page.keyboard.press('Escape')
@@ -973,7 +973,7 @@ test.describe('extended desktop certification', () => {
       }
     })
     await page.getByRole('button', { name: 'Book menu' }).click()
-    await page.getByRole('menuitem', { name: 'Save book' }).click()
+    await page.getByRole('menuitem', { name: 'Download book backup' }).click()
     const dialog = page.getByRole('dialog', { name: 'Could not save book' })
     await expect(dialog).toBeVisible()
     await expect(
@@ -1034,10 +1034,10 @@ test.describe('extended desktop certification', () => {
       await openApp(stressedPage)
       await expect(stressedPage.getByText('Export paused')).toHaveCount(0)
       await expect(
-        stressedPage.getByRole('button', { name: 'Print' }),
+        stressedPage.getByRole('button', { name: 'Print', exact: true }),
       ).toBeEnabled()
-      await stressedPage.getByRole('button', { name: 'Save map' }).click()
-      for (const name of ['PNG image', 'PDF document', 'SVG image']) {
+      await stressedPage.getByRole('button', { name: 'Export map' }).click()
+      for (const name of ['PNG image', 'PDF snapshot', 'SVG image']) {
         await expect(
           stressedPage.getByRole('menuitem', { name }),
         ).toBeEnabled()

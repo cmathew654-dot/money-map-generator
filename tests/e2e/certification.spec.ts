@@ -1,4 +1,4 @@
-﻿import { expect, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { BOOK_KEY, LEGACY_BOOK_KEY, evidence, focusPage, fullForm, openApp } from './helpers'
 
 test.describe('desktop behavioral certification', () => {
@@ -6,7 +6,7 @@ test.describe('desktop behavioral certification', () => {
 
   test('untouched Whitfield keeps output controls available', async ({ page }, info) => {
     await expect(page.getByText('Export paused')).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Print' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Print', exact: true })).toBeEnabled()
     await evidence(page, info, 'whitfield-warning-free')
   })
 
@@ -41,7 +41,7 @@ test.describe('desktop behavioral certification', () => {
     await page.getByRole('button', { name: 'New', exact: true }).click()
     for (let i = 0; i < 4; i += 1) await page.getByRole('button', { name: 'Next' }).click()
     await page.getByRole('button', { name: 'Finish' }).click()
-    await expect(page.getByRole('heading', { name: 'The map is ready.' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Review the map before sharing.' })).toBeVisible()
     await evidence(page, info, 'wizard-complete')
   })
 
@@ -106,14 +106,14 @@ test.describe('desktop behavioral certification', () => {
 
   test('Save Book and map exports download', async ({ page }) => {
     await page.getByRole('button', { name: 'Book menu' }).click()
-    const book = page.waitForEvent('download'); await page.getByRole('menuitem', { name: 'Save book' }).click()
+    const book = page.waitForEvent('download'); await page.getByRole('menuitem', { name: 'Download book backup' }).click()
     expect((await book).suggestedFilename()).toBe('money-map-book.json')
     for (const [name, extension] of [
       ['PNG image', 'png'],
-      ['PDF document', 'pdf'],
+      ['PDF snapshot', 'pdf'],
       ['SVG image', 'svg'],
     ] as const) {
-      await page.getByRole('button', { name: 'Save map' }).click()
+      await page.getByRole('button', { name: 'Export map' }).click()
       const download = page.waitForEvent('download')
       await page.getByRole('menuitem', { name }).click()
       expect((await download).suggestedFilename()).toMatch(
@@ -122,6 +122,16 @@ test.describe('desktop behavioral certification', () => {
     }
   })
 
+  test('print media shows only the dedicated map', async ({ page }) => {
+    await page.emulateMedia({ media: 'print' })
+    await expect.poll(() => page.locator('.app-shell').evaluate((shell) =>
+      [...shell.children].every((child) =>
+        child.classList.contains('print-map')
+          ? getComputedStyle(child).display === 'grid'
+          : getComputedStyle(child).display === 'none',
+      ),
+    )).toBe(true)
+  })
   test('layout warnings remain diagnostic and never gate output', async ({ browser, page }, info) => {
     await page.waitForTimeout(600)
     const payload = await page.evaluate((key) => {
@@ -142,11 +152,11 @@ test.describe('desktop behavioral certification', () => {
         ;(window as Window & { __printCalls?: number }).__printCalls! += 1
       }
     })
-    await expect(stressed.getByRole('button', { name: 'Print' })).toBeEnabled()
-    await stressed.getByRole('button', { name: 'Print' }).click()
+    await expect(stressed.getByRole('button', { name: 'Print', exact: true })).toBeEnabled()
+    await stressed.getByRole('button', { name: 'Print', exact: true }).click()
     await expect.poll(() => stressed.evaluate(() => (window as Window & { __printCalls?: number }).__printCalls)).toBe(1)
-    await stressed.getByRole('button', { name: 'Save map' }).click()
-    for (const name of ['PNG image', 'PDF document', 'SVG image']) {
+    await stressed.getByRole('button', { name: 'Export map' }).click()
+    for (const name of ['PNG image', 'PDF snapshot', 'SVG image']) {
       await expect(stressed.getByRole('menuitem', { name })).toBeEnabled()
     }
     await evidence(stressed, info, 'layout-warning-diagnostics')
@@ -157,7 +167,7 @@ test.describe('desktop behavioral certification', () => {
     test.skip(info.project.name !== 'chromium-text-zoom-200', 'Dedicated zoom project')
     await page.evaluate(() => { document.body.style.zoom = '200%' })
     await expect(page.getByRole('button', { name: 'Full form' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Print' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Print', exact: true })).toBeVisible()
     await evidence(page, info, 'text-zoom-200')
   })
 })

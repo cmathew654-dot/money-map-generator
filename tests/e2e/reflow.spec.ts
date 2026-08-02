@@ -30,7 +30,7 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
   const editor = page.locator('.form-pane')
   const preview = page.locator('.preview-pane')
 
-  await page.getByRole('button', { name: 'Save map' }).click()
+  await page.getByRole('button', { name: 'Export map' }).click()
   const saveMenu = page.locator('.save-menu-trigger + .menu-popover')
   await expect(saveMenu).toBeVisible()
   const saveMenuState = await saveMenu.evaluate((element) => {
@@ -155,7 +155,7 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
   const clippedHeaderLabels = headerLabelDiagnostics.labels.filter(({ clipped }) => clipped)
 
   await page.getByRole('button', { name: 'Full form' }).click()
-  const shownAs = page.getByLabel('Shown as').first()
+  const shownAs = page.getByLabel('Amount note').first()
   await shownAs.fill('Gross, After-Tax')
   const shownAsMetrics = await shownAs.evaluate((element: HTMLInputElement) => {
     const style = getComputedStyle(element)

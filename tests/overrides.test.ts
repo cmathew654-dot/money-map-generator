@@ -4,6 +4,7 @@ import {
   layoutMap,
   MIN_ACCOUNT_HEIGHT,
   MIN_ACCOUNT_WIDTH,
+  OVERRIDE_BOUNDS,
   pointOnOutline,
   rotatedBounds,
 } from '../src/layout/layout'
@@ -418,7 +419,11 @@ describe('layout overrides', () => {
 
     expect(asNeeded.startT).toBe(0)
     expect(asNeeded.endT).toBe(1)
-    expect(asNeeded.bow).toBeCloseTo(chordLength / 2)
+    expect(Math.abs(asNeeded.bow)).toBeLessThanOrEqual(chordLength / 2)
+    expect(asNeeded.control.x).toBeGreaterThanOrEqual(OVERRIDE_BOUNDS.left)
+    expect(asNeeded.control.x).toBeLessThanOrEqual(OVERRIDE_BOUNDS.right)
+    expect(asNeeded.control.y).toBeGreaterThanOrEqual(OVERRIDE_BOUNDS.top)
+    expect(asNeeded.control.y).toBeLessThanOrEqual(OVERRIDE_BOUNDS.bottom)
     expect(income).toMatchObject({
       bow: -72,
       startT: 0.35,

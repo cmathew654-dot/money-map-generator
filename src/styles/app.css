@@ -264,7 +264,7 @@ summary:focus-visible {
 
 .menu-popover {
   position: absolute;
-  z-index: 20;
+  z-index: 40;
   top: calc(100% + 7px);
   left: 0;
   min-width: 210px;
@@ -1718,6 +1718,10 @@ summary:focus-visible {
 
 /* S40 storage states */
 .app-status-stack{position:fixed;z-index:30;top:54px;right:18px;display:grid;width:min(620px,calc(100vw - 36px));gap:7px;pointer-events:none}.app-status-banner{display:flex;align-items:center;gap:10px;border:1px solid #9ba49d;border-radius:4px;padding:8px 10px;background:#f7f5ed;box-shadow:0 5px 18px rgb(28 36 34 / 16%);font-size:12px;pointer-events:auto}.app-status-banner strong{font-family:'Literata',Georgia,serif}.app-status-banner span{flex:1}.app-status-banner button{background:transparent;color:inherit}.app-status-banner.is-demo{border-color:#155f4a;background:#eef5ef;color:#174b3d}.app-status-banner.is-warning{border-color:#a97812;background:#fff6d9;color:#654806}.app-status-banner.is-danger{border-color:#9f3d2f;background:#fff0eb;color:#792d23}
+
+.app-shell:has(.map-inspector) .app-status-stack {
+  top: 160px;
+}
 
 @media (max-width: 900px) {
   html,

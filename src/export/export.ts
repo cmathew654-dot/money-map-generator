@@ -2,9 +2,10 @@ import literataItalic from '../fonts/literata-latin-wght-italic.woff2'
 import literataNormal from '../fonts/literata-latin-wght-normal.woff2'
 import publicSansItalic from '../fonts/public-sans-latin-wght-italic.woff2'
 import publicSansNormal from '../fonts/public-sans-latin-wght-normal.woff2'
+import { bucketDisplayName, money, moneyPer } from '../model/format'
 import { parseBook } from '../model/book'
-import type { MoneyMapFile } from '../model/types'
-import { buildPdf } from './pdf'
+import type { MoneyMapData, MoneyMapFile } from '../model/types'
+import { buildPdf, type PdfMetadata } from './pdf'
 
 const ARTBOARD_WIDTH = 1320
 const ARTBOARD_HEIGHT = 1020
@@ -24,6 +25,79 @@ function cleanFileNamePart(value: string): string {
     .replace(/[\\/:*?"<>|]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+export function moneyMapAlternativeText(data: MoneyMapData): string {
+  const lines = [
+    'Money Map for ' + (data.client.title || 'Untitled client') + ', ' + data.client.year + '.',
+    'Income sources:',
+    ...data.incomeSources.map(
+      (source) =>
+        source.label + ': ' + moneyPer(source.amount, source.period) +
+        (source.qualifier ? ' (' + source.qualifier + ').' : ''),
+    ),
+    'After-tax income: ' + money(data.afterTaxIncome) + '.',
+    'Monthly need: ' + money(data.monthlyNeed) +
+      (data.needTag ? ' (' + data.needTag + ')' : '') + '.',
+    'Accounts:',
+  ]
+  for (const account of data.accounts) {
+    lines.push(
+      bucketDisplayName(account.bucket) + ' — ' +
+        (account.label || 'Unnamed account') + ': ' + money(account.value) +
+        (account.valueTag ? ' (' + account.valueTag + ')' : '') + '.',
+    )
+    if (account.caption) lines.push('Supporting note: ' + account.caption + '.')
+    for (const position of account.positions ?? []) {
+      lines.push('Position: ' + position.label + ': ' + money(position.value) + '.')
+    }
+    for (const subAccount of account.subAccounts ?? []) {
+      lines.push(
+        'Subaccount: ' + subAccount.label + ': ' + money(subAccount.value) +
+          (subAccount.caption ? '. Supporting note: ' + subAccount.caption : '') + '.',
+      )
+    }
+  }
+  const endpointLabel = (id: string) =>
+    id === 'income'
+      ? 'Income sources'
+      : id === 'need'
+        ? 'Monthly need'
+        : data.accounts.find((account) => account.id === id)?.label ??
+          'Unknown item'
+  lines.push('Flows:')
+  if (!data.hiddenArrows?.includes('income')) {
+    lines.push('Flow from Income sources to Monthly need.')
+  }
+  const shortTerm = data.accounts.find(
+    (account) => account.bucket === 'shortTerm',
+  )
+  if (shortTerm && !data.hiddenArrows?.includes('asNeeded')) {
+    lines.push(
+      'Flow from ' + shortTerm.label + ' to Monthly need: ' +
+        money(data.asNeededAmount) + ' as needed.',
+    )
+  }
+  for (const flow of data.customArrows ?? []) {
+    lines.push(
+      'Flow from ' + endpointLabel(flow.sourceId) + ' to ' +
+        endpointLabel(flow.targetId) + (flow.label ? ': ' + flow.label : '') + '.',
+    )
+  }
+  if (data.notes?.length) {
+    lines.push('Map notes:', ...data.notes.map((note) => note.text))
+  }
+  if (data.footnotes.length) {
+    lines.push(
+      'Footnotes:',
+      ...data.footnotes.map(
+        (footnote) =>
+          footnote.label + ': gross ' + money(footnote.gross) +
+          '; net ' + money(footnote.net) + '.',
+      ),
+    )
+  }
+  return lines.join('\n')
 }
 
 export function mapFileName(
@@ -244,13 +318,14 @@ export async function exportSvg(
 export async function exportPdf(
   svg: SVGSVGElement,
   fileName: string,
+  metadata?: PdfMetadata,
 ): Promise<void> {
   const canvas = await renderMapCanvas(svg)
   const jpeg = jpegBytesFromDataUrl(
     canvas.toDataURL('image/jpeg', 0.92),
   )
   downloadBlob(
-    new Blob([buildPdf(jpeg, canvas.width, canvas.height)], {
+    new Blob([buildPdf(jpeg, canvas.width, canvas.height, metadata)], {
       type: 'application/pdf',
     }),
     fileName,

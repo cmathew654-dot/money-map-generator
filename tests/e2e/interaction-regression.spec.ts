@@ -74,9 +74,9 @@ async function spawnPreset(
   const beforeIds = new Set(
     (await currentClient(page)).accounts.map((account) => account.id),
   )
-  await page.getByRole('button', { name: '+ Shape', exact: true }).click()
+  await page.getByRole('button', { name: '+ Account', exact: true }).click()
   await page
-    .getByLabel('Add blank shape')
+    .getByLabel('Add account')
     .getByRole('button', { name: button, exact: true })
     .click()
 
@@ -317,7 +317,7 @@ test.describe('approved desktop interaction regression', () => {
 
     await sourceLabel.click()
     await editor.fill('Blurred Source Rename')
-    await page.getByRole('button', { name: '+ Shape', exact: true }).click()
+    await page.getByRole('button', { name: '+ Account', exact: true }).click()
     await page.keyboard.press('Escape')
     await expect
       .poll(async () =>
@@ -361,7 +361,7 @@ test.describe('approved desktop interaction regression', () => {
 
     await clickBlankAccountBody(source)
     await expect(sourceControls).toBeVisible()
-    await sourceControls.getByLabel('Connect to').selectOption(targetId)
+    await sourceControls.getByLabel('Add flow to').selectOption(targetId)
     await expect
       .poll(async () => {
         const arrows = (await currentClient(page)).customArrows ?? []
@@ -384,7 +384,7 @@ test.describe('approved desktop interaction regression', () => {
     page,
   }) => {
     await fullForm(page)
-    const asNeeded = page.getByLabel('Draw from Short-Term Bucket')
+    const asNeeded = page.getByLabel('Monthly account withdrawal', { exact: true })
     const noisyValue = '$999,999,999,999.49'
     await asNeeded.fill(noisyValue)
     await asNeeded.press('Tab')
@@ -430,7 +430,7 @@ test.describe('approved desktop interaction regression', () => {
       await expect(compactAmount).toBeVisible()
     await expect(compactAmount).toHaveText('$1T')
       await expect(
-        page.getByRole('button', { name: '+ Shape', exact: true }),
+        page.getByRole('button', { name: '+ Account', exact: true }),
       ).toBeVisible()
       await expect(
         page.getByRole('button', { name: '+ Note', exact: true }),
@@ -446,7 +446,7 @@ test.describe('approved desktop interaction regression', () => {
     await clickBlankAccountBody(account)
     const accountControls = page.locator('.map-inspector')
     await expect(accountControls).toBeVisible()
-    for (const label of ['Shape', 'Connect to', 'Move', 'Size', 'Rotate']) {
+    for (const label of ['Shape', 'Add flow to', 'Move', 'Size', 'Rotate']) {
       await expect(accountControls.getByLabel(label, { exact: true })).toBeVisible()
     }
     const [inspectorBox, mapBox, transform] = await Promise.all([
@@ -461,7 +461,7 @@ test.describe('approved desktop interaction regression', () => {
     await page.getByRole('button', { name: 'Present' }).click()
     await expect(page.locator('.app-shell')).toHaveClass(/is-presenting/)
     await expect(
-      page.getByRole('button', { name: '+ Shape', exact: true }),
+      page.getByRole('button', { name: '+ Account', exact: true }),
     ).toHaveCount(0)
     await expect(
       page.getByRole('button', { name: '+ Note', exact: true }),
@@ -473,7 +473,7 @@ test.describe('approved desktop interaction regression', () => {
     await page.keyboard.press('Escape')
     await expect(page.locator('.app-shell')).not.toHaveClass(/is-presenting/)
     await expect(
-      page.getByRole('button', { name: '+ Shape', exact: true }),
+      page.getByRole('button', { name: '+ Account', exact: true }),
     ).toBeVisible()
   })
 })
