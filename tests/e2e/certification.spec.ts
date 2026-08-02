@@ -33,8 +33,14 @@ test.describe('desktop behavioral certification', () => {
     const field = page.locator('.money-input').first()
     const original = await field.inputValue()
     await field.fill('92000'); await field.press('Tab')
-    await page.keyboard.press('ControlOrMeta+z'); await expect(field).toHaveValue(original)
-    await page.keyboard.press('ControlOrMeta+Shift+z'); await expect(field).toHaveValue(/92,?000|\$92,?000/)
+    const undo = page.getByRole('button', { name: 'Undo', exact: true })
+    await expect(undo).toBeEnabled()
+    await undo.click()
+    await expect(field).toHaveValue(original)
+    const redo = page.getByRole('button', { name: 'Redo', exact: true })
+    await expect(redo).toBeEnabled()
+    await redo.click()
+    await expect(field).toHaveValue(/92,?000|\$92,?000/)
   })
 
   test('new client completes the wizard', async ({ page }, info) => {

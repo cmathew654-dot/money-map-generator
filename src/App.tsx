@@ -497,8 +497,8 @@ export default function App() {
       if (
         document.visibilityState !== 'visible' ||
         !document.hasFocus() ||
-        isWriter ||
-        writerTakeoverPending ||
+        currentBrowserWriter(localStorage) === tabId ||
+        writerTakeoverTimerRef.current !== null ||
         writerFocusRequestedRef.current
       ) return
       writerFocusRequestedRef.current = true
@@ -514,7 +514,7 @@ export default function App() {
       window.removeEventListener('focus', requestOnFocus)
       window.removeEventListener('blur', resetFocusRequest)
     }
-  }, [isWriter, requestBrowserWriterTakeover, writerTakeoverPending])
+  }, [requestBrowserWriterTakeover, tabId])
   useEffect(() => {
     if (DATA_MODE !== 'real' || !isWriter || recovery) return
     setBrowserSaveStatus('saving'); const timeout = window.setTimeout(flushBrowserSave, 400)
