@@ -2365,6 +2365,7 @@ export function MapSvg({
     }
     dragRef.current = null
     setDragging(false)
+    setPreviewData(null)
     setSnapping(null)
     if (!session.active) return
 
