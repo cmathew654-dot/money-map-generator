@@ -415,10 +415,10 @@ export default function App() {
   }, [fileStoreSupported])
 
   const flushBrowserSave = useCallback(() => {
-    if (DATA_MODE !== 'real' || !isWriter || recovery || currentBrowserWriter(localStorage) !== tabId) return
+    if (DATA_MODE !== 'real' || recovery || currentBrowserWriter(localStorage) !== tabId) return
     const error = saveBrowserBook(localStorage, snapshotRef.current.book)
     setBrowserSaveStatus(error ? 'error' : 'saved'); setBrowserSaveError(error ?? '')
-  }, [isWriter, recovery, tabId])
+  }, [recovery, tabId])
   const clearWriterTakeoverTimer = useCallback(() => {
     if (writerTakeoverTimerRef.current === null) return
     window.clearTimeout(writerTakeoverTimerRef.current)
@@ -539,7 +539,7 @@ export default function App() {
       }
     }
     const storage = (event: StorageEvent) => {
-      if (event.key === WRITER_TAKEOVER_REQUEST_KEY && event.newValue && isWriter && currentBrowserWriter(localStorage) === tabId) {
+      if (event.key === WRITER_TAKEOVER_REQUEST_KEY && event.newValue && currentBrowserWriter(localStorage) === tabId) {
         try {
           const request = JSON.parse(event.newValue) as { requester?: unknown }
           if (typeof request.requester === 'string' && request.requester !== tabId) {
@@ -570,7 +570,7 @@ export default function App() {
     }
     window.addEventListener('pagehide', handlePageHide); window.addEventListener('beforeunload', handlePageHide); window.addEventListener('pageshow', handlePageShow); document.addEventListener('visibilitychange', hidden); window.addEventListener('storage', storage)
     return () => { window.removeEventListener('pagehide', handlePageHide); window.removeEventListener('beforeunload', handlePageHide); window.removeEventListener('pageshow', handlePageShow); document.removeEventListener('visibilitychange', hidden); window.removeEventListener('storage', storage) }
-  }, [finishBrowserWriterTakeover, flushBrowserSave, isWriter, showHistory, showSnapshot, tabId])
+  }, [finishBrowserWriterTakeover, flushBrowserSave, showHistory, showSnapshot, tabId])
 
   useEffect(
     () => () => {
