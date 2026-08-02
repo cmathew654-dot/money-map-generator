@@ -62,7 +62,7 @@ test.describe('adversarial remediation', () => {
   })
 
   test('keeps selected flow controls accessible and touch-sized', async ({ page }) => {
-    const flow = page.getByRole('group', { name: 'Adjust income arrow' })
+    const flow = page.getByRole('group', { name: 'Adjust income flow' })
     await flow.focus()
     const inspector = page.locator('.map-inspector')
     await expect(inspector).toBeVisible()

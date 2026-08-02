@@ -16,6 +16,7 @@ import {
   incomeTotalTextLayout,
   incomeTextSizes,
   layoutMap,
+  layoutOverrideRect,
   mapTextOffset,
   mastheadTextLayout,
   mastheadTitleFontSize,
@@ -72,11 +73,13 @@ import {
   moveCustomArrowLabel,
   moveMapNote,
   retargetCustomArrow,
+  snapRectToAlignment,
   snapRotation,
   screenDeltaToArtboard,
   screenPointToArtboard,
   signedPerpendicularOffset,
   withOverride,
+  type AlignmentSnap,
   type Point,
   type TransformMatrix,
 } from './mapInteraction'
@@ -132,6 +135,7 @@ export type MapElementTarget =
       color?: string
       edit: MapTextEditTarget
       rect: MapTextEditRect
+      anchorRect?: MapTextEditRect
     }
 
 interface MapSvgProps {
@@ -175,6 +179,7 @@ interface DragSession {
   startOutline?: OutlineElement
   startPlaced?: Placed
   startScreen: Point
+  startedAt: number
 }
 
 type TextPointerDown = (
@@ -199,7 +204,6 @@ function interactiveGroupProps(
     'aria-label': label,
     onClick: activate,
     role: 'group',
-    style: { cursor: 'pointer' },
     tabIndex: 0,
   }
 }
@@ -221,6 +225,7 @@ function editableTextProps(
       color: getComputedStyle(target).fill,
       edit,
       rect: { left, top, width, height },
+      anchorRect: editShapeAnchorRect(target),
     })
   }
   return {
@@ -249,6 +254,15 @@ function editableTextProps(
     role: 'button',
     tabIndex: 0,
   }
+}
+
+function editShapeAnchorRect(
+  element: SVGGraphicsElement,
+): MapTextEditRect | undefined {
+  const shape = element.closest<SVGGraphicsElement>('g[data-map-target]')
+  if (!shape) return undefined
+  const { left, top, width, height } = shape.getBoundingClientRect()
+  return { left, top, width, height }
 }
 
 function editableLineTextProps(
@@ -304,6 +318,7 @@ function editableHitAreaProps(
       color: target ? getComputedStyle(target).fill : undefined,
       edit,
       rect: { left, top, width, height },
+      anchorRect: editShapeAnchorRect(target ?? element),
     })
   }
   return {
@@ -1648,7 +1663,7 @@ function FlowArrowLabel({
       )}
       aria-label={
         onElementClick
-          ? `Edit flow label: ${text.exact}`
+          ? `Edit transfer description: ${text.exact}`
           : text.exact
       }
       className={`map-flow-label${
@@ -1661,6 +1676,7 @@ function FlowArrowLabel({
 }
 
 function ArrowEditor({
+  accessibleName,
   arrow,
   customMarkerIds,
   markerId,
@@ -1670,6 +1686,7 @@ function ArrowEditor({
   selected,
   targetKey,
 }: {
+  accessibleName: string
   arrow: Arrow
   customMarkerIds: Record<CustomArrowColor, string>
   markerId: string
@@ -1688,7 +1705,7 @@ function ArrowEditor({
   }
   return (
     <g
-      aria-label={`Adjust ${arrow.kind} arrow`}
+      aria-label={accessibleName}
       aria-keyshortcuts={
         arrow.kind === 'custom'
           ? 'Control+ArrowLeft Control+ArrowRight'
@@ -1766,7 +1783,7 @@ function AsNeededLabel({
   if (!arrow.labelAt) return null
   const amountText = mapMoney(amount, 10)
   const accessibleLabel =
-    'Monthly Income as Needed ' + amountText.exact
+    'Monthly income drawn as needed ' + amountText.exact
   return (
     <g
       aria-label={accessibleLabel}
@@ -1776,18 +1793,19 @@ function AsNeededLabel({
     >
       <title>{accessibleLabel}</title>
       <rect
-        x={arrow.labelAt.x - 125}
+        x={arrow.labelAt.x - 94}
         y={arrow.labelAt.y - 19}
-        width={250}
+        width={188}
         height={38}
-        rx={8}
+        rx={19}
         fill="#ffffff"
-        stroke={HAIRLINE}
+        stroke={FLOW_GREEN}
+        strokeDasharray="5 4"
       />
       <rect
-        x={arrow.labelAt.x - 118}
+        x={arrow.labelAt.x - 87}
         y={arrow.labelAt.y - 15}
-        width={236}
+        width={174}
         height={30}
         {...editableHitAreaProps(
           { kind: 'asNeededAmount' },
@@ -1806,7 +1824,7 @@ function AsNeededLabel({
           onElementClick,
         )}
       >
-        Monthly Income as Needed
+        As needed
         <tspan
           dx={7}
           fontFamily={FONT_SERIF}
@@ -2038,6 +2056,7 @@ export function MapSvg({
     null,
   )
   const [dragging, setDragging] = useState(false)
+  const [snapping, setSnapping] = useState<AlignmentSnap | null>(null)
   const [localSelectedTargetKey, setLocalSelectedTargetKey] = useState<
     string | null
   >(null)
@@ -2056,6 +2075,18 @@ export function MapSvg({
   const displayData = previewData ?? data
   const layout = layoutMap(displayData)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
+  const alignmentRectsFor = (key: string) => {
+    const asNeededChip = layoutOverrideRect(displayData, 'asNeededChip')
+    return [
+      { key: 'income', rect: layout.income },
+      { key: 'need', rect: layout.need },
+      ...layout.accounts.map((rect) => ({ key: rect.account.id, rect })),
+      ...layout.notes.map((rect) => ({ key: rect.note.id, rect })),
+      { key: 'asNeededChip', rect: asNeededChip },
+    ].flatMap((candidate) =>
+      candidate.key === key || !candidate.rect ? [] : [candidate.rect],
+    )
+  }
   const outlineForId = (endpointId: string | undefined) =>
     endpointId === 'income'
       ? layout.income
@@ -2064,6 +2095,12 @@ export function MapSvg({
         : layout.accounts.find(
             (placed) => placed.account.id === endpointId,
           )
+  const endpointLabelForId = (endpointId: string | undefined) => {
+    if (endpointId === 'income') return 'Income sources'
+    if (endpointId === 'need') return 'Monthly need'
+    const account = data.accounts.find((candidate) => candidate.id === endpointId)
+    return account ? accountDisplayName(account) : 'Map item'
+  }
 
   const beginDrag = (
     key: string,
@@ -2077,6 +2114,10 @@ export function MapSvg({
     event.stopPropagation()
     const screenCtm = svgRef.current?.getScreenCTM()
     if (!screenCtm) return
+    const dragStartPlaced =
+      mode === 'move'
+        ? layoutOverrideRect(data, key) ?? startPlaced
+        : startPlaced
 
     dragRef.current = {
       active: false,
@@ -2088,14 +2129,16 @@ export function MapSvg({
       pointerId: event.pointerId,
       startArrow,
       startOutline,
-      startPlaced,
+      startPlaced: dragStartPlaced,
       startScreen: { x: event.clientX, y: event.clientY },
+      startedAt: performance.now(),
     }
   }
   const cancelDrag = () => {
     dragRef.current = null
     setDragging(false)
     setPreviewData(null)
+    setSnapping(null)
   }
   const previewDrag = (event: PointerEvent<SVGSVGElement>) => {
     const session = dragRef.current
@@ -2105,8 +2148,11 @@ export function MapSvg({
       !session.active &&
       (session.mode === 'textMove' ||
       session.mode === 'flowLabelMove'
-        ? accountTextPointerAction(session.startScreen, currentScreen) ===
-          'edit'
+        ? accountTextPointerAction(
+            session.startScreen,
+            currentScreen,
+            performance.now() - session.startedAt,
+          ) === 'edit'
         : !crossedDragThreshold(session.startScreen, currentScreen))
     ) {
       return
@@ -2166,7 +2212,43 @@ export function MapSvg({
         },
         OVERRIDE_BOUNDS,
       )
-      const nextData = moveMapNote(data, session.key, clamped.x, clamped.y)
+      const snapped = snapRectToAlignment(
+        clamped,
+        alignmentRectsFor(session.key),
+        6,
+        event.altKey,
+      )
+      setSnapping(snapped.x || snapped.y ? snapped : null)
+      const nextData = moveMapNote(
+        data,
+        session.key,
+        snapped.rect.x,
+        snapped.rect.y,
+      )
+      session.latestData = nextData
+      setPreviewData(nextData)
+      return
+    }
+    if (session.mode === 'move' && session.startPlaced) {
+      const clamped = clampRectToBounds(
+        {
+          ...session.startPlaced,
+          x: session.startPlaced.x + delta.x,
+          y: session.startPlaced.y + delta.y,
+        },
+        OVERRIDE_BOUNDS,
+      )
+      const snapped = snapRectToAlignment(
+        clamped,
+        alignmentRectsFor(session.key),
+        6,
+        event.altKey,
+      )
+      setSnapping(snapped.x || snapped.y ? snapped : null)
+      const nextData = nudgeLayoutOverride(data, session.key, {
+        x: snapped.rect.x - session.startPlaced.x,
+        y: snapped.rect.y - session.startPlaced.y,
+      })
       session.latestData = nextData
       setPreviewData(nextData)
       return
@@ -2272,6 +2354,7 @@ export function MapSvg({
     }
     dragRef.current = null
     setDragging(false)
+    setSnapping(null)
     if (!session.active) return
 
     event.preventDefault()
@@ -2512,6 +2595,11 @@ export function MapSvg({
                   )
           return (
             <ArrowEditor
+              accessibleName={
+                arrow.kind === 'custom'
+                  ? `Adjust flow from ${endpointLabelForId(arrow.sourceId)} to ${endpointLabelForId(arrow.targetId)}`
+                  : `Adjust ${arrow.kind === 'asNeeded' ? 'account withdrawal' : arrow.kind} flow`
+              }
               key={`${arrow.kind}-${arrow.id ?? index}`}
               arrow={arrow}
               customMarkerIds={customMarkerIds}
@@ -2752,6 +2840,46 @@ export function MapSvg({
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
       />
+      {onChange && dragging && snapping && (
+        <g
+          aria-hidden="true"
+          className="map-alignment-guides"
+          pointerEvents="none"
+        >
+          {snapping.x && (
+            <line
+              data-map-alignment-guide="x"
+              stroke={MUTED}
+              strokeDasharray="4 4"
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+              x1={snapping.x.value}
+              x2={snapping.x.value}
+              y1={Math.min(snapping.rect.y, snapping.x.rect.y) - 24}
+              y2={Math.max(
+                snapping.rect.y + snapping.rect.h,
+                snapping.x.rect.y + snapping.x.rect.h,
+              ) + 24}
+            />
+          )}
+          {snapping.y && (
+            <line
+              data-map-alignment-guide="y"
+              stroke={MUTED}
+              strokeDasharray="4 4"
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+              x1={Math.min(snapping.rect.x, snapping.y.rect.x) - 24}
+              x2={Math.max(
+                snapping.rect.x + snapping.rect.w,
+                snapping.y.rect.x + snapping.y.rect.w,
+              ) + 24}
+              y1={snapping.y.value}
+              y2={snapping.y.value}
+            />
+          )}
+        </g>
+      )}
     </svg>
   )
 }

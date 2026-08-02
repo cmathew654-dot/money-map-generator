@@ -180,6 +180,8 @@ jobs:
             /usr/bin/safaridriver --version
           } | tee test-results/certification/macos-environment.txt
       - name: macOS Chrome and WebKit matrix
+        id: canonical
+        continue-on-error: true
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/macos-canonical.xml
         run: >-
@@ -196,6 +198,8 @@ jobs:
           --reporter=line,junit
           --output=test-results/e2e/macos-canonical
       - name: macOS reflow proxy
+        id: reflow
+        continue-on-error: true
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/macos-reflow.xml
         run: >-
@@ -205,6 +209,8 @@ jobs:
           --reporter=line,junit
           --output=test-results/e2e/macos-reflow
       - name: macOS extended certification
+        id: extended
+        continue-on-error: true
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/certification/macos-extended.xml
         run: >-
@@ -214,6 +220,8 @@ jobs:
           --reporter=line,junit
           --output=test-results/e2e/macos-extended
       - name: Native Safari smoke and file round-trip
+        id: native
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -258,6 +266,15 @@ jobs:
           ARTIFACT_DIR=test-results/safari-native \
           DOWNLOAD_DIR="${HOME}/Downloads" \
           node tests/e2e/safari-native.mjs
+      - name: Require every macOS certification group
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test '${{ steps.canonical.outcome }}' = success
+          test '${{ steps.reflow.outcome }}' = success
+          test '${{ steps.extended.outcome }}' = success
+          test '${{ steps.native.outcome }}' = success
       - if: always()
         uses: actions/upload-artifact@v4
         with:

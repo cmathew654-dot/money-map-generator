@@ -64,6 +64,7 @@ export interface ActiveMapTextEdit {
   color?: string
   target: MapTextEditTarget
   rect: MapTextEditRect
+  anchorRect?: MapTextEditRect
   rawValue: string
   fontSize?: number
   fontSizeMax?: number
@@ -645,14 +646,14 @@ export function applyMapTextEdit(
 export function mapTextEditorTargetLabel(target: MapTextEditTarget): string {
   if (target.kind === 'mastheadLabel') return 'map heading'
   if (target.kind === 'accountLabel') return 'account name'
-  if (target.kind === 'accountCaption') return 'account supporting note'
-  if (target.kind === 'accountRows') return 'position rows'
-  if (target.kind === 'accountSub') return 'sub-account text'
-  if (target.kind === 'accountPositionLabel') return 'position label'
-  if (target.kind === 'accountPositionValue') return 'position value'
-  if (target.kind === 'accountSubLabel') return 'sub-account label'
-  if (target.kind === 'accountSubCaption') return 'sub-account supporting note'
-  if (target.kind === 'accountSubValue') return 'sub-account value'
+  if (target.kind === 'accountCaption') return 'account description'
+  if (target.kind === 'accountRows') return 'investment details'
+  if (target.kind === 'accountSub') return 'nested account details'
+  if (target.kind === 'accountPositionLabel') return 'investment name'
+  if (target.kind === 'accountPositionValue') return 'investment amount'
+  if (target.kind === 'accountSubLabel') return 'nested account name'
+  if (target.kind === 'accountSubCaption') return 'nested account description'
+  if (target.kind === 'accountSubValue') return 'nested account amount'
   if (target.kind === 'incomeHeader') return 'income heading'
   if (target.kind === 'incomeAmount') return 'income source amount'
   if (target.kind === 'afterTaxIncome') return 'after-tax income'
@@ -660,7 +661,7 @@ export function mapTextEditorTargetLabel(target: MapTextEditTarget): string {
   if (target.kind === 'monthlyNeed') return 'monthly amount needed'
   if (target.kind === 'footnoteText') return 'fine print'
   if (target.kind === 'asNeededAmount') return 'monthly account withdrawal'
-  if (target.kind === 'flowLabel') return 'flow label'
+  if (target.kind === 'flowLabel') return 'transfer description'
   if (target.kind === 'noteText') return 'map note'
   return 'account value'
 }
@@ -730,9 +731,21 @@ export function MapTextEditor({
     width: Math.max(edit.rect.width, 24),
   }
   const pillButtonCount = edit.fontSize === undefined ? 1 : 3
+  const pillAnchor = edit.anchorRect
+    ? {
+        left: edit.rect.left,
+        width: edit.rect.width,
+        top: Math.min(edit.anchorRect.top, edit.rect.top),
+        height:
+          Math.max(
+            edit.anchorRect.top + edit.anchorRect.height,
+            edit.rect.top + edit.rect.height,
+          ) - Math.min(edit.anchorRect.top, edit.rect.top),
+      }
+    : edit.rect
   const pillScreenPosition = mapTextEditorPillPosition(
-    edit.rect,
-    mapRect?.top ?? edit.rect.top,
+    pillAnchor,
+    mapRect?.top ?? pillAnchor.top,
     pillButtonCount * 36,
   )
   const pillStyle: CSSProperties = {

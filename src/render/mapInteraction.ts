@@ -5,7 +5,11 @@ import type {
   MapNote,
   MoneyMapData,
 } from '../model/types'
-import { newId } from '../model/types'
+import {
+  ACCOUNT_TEXT_ROLES,
+  accountTextOverrideKey,
+  newId,
+} from '../model/types'
 
 export interface Point {
   x: number
@@ -28,6 +32,23 @@ export interface Rect {
   h: number
 }
 
+export interface AlignmentGuide {
+  axis: 'x' | 'y'
+  rect: Rect
+  value: number
+}
+
+export interface AlignmentMatch {
+  delta: number
+  guide: AlignmentGuide
+}
+
+export interface AlignmentSnap {
+  rect: Rect
+  x?: AlignmentGuide
+  y?: AlignmentGuide
+}
+
 export interface RectBounds {
   left: number
   top: number
@@ -36,6 +57,79 @@ export interface RectBounds {
 }
 
 export const DRAG_THRESHOLD_PX = 4
+const ARTBOARD_CENTER_X = 660
+
+export function alignmentGuides(
+  rects: readonly Rect[],
+  artboardCenterX = ARTBOARD_CENTER_X,
+): AlignmentGuide[] {
+  return [
+    ...rects.flatMap((rect) => [
+      { axis: 'x' as const, rect, value: rect.x },
+      { axis: 'x' as const, rect, value: rect.x + rect.w / 2 },
+      { axis: 'x' as const, rect, value: rect.x + rect.w },
+      { axis: 'y' as const, rect, value: rect.y },
+      { axis: 'y' as const, rect, value: rect.y + rect.h / 2 },
+      { axis: 'y' as const, rect, value: rect.y + rect.h },
+    ]),
+    {
+      axis: 'x',
+      rect: { x: artboardCenterX, y: 0, w: 0, h: 1020 },
+      value: artboardCenterX,
+    },
+  ]
+}
+
+export function nearestAlignmentMatch(
+  rect: Rect,
+  axis: 'x' | 'y',
+  guides: readonly AlignmentGuide[],
+  radius: number,
+): AlignmentMatch | undefined {
+  const anchors =
+    axis === 'x'
+      ? [rect.x, rect.x + rect.w / 2, rect.x + rect.w]
+      : [rect.y, rect.y + rect.h / 2, rect.y + rect.h]
+  let closest: AlignmentMatch | undefined
+
+  for (const guide of guides) {
+    if (guide.axis !== axis) continue
+    for (const anchor of anchors) {
+      const delta = guide.value - anchor
+      if (
+        Math.abs(delta) <= radius &&
+        (!closest || Math.abs(delta) < Math.abs(closest.delta))
+      ) {
+        closest = { delta, guide }
+      }
+    }
+  }
+
+  return closest
+}
+
+export function snapRectToAlignment(
+  rect: Rect,
+  otherRects: readonly Rect[],
+  radius: number,
+  bypass = false,
+): AlignmentSnap {
+  if (bypass) return { rect }
+
+  const guides = alignmentGuides(otherRects)
+  const x = nearestAlignmentMatch(rect, 'x', guides, radius)
+  const y = nearestAlignmentMatch(rect, 'y', guides, radius)
+
+  return {
+    rect: {
+      ...rect,
+      x: rect.x + (x?.delta ?? 0),
+      y: rect.y + (y?.delta ?? 0),
+    },
+    x: x?.guide,
+    y: y?.guide,
+  }
+}
 
 function isArrowEndpoint(data: MoneyMapData, id: string): boolean {
   return (
@@ -214,6 +308,97 @@ export function addMapNote(
   }
 }
 
+function duplicatePlacement(
+  sourceRect: Rect,
+  blockedRects: readonly Rect[],
+  bounds: RectBounds,
+): Rect {
+  const forward = clampRectToBounds(
+    { ...sourceRect, x: sourceRect.x + 24, y: sourceRect.y + 24 },
+    bounds,
+  )
+  const blocked =
+    forward.x !== sourceRect.x + 24 ||
+    forward.y !== sourceRect.y + 24 ||
+    blockedRects.some((rect) =>
+      forward.x < rect.x + rect.w &&
+      forward.x + forward.w > rect.x &&
+      forward.y < rect.y + rect.h &&
+      forward.y + forward.h > rect.y,
+    )
+  return blocked
+    ? clampRectToBounds(
+        { ...sourceRect, x: sourceRect.x - 24, y: sourceRect.y - 24 },
+        bounds,
+      )
+    : forward
+}
+
+export function duplicateMapAccount(
+  data: MoneyMapData,
+  id: string,
+  sourceRect: Rect,
+  blockedRects: readonly Rect[],
+  bounds: RectBounds,
+): { data: MoneyMapData; rect: Rect; targetKey: string } | null {
+  const account = data.accounts.find((candidate) => candidate.id === id)
+  if (!account) return null
+  const placed = duplicatePlacement(sourceRect, blockedRects, bounds)
+  const copyId = newId('account')
+  const sourceOverride = data.layoutOverrides?.[id] ?? {}
+  const visualOverride = { ...sourceOverride }
+  delete visualOverride.dx
+  delete visualOverride.dy
+  const layoutOverrides = {
+    ...data.layoutOverrides,
+    [copyId]: visualOverride,
+  }
+  for (const role of ACCOUNT_TEXT_ROLES) {
+    const override = data.layoutOverrides?.[accountTextOverrideKey(id, role)]
+    if (override) layoutOverrides[accountTextOverrideKey(copyId, role)] = { ...override }
+  }
+
+  return {
+    data: {
+      ...data,
+      accounts: data.accounts.flatMap((candidate) =>
+        candidate.id === id
+          ? [candidate, { ...structuredClone(candidate), id: copyId }]
+          : [candidate],
+      ),
+      layoutOverrides,
+    },
+    rect: placed,
+    targetKey: 'account:' + copyId,
+  }
+}
+
+export function duplicateMapNote(
+  data: MoneyMapData,
+  id: string,
+  sourceRect: Rect,
+  blockedRects: readonly Rect[],
+  bounds: RectBounds,
+): { data: MoneyMapData; rect: Rect; targetKey: string } | null {
+  const note = data.notes?.find((candidate) => candidate.id === id)
+  if (!note) return null
+  const placed = duplicatePlacement(sourceRect, blockedRects, bounds)
+  const copyId = newId('note')
+
+  return {
+    data: {
+      ...data,
+      notes: data.notes?.flatMap((candidate) =>
+        candidate.id === id
+          ? [candidate, { ...candidate, id: copyId, x: placed.x, y: placed.y }]
+          : [candidate],
+      ),
+    },
+    rect: placed,
+    targetKey: 'note:' + copyId,
+  }
+}
+
 export function deleteMapNote(
   data: MoneyMapData,
   id: string,
@@ -306,11 +491,20 @@ export function crossedDragThreshold(
   return Math.hypot(current.x - start.x, current.y - start.y) >= threshold
 }
 
+export const TEXT_DRAG_THRESHOLD_PX = 8
+export const TEXT_DRAG_MIN_MS = 180
+export const TEXT_DRAG_FLICK_PX = 24
+
 export function accountTextPointerAction(
   start: Point,
   current: Point,
+  elapsedMs = Number.POSITIVE_INFINITY,
 ): 'edit' | 'move' {
-  return crossedDragThreshold(start, current) ? 'move' : 'edit'
+  if (crossedDragThreshold(start, current, TEXT_DRAG_FLICK_PX)) return 'move'
+  return crossedDragThreshold(start, current, TEXT_DRAG_THRESHOLD_PX) &&
+    elapsedMs >= TEXT_DRAG_MIN_MS
+    ? 'move'
+    : 'edit'
 }
 
 export function pannedScrollPosition(

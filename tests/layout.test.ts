@@ -379,8 +379,8 @@ describe('layoutMap', () => {
     expect(layoutMap(data).warnings).toContainEqual({
       code: 'masthead-title-overflow',
       targetKey: 'text:masthead:label',
-      fieldLabel: 'Client title',
-      message: 'Shorten the client title so all of it appears at the top of the map.',
+      fieldLabel: 'Client name',
+      message: 'Shorten the client name or reduce its text size so the full name fits at the top of the map.',
     })
   })
 
@@ -389,17 +389,15 @@ describe('layoutMap', () => {
 
     const warnings = layoutMap(data).warnings
     const expected = [
-      ['text:masthead:label', 'Masthead label'],
+      ['text:masthead:label', 'Map heading'],
       ['text:income:row:extreme-income', 'Income source'],
-      ['text:need:label', 'Monthly need label'],
-      ['text:need:value', 'Monthly need'],
-      ['text:need:supporting', 'Monthly need supporting text'],
+      ['text:need:value', 'Monthly income need'],
+      ['text:need:supporting', 'Monthly income calculation'],
       ['text:extreme-account:label', 'Account name'],
-      ['text:extreme-account:caption', 'Account caption'],
-      ['text:extreme-account:value', 'Account value tag'],
-      ['text:extreme-account:rows', 'Position label'],
-      ['text:extreme-account:sub', 'Sub-account text'],
-      ['arrow:custom:extreme-flow', 'Flow label'],
+      ['text:extreme-account:caption', 'Account description'],
+      ['text:extreme-account:rows', 'Investment name'],
+      ['text:extreme-account:sub', 'Nested account details'],
+      ['arrow:custom:extreme-flow', 'Transfer description'],
       ['text:footnotes:line:extreme-footnote', 'Fine print'],
     ] as const
 
@@ -408,9 +406,20 @@ describe('layoutMap', () => {
         code: 'text-abbreviated',
         targetKey,
         fieldLabel,
-        message: expect.stringMatching(/^Shorten .+ so all of it appears on the map\.$/),
+        message: expect.stringMatching(/^Shorten .+ (?:its|their) text size so the full text fits on the map\.$/),
       }))
     }
+  })
+
+  it('never advises changing a financial amount when account value text is abbreviated', () => {
+    const { data } = extremeTextData()
+
+    expect(layoutMap(data).warnings).toContainEqual({
+      code: 'text-abbreviated',
+      targetKey: 'text:extreme-account:value',
+      fieldLabel: 'Account amount and note',
+      message: 'Reduce the account amount text size or shorten its optional note so the full amount fits on the map.',
+    })
   })
 
   it('returns bounded displayed text while retaining every extreme raw field', () => {
@@ -1280,14 +1289,14 @@ describe('layoutMap', () => {
 
     for (const layout of [sample, blank]) {
       expect(layout.income.w).toBe(280)
-      expect(layout.need.w).toBe(250)
+      expect(layout.need.w).toBeCloseTo(257.08, 2)
       expect(layout.need.h).toBe(170)
       expect(layout.footnotesAt.y).toBe(930)
     }
     expect(sample.income).toEqual({ x: 48, y: 118, w: 280, h: 264 })
-    expect(sample.need).toEqual({ x: 48, y: 648, w: 250, h: 170 })
+    expect(sample.need).toMatchObject({ x: 48, y: 648, h: 170 })
     expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 132 })
-    expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
+    expect(blank.need).toMatchObject({ x: 520, y: 714, h: 170 })
   })
 
   it('scales income row pitch and the first-row reach with row type', () => {

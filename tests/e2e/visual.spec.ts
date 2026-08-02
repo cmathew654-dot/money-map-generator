@@ -1,6 +1,12 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test'
 import { fullForm, openApp } from './helpers'
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('money-map-generator:pan-zoom-hint:v1', 'dismissed')
+  })
+})
+
 async function stabilize(page: Page) {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(async () => { await document.fonts.ready })
@@ -65,7 +71,7 @@ test.describe('desktop visual baselines', () => {
     await stabilize(page)
     await expect(preview).toHaveScreenshot('selected-account.png', elementScreenshotOptions)
 
-    const arrowHit = page.getByRole('group', { name: 'Adjust custom arrow' }).first().locator('.map-arrow-hit')
+    const arrowHit = page.getByRole('group', { name: /^Adjust flow from / }).first().locator('.map-arrow-hit')
     const arrowPoint = await arrowHit.evaluate((element) => {
       const path = element as SVGPathElement
       const point = path.getPointAtLength(path.getTotalLength() / 2)

@@ -333,7 +333,7 @@ describe('layout overrides', () => {
       w: 1224,
       h: 854,
     })
-    expect(chip.x - 125).toBe(48)
+    expect(chip.x - 94).toBe(48)
     expect(chip.y - 19).toBe(118)
   })
 

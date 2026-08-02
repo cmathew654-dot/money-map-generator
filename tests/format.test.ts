@@ -153,6 +153,13 @@ describe('mapMoney', () => {
     })
   })
 
+  it('compacts quadrillions without changing exact money text', () => {
+    expect(mapMoney(5_000_000_000_000_000, 3)).toEqual({
+      display: '$5Q',
+      exact: '$5,000,000,000,000,000',
+    })
+  })
+
   it('preserves signs, approximate markers, and blank semantics', () => {
     expect(mapMoney(-1_600_000, 8, { approx: true })).toEqual({
       display: '~-$1.6M',

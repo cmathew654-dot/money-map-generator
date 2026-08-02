@@ -87,6 +87,7 @@ import { Toast, type ToastMessage } from './ui/Toast'
 import './styles/print.css'
 
 const FORM_MODE_STORAGE_KEY = 'money-map-form-mode:v1'
+const PAN_ZOOM_HINT_STORAGE_KEY = 'money-map-generator:pan-zoom-hint:v1'
 const WRITER_TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
 const WRITER_TAKEOVER_POLL_MS = 250
 
@@ -137,6 +138,14 @@ function initialFormMode(): FormMode {
       : 'guided'
   } catch {
     return 'guided'
+  }
+}
+
+function initialPanZoomHintVisible(): boolean {
+  try {
+    return localStorage.getItem(PAN_ZOOM_HINT_STORAGE_KEY) !== 'dismissed'
+  } catch {
+    return true
   }
 }
 
@@ -194,8 +203,12 @@ export default function App() {
   const [tabId] = useState(() => newId('tab'))
   const [isWriter, setIsWriter] = useState(() => DATA_MODE === 'real' && acquireBrowserWriter(localStorage, tabId).status === 'acquired')
   const [writerTakeoverPending, setWriterTakeoverPending] = useState(false)
+  const [writerTakeoverSlow, setWriterTakeoverSlow] = useState(false)
   const [presentMode, setPresentMode] = useState(false)
   const [mapZoom, setMapZoom] = useState<MapZoom>('fit')
+  const [panZoomHintVisible, setPanZoomHintVisible] = useState(
+    initialPanZoomHintVisible,
+  )
   const [fitZoom, setFitZoom] = useState(100)
   const [isMapPanning, setIsMapPanning] = useState(false)
   const [shapePopoverOpen, setShapePopoverOpen] = useState(false)
@@ -354,6 +367,7 @@ export default function App() {
   const restoreHistorySnapshot = useCallback(
     (next: BookSnapshot) => {
       showSnapshot(next)
+      setSelectedMapTargetKey(null)
       setMapTextEdit(null)
       setDialog(null)
       resetWizard()
@@ -401,10 +415,10 @@ export default function App() {
   }, [fileStoreSupported])
 
   const flushBrowserSave = useCallback(() => {
-    if (DATA_MODE !== 'real' || !isWriter || recovery || currentBrowserWriter(localStorage) !== tabId) return
+    if (DATA_MODE !== 'real' || recovery || currentBrowserWriter(localStorage) !== tabId) return
     const error = saveBrowserBook(localStorage, snapshotRef.current.book)
     setBrowserSaveStatus(error ? 'error' : 'saved'); setBrowserSaveError(error ?? '')
-  }, [isWriter, recovery, tabId])
+  }, [recovery, tabId])
   const clearWriterTakeoverTimer = useCallback(() => {
     if (writerTakeoverTimerRef.current === null) return
     window.clearTimeout(writerTakeoverTimerRef.current)
@@ -460,6 +474,21 @@ export default function App() {
     }
     writerTakeoverTimerRef.current = window.setTimeout(tryTakeover, WRITER_TAKEOVER_POLL_MS)
   }, [clearWriterTakeoverTimer, finishBrowserWriterTakeover, tabId])
+  const republishBrowserWriterTakeoverRequest = useCallback(() => {
+    try {
+      publishBrowserWriterTakeoverRequest(localStorage, tabId)
+    } catch {
+      // The active request continues waiting for lease expiry.
+    }
+  }, [tabId])
+  useEffect(() => {
+    if (!writerTakeoverPending) {
+      setWriterTakeoverSlow(false)
+      return
+    }
+    const timeout = window.setTimeout(() => setWriterTakeoverSlow(true), 2_000)
+    return () => window.clearTimeout(timeout)
+  }, [writerTakeoverPending])
   useEffect(() => {
     if (DATA_MODE !== 'real') return
     const checkInitialFocus = !writerFocusInitializedRef.current
@@ -468,8 +497,8 @@ export default function App() {
       if (
         document.visibilityState !== 'visible' ||
         !document.hasFocus() ||
-        isWriter ||
-        writerTakeoverPending ||
+        currentBrowserWriter(localStorage) === tabId ||
+        writerTakeoverTimerRef.current !== null ||
         writerFocusRequestedRef.current
       ) return
       writerFocusRequestedRef.current = true
@@ -485,7 +514,7 @@ export default function App() {
       window.removeEventListener('focus', requestOnFocus)
       window.removeEventListener('blur', resetFocusRequest)
     }
-  }, [isWriter, requestBrowserWriterTakeover, writerTakeoverPending])
+  }, [requestBrowserWriterTakeover, tabId])
   useEffect(() => {
     if (DATA_MODE !== 'real' || !isWriter || recovery) return
     setBrowserSaveStatus('saving'); const timeout = window.setTimeout(flushBrowserSave, 400)
@@ -510,7 +539,7 @@ export default function App() {
       }
     }
     const storage = (event: StorageEvent) => {
-      if (event.key === WRITER_TAKEOVER_REQUEST_KEY && event.newValue && isWriter && currentBrowserWriter(localStorage) === tabId) {
+      if (event.key === WRITER_TAKEOVER_REQUEST_KEY && event.newValue && currentBrowserWriter(localStorage) === tabId) {
         try {
           const request = JSON.parse(event.newValue) as { requester?: unknown }
           if (typeof request.requester === 'string' && request.requester !== tabId) {
@@ -541,7 +570,7 @@ export default function App() {
     }
     window.addEventListener('pagehide', handlePageHide); window.addEventListener('beforeunload', handlePageHide); window.addEventListener('pageshow', handlePageShow); document.addEventListener('visibilitychange', hidden); window.addEventListener('storage', storage)
     return () => { window.removeEventListener('pagehide', handlePageHide); window.removeEventListener('beforeunload', handlePageHide); window.removeEventListener('pageshow', handlePageShow); document.removeEventListener('visibilitychange', hidden); window.removeEventListener('storage', storage) }
-  }, [finishBrowserWriterTakeover, flushBrowserSave, isWriter, showHistory, showSnapshot, tabId])
+  }, [finishBrowserWriterTakeover, flushBrowserSave, showHistory, showSnapshot, tabId])
 
   useEffect(
     () => () => {
@@ -909,6 +938,7 @@ export default function App() {
         color: target.color,
         target: target.edit,
         rect: target.rect,
+        anchorRect: target.anchorRect,
         rawValue: mapTextEditRawValue(activeClient, target.edit),
         ...mapTextEditFontState(activeClient, target.edit),
       })
@@ -950,7 +980,17 @@ export default function App() {
     )
   }
 
+  const dismissPanZoomHint = () => {
+    setPanZoomHintVisible(false)
+    try {
+      localStorage.setItem(PAN_ZOOM_HINT_STORAGE_KEY, 'dismissed')
+    } catch {
+      // Dismissal still applies for this session when storage is unavailable.
+    }
+  }
+
   const changeZoom = (change: number) => {
+    dismissPanZoomHint()
     const scroller = previewPaneRef.current
     const page = mapPageRef.current
     if (scroller && page) {
@@ -988,6 +1028,7 @@ export default function App() {
       Math.max(50, currentLevel + (event.deltaY < 0 ? 10 : -10)),
     )
     if (nextLevel === currentLevel && mapZoom !== 'fit') return
+    dismissPanZoomHint()
 
     const scroller = event.currentTarget
     const page = mapPageRef.current
@@ -1030,6 +1071,12 @@ export default function App() {
   const continueMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
     const session = mapPanRef.current
     if (!session || session.pointerId !== event.pointerId) return
+    if (
+      event.clientX !== session.startPointer.x ||
+      event.clientY !== session.startPointer.y
+    ) {
+      dismissPanZoomHint()
+    }
     const next = pannedScrollPosition(
       session.startPointer,
       { x: event.clientX, y: event.clientY },
@@ -1324,7 +1371,7 @@ export default function App() {
                 PNG image
               </MenuItem>
               <MenuItem disabled={Boolean(exporting)} onClick={() => void handleExport('pdf')}>
-                PDF snapshot
+                PDF image snapshot
               </MenuItem>
               <MenuItem disabled={Boolean(exporting)} onClick={() => void handleExport('svg')}>
                 SVG image
@@ -1357,6 +1404,16 @@ export default function App() {
       </header>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
         {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information.</span></section>}
+        {DATA_MODE === 'real' &&
+          !isWriter &&
+          writerTakeoverPending &&
+          writerTakeoverSlow && (
+            <section aria-label="Editing handoff status" aria-live="polite" className="app-status-banner is-warning" role="status">
+              <strong>Still waiting</strong>
+              <span>Another tab is finishing its work. You can keep viewing this map.</span>
+              <button type="button" onClick={republishBrowserWriterTakeoverRequest}>Try again</button>
+            </section>
+          )}
         {mapWarnings.length > 0 && <details className="app-status-banner is-danger"><summary>Map needs attention</summary>{mapWarnings.map((warning, index) => {
           const targetKey = warning.targetKey
           const key = `${warning.code}:${targetKey ?? index}`
@@ -1425,6 +1482,7 @@ export default function App() {
               selectedTargetKey={selectedMapTargetKey}
               onChange={handleMapChange}
               onClose={() => setSelectedMapTargetKey(null)}
+              onSelect={setSelectedMapTargetKey}
             />
           )}
           <div
@@ -1537,6 +1595,12 @@ export default function App() {
                   </div>
                 )}
               </div>
+              {panZoomHintVisible && (
+                <aside className="pan-zoom-hint">
+                  <span>Hold Ctrl (or ⌘ on Mac) while scrolling to zoom. Drag the map background to pan.</span>
+                  <button type="button" onClick={dismissPanZoomHint}>Got it</button>
+                </aside>
+              )}
               {zoomControls}
             </div>
           )}

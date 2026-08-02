@@ -17,6 +17,7 @@ import {
   restoreGeneratedArrows,
   setCustomArrowColor,
   setMapNoteBackground,
+  snapRectToAlignment,
 } from '../src/render/mapInteraction'
 import {
   MapSvg,
@@ -32,12 +33,82 @@ import {
   mapTextEditorShouldRestoreFocus,
   mapTextEditorPillPosition,
   mapTextEditorTextStyle,
+  mapTextEditorTargetLabel,
   mapTextEditFsInfo,
   mapTextEditRawValue,
   type MapTextEditTarget,
 } from '../src/ui/MapTextEditor'
 
 const accountId = 'managed-ira-jordan'
+
+describe('alignment snapping', () => {
+  it('engages within the snap radius', () => {
+    const snapped = snapRectToAlignment(
+      { x: 95, y: 100, w: 100, h: 100 },
+      [{ x: 200, y: 300, w: 100, h: 100 }],
+      6,
+    )
+
+    expect(snapped.rect).toEqual({ x: 100, y: 100, w: 100, h: 100 })
+    expect(snapped.x?.value).toBe(200)
+  })
+
+  it('does not engage outside the snap radius', () => {
+    const rect = { x: 93, y: 100, w: 100, h: 100 }
+
+    expect(
+      snapRectToAlignment(rect, [{ x: 200, y: 300, w: 100, h: 100 }], 6),
+    ).toEqual({ rect })
+  })
+
+  it('bypasses snapping when Alt is held', () => {
+    const rect = { x: 95, y: 100, w: 100, h: 100 }
+
+    expect(
+      snapRectToAlignment(
+        rect,
+        [{ x: 200, y: 300, w: 100, h: 100 }],
+        6,
+        true,
+      ),
+    ).toEqual({ rect })
+  })
+
+  it('uses the nearest eligible line', () => {
+    const snapped = snapRectToAlignment(
+      { x: 94, y: 100, w: 100, h: 100 },
+      [
+        { x: 200, y: 300, w: 100, h: 100 },
+        { x: 198, y: 500, w: 100, h: 100 },
+      ],
+      6,
+    )
+
+    expect(snapped.rect.x).toBe(98)
+    expect(snapped.x?.value).toBe(198)
+  })
+
+  it('snaps x and y independently', () => {
+    expect(
+      snapRectToAlignment(
+        { x: 97, y: 297, w: 100, h: 100 },
+        [{ x: 200, y: 400, w: 100, h: 100 }],
+        6,
+      ).rect,
+    ).toEqual({ x: 100, y: 300, w: 100, h: 100 })
+  })
+
+  it('uses the 24-unit tidy radius and leaves distant axes alone', () => {
+    const other = [{ x: 200, y: 300, w: 100, h: 100 }]
+
+    expect(
+      snapRectToAlignment({ x: 80, y: 80, w: 100, h: 100 }, other, 24).rect,
+    ).toEqual({ x: 100, y: 80, w: 100, h: 100 })
+    expect(
+      snapRectToAlignment({ x: 70, y: 80, w: 100, h: 100 }, other, 24).rect,
+    ).toEqual({ x: 70, y: 80, w: 100, h: 100 })
+  })
+})
 
 describe('seamless map text editor geometry and typography', () => {
   it('renders a visible close control with the required accessible name', () => {
@@ -115,7 +186,7 @@ describe('seamless map text editor geometry and typography', () => {
     expect(sizes.totalLabel).toBeCloseTo(30 * (13 / 17))
     expect(sizes.totalValue).toBe(30)
     expect(markup).toMatch(
-      new RegExp(`font-size="${sizes.totalLabel}"[^>]*>After-Tax…`),
+      new RegExp(`font-size="${sizes.totalLabel}"[^>]*>After-Tax Income`),
     )
     expect(markup).toMatch(
       new RegExp(`font-size="${sizes.totalValue}"[^>]*>\\$5,900`),
@@ -284,7 +355,18 @@ describe('applyMapTextEdit', () => {
     const start = { x: 20, y: 30 }
 
     expect(accountTextPointerAction(start, { x: 23, y: 32 })).toBe('edit')
-    expect(accountTextPointerAction(start, { x: 24, y: 30 })).toBe('move')
+    expect(accountTextPointerAction(start, { x: 27, y: 30 })).toBe('edit')
+    expect(accountTextPointerAction(start, { x: 28, y: 30 })).toBe('move')
+  })
+
+  it('treats a quick sloppy movement as a click, but a fast long flick as a drag', () => {
+    const start = { x: 20, y: 30 }
+    const sloppy = { x: 35, y: 30 }
+    const flick = { x: 44, y: 30 }
+
+    expect(accountTextPointerAction(start, sloppy, 100)).toBe('edit')
+    expect(accountTextPointerAction(start, sloppy, 180)).toBe('move')
+    expect(accountTextPointerAction(start, flick, 50)).toBe('move')
   })
 
   it.each([
@@ -703,6 +785,53 @@ describe('map note edits', () => {
 })
 
 describe('noninteractive map rendering', () => {
+  it('uses plain language for editable text and arrow accessibility names', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: SAMPLE_WHITFIELD.customArrows?.map((arrow, index) =>
+        index === 0 ? { ...arrow, label: 'Retirement transfer' } : arrow,
+      ),
+    }
+    const markup = renderToStaticMarkup(createElement(MapSvg, {
+      data,
+      onChange: () => undefined,
+      onElementClick: () => undefined,
+    }))
+
+    const editorTargets: MapTextEditTarget[] = [
+      { kind: 'accountCaption', accountId },
+      { kind: 'accountRows', accountId },
+      { kind: 'accountSub', accountId },
+      { kind: 'accountPositionLabel', accountId, positionIndex: 0 },
+      { kind: 'accountPositionValue', accountId, positionIndex: 0 },
+      { kind: 'accountSubLabel', accountId, subAccountIndex: 0 },
+      { kind: 'accountSubCaption', accountId, subAccountIndex: 0 },
+      { kind: 'accountSubValue', accountId, subAccountIndex: 0 },
+      { kind: 'flowLabel', arrowId: 'flow' },
+    ]
+    expect(editorTargets.map(mapTextEditorTargetLabel)).toEqual([
+      'account description',
+      'investment details',
+      'nested account details',
+      'investment name',
+      'investment amount',
+      'nested account name',
+      'nested account description',
+      'nested account amount',
+      'transfer description',
+    ])
+    for (const label of [
+      'Edit investment details',
+      'Edit nested account details',
+      'Edit transfer description: Retirement transfer',
+      'Adjust income flow',
+      'Adjust account withdrawal flow',
+      'Adjust flow from Managed IRA — Jordan to Managed After-Tax Trust',
+    ]) {
+      expect(markup).toContain(label)
+    }
+  })
+
   it('renders calculated need supporting text as a movable non-editable target', () => {
     const markup = renderToStaticMarkup(createElement(MapSvg, {
       data: { ...SAMPLE_WHITFIELD, asNeededAmount: 9_000 },
@@ -795,7 +924,7 @@ describe('noninteractive map rendering', () => {
     expect(markup).toMatch(/font-size="20"[^>]*><tspan>\$2,400 mo\./)
     expect(markup).toMatch(/font-size="17\.142857142857142"[^>]*>Gross/)
     expect(markup).toMatch(/font-size="21"[^>]*>\$5,900/)
-    expect(markup).toMatch(/font-size="22"[^>]*>MONTHLY…/)
+    expect(markup).toMatch(/font-size="22"[^>]*>MONTHLY INCOME NEED/)
     expect(markup).toMatch(/font-size="40"[^>]*><tspan[^>]*>\$15,000/)
     expect(markup).toContain(
       'y="930" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
@@ -1048,10 +1177,10 @@ describe('noninteractive map rendering', () => {
     )
 
     expect(constrained).toContain(
-      'aria-label="Monthly Income as Needed $930,923,028"',
+      'aria-label="Monthly income drawn as needed $930,923,028"',
     )
     expect(constrained).toContain(
-      '<title>Monthly Income as Needed $930,923,028</title>',
+      '<title>Monthly income drawn as needed $930,923,028</title>',
     )
     expect(constrained).toMatch(/>\$930\.9M<\/tspan>/)
     expect(unconstrained).toMatch(/>\$930,923<\/tspan>/)

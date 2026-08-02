@@ -747,6 +747,34 @@ summary:focus-visible {
   gap: 8px;
 }
 
+.pan-zoom-hint {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: flex;
+  box-sizing: border-box;
+  width: min(280px, calc(100vw - 32px));
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #9ba49d;
+  border-radius: 4px;
+  padding: 7px 8px;
+  background: #fcfcfa;
+  color: #37423f;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.pan-zoom-hint span {
+  flex: 1;
+}
+
+.pan-zoom-hint button {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  white-space: nowrap;
+}
+
 .shape-quick-add {
   position: relative;
 }
@@ -1895,6 +1923,12 @@ summary:focus-visible {
   }
 }
 
+@media print {
+  .pan-zoom-hint {
+    display: none;
+  }
+}
+
 /* Session 40 selected map controls */
 .map-account-decoration {
   pointer-events: none;
@@ -1916,7 +1950,14 @@ summary:focus-visible {
   text-underline-offset: 3px;
 }
 
-.map-interactive [data-account-id][data-map-target]:hover,
+.map-page svg:not(.map-interactive) g[role='group'] {
+  cursor: pointer;
+}
+
+.map-interactive .map-draggable:hover {
+  filter: drop-shadow(0 2px 6px rgb(28 36 34 / 35%));
+}
+
 .map-interactive [data-account-id][data-map-selected='true'] {
   filter: drop-shadow(0 0 5px rgb(30 122 74 / 0.5));
 }

@@ -25,7 +25,7 @@ test('keyboard arrangement persists move, resize, rotate, text offset, and conne
   await expect(incomeHeader).toHaveAttribute('aria-keyshortcuts', /Shift\+ArrowDown/)
   await page.keyboard.press('Shift+ArrowDown')
 
-  const customArrow = page.getByRole('group', { name: 'Adjust custom arrow' }).first()
+  const customArrow = page.getByRole('group', { name: /^Adjust flow from / }).first()
   await customArrow.focus()
   await expect(customArrow).toBeFocused()
   await expect(customArrow).toHaveAttribute('aria-keyshortcuts', /Control\+ArrowRight/)

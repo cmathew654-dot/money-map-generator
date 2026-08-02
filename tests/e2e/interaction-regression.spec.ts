@@ -372,7 +372,7 @@ test.describe('approved desktop interaction regression', () => {
       })
       .toBe(true)
 
-    const incomeFlow = page.getByRole('group', { name: 'Adjust income arrow' })
+    const incomeFlow = page.getByRole('group', { name: 'Adjust income flow' })
     await incomeFlow.focus()
     const flowInspector = page.locator('.map-inspector')
     await flowInspector.getByRole('button', { name: 'Hide flow' }).click()
@@ -392,7 +392,7 @@ test.describe('approved desktop interaction regression', () => {
       .poll(async () => (await currentClient(page)).asNeededAmount)
       .toBe(999_999_999_999.49)
 
-    const exactLabel = 'Monthly Income as Needed $999,999,999,999'
+    const exactLabel = 'Monthly income drawn as needed $999,999,999,999'
     const interactiveMap = page.locator(
       '.map-page:visible svg.map-interactive',
     )

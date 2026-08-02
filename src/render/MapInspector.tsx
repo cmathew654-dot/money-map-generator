@@ -5,6 +5,7 @@ import {
   nudgeLayoutOverride,
   NOTE_WIDTH,
   OVERRIDE_BOUNDS,
+  rotatedBounds,
 } from '../layout/layout'
 import type {
   AccountShape,
@@ -25,6 +26,8 @@ import {
   clampRectToBounds,
   deleteCustomArrow,
   deleteMapNote,
+  duplicateMapAccount,
+  duplicateMapNote,
   hideGeneratedArrow,
   moveCustomArrowLabel,
   moveMapNote,
@@ -32,6 +35,7 @@ import {
   retargetCustomArrow,
   setCustomArrowColor,
   setMapNoteBackground,
+  snapRectToAlignment,
   withOverride,
 } from './mapInteraction'
 import { ARTBOARD, TYPE } from './tokens'
@@ -41,6 +45,7 @@ interface MapInspectorProps {
   selectedTargetKey: string
   onChange: (data: MoneyMapData) => void
   onClose: () => void
+  onSelect: (key: string) => void
 }
 
 const SHAPE_LABELS: Record<AccountShape, string> = {
@@ -131,6 +136,7 @@ export function MapInspector({
   selectedTargetKey,
   onChange,
   onClose,
+  onSelect,
 }: MapInspectorProps) {
   const layout = layoutMap(data)
   const accountId = selectedTargetKey.startsWith('account:')
@@ -185,6 +191,108 @@ export function MapInspector({
       : id === 'need'
         ? layout.need
         : layout.accounts.find((candidate) => candidate.account.id === id)
+  const tidyKey = accountId ??
+    (selectedTargetKey === 'income' || selectedTargetKey === 'need'
+      ? selectedTargetKey
+      : null)
+  const tidyRect = tidyKey
+    ? layoutOverrideRect(data, tidyKey)
+    : noteId
+      ? layout.notes.find((candidate) => candidate.note.id === noteId)
+      : undefined
+  const tidyCandidates = [
+    { key: 'income', rect: layout.income },
+    { key: 'need', rect: layout.need },
+    ...layout.accounts.map((rect) => ({ key: rect.account.id, rect })),
+    ...layout.notes.map((rect) => ({ key: rect.note.id, rect })),
+    { key: 'asNeededChip', rect: layoutOverrideRect(data, 'asNeededChip') },
+  ].flatMap((candidate) =>
+    candidate.key === (tidyKey ?? noteId) || !candidate.rect
+      ? []
+      : [candidate.rect],
+  )
+  const tidyResult = tidyRect
+    ? snapRectToAlignment(tidyRect, tidyCandidates, 24)
+    : null
+  const canTidy = Boolean(
+    tidyRect &&
+      tidyResult &&
+      (tidyResult.rect.x !== tidyRect.x || tidyResult.rect.y !== tidyRect.y),
+  )
+  const tidy = () => {
+    if (!tidyRect || !tidyResult || !canTidy) return
+    if (tidyKey) {
+      onChange(nudgeLayoutOverride(data, tidyKey, {
+        x: tidyResult.rect.x - tidyRect.x,
+        y: tidyResult.rect.y - tidyRect.y,
+      }))
+    } else if (noteId) {
+      onChange(moveMapNote(data, noteId, tidyResult.rect.x, tidyResult.rect.y))
+    }
+  }
+  const duplicate = () => {
+    const sourceAccount = accountId
+      ? layout.accounts.find((placed) => placed.account.id === accountId)
+      : undefined
+    const sourceRect = sourceAccount
+      ? rotatedBounds(sourceAccount, sourceAccount.rot)
+      : tidyRect
+    if (!sourceRect) return
+    const duplicateCandidates = accountId
+      ? [
+          layout.income,
+          layout.need,
+          ...layout.accounts.flatMap((placed) =>
+            placed.account.id === accountId
+              ? []
+              : [rotatedBounds(placed, placed.rot)],
+          ),
+          ...layout.notes,
+          ...[layoutOverrideRect(data, 'asNeededChip')].flatMap((rect) =>
+            rect ? [rect] : [],
+          ),
+        ]
+      : tidyCandidates
+    const result = accountId
+      ? duplicateMapAccount(
+          data,
+          accountId,
+          sourceRect,
+          duplicateCandidates,
+          OVERRIDE_BOUNDS,
+        )
+      : noteId
+        ? duplicateMapNote(
+            data,
+            noteId,
+            sourceRect,
+            tidyCandidates,
+            OVERRIDE_BOUNDS,
+          )
+        : null
+    if (!result) return
+    const copyId = result.targetKey.slice('account:'.length)
+    let next = result.data
+    if (accountId) {
+      for (let pass = 0; pass < 8; pass += 1) {
+        const placed = layoutMap(next).accounts.find(
+          (candidate) => candidate.account.id === copyId,
+        )
+        if (!placed) break
+        const rect = rotatedBounds(placed, placed.rot)
+        const dx = result.rect.x - rect.x
+        const dy = result.rect.y - rect.y
+        if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) break
+        const override = next.layoutOverrides?.[copyId]
+        next = withOverride(next, copyId, {
+          dx: (override?.dx ?? 0) + dx,
+          dy: (override?.dy ?? 0) + dy,
+        })
+      }
+    }
+    onChange(next)
+    onSelect(result.targetKey)
+  }
   const move = (x: number, y: number) => {
     if (layoutKey) onChange(nudgeLayoutOverride(data, layoutKey, { x, y }))
     else if (noteId) {
@@ -305,6 +413,19 @@ export function MapInspector({
       </div>
       <div className="map-inspector-controls">
         {(layoutKey || note) && <MoveControls move={move} />}
+        {(tidyKey || note) && (
+          <InspectorGroup label="Align">
+            <button
+              aria-label="Tidy alignment"
+              disabled={!canTidy}
+              type="button"
+              onClick={tidy}
+            >
+              Tidy
+            </button>
+          </InspectorGroup>
+        )}
+        {(account || note) && <button type="button" onClick={duplicate}>Duplicate</button>}
 
         {account && (
           <>

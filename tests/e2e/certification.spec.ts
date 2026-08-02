@@ -33,8 +33,14 @@ test.describe('desktop behavioral certification', () => {
     const field = page.locator('.money-input').first()
     const original = await field.inputValue()
     await field.fill('92000'); await field.press('Tab')
-    await page.keyboard.press('ControlOrMeta+z'); await expect(field).toHaveValue(original)
-    await page.keyboard.press('ControlOrMeta+Shift+z'); await expect(field).toHaveValue(/92,?000|\$92,?000/)
+    const undo = page.getByRole('button', { name: 'Undo', exact: true })
+    await expect(undo).toBeEnabled()
+    await undo.click()
+    await expect(field).toHaveValue(original)
+    const redo = page.getByRole('button', { name: 'Redo', exact: true })
+    await expect(redo).toBeEnabled()
+    await redo.click()
+    await expect(field).toHaveValue(/92,?000|\$92,?000/)
   })
 
   test('new client completes the wizard', async ({ page }, info) => {
@@ -110,7 +116,7 @@ test.describe('desktop behavioral certification', () => {
     expect((await book).suggestedFilename()).toBe('money-map-book.json')
     for (const [name, extension] of [
       ['PNG image', 'png'],
-      ['PDF snapshot', 'pdf'],
+      ['PDF image snapshot', 'pdf'],
       ['SVG image', 'svg'],
     ] as const) {
       await page.getByRole('button', { name: 'Export map' }).click()
@@ -156,7 +162,7 @@ test.describe('desktop behavioral certification', () => {
     await stressed.getByRole('button', { name: 'Print', exact: true }).click()
     await expect.poll(() => stressed.evaluate(() => (window as Window & { __printCalls?: number }).__printCalls)).toBe(1)
     await stressed.getByRole('button', { name: 'Export map' }).click()
-    for (const name of ['PNG image', 'PDF snapshot', 'SVG image']) {
+    for (const name of ['PNG image', 'PDF image snapshot', 'SVG image']) {
       await expect(stressed.getByRole('menuitem', { name })).toBeEnabled()
     }
     await evidence(stressed, info, 'layout-warning-diagnostics')
