@@ -7,7 +7,9 @@ import { basename, join, resolve } from 'node:path'
 import process from 'node:process'
 
 const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+const KEY_NULL = '\uE000'
 const KEY_ESCAPE = '\uE00C'
+const KEY_META = '\uE03D'
 const KEY_TAB = '\uE004'
 const BOOK_KEY = 'money-map-generator:book'
 const TITLE = 'Safari Native Retention'
@@ -306,7 +308,7 @@ async function findControl(driver, label, root = null, pick = 'first') {
 }
 
 async function fillControl(driver, element, value) {
-  await driver.clear(element)
+  await driver.sendKeys(element, `${KEY_META}a${KEY_NULL}`)
   await driver.sendKeys(element, value)
   await driver.pressKey(KEY_TAB)
   await waitFor(`control value "${value}"`, async () =>
