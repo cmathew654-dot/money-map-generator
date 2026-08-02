@@ -9,6 +9,16 @@ import {
 } from '../src/App'
 
 describe('Session 40 App safety boundaries', () => {
+  it('keeps the canvas shell panel state in App instead of form-mode storage', () => {
+    expect(appSource).toMatch(
+      /type EditorPanel = 'add' \| 'data' \| 'contents' \| 'help'/,
+    )
+    expect(appSource).toMatch(
+      /const \[editorPanel, setEditorPanel\] = useState<EditorPanel \| null>\(null\)/,
+    )
+    expect(appSource).not.toContain('FORM_MODE_STORAGE_KEY')
+  })
+
   it('allows book mutation only to the real-mode writer outside recovery', () => {
     expect(canMutateBook('real', true, false)).toBe(true)
     expect(canMutateBook('real', false, false)).toBe(false)

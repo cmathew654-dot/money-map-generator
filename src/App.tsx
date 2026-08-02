@@ -74,6 +74,7 @@ import {
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
+import { EditorRail } from './ui/EditorRail'
 import {
   applyMapTextEdit,
   applyMapTextFontSize,
@@ -89,12 +90,11 @@ import { Menu, MenuItem, MenuSeparator } from './ui/Menu'
 import { Toast, type ToastMessage } from './ui/Toast'
 import './styles/print.css'
 
-const FORM_MODE_STORAGE_KEY = 'money-map-form-mode:v1'
 const PAN_ZOOM_HINT_STORAGE_KEY = 'money-map-generator:pan-zoom-hint:v1'
 const WRITER_TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
 const WRITER_TAKEOVER_POLL_MS = 250
 
-type FormMode = 'guided' | 'full'
+export type EditorPanel = 'add' | 'data' | 'contents' | 'help'
 type FileSaveStatus = 'saved' | 'saving'
 type BrowserSaveStatus = 'saved' | 'saving' | 'error'
 type MapZoom = 'fit' | number
@@ -134,16 +134,6 @@ type AppDialog =
   | { kind: 'clearMap'; clientId: string; name: string }
 
 function initialBrowserBook(): BrowserBookLoad { return loadBrowserBook(localStorage) }
-
-function initialFormMode(): FormMode {
-  try {
-    return localStorage.getItem(FORM_MODE_STORAGE_KEY) === 'full'
-      ? 'full'
-      : 'guided'
-  } catch {
-    return 'guided'
-  }
-}
 
 export function artboardPointFromClient(
   point: { x: number; y: number },
@@ -190,7 +180,8 @@ export default function App() {
     return { book, activeClientId: book.clients[0].id }
   })
   const [history, setHistory] = useState<BookHistory>(emptyHistory)
-  const [formMode, setFormMode] = useState<FormMode>(initialFormMode)
+  const [editorPanel, setEditorPanel] = useState<EditorPanel | null>(null)
+  const [guidedSetup, setGuidedSetup] = useState(false)
   const [wizardStep, setWizardStep] = useState(0)
   const [wizardDone, setWizardDone] = useState(false)
   const [focusRequest, setFocusRequest] = useState<{
@@ -259,6 +250,7 @@ export default function App() {
   const suppressNextTextPlacementRef = useRef(false)
   const shapePopoverRef = useRef<HTMLDivElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
+  const editorPanelHeadingRef = useRef<HTMLHeadingElement>(null)
   const { book, activeClientId } = snapshot
   const canMutate = canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
   const vocabulary = useMemo(() => buildVocabulary(book), [book])
@@ -314,41 +306,14 @@ export default function App() {
   }, [activeClient.accounts, selectedMapTargetKey])
 
   useEffect(() => {
-    if (!placingTextNote) return
-    const cancelPlacement = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== 'Escape') return
-      setPlacingTextNote(false)
-      event.preventDefault()
-    }
-    window.addEventListener('keydown', cancelPlacement)
-    return () => window.removeEventListener('keydown', cancelPlacement)
-  }, [placingTextNote])
-
-  useEffect(() => {
-    if (!selectedMapTargetKey) return
-    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') setSelectedMapTargetKey(null)
-    }
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [selectedMapTargetKey])
-
-  useEffect(() => {
     if (!shapePopoverOpen) return
     const closeOnPointerDown = (event: globalThis.PointerEvent) => {
       if (!shapePopoverRef.current?.contains(event.target as Node)) {
         setShapePopoverOpen(false)
       }
     }
-    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') setShapePopoverOpen(false)
-    }
     window.addEventListener('pointerdown', closeOnPointerDown)
-    window.addEventListener('keydown', closeOnEscape)
-    return () => {
-      window.removeEventListener('pointerdown', closeOnPointerDown)
-      window.removeEventListener('keydown', closeOnEscape)
-    }
+    return () => window.removeEventListener('pointerdown', closeOnPointerDown)
   }, [shapePopoverOpen])
 
   useEffect(() => {
@@ -419,6 +384,8 @@ export default function App() {
       setSelectedMapTargetKey(null)
       setMapTextEdit(null)
       setDialog(null)
+      setEditorPanel(null)
+      setGuidedSetup(false)
       resetWizard()
     },
     [resetWizard, showSnapshot],
@@ -659,14 +626,6 @@ export default function App() {
   }, [addToast, book, canMutate, connectedFile])
 
   useEffect(() => {
-    try {
-      localStorage.setItem(FORM_MODE_STORAGE_KEY, formMode)
-    } catch {
-      // The selected mode remains usable for this session.
-    }
-  }, [formMode])
-
-  useEffect(() => {
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey) || event.altKey) return
       const key = event.key.toLowerCase()
@@ -682,6 +641,33 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [canMutate, handleRedo, handleUndo])
+
+  useEffect(() => {
+    if (editorPanel !== 'data' || guidedSetup || presentMode) return
+    window.requestAnimationFrame(() => editorPanelHeadingRef.current?.focus())
+  }, [editorPanel, guidedSetup, presentMode])
+
+  useEffect(() => {
+    const handleEditorEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape' || presentMode || dialog) return
+      if (mapTextEdit) {
+        setMapTextEdit(null)
+      } else if (shapePopoverOpen) {
+        setShapePopoverOpen(false)
+      } else if (placingTextNote) {
+        setPlacingTextNote(false)
+      } else if (editorPanel) {
+        setEditorPanel(null)
+      } else if (selectedMapTargetKey) {
+        setSelectedMapTargetKey(null)
+      } else {
+        return
+      }
+      event.preventDefault()
+    }
+    window.addEventListener('keydown', handleEditorEscape)
+    return () => window.removeEventListener('keydown', handleEditorEscape)
+  }, [dialog, editorPanel, mapTextEdit, placingTextNote, presentMode, selectedMapTargetKey, shapePopoverOpen])
 
   const exitPresentMode = useCallback(() => {
     setPresentMode(false)
@@ -811,6 +797,7 @@ export default function App() {
 
   const selectClient = (id: string) => {
     setMapTextEdit(null)
+    setGuidedSetup(false)
     showSnapshot({ ...snapshotRef.current, activeClientId: id })
     resetWizard()
   }
@@ -822,6 +809,8 @@ export default function App() {
       result.id,
     )
     setMapTextEdit(null)
+    setEditorPanel(null)
+    setGuidedSetup(true)
     resetWizard()
   }
 
@@ -835,6 +824,7 @@ export default function App() {
       result.id,
     )
     setMapTextEdit(null)
+    setGuidedSetup(false)
     resetWizard()
   }
 
@@ -1010,12 +1000,14 @@ export default function App() {
       return
     }
     setMapTextEdit(null)
-    if (formMode === 'guided') {
+    if (guidedSetup) {
       const stepNumber = wizardStepNumberForMapTarget(target.kind)
       if (stepNumber !== null) {
         setWizardStep(stepNumber - 1)
         setWizardDone(false)
       }
+    } else {
+      setEditorPanel('data')
     }
     const id = target.kind === 'account' ? target.id : target.kind
     if (!id) return
@@ -1569,70 +1561,79 @@ export default function App() {
         {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
         {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Changes are not being saved</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Try again</button></section>}
       </div>}
-      <div className="workspace">
-        <aside className="form-pane" aria-label="Client editor">
-          <div className="form-mode-toggle" aria-label="Form mode">
-            <button
-              aria-pressed={formMode === 'guided'}
-              className={formMode === 'guided' ? 'is-active' : ''}
-              type="button"
-              onClick={() => setFormMode('guided')}
-            >
-              Guide me
-            </button>
-            <button
-              aria-pressed={formMode === 'full'}
-              className={formMode === 'full' ? 'is-active' : ''}
-              type="button"
-              onClick={() => setFormMode('full')}
-            >
-              Full form
-            </button>
-          </div>
-          <fieldset className="mutation-fieldset" disabled={!canMutate}>
-          {formMode === 'guided' ? (
-            <Wizard
-              currentStep={wizardStep}
-              data={activeClient}
-              done={wizardDone}
-              hasWarnings={mapWarnings.length > 0}
-              focusRequest={focusRequest}
-              onChange={handleClientChange}
-              onCurrentStepChange={setWizardStep}
-              onDoneChange={setWizardDone}
-              onExportPng={() => void handleExportPng()}
-              onFullForm={() => setFormMode('full')}
-              onHoverAccount={setHighlightId}
-              selectedAccountId={
-                selectedMapTargetKey?.startsWith('account:')
-                  ? selectedMapTargetKey.slice('account:'.length)
-                  : null
-              }
-              onSelectAccount={(id) =>
-                setSelectedMapTargetKey(`account:${id}`)
-              }
-              onPrint={handlePrint}
-              vocabulary={vocabulary}
+      <div className={`workspace${editorPanel ? ' has-editor-panel' : ''}${guidedSetup ? ' is-guided-setup' : ''}`}>
+        {guidedSetup ? (
+          <aside className="form-pane" aria-label="Client editor">
+            <fieldset className="mutation-fieldset" disabled={!canMutate}>
+              <Wizard
+                currentStep={wizardStep}
+                data={activeClient}
+                done={wizardDone}
+                hasWarnings={mapWarnings.length > 0}
+                focusRequest={focusRequest}
+                onChange={handleClientChange}
+                onCurrentStepChange={setWizardStep}
+                onDoneChange={setWizardDone}
+                onExportPng={() => void handleExportPng()}
+                onFullForm={() => {
+                  setGuidedSetup(false)
+                  setEditorPanel('data')
+                }}
+                onHoverAccount={setHighlightId}
+                selectedAccountId={
+                  selectedMapTargetKey?.startsWith('account:')
+                    ? selectedMapTargetKey.slice('account:'.length)
+                    : null
+                }
+                onSelectAccount={(id) =>
+                  setSelectedMapTargetKey(`account:${id}`)
+                }
+                onPrint={handlePrint}
+                vocabulary={vocabulary}
+              />
+            </fieldset>
+          </aside>
+        ) : (
+          <>
+            <EditorRail
+              activePanel={editorPanel}
+              onToggle={(panel) => {
+                if (panel !== 'data') return
+                setEditorPanel((current) =>
+                  current === panel ? null : panel,
+                )
+              }}
             />
-          ) : (
-            <Form
-              data={activeClient}
-              focusRequest={focusRequest}
-              onChange={handleClientChange}
-              onHoverAccount={setHighlightId}
-              selectedAccountId={
-                selectedMapTargetKey?.startsWith('account:')
-                  ? selectedMapTargetKey.slice('account:'.length)
-                  : null
-              }
-              onSelectAccount={(id) =>
-                setSelectedMapTargetKey(`account:${id}`)
-              }
-              vocabulary={vocabulary}
-            />
-          )}
-          </fieldset>
-        </aside>
+            {editorPanel === 'data' && (
+              <aside
+                aria-labelledby="editor-panel-title"
+                className="editor-panel"
+                role="dialog"
+              >
+                <h2 id="editor-panel-title" ref={editorPanelHeadingRef} tabIndex={-1}>
+                  Data
+                </h2>
+                <fieldset className="mutation-fieldset" disabled={!canMutate}>
+                  <Form
+                    data={activeClient}
+                    focusRequest={focusRequest}
+                    onChange={handleClientChange}
+                    onHoverAccount={setHighlightId}
+                    selectedAccountId={
+                      selectedMapTargetKey?.startsWith('account:')
+                        ? selectedMapTargetKey.slice('account:'.length)
+                        : null
+                    }
+                    onSelectAccount={(id) =>
+                      setSelectedMapTargetKey(`account:${id}`)
+                    }
+                    vocabulary={vocabulary}
+                  />
+                </fieldset>
+              </aside>
+            )}
+          </>
+        )}
         <section
           className={`preview-pane${selectedMapTargetKey && !mapTextEdit && !presentMode && canMutate ? ' has-map-inspector' : ''}`}
           aria-label="Money Map preview"

@@ -477,7 +477,7 @@ summary:focus-visible {
 .workspace {
   display: grid;
   height: calc(100vh - 52px);
-  grid-template-columns: 420px minmax(520px, 1fr);
+  grid-template-columns: 72px minmax(0, 1fr);
 }
 
 .form-pane {
@@ -489,34 +489,52 @@ summary:focus-visible {
   background: #ffffff;
 }
 
-.form-mode-toggle {
-  position: sticky;
-  z-index: 2;
-  top: 0;
+.editor-rail {
   display: flex;
-  justify-content: flex-end;
-  gap: 2px;
-  padding: 12px 20px 5px;
-  background: #ffffff;
+  min-width: 0;
+  flex-direction: column;
+  border-right: 1px solid #c9cfc9;
+  background: #fcfcfa;
 }
 
-.form-mode-toggle button {
-  padding: 5px 9px;
-  border-color: transparent;
+.editor-rail button {
+  min-height: 54px;
+  flex: 1;
+  padding: 8px 4px;
+  border: 0;
+  border-bottom: 1px solid #dde1dc;
+  border-radius: 0;
   background: transparent;
-  color: #5b6663;
-  font-size: 12px;
+  color: #47504d;
+  font-size: 11px;
+  overflow-wrap: anywhere;
 }
 
-.form-mode-toggle button:hover {
-  background: #f1f3f0;
-  color: #1c2422;
+.editor-rail button:hover,
+.editor-rail button[aria-expanded='true'] {
+  background: #eef5ef;
+  color: #155f4a;
 }
 
-.form-mode-toggle button.is-active {
-  border-color: #1c2422;
-  background: #ffffff;
+.editor-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden auto;
+  border-right: 1px solid #c9cfc9;
+  background: #f4f6f2;
+}
+
+.editor-panel > h2 {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid #dde1dc;
+  background: #fcfcfa;
   color: #1c2422;
+  font-size: 16px;
 }
 
 .preview-pane {
@@ -695,6 +713,8 @@ summary:focus-visible {
 
 .app-shell.is-presenting .app-header,
 .app-shell.is-presenting .form-pane,
+.app-shell.is-presenting .editor-rail,
+.app-shell.is-presenting .editor-panel,
 .app-shell.is-presenting .toast-region {
   display: none;
 }
@@ -1470,18 +1490,6 @@ summary:focus-visible {
   background: #f4f6f2;
 }
 
-.form-mode-toggle {
-  border-bottom: 1px solid #dde1dc;
-  padding: 10px 14px 8px;
-  background: #fcfcfa;
-}
-
-.form-mode-toggle button.is-active {
-  border-color: #1e7a4a;
-  background: #eef5ef;
-  color: #155f4a;
-}
-
 .client-form {
   padding: 12px 14px 32px;
 }
@@ -1836,10 +1844,6 @@ summary:focus-visible {
     margin-left: -14px;
   }
 
-  .form-mode-toggle {
-    padding-right: 14px;
-    padding-left: 14px;
-  }
 }
 
 /* S30 — map objects */
@@ -2128,5 +2132,55 @@ summary:focus-visible {
     .map-account-body-hit {
     stroke: Highlight;
     stroke-width: 3;
+  }
+}
+
+.workspace.has-editor-panel {
+  grid-template-columns: 72px minmax(0, 380px) minmax(0, 1fr);
+}
+
+.workspace.is-guided-setup {
+  grid-template-columns: 420px minmax(520px, 1fr);
+}
+
+@media (max-width: 1180px) {
+  .workspace:not(.is-guided-setup),
+  .workspace.has-editor-panel {
+    position: relative;
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .workspace.is-guided-setup {
+    grid-template-columns: 420px minmax(520px, 1fr);
+  }
+
+  .workspace.has-editor-panel .editor-panel {
+    position: absolute;
+    z-index: 8;
+    top: 0;
+    bottom: 0;
+    left: 72px;
+    width: min(380px, calc(100% - 72px));
+    box-shadow: 8px 0 20px rgb(28 36 34 / 18%);
+  }
+}
+
+@media (max-width: 900px) {
+  .workspace:not(.is-guided-setup),
+  .workspace.has-editor-panel {
+    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .workspace.is-guided-setup {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+}
+
+@media print {
+  .editor-rail,
+  .editor-panel {
+    display: none;
   }
 }
