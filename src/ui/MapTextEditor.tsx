@@ -64,6 +64,7 @@ export interface ActiveMapTextEdit {
   color?: string
   target: MapTextEditTarget
   rect: MapTextEditRect
+  anchorRect?: MapTextEditRect
   rawValue: string
   fontSize?: number
   fontSizeMax?: number
@@ -730,9 +731,21 @@ export function MapTextEditor({
     width: Math.max(edit.rect.width, 24),
   }
   const pillButtonCount = edit.fontSize === undefined ? 1 : 3
+  const pillAnchor = edit.anchorRect
+    ? {
+        left: edit.rect.left,
+        width: edit.rect.width,
+        top: Math.min(edit.anchorRect.top, edit.rect.top),
+        height:
+          Math.max(
+            edit.anchorRect.top + edit.anchorRect.height,
+            edit.rect.top + edit.rect.height,
+          ) - Math.min(edit.anchorRect.top, edit.rect.top),
+      }
+    : edit.rect
   const pillScreenPosition = mapTextEditorPillPosition(
-    edit.rect,
-    mapRect?.top ?? edit.rect.top,
+    pillAnchor,
+    mapRect?.top ?? pillAnchor.top,
     pillButtonCount * 36,
   )
   const pillStyle: CSSProperties = {

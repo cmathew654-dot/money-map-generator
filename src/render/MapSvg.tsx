@@ -132,6 +132,7 @@ export type MapElementTarget =
       color?: string
       edit: MapTextEditTarget
       rect: MapTextEditRect
+      anchorRect?: MapTextEditRect
     }
 
 interface MapSvgProps {
@@ -221,6 +222,7 @@ function editableTextProps(
       color: getComputedStyle(target).fill,
       edit,
       rect: { left, top, width, height },
+      anchorRect: editShapeAnchorRect(target),
     })
   }
   return {
@@ -249,6 +251,15 @@ function editableTextProps(
     role: 'button',
     tabIndex: 0,
   }
+}
+
+function editShapeAnchorRect(
+  element: SVGGraphicsElement,
+): MapTextEditRect | undefined {
+  const shape = element.closest<SVGGraphicsElement>('g[data-map-target]')
+  if (!shape) return undefined
+  const { left, top, width, height } = shape.getBoundingClientRect()
+  return { left, top, width, height }
 }
 
 function editableLineTextProps(
@@ -304,6 +315,7 @@ function editableHitAreaProps(
       color: target ? getComputedStyle(target).fill : undefined,
       edit,
       rect: { left, top, width, height },
+      anchorRect: editShapeAnchorRect(target ?? element),
     })
   }
   return {

@@ -391,7 +391,6 @@ describe('layoutMap', () => {
     const expected = [
       ['text:masthead:label', 'Masthead label'],
       ['text:income:row:extreme-income', 'Income source'],
-      ['text:need:label', 'Monthly need label'],
       ['text:need:value', 'Monthly need'],
       ['text:need:supporting', 'Monthly need supporting text'],
       ['text:extreme-account:label', 'Account name'],
@@ -1280,14 +1279,14 @@ describe('layoutMap', () => {
 
     for (const layout of [sample, blank]) {
       expect(layout.income.w).toBe(280)
-      expect(layout.need.w).toBe(250)
+      expect(layout.need.w).toBeCloseTo(257.08, 2)
       expect(layout.need.h).toBe(170)
       expect(layout.footnotesAt.y).toBe(930)
     }
     expect(sample.income).toEqual({ x: 48, y: 118, w: 280, h: 264 })
-    expect(sample.need).toEqual({ x: 48, y: 648, w: 250, h: 170 })
+    expect(sample.need).toMatchObject({ x: 48, y: 648, h: 170 })
     expect(blank.income).toEqual({ x: 520, y: 184, w: 280, h: 132 })
-    expect(blank.need).toEqual({ x: 520, y: 714, w: 250, h: 170 })
+    expect(blank.need).toMatchObject({ x: 520, y: 714, h: 170 })
   })
 
   it('scales income row pitch and the first-row reach with row type', () => {

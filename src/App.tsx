@@ -909,6 +909,7 @@ export default function App() {
         color: target.color,
         target: target.edit,
         rect: target.rect,
+        anchorRect: target.anchorRect,
         rawValue: mapTextEditRawValue(activeClient, target.edit),
         ...mapTextEditFontState(activeClient, target.edit),
       })

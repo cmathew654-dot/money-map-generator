@@ -431,10 +431,18 @@ export function incomeTotalTextLayout(
   placed: Placed,
 ) {
   const sizes = incomeTextSizes(data)
-  const width = Math.max(1, (placed.w - 56) / 2)
+  const available = Math.max(1, placed.w - 56)
+  const labelText = 'After-Tax Income'
+  const valueText = money(data.afterTaxIncome)
+  const labelWidth = textWidth(labelText, sizes.totalLabel)
+  const valueWidth = textWidth(valueText, sizes.totalValue)
+  const scale =
+    labelWidth + valueWidth <= available
+      ? 1
+      : available / (labelWidth + valueWidth)
   return {
-    label: fittedTextLine('After-Tax Income', width, sizes.totalLabel),
-    value: fittedTextLine(money(data.afterTaxIncome), width, sizes.totalValue),
+    label: fittedTextLine(labelText, Math.max(1, labelWidth * scale), sizes.totalLabel),
+    value: fittedTextLine(valueText, Math.max(1, valueWidth * scale), sizes.totalValue),
   }
 }
 
@@ -586,7 +594,7 @@ function subAccountLayout(
     subAccount.label,
     usableWidth,
     titleFontSize,
-    Math.max(1, Math.floor(textBudget / titleLeading)),
+    Math.max(2, Math.floor(textBudget / titleLeading)),
   )
   const safeTitleLines = titleLines.length > 0 ? titleLines : ['']
   const captionLines = subAccount.caption
@@ -594,7 +602,7 @@ function subAccountLayout(
         subAccount.caption,
         usableWidth,
         captionFontSize,
-        Math.max(1, Math.floor(textBudget / captionLeading)),
+        Math.max(2, Math.floor(textBudget / captionLeading)),
       )
     : []
   const titleY =
@@ -851,7 +859,7 @@ function accountSizing(
       accountDisplayName(account),
       usableTitleWidth,
       titleFontSize,
-      Math.max(1, Math.floor(textBudget / titleLeading)),
+      Math.max(2, Math.floor(textBudget / titleLeading)),
     )
     const safeTitleLines =
       titleLines.length > 0 ? titleLines : ['']
@@ -876,7 +884,7 @@ function accountSizing(
           account.caption,
           usableCaptionWidth,
           captionFontSize,
-          Math.max(1, Math.floor(textBudget / captionLeading)),
+          Math.max(2, Math.floor(textBudget / captionLeading)),
         )
       : []
     const captionY =
@@ -1499,7 +1507,7 @@ function boundedBow(
 ): number {
   const chordX = end.x - start.x
   const chordY = end.y - start.y
-  const chordLength = Math.hypot(chordX, chordY)
+  const chordLength = Math.hypot(chordX, chordY) || 1
   const maximumBow = chordLength * MAX_BOW_FRACTION
   const midpoint = {
     x: (start.x + end.x) / 2,
@@ -2419,10 +2427,35 @@ function baseLayout(data: MoneyMapData): MapLayout {
     w: Math.max(280, incomeMetrics.minWidth),
     h: incomeMetrics.contentHeight,
   }
+  const needLabelSize = clamp(
+    data.layoutOverrides?.[mapTextOverrideKey('need', 'label')]?.fs ??
+      TYPE.needLabel,
+    MIN_MAP_TEXT_FONT_SIZE,
+    MAX_MAP_TEXT_FONT_SIZE,
+  )
+  const needValueSize = clamp(
+    data.layoutOverrides?.[mapTextOverrideKey('need', 'value')]?.fs ??
+      TYPE.needValue,
+    MIN_MAP_TEXT_FONT_SIZE,
+    MAX_MAP_TEXT_FONT_SIZE,
+  )
   const need: Placed = {
     x: 48,
     y: Math.max(700, income.y + income.h + 24),
-    w: 250,
+    w: Math.min(
+      OVERRIDE_BOUNDS.right - OVERRIDE_BOUNDS.left,
+      Math.max(
+        250,
+        textWidth('MONTHLY INCOME NEED', needLabelSize) + 40,
+        Math.min(
+          480,
+          textWidth(
+            taggedMoney(data.monthlyNeed, data.needTag),
+            needValueSize,
+          ) + 40,
+        ),
+      ),
+    ),
     h: 170,
   }
   const accounts = COLUMNS.flatMap((column) => placeColumn(data, column))
@@ -2641,10 +2674,14 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     ...notes,
   ]
   const footnotesOverlap = footnoteLines.some((line) => {
+    const lineWidth = Math.min(
+      720,
+      textWidth(line.text.display, line.fontSize) + 16,
+    )
     const block = {
-      x: footnoteCenterX - 360,
+      x: footnoteCenterX - lineWidth / 2,
       y: line.y - line.fontSize - 3,
-      w: 720,
+      w: lineWidth,
       h: line.fontSize + 9,
     }
     const offset = mapTextOffset(
@@ -2683,6 +2720,12 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     warnAbbreviation(text.amount, targetKey, 'Income source', 'its row')
   }
   const incomeTotal = incomeTotalTextLayout(data, income)
+  warnAbbreviation(
+    incomeTotal.label,
+    mapTextOverrideKey('income', 'total'),
+    'After-tax income label',
+    'the income total row',
+  )
   warnAbbreviation(
     incomeTotal.value,
     mapTextOverrideKey('income', 'total'),

@@ -115,7 +115,7 @@ describe('seamless map text editor geometry and typography', () => {
     expect(sizes.totalLabel).toBeCloseTo(30 * (13 / 17))
     expect(sizes.totalValue).toBe(30)
     expect(markup).toMatch(
-      new RegExp(`font-size="${sizes.totalLabel}"[^>]*>After-Tax…`),
+      new RegExp(`font-size="${sizes.totalLabel}"[^>]*>After-Tax Income`),
     )
     expect(markup).toMatch(
       new RegExp(`font-size="${sizes.totalValue}"[^>]*>\\$5,900`),
@@ -795,7 +795,7 @@ describe('noninteractive map rendering', () => {
     expect(markup).toMatch(/font-size="20"[^>]*><tspan>\$2,400 mo\./)
     expect(markup).toMatch(/font-size="17\.142857142857142"[^>]*>Gross/)
     expect(markup).toMatch(/font-size="21"[^>]*>\$5,900/)
-    expect(markup).toMatch(/font-size="22"[^>]*>MONTHLY…/)
+    expect(markup).toMatch(/font-size="22"[^>]*>MONTHLY INCOME NEED/)
     expect(markup).toMatch(/font-size="40"[^>]*><tspan[^>]*>\$15,000/)
     expect(markup).toContain(
       'y="930" fill="#1c2422" font-family="&#x27;Public Sans&#x27;, &#x27;Segoe UI&#x27;, sans-serif" font-size="18"',
