@@ -306,11 +306,20 @@ export function crossedDragThreshold(
   return Math.hypot(current.x - start.x, current.y - start.y) >= threshold
 }
 
+export const TEXT_DRAG_THRESHOLD_PX = 8
+export const TEXT_DRAG_MIN_MS = 180
+export const TEXT_DRAG_FLICK_PX = 24
+
 export function accountTextPointerAction(
   start: Point,
   current: Point,
+  elapsedMs = Number.POSITIVE_INFINITY,
 ): 'edit' | 'move' {
-  return crossedDragThreshold(start, current) ? 'move' : 'edit'
+  if (crossedDragThreshold(start, current, TEXT_DRAG_FLICK_PX)) return 'move'
+  return crossedDragThreshold(start, current, TEXT_DRAG_THRESHOLD_PX) &&
+    elapsedMs >= TEXT_DRAG_MIN_MS
+    ? 'move'
+    : 'edit'
 }
 
 export function pannedScrollPosition(

@@ -176,6 +176,7 @@ interface DragSession {
   startOutline?: OutlineElement
   startPlaced?: Placed
   startScreen: Point
+  startedAt: number
 }
 
 type TextPointerDown = (
@@ -1778,7 +1779,7 @@ function AsNeededLabel({
   if (!arrow.labelAt) return null
   const amountText = mapMoney(amount, 10)
   const accessibleLabel =
-    'Monthly Income as Needed ' + amountText.exact
+    'Monthly income drawn as needed ' + amountText.exact
   return (
     <g
       aria-label={accessibleLabel}
@@ -1788,18 +1789,19 @@ function AsNeededLabel({
     >
       <title>{accessibleLabel}</title>
       <rect
-        x={arrow.labelAt.x - 125}
+        x={arrow.labelAt.x - 94}
         y={arrow.labelAt.y - 19}
-        width={250}
+        width={188}
         height={38}
-        rx={8}
+        rx={19}
         fill="#ffffff"
-        stroke={HAIRLINE}
+        stroke={FLOW_GREEN}
+        strokeDasharray="5 4"
       />
       <rect
-        x={arrow.labelAt.x - 118}
+        x={arrow.labelAt.x - 87}
         y={arrow.labelAt.y - 15}
-        width={236}
+        width={174}
         height={30}
         {...editableHitAreaProps(
           { kind: 'asNeededAmount' },
@@ -1818,7 +1820,7 @@ function AsNeededLabel({
           onElementClick,
         )}
       >
-        Monthly Income as Needed
+        As needed
         <tspan
           dx={7}
           fontFamily={FONT_SERIF}
@@ -2102,6 +2104,7 @@ export function MapSvg({
       startOutline,
       startPlaced,
       startScreen: { x: event.clientX, y: event.clientY },
+      startedAt: performance.now(),
     }
   }
   const cancelDrag = () => {
@@ -2117,8 +2120,11 @@ export function MapSvg({
       !session.active &&
       (session.mode === 'textMove' ||
       session.mode === 'flowLabelMove'
-        ? accountTextPointerAction(session.startScreen, currentScreen) ===
-          'edit'
+        ? accountTextPointerAction(
+            session.startScreen,
+            currentScreen,
+            performance.now() - session.startedAt,
+          ) === 'edit'
         : !crossedDragThreshold(session.startScreen, currentScreen))
     ) {
       return

@@ -284,7 +284,18 @@ describe('applyMapTextEdit', () => {
     const start = { x: 20, y: 30 }
 
     expect(accountTextPointerAction(start, { x: 23, y: 32 })).toBe('edit')
-    expect(accountTextPointerAction(start, { x: 24, y: 30 })).toBe('move')
+    expect(accountTextPointerAction(start, { x: 27, y: 30 })).toBe('edit')
+    expect(accountTextPointerAction(start, { x: 28, y: 30 })).toBe('move')
+  })
+
+  it('treats a quick sloppy movement as a click, but a fast long flick as a drag', () => {
+    const start = { x: 20, y: 30 }
+    const sloppy = { x: 35, y: 30 }
+    const flick = { x: 44, y: 30 }
+
+    expect(accountTextPointerAction(start, sloppy, 100)).toBe('edit')
+    expect(accountTextPointerAction(start, sloppy, 180)).toBe('move')
+    expect(accountTextPointerAction(start, flick, 50)).toBe('move')
   })
 
   it.each([
@@ -1048,10 +1059,10 @@ describe('noninteractive map rendering', () => {
     )
 
     expect(constrained).toContain(
-      'aria-label="Monthly Income as Needed $930,923,028"',
+      'aria-label="Monthly income drawn as needed $930,923,028"',
     )
     expect(constrained).toContain(
-      '<title>Monthly Income as Needed $930,923,028</title>',
+      '<title>Monthly income drawn as needed $930,923,028</title>',
     )
     expect(constrained).toMatch(/>\$930\.9M<\/tspan>/)
     expect(unconstrained).toMatch(/>\$930,923<\/tspan>/)
