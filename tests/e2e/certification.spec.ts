@@ -110,7 +110,7 @@ test.describe('desktop behavioral certification', () => {
     expect((await book).suggestedFilename()).toBe('money-map-book.json')
     for (const [name, extension] of [
       ['PNG image', 'png'],
-      ['PDF snapshot', 'pdf'],
+      ['PDF image snapshot', 'pdf'],
       ['SVG image', 'svg'],
     ] as const) {
       await page.getByRole('button', { name: 'Export map' }).click()
@@ -156,7 +156,7 @@ test.describe('desktop behavioral certification', () => {
     await stressed.getByRole('button', { name: 'Print', exact: true }).click()
     await expect.poll(() => stressed.evaluate(() => (window as Window & { __printCalls?: number }).__printCalls)).toBe(1)
     await stressed.getByRole('button', { name: 'Export map' }).click()
-    for (const name of ['PNG image', 'PDF snapshot', 'SVG image']) {
+    for (const name of ['PNG image', 'PDF image snapshot', 'SVG image']) {
       await expect(stressed.getByRole('menuitem', { name })).toBeEnabled()
     }
     await evidence(stressed, info, 'layout-warning-diagnostics')

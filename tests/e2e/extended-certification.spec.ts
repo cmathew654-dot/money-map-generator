@@ -1037,7 +1037,7 @@ test.describe('extended desktop certification', () => {
         stressedPage.getByRole('button', { name: 'Print', exact: true }),
       ).toBeEnabled()
       await stressedPage.getByRole('button', { name: 'Export map' }).click()
-      for (const name of ['PNG image', 'PDF snapshot', 'SVG image']) {
+      for (const name of ['PNG image', 'PDF image snapshot', 'SVG image']) {
         await expect(
           stressedPage.getByRole('menuitem', { name }),
         ).toBeEnabled()

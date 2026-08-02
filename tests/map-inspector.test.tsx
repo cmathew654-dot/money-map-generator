@@ -13,6 +13,7 @@ const render = (selectedTargetKey: string, data = SAMPLE_WHITFIELD) =>
       selectedTargetKey,
       onChange: () => undefined,
       onClose: () => undefined,
+      onSelect: () => undefined,
     }),
   )
 

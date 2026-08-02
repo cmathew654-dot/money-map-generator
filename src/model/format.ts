@@ -91,6 +91,7 @@ const MAP_MONEY_UNITS = [
   { divisor: 1_000_000, suffix: 'M' },
   { divisor: 1_000_000_000, suffix: 'B' },
   { divisor: 1_000_000_000_000, suffix: 'T' },
+  { divisor: 1_000_000_000_000_000, suffix: 'Q' },
 ] as const
 
 /** Compact visual text for constrained map labels, with exact text retained. */

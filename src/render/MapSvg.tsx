@@ -1663,7 +1663,7 @@ function FlowArrowLabel({
       )}
       aria-label={
         onElementClick
-          ? `Edit flow label: ${text.exact}`
+          ? `Edit transfer description: ${text.exact}`
           : text.exact
       }
       className={`map-flow-label${
@@ -1676,6 +1676,7 @@ function FlowArrowLabel({
 }
 
 function ArrowEditor({
+  accessibleName,
   arrow,
   customMarkerIds,
   markerId,
@@ -1685,6 +1686,7 @@ function ArrowEditor({
   selected,
   targetKey,
 }: {
+  accessibleName: string
   arrow: Arrow
   customMarkerIds: Record<CustomArrowColor, string>
   markerId: string
@@ -1703,7 +1705,7 @@ function ArrowEditor({
   }
   return (
     <g
-      aria-label={`Adjust ${arrow.kind} arrow`}
+      aria-label={accessibleName}
       aria-keyshortcuts={
         arrow.kind === 'custom'
           ? 'Control+ArrowLeft Control+ArrowRight'
@@ -2093,6 +2095,12 @@ export function MapSvg({
         : layout.accounts.find(
             (placed) => placed.account.id === endpointId,
           )
+  const endpointLabelForId = (endpointId: string | undefined) => {
+    if (endpointId === 'income') return 'Income sources'
+    if (endpointId === 'need') return 'Monthly need'
+    const account = data.accounts.find((candidate) => candidate.id === endpointId)
+    return account ? accountDisplayName(account) : 'Map item'
+  }
 
   const beginDrag = (
     key: string,
@@ -2587,6 +2595,11 @@ export function MapSvg({
                   )
           return (
             <ArrowEditor
+              accessibleName={
+                arrow.kind === 'custom'
+                  ? `Adjust flow from ${endpointLabelForId(arrow.sourceId)} to ${endpointLabelForId(arrow.targetId)}`
+                  : `Adjust ${arrow.kind === 'asNeeded' ? 'account withdrawal' : arrow.kind} flow`
+              }
               key={`${arrow.kind}-${arrow.id ?? index}`}
               arrow={arrow}
               customMarkerIds={customMarkerIds}

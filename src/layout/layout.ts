@@ -2567,6 +2567,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     targetKey: string,
     fieldLabel: string,
     _container: string,
+    message?: string,
   ) => {
     if (
       fitted.display === fitted.exact ||
@@ -2581,7 +2582,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       code: 'text-abbreviated',
       targetKey,
       fieldLabel,
-      message: `Shorten ${fieldLabel.toLowerCase()} so all of it appears on the map.`,
+      message: message ?? `Shorten the ${fieldLabel.toLowerCase()} or reduce its text size so the full text fits on the map.`,
     })
   }
   const incomeMetrics = incomePanelMetrics(data)
@@ -2606,7 +2607,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     if (edges.length > 0) {
       warnings.push({
         code: 'panel-out-of-bounds',
-        message: `${panel.name} is partly outside the map.`,
+        message: `Move or resize ${panel.name.toLowerCase()} so it fits inside the map.`,
       })
     }
   }
@@ -2622,7 +2623,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (accountOverlap) {
     warnings.push({
       code: 'account-overlap',
-      message: 'Two or more accounts overlap.',
+      message: 'Move or resize the overlapping accounts so each one is readable.',
     })
   }
   const accountPanelOverlap = accountRects.some(
@@ -2631,7 +2632,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (accountPanelOverlap) {
     warnings.push({
       code: 'account-panel-overlap',
-      message: 'An account overlaps the income sources.',
+      message: 'Move or resize the account so it no longer covers income or monthly need.',
     })
   }
   const mapContentRects = [income, need, ...accountRects]
@@ -2641,7 +2642,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (noteContentOverlap) {
     warnings.push({
       code: 'note-content-overlap',
-      message: 'A note overlaps another item on the map.',
+      message: 'Move the note so it no longer covers financial information.',
     })
   }
   const incomeNeedOverlap =
@@ -2652,7 +2653,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (incomeNeedOverlap) {
     warnings.push({
       code: 'income-need-overlap',
-      message: 'Income sources overlap the monthly need.',
+      message: 'Move either income sources or monthly need so they no longer overlap.',
     })
   }
   const overflowingAccounts = accounts.filter(
@@ -2661,9 +2662,9 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (overflowingAccounts.length > 0) {
     warnings.push({
       code: 'account-column-overflow',
-      message: `${overflowingAccounts.length} account ${
-        overflowingAccounts.length === 1 ? 'shape extends' : 'shapes extend'
-      } below the map.`,
+      message: `Move or resize the ${overflowingAccounts.length} account ${
+        overflowingAccounts.length === 1 ? 'item' : 'items'
+      } that extend below the map so they fit inside it.`,
     })
   }
   const footnoteCenterX = finalBounds.x + finalBounds.w / 2
@@ -2703,14 +2704,14 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   if (footnotesOverlap) {
     warnings.push({
       code: 'footnote-overlap',
-      message: 'Fine print overlaps the map content.',
+      message: 'Move the fine print or nearby financial items so they no longer overlap.',
     })
   }
   const mastheadText = mastheadTextLayout(data)
   warnAbbreviation(
     mastheadText.label,
     mapTextOverrideKey('masthead', 'label'),
-    'Masthead label',
+    'Map heading',
     'the masthead',
   )
   for (const source of data.incomeSources) {
@@ -2723,7 +2724,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   warnAbbreviation(
     incomeTotal.label,
     mapTextOverrideKey('income', 'total'),
-    'After-tax income label',
+    'After-tax income heading',
     'the income total row',
   )
   warnAbbreviation(
@@ -2745,19 +2746,19 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   warnAbbreviation(
     needText.label,
     mapTextOverrideKey('need', 'label'),
-    'Monthly need label',
+    'Monthly income need heading',
     'the monthly need card',
   )
   warnAbbreviation(
     needText.value,
     mapTextOverrideKey('need', 'value'),
-    'Monthly need',
+    'Monthly income need',
     'the monthly need card',
   )
   warnAbbreviation(
     needText.supporting,
     mapTextOverrideKey('need', 'supporting'),
-    'Monthly need supporting text',
+    'Monthly income calculation',
     'the monthly need card',
   )
   for (const account of accounts) {
@@ -2775,22 +2776,23 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       warnAbbreviation(
         { display: account.captionLines.join(' '), exact: account.account.caption ?? '' },
         key('caption'),
-        'Account caption',
+        'Account description',
         'the account shape',
       )
     }
     warnAbbreviation(
       { display: account.valueText, exact: taggedMoney(account.account.value, account.account.valueTag) },
       key('value'),
-      'Account value tag',
+      'Account amount and note',
       'the account shape',
+      'Reduce the account amount text size or shorten its optional note so the full amount fits on the map.',
     )
     if (account.positionRows.some((row) => row.labelLines.at(-1)?.endsWith('…'))) {
       warnings.push({
         code: 'text-abbreviated',
         targetKey: key('rows'),
-        fieldLabel: 'Position label',
-        message: 'Shorten the position label so all of it appears on the map.',
+        fieldLabel: 'Investment name',
+        message: 'Shorten the investment name or reduce its text size so the full text fits on the map.',
       })
     }
     if (account.subAccountLayouts.some((item) =>
@@ -2801,8 +2803,8 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       warnings.push({
         code: 'text-abbreviated',
         targetKey: key('sub'),
-        fieldLabel: 'Sub-account text',
-        message: 'Shorten the sub-account text so all of it appears on the map.',
+        fieldLabel: 'Nested account details',
+        message: 'Shorten the nested account details or reduce their text size so the full text fits on the map.',
       })
     }
   }
@@ -2810,7 +2812,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     warnAbbreviation(
       flowLabelText(arrow),
       `arrow:custom:${arrow.id}`,
-      'Flow label',
+      'Transfer description',
       'the flow label area',
     )
   }
@@ -2830,8 +2832,8 @@ export function layoutMap(data: MoneyMapData): MapLayout {
     warnings.push({
       code: 'masthead-title-overflow',
       targetKey: mapTextOverrideKey('masthead', 'label'),
-      fieldLabel: 'Client title',
-      message: 'Shorten the client title so all of it appears at the top of the map.',
+      fieldLabel: 'Client name',
+      message: 'Shorten the client name or reduce its text size so the full name fits at the top of the map.',
     })
   }
 

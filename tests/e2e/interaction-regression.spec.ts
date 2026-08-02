@@ -372,7 +372,7 @@ test.describe('approved desktop interaction regression', () => {
       })
       .toBe(true)
 
-    const incomeFlow = page.getByRole('group', { name: 'Adjust income arrow' })
+    const incomeFlow = page.getByRole('group', { name: 'Adjust income flow' })
     await incomeFlow.focus()
     const flowInspector = page.locator('.map-inspector')
     await flowInspector.getByRole('button', { name: 'Hide flow' }).click()

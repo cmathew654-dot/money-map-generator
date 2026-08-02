@@ -61,6 +61,20 @@ describe('Session 40 map interaction affordances', () => {
     }
   })
 
+  it('names each custom flow by its plain endpoints without changing generated names', () => {
+    const markup = renderInteractive()
+
+    expect(markup).toContain(
+      'aria-label="Adjust flow from Managed IRA — Jordan to Managed After-Tax Trust"',
+    )
+    expect(markup).toContain(
+      'aria-label="Adjust flow from Managed After-Tax Trust to Short-Term Funds"',
+    )
+    expect(markup).toContain('aria-label="Adjust income flow"')
+    expect(markup).toContain('aria-label="Adjust account withdrawal flow"')
+    expect(markup).not.toContain('aria-label="Adjust custom flow"')
+  })
+
   it('marks decorative account layers click-through and omits edit chrome from output SVGs', () => {
     const selectedMarkup = renderInteractive(selectedKey)
     const outputMarkup = renderToStaticMarkup(

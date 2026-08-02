@@ -33,6 +33,7 @@ import {
   mapTextEditorShouldRestoreFocus,
   mapTextEditorPillPosition,
   mapTextEditorTextStyle,
+  mapTextEditorTargetLabel,
   mapTextEditFsInfo,
   mapTextEditRawValue,
   type MapTextEditTarget,
@@ -784,6 +785,53 @@ describe('map note edits', () => {
 })
 
 describe('noninteractive map rendering', () => {
+  it('uses plain language for editable text and arrow accessibility names', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      customArrows: SAMPLE_WHITFIELD.customArrows?.map((arrow, index) =>
+        index === 0 ? { ...arrow, label: 'Retirement transfer' } : arrow,
+      ),
+    }
+    const markup = renderToStaticMarkup(createElement(MapSvg, {
+      data,
+      onChange: () => undefined,
+      onElementClick: () => undefined,
+    }))
+
+    const editorTargets: MapTextEditTarget[] = [
+      { kind: 'accountCaption', accountId },
+      { kind: 'accountRows', accountId },
+      { kind: 'accountSub', accountId },
+      { kind: 'accountPositionLabel', accountId, positionIndex: 0 },
+      { kind: 'accountPositionValue', accountId, positionIndex: 0 },
+      { kind: 'accountSubLabel', accountId, subAccountIndex: 0 },
+      { kind: 'accountSubCaption', accountId, subAccountIndex: 0 },
+      { kind: 'accountSubValue', accountId, subAccountIndex: 0 },
+      { kind: 'flowLabel', arrowId: 'flow' },
+    ]
+    expect(editorTargets.map(mapTextEditorTargetLabel)).toEqual([
+      'account description',
+      'investment details',
+      'nested account details',
+      'investment name',
+      'investment amount',
+      'nested account name',
+      'nested account description',
+      'nested account amount',
+      'transfer description',
+    ])
+    for (const label of [
+      'Edit investment details',
+      'Edit nested account details',
+      'Edit transfer description: Retirement transfer',
+      'Adjust income flow',
+      'Adjust account withdrawal flow',
+      'Adjust flow from Managed IRA — Jordan to Managed After-Tax Trust',
+    ]) {
+      expect(markup).toContain(label)
+    }
+  })
+
   it('renders calculated need supporting text as a movable non-editable target', () => {
     const markup = renderToStaticMarkup(createElement(MapSvg, {
       data: { ...SAMPLE_WHITFIELD, asNeededAmount: 9_000 },

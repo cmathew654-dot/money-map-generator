@@ -5,7 +5,11 @@ import type {
   MapNote,
   MoneyMapData,
 } from '../model/types'
-import { newId } from '../model/types'
+import {
+  ACCOUNT_TEXT_ROLES,
+  accountTextOverrideKey,
+  newId,
+} from '../model/types'
 
 export interface Point {
   x: number
@@ -301,6 +305,97 @@ export function addMapNote(
   return {
     ...data,
     notes: [...(data.notes ?? []), { ...note, text }],
+  }
+}
+
+function duplicatePlacement(
+  sourceRect: Rect,
+  blockedRects: readonly Rect[],
+  bounds: RectBounds,
+): Rect {
+  const forward = clampRectToBounds(
+    { ...sourceRect, x: sourceRect.x + 24, y: sourceRect.y + 24 },
+    bounds,
+  )
+  const blocked =
+    forward.x !== sourceRect.x + 24 ||
+    forward.y !== sourceRect.y + 24 ||
+    blockedRects.some((rect) =>
+      forward.x < rect.x + rect.w &&
+      forward.x + forward.w > rect.x &&
+      forward.y < rect.y + rect.h &&
+      forward.y + forward.h > rect.y,
+    )
+  return blocked
+    ? clampRectToBounds(
+        { ...sourceRect, x: sourceRect.x - 24, y: sourceRect.y - 24 },
+        bounds,
+      )
+    : forward
+}
+
+export function duplicateMapAccount(
+  data: MoneyMapData,
+  id: string,
+  sourceRect: Rect,
+  blockedRects: readonly Rect[],
+  bounds: RectBounds,
+): { data: MoneyMapData; rect: Rect; targetKey: string } | null {
+  const account = data.accounts.find((candidate) => candidate.id === id)
+  if (!account) return null
+  const placed = duplicatePlacement(sourceRect, blockedRects, bounds)
+  const copyId = newId('account')
+  const sourceOverride = data.layoutOverrides?.[id] ?? {}
+  const visualOverride = { ...sourceOverride }
+  delete visualOverride.dx
+  delete visualOverride.dy
+  const layoutOverrides = {
+    ...data.layoutOverrides,
+    [copyId]: visualOverride,
+  }
+  for (const role of ACCOUNT_TEXT_ROLES) {
+    const override = data.layoutOverrides?.[accountTextOverrideKey(id, role)]
+    if (override) layoutOverrides[accountTextOverrideKey(copyId, role)] = { ...override }
+  }
+
+  return {
+    data: {
+      ...data,
+      accounts: data.accounts.flatMap((candidate) =>
+        candidate.id === id
+          ? [candidate, { ...structuredClone(candidate), id: copyId }]
+          : [candidate],
+      ),
+      layoutOverrides,
+    },
+    rect: placed,
+    targetKey: 'account:' + copyId,
+  }
+}
+
+export function duplicateMapNote(
+  data: MoneyMapData,
+  id: string,
+  sourceRect: Rect,
+  blockedRects: readonly Rect[],
+  bounds: RectBounds,
+): { data: MoneyMapData; rect: Rect; targetKey: string } | null {
+  const note = data.notes?.find((candidate) => candidate.id === id)
+  if (!note) return null
+  const placed = duplicatePlacement(sourceRect, blockedRects, bounds)
+  const copyId = newId('note')
+
+  return {
+    data: {
+      ...data,
+      notes: data.notes?.flatMap((candidate) =>
+        candidate.id === id
+          ? [candidate, { ...candidate, id: copyId, x: placed.x, y: placed.y }]
+          : [candidate],
+      ),
+    },
+    rect: placed,
+    targetKey: 'note:' + copyId,
   }
 }
 

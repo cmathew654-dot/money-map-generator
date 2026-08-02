@@ -223,14 +223,14 @@ describe('Session 40 map editing and capacity', () => {
     const incomeMetrics = incomePanelMetrics(denseIncome)
     const panels = [
       [
-        'Income sources',
+        'income sources',
         {
           ...layout.income,
           w: Math.max(layout.income.w, incomeMetrics.minWidth),
           h: Math.max(layout.income.h, incomeMetrics.contentHeight),
         },
       ],
-      ['Monthly need', layout.need],
+      ['monthly need', layout.need],
     ] as const
     const outside = panels.filter(([, panel]) =>
       panel.x < 0 ||
