@@ -335,7 +335,7 @@ async function fillControl(driver, element, value) {
 }
 
 async function openFullForm(driver) {
-  await clickButton(driver, 'Full form')
+  await clickButton(driver, 'Data')
   await waitFor('full form editor', () =>
     driver.execute(
       `return Boolean(

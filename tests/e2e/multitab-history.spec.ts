@@ -91,12 +91,32 @@ test('focused money draft keeps its local undo and redo behavior', async ({ page
 })
 test('navigation pagehide hands ownership to the follower immediately', async ({ context, page }) => {
   await openApp(page)
+  await fullForm(page)
   const second = await context.newPage()
   await openApp(second)
+  await fullForm(second)
   await focusPage(page)
   await expect(second.getByLabel('Title')).toBeDisabled()
 
   await page.goto('about:blank')
   await expect(second.getByLabel('Title')).toBeEnabled({ timeout: 2_000 })
   await page.close()
+})
+
+test('background writer tab releases ownership for the visible follower', async ({ context, page }) => {
+  await openApp(page)
+  await fullForm(page)
+  await expect(page.getByLabel('Title')).toBeEnabled()
+
+  const second = await context.newPage()
+  await openApp(second)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await fullForm(second)
+  await second.bringToFront()
+  await second.evaluate(() => window.dispatchEvent(new FocusEvent('focus')))
+  await expect(second.getByLabel('Title')).toBeEnabled({ timeout: 2_000 })
+  await expect(page.getByLabel('Title')).toBeDisabled()
 })

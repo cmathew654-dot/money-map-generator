@@ -173,7 +173,7 @@ test.describe('desktop behavioral certification', () => {
   test('200 percent zoom remains operable', async ({ page }, info) => {
     test.skip(info.project.name !== 'chromium-text-zoom-200', 'Dedicated zoom project')
     await page.evaluate(() => { document.body.style.zoom = '200%' })
-    await expect(page.getByRole('button', { name: 'Full form' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Data', exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Print', exact: true })).toBeVisible()
     await evidence(page, info, 'text-zoom-200')
   })

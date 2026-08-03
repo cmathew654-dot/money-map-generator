@@ -727,7 +727,7 @@ test.describe('extended desktop certification', () => {
     await capture('Print', page.getByRole('button', { name: 'Print', exact: true }), '.app-header')
     await capture('Export map', page.getByRole('button', { name: 'Export map' }), '.app-header')
     await capture('Guide me', page.getByRole('button', { name: 'Guide me' }), '.form-pane')
-    await capture('Full form', page.getByRole('button', { name: 'Full form' }), '.form-pane')
+    await capture('Data panel', page.getByRole('button', { name: 'Data', exact: true }), '.editor-panel')
     await capture('Wizard Client step', page.getByRole('button', { name: 'Client', exact: true }), '.form-pane')
     await capture('Wizard Next', page.getByRole('button', { name: 'Next' }), '.form-pane')
     await capture('Wizard footer', page.locator('.wizard-footer'), '.form-pane')

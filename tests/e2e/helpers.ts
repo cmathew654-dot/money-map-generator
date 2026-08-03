@@ -13,7 +13,7 @@ export async function evidence(page: Page, info: TestInfo, name: string) {
   await page.screenshot({ path: info.outputPath(`${name}.png`), fullPage: true })
 }
 export async function fullForm(page: Page) {
-  await page.getByRole('button', { name: 'Full form' }).click()
+  await page.getByRole('button', { name: 'Data', exact: true }).click()
   await expect(page.locator('.client-form')).toBeVisible()
 }
 export async function focusPage(page: Page) {

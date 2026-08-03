@@ -6,7 +6,7 @@ test.describe('App resilience', () => {
   test('file input is named and account summaries contain no nested controls', async ({ page }) => {
     await openApp(page)
     await expect(page.locator('input[type="file"]')).toHaveAccessibleName('Open book backup file')
-    await page.getByRole('button', { name: 'Full form' }).click()
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
     const account = page.locator('.account-card').first()
     await expect(account).not.toHaveAttribute('open', '')
     const shapeGroup = page.getByRole('group', { name: /^Shape for / }).first()
@@ -31,7 +31,7 @@ test.describe('App resilience', () => {
     await context.addInitScript(() => { if (location.origin.startsWith('http://127.0.0.1:')) localStorage.setItem('money-map-generator:book', '{broken') })
     const page = await context.newPage()
     await openApp(page)
-    await page.getByRole('button', { name: 'Full form' }).click()
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
     await expect(page.getByLabel('Title')).toBeDisabled()
     await page.getByRole('button', { name: 'More actions' }).click()
     await expect(page.getByRole('menuitem', { name: 'New client' })).toBeDisabled()
@@ -76,13 +76,13 @@ test.describe('App resilience', () => {
   })
   test('focused follower enables mutation controls after ownership transfers', async ({ context, page }) => {
     await openApp(page)
-    await page.getByRole('button', { name: 'Full form' }).click()
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
     const writerTitle = page.getByLabel('Title')
     await expect(writerTitle).toBeEnabled()
 
     const follower = await context.newPage()
     await openApp(follower)
-    await follower.getByRole('button', { name: 'Full form' }).click()
+    await follower.getByRole('button', { name: 'Data', exact: true }).click()
     const followerTitle = follower.getByLabel('Title')
     await focusPage(page)
     await expect(writerTitle).toBeEnabled()

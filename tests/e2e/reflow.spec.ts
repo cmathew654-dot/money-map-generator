@@ -59,7 +59,7 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
     const stack = document.querySelector<HTMLElement>('.app-status-stack')!
     const stackBox = stack.getBoundingClientRect()
     const targets = [...document.querySelectorAll<HTMLElement>('.app-header button, .form-pane button')]
-      .filter((element) => ['Guide me', 'Full form'].includes(element.textContent?.trim() || '') || Boolean(element.closest('.app-header')))
+      .filter((element) => ['Guide me', 'Data'].includes(element.textContent?.trim() || '') || Boolean(element.closest('.app-header')))
       .filter((element) => {
         const style = getComputedStyle(element)
         return style.display !== 'none' && style.visibility !== 'hidden'
@@ -154,7 +154,7 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
   console.log(`HEADER_LABEL_DIAGNOSTICS ${JSON.stringify(headerLabelDiagnostics)}`)
   const clippedHeaderLabels = headerLabelDiagnostics.labels.filter(({ clipped }) => clipped)
 
-  await page.getByRole('button', { name: 'Full form' }).click()
+  await page.getByRole('button', { name: 'Data', exact: true }).click()
   const shownAs = page.getByLabel('Amount note').first()
   await shownAs.fill('Gross, After-Tax')
   const shownAsMetrics = await shownAs.evaluate((element: HTMLInputElement) => {
