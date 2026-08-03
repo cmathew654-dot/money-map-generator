@@ -64,7 +64,8 @@ test('New still opens the guided setup', async ({ page }) => {
   await expect(
     page.getByRole('complementary', { name: 'Editor tools' }),
   ).toBeVisible()
-  await page.getByRole('button', { name: 'New', exact: true }).click()
+  await page.getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'New client' }).click()
 
   await expect(
     page.getByRole('heading', { name: 'Who is this map for?' }),
@@ -141,14 +142,20 @@ test('Add exposes map actions and selects new records', async ({ page }) => {
   }
 
   await panel.getByRole('button', { name: 'Add account' }).click()
+  const dataPanel = page.getByRole('dialog', { name: 'Data' })
+  await expect(dataPanel.locator('[data-form-section="accounts"]')).toHaveClass(/is-active/)
   await expect(page.locator('[data-map-target^="account:"][data-map-selected="true"]')).toHaveCount(1)
   await expect(page.getByRole('region', { name: /Adjust/ })).toBeVisible()
 
+  await dataButton.click()
+  await addButton.click()
   await panel.getByRole('button', { name: 'Add income source' }).click()
+  await expect(dataPanel.locator('[data-form-section="income"]')).toHaveClass(/is-active/)
   await expect(page.locator('[data-map-target="income"][data-map-selected="true"]')).toHaveCount(1)
 
+  await dataButton.click()
+  await addButton.click()
   await panel.getByRole('button', { name: 'Set monthly need' }).click()
-  const dataPanel = page.getByRole('dialog', { name: 'Data' })
   await expect(dataPanel.locator('[data-form-section="need"]')).toHaveClass(/is-active/)
   await dataButton.click()
   await addButton.click()
@@ -170,7 +177,7 @@ test('Add exposes map actions and selects new records', async ({ page }) => {
 test('empty Add panel opens the matching Data section without coercing blanks', async ({ page }) => {
   await openApp(page)
 
-  await page.getByRole('button', { name: 'Reset menu' }).click()
+  await page.getByRole('button', { name: 'More actions' }).click()
   await page.getByRole('menuitem', { name: /Clear map/ }).click()
   await page.getByRole('button', { name: 'Clear map', exact: true }).click()
 

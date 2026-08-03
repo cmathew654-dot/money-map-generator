@@ -44,7 +44,8 @@ test.describe('desktop behavioral certification', () => {
   })
 
   test('new client completes the wizard', async ({ page }, info) => {
-    await page.getByRole('button', { name: 'New', exact: true }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
+    await page.getByRole('menuitem', { name: 'New client' }).click()
     for (let i = 0; i < 4; i += 1) await page.getByRole('button', { name: 'Next' }).click()
     await page.getByRole('button', { name: 'Finish' }).click()
     await expect(page.getByRole('heading', { name: 'Review the map before sharing.' })).toBeVisible()
@@ -111,7 +112,7 @@ test.describe('desktop behavioral certification', () => {
   })
 
   test('Save Book and map exports download', async ({ page }) => {
-    await page.getByRole('button', { name: 'Book menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     const book = page.waitForEvent('download'); await page.getByRole('menuitem', { name: 'Download book backup' }).click()
     expect((await book).suggestedFilename()).toBe('money-map-book.json')
     for (const [name, extension] of [

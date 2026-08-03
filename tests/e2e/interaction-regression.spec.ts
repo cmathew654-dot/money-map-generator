@@ -582,7 +582,7 @@ test.describe('approved desktop interaction regression', () => {
       })
       .toBe(true)
     const before = (await currentClient(page)).layoutOverrides!
-    await page.getByRole('button', { name: 'Reset menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     await page.getByRole('menuitem', { name: 'Reset all text positions…' }).click()
     await page
       .getByRole('dialog', { name: 'Reset all text positions?' })
@@ -682,7 +682,7 @@ test.describe('approved desktop interaction regression', () => {
       .toEqual(originalContent)
     expect(await svgPosition(incomeBody)).not.toEqual(generatedPosition)
 
-    await page.getByRole('button', { name: 'Reset menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     await page.getByRole('menuitem', { name: 'Reset arrangement' }).click()
     await page
       .getByRole('dialog', { name: 'Reset arrangement' })
@@ -701,7 +701,7 @@ test.describe('approved desktop interaction regression', () => {
     await expect(socialSecurityAmount).toBeVisible()
     await socialSecurityAmount.fill('5000')
 
-    await page.getByRole('button', { name: 'Reset menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     await page.getByRole('menuitem', { name: /Clear map/ }).click()
     await page
       .getByRole('dialog', { name: 'Clear map' })
@@ -756,7 +756,7 @@ test.describe('approved desktop interaction regression', () => {
 
     await salaryAmount.focus()
     await salaryAmount.fill('5k')
-    await page.getByRole('button', { name: 'Reset menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     await page.getByRole('menuitem', { name: 'Reset arrangement' }).click()
     await page
       .getByRole('dialog', { name: 'Reset arrangement' })

@@ -266,15 +266,6 @@ summary:focus-visible {
   line-height: 1;
 }
 
-.book-menu-trigger {
-  max-width: 260px;
-}
-
-.reset-menu-trigger + .menu-popover {
-  right: 0;
-  left: auto;
-}
-
 .save-menu-trigger + .menu-popover {
   right: 0;
   left: auto;
@@ -2449,4 +2440,23 @@ summary:focus-visible {
   .editor-panel {
     display: none;
   }
+}
+
+.menu-section-label {
+  padding: 5px 9px 3px;
+  color: #5b6663;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.more-menu-trigger {
+  min-width: 68px;
+}
+
+.more-menu-trigger + .menu-popover {
+  right: auto;
+  left: 0;
+  min-width: 300px;
 }

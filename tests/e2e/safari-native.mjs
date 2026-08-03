@@ -625,7 +625,7 @@ async function run() {
 
     const beforeDownload = await snapshotFiles(downloadDir)
     const downloadStartedAt = Date.now()
-    await clickButton(driver, 'Book menu')
+    await clickButton(driver, 'More actions')
     await clickButton(driver, 'Download book backup')
     const downloaded = await waitForStableDownload(
       downloadDir,
@@ -716,7 +716,7 @@ async function run() {
         throw new Error('safari-native forced blob failure')
       }
     `)
-    await clickButton(driver, 'Book menu')
+    await clickButton(driver, 'More actions')
     await clickButton(driver, 'Download book backup')
     const failureDialog = await waitFor('Could not save book dialog', () =>
       driver.execute(`

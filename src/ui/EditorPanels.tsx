@@ -210,8 +210,8 @@ function AddPanel({
 
       {!emptyMap && (
         <>
-          <section aria-label="Add flow" className="editor-panel-section">
-            <h3>Flow</h3>
+          <section aria-label="Connect" className="editor-panel-section">
+            <h3>Connect</h3>
             <label className="editor-panel-field">
               From
               <select
@@ -242,8 +242,8 @@ function AddPanel({
               Add flow
             </button>
           </section>
-          <section aria-label="Add annotation" className="editor-panel-section">
-            <h3>Annotations</h3>
+          <section aria-label="Annotate" className="editor-panel-section">
+            <h3>Annotate</h3>
             <button disabled={!canMutate} type="button" onClick={onAddTextNote}>Add text note</button>
             <button disabled={!canMutate} type="button" onClick={onAddFinePrint}>Add fine print</button>
           </section>

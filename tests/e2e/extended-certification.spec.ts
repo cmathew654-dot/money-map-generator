@@ -721,8 +721,8 @@ test.describe('extended desktop certification', () => {
     }
 
     await capture('Active client', page.getByLabel('Active client'), '.app-header')
-    await capture('New', page.getByRole('button', { name: 'New', exact: true }), '.app-header')
-    await capture('Book menu', page.getByRole('button', { name: 'Book menu' }), '.app-header')
+    await capture('More actions', page.getByRole('button', { name: 'More actions' }), '.app-header')
+    await capture('Book menu', page.getByRole('button', { name: 'More actions' }), '.app-header')
     await capture('Present', page.getByRole('button', { name: 'Present' }), '.app-header')
     await capture('Print', page.getByRole('button', { name: 'Print', exact: true }), '.app-header')
     await capture('Export map', page.getByRole('button', { name: 'Export map' }), '.app-header')
@@ -759,7 +759,7 @@ test.describe('extended desktop certification', () => {
       '.form-pane',
     )
 
-    await page.getByRole('button', { name: 'Book menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     await capture('Open Book menu', page.getByRole('menu'), 'viewport')
     await capture(
       'Download book backup menu item',
@@ -778,7 +778,7 @@ test.describe('extended desktop certification', () => {
         throw new Error('text-spacing dialog state')
       }
     })
-    await page.getByRole('button', { name: 'Book menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     await page.getByRole('menuitem', { name: 'Download book backup' }).click()
     const dialog = page.getByRole('dialog', { name: 'Could not save book' })
     await capture('Open save error dialog', dialog, 'viewport')
@@ -844,7 +844,7 @@ test.describe('extended desktop certification', () => {
     await expect(clientSelect).toHaveValue(initialClient)
     await page.keyboard.press('Tab')
 
-    const bookMenu = page.getByRole('button', { name: 'Book menu' })
+    const bookMenu = page.getByRole('button', { name: 'More actions' })
     boundaries.push(await focusBoundaryState('Book menu', bookMenu))
     await page.keyboard.press('Enter')
     await expect(page.getByRole('menu')).toBeVisible()
@@ -953,7 +953,7 @@ test.describe('extended desktop certification', () => {
       }
     }
 
-    await page.getByRole('button', { name: 'Book menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     await expect(page.getByRole('menuitem', { name: 'Download book backup' })).toBeVisible()
     await audit(page, 'book-menu-open')
     await page.keyboard.press('Escape')
@@ -972,7 +972,7 @@ test.describe('extended desktop certification', () => {
         throw new Error('extended certification forced failure')
       }
     })
-    await page.getByRole('button', { name: 'Book menu' }).click()
+    await page.getByRole('button', { name: 'More actions' }).click()
     await page.getByRole('menuitem', { name: 'Download book backup' }).click()
     const dialog = page.getByRole('dialog', { name: 'Could not save book' })
     await expect(dialog).toBeVisible()

@@ -1530,22 +1530,20 @@ export default function App() {
 
   const handlePanelAddIncome = () => {
     if (!canMutate) return
-    const wasEmpty = activeClient.incomeSources.length === 0
     const nextClient = {
       ...activeClient,
       incomeSources: addIncomeSource(activeClient.incomeSources, ''),
     }
     handleClientChange(nextClient)
     addToast('Income source added')
-    if (wasEmpty) focusDataTarget('income', 'income')
-    else setSelectedMapTargetKey('income')
+    setSelectedMapTargetKey('income')
+    focusDataTarget('income', 'income')
   }
 
   const handlePanelAddAccount = (bucket: Bucket) => {
     if (!canMutate) return
-    const wasEmpty = activeClient.accounts.length === 0
     const id = handleQuickAdd(bucket, true)
-    if (wasEmpty && id) focusDataTarget('accounts', id)
+    if (id) focusDataTarget('accounts', id)
   }
 
   const handlePanelAddFlow = (sourceId: string, targetId: string) => {
@@ -1665,150 +1663,53 @@ export default function App() {
             value={activeClient.id}
             onChange={selectClient}
           />
-          <button
-            className="quiet-button compact-button"
-            disabled={!canMutate}
-            type="button"
-            onClick={handleNew}
-          >
-            New
-          </button>
           <Menu
-            ariaLabel="Client menu"
-            trigger={<span aria-hidden="true">⋯</span>}
-            triggerClassName="client-menu-trigger"
+            ariaLabel="More actions"
+            trigger={<><span>More</span><span aria-hidden="true" className="menu-caret">&#x25BE;</span></>}
+            triggerClassName="more-menu-trigger"
           >
-            <MenuItem disabled={!canMutate} onClick={handleDuplicate}>Duplicate</MenuItem>
-            <MenuItem danger disabled={!canMutate} onClick={handleDelete}>
-              Delete
-            </MenuItem>
+            <MenuItem disabled={!canMutate} onClick={handleNew}>New client</MenuItem>
+            <MenuItem disabled={!canMutate} onClick={handleDuplicate}>Duplicate client</MenuItem>
+            <MenuItem danger disabled={!canMutate} onClick={handleDelete}>Delete client</MenuItem>
+            <MenuSeparator />
+            <div className="menu-section-label">Book</div>
+            <MenuItem onClick={handleSaveBook}>Download book backup</MenuItem>
+            <MenuItem disabled={!canMutate} onClick={() => fileInputRef.current?.click()}>Open book backup</MenuItem>
+            {fileStoreSupported && <MenuSeparator />}
+            {fileStoreSupported && !connectedFile && (
+              <>
+                <MenuItem onClick={() => void handleCreateConnectedFile()}>Save changes to a file...</MenuItem>
+                <MenuItem onClick={() => void handleOpenConnectedFile()}>Open and keep saving...</MenuItem>
+              </>
+            )}
+            {fileStoreSupported && reconnectFile && !connectedFile && (
+              <MenuItem className="reconnect-menu-item" title={reconnectFile.name} onClick={() => void replaceBookFromFile(reconnectFile, true)}>
+                Resume saving to {reconnectFile.name}
+              </MenuItem>
+            )}
+            {connectedFile && (
+              <>
+                <div className="menu-file-connection" title={connectedFile.name}>
+                  <span className="menu-file-name">{connectedFile.name}</span>
+                  <span className="menu-file-status">{fileSaveStatus === 'saving' ? 'Saving...' : 'Saved'}</span>
+                </div>
+                <MenuItem onClick={handleDisconnectFile}>Stop saving to this file</MenuItem>
+              </>
+            )}
+            <MenuSeparator />
+            <div className="menu-section-label">Map</div>
+            <MenuItem disabled={!canMutate || !hasLayoutOverrides} onClick={() => setDialog({ kind: 'resetLayout' })}>Reset arrangement</MenuItem>
+            <MenuItem disabled={!canMutate || !hasTextPositionOverrides} onClick={() => setDialog({ kind: 'resetTextPositions' })}>Reset all text positions...</MenuItem>
+            {hasHiddenArrows && <MenuItem disabled={!canMutate} onClick={handleRestoreGeneratedArrows}>Restore automatic flows</MenuItem>}
+            <MenuItem danger disabled={!canMutate} onClick={() => setDialog({ kind: 'clearMap', clientId: activeClient.id, name: activeClient.client.title || 'Untitled' })}>Clear map...</MenuItem>
           </Menu>
         </div>
         <div className="header-history-actions">
-          <button
-            aria-label="Undo"
-            className="quiet-button history-button"
-            disabled={!canMutate || history.past.length === 0}
-            title="Undo (Ctrl+Z)"
-            type="button"
-            onClick={handleUndo}
-          >
-            ↶
-          </button>
-          <button
-            aria-label="Redo"
-            className="quiet-button history-button"
-            disabled={!canMutate || history.future.length === 0}
-            title="Redo (Ctrl+Shift+Z or Ctrl+Y)"
-            type="button"
-            onClick={handleRedo}
-          >
-            ↷
-          </button>
+          <button aria-label="Undo" className="quiet-button history-button" disabled={!canMutate || history.past.length === 0} title="Undo (Ctrl+Z)" type="button" onClick={handleUndo}>&#x21B6;</button>
+          <button aria-label="Redo" className="quiet-button history-button" disabled={!canMutate || history.future.length === 0} title="Redo (Ctrl+Shift+Z or Ctrl+Y)" type="button" onClick={handleRedo}>&#x21B7;</button>
         </div>
-        <Menu
-          ariaLabel="Book menu"
-          trigger={
-            <>
-              <span>Book</span>
-              <span aria-hidden="true" className="menu-caret">
-                ▾
-              </span>
-              {connectedFile && (
-                <span className="book-connection-summary">
-                  <span aria-hidden="true" className="connection-dot" />
-                  <span className="book-connection-name">
-                    {connectedFile.name}
-                  </span>
-                </span>
-              )}
-            </>
-          }
-          triggerClassName="book-menu-trigger"
-        >
-          <MenuItem onClick={handleSaveBook}>
-            Download book backup
-          </MenuItem>
-          <MenuItem disabled={!canMutate} onClick={() => fileInputRef.current?.click()}>
-            Open book backup
-          </MenuItem>
-          {fileStoreSupported && <MenuSeparator />}
-          {fileStoreSupported && !connectedFile && (
-            <>
-              <MenuItem onClick={() => void handleCreateConnectedFile()}>
-                Save changes to a file…
-              </MenuItem>
-              <MenuItem onClick={() => void handleOpenConnectedFile()}>
-                Open and keep saving…
-              </MenuItem>
-            </>
-          )}
-          {fileStoreSupported && reconnectFile && !connectedFile && (
-            <MenuItem
-              className="reconnect-menu-item"
-              title={reconnectFile.name}
-              onClick={() => void replaceBookFromFile(reconnectFile, true)}
-            >
-              Resume saving to {reconnectFile.name}
-            </MenuItem>
-          )}
-          {connectedFile && (
-            <>
-              <div className="menu-file-connection" title={connectedFile.name}>
-                <span className="menu-file-name">{connectedFile.name}</span>
-                <span className="menu-file-status">
-                  {fileSaveStatus === 'saving' ? 'Saving…' : 'Saved'}
-                </span>
-              </div>
-              <MenuItem onClick={handleDisconnectFile}>Stop saving to this file</MenuItem>
-            </>
-          )}
-        </Menu>
         <div className="header-spacer" />
         <div className="header-payoff-actions">
-          <Menu
-            ariaLabel="Reset menu"
-            trigger={
-              <>
-                <span>Reset</span>
-                <span aria-hidden="true" className="menu-caret">
-                  ▾
-                </span>
-              </>
-            }
-            triggerClassName="reset-menu-trigger"
-          >
-            <MenuItem
-              disabled={!canMutate || !hasLayoutOverrides}
-              onClick={() => setDialog({ kind: 'resetLayout' })}
-            >
-              Reset arrangement
-            </MenuItem>
-            <MenuItem
-              disabled={!canMutate || !hasTextPositionOverrides}
-              onClick={() => setDialog({ kind: 'resetTextPositions' })}
-            >
-              Reset all text positions…
-            </MenuItem>
-            {hasHiddenArrows && (
-              <MenuItem disabled={!canMutate} onClick={handleRestoreGeneratedArrows}>
-                Restore automatic flows
-              </MenuItem>
-            )}
-            <MenuItem
-              danger
-              disabled={!canMutate}
-              onClick={() =>
-                setDialog({
-                  kind: 'clearMap',
-                  clientId: activeClient.id,
-                  name: activeClient.client.title || 'Untitled',
-                })
-              }
-            >
-              Clear map…
-            </MenuItem>
-          </Menu>
           <button
             className="quiet-button"
             type="button"
@@ -2119,6 +2020,7 @@ export default function App() {
             <div className="map-chrome">
               <button
                 disabled={!canMutate || !canTidyMap}
+                title={canTidyMap ? 'Align movable items to the grid' : 'Already aligned'}
                 type="button"
                 onClick={handleTidyMap}
               >
