@@ -4,7 +4,6 @@ import type { MoneyMapFile } from './types'
 export const BOOK_STORAGE_KEY = 'money-map-generator:book'
 export const LEGACY_BOOK_STORAGE_KEY = 'money-map-book:v1'
 export const WRITER_STORAGE_KEY = 'money-map-generator:writer'
-export const WRITER_LEASE_TTL_MS = 10_000
 export const WRITER_HEARTBEAT_MS = 2_000
 export const WRITER_TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
 
@@ -152,9 +151,8 @@ export function acquireBrowserWriter(
 ): WriterAcquireResult {
   try {
     const lease = readLease(storage)
-    if (lease && lease.tabId !== tabId) {
-      const expired = now - lease.updatedAt >= WRITER_LEASE_TTL_MS
-      if (!force || !expired) return { status: 'blocked', owner: lease.tabId }
+    if (lease && lease.tabId !== tabId && !force) {
+      return { status: 'blocked', owner: lease.tabId }
     }
     storage.setItem(WRITER_STORAGE_KEY, JSON.stringify({ tabId, updatedAt: now }))
     const verified = readLease(storage)

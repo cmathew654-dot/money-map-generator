@@ -227,7 +227,6 @@ export default function App() {
   const [tabId] = useState(() => newId('tab'))
   const [isWriter, setIsWriter] = useState(() => DATA_MODE === 'real' && acquireBrowserWriter(localStorage, tabId).status === 'acquired')
   const [writerTakeoverPending, setWriterTakeoverPending] = useState(false)
-  const [writerTakeoverSlow, setWriterTakeoverSlow] = useState(false)
   const [presentMode, setPresentMode] = useState(false)
   const [mapZoom, setMapZoom] = useState<MapZoom>('fit')
   const [panZoomHintVisible, setPanZoomHintVisible] = useState(
@@ -575,21 +574,6 @@ export default function App() {
     }
     writerTakeoverTimerRef.current = window.setTimeout(tryTakeover, WRITER_TAKEOVER_POLL_MS)
   }, [clearWriterTakeoverTimer, finishBrowserWriterTakeover, tabId])
-  const republishBrowserWriterTakeoverRequest = useCallback(() => {
-    try {
-      publishBrowserWriterTakeoverRequest(localStorage, tabId)
-    } catch {
-      // The active request continues waiting for lease expiry.
-    }
-  }, [tabId])
-  useEffect(() => {
-    if (!writerTakeoverPending) {
-      setWriterTakeoverSlow(false)
-      return
-    }
-    const timeout = window.setTimeout(() => setWriterTakeoverSlow(true), 2_000)
-    return () => window.clearTimeout(timeout)
-  }, [writerTakeoverPending])
   useEffect(() => {
     if (DATA_MODE !== 'real') return
     const checkInitialFocus = !writerFocusInitializedRef.current
@@ -1798,16 +1782,6 @@ export default function App() {
       </header>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
         {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information.</span></section>}
-        {DATA_MODE === 'real' &&
-          !isWriter &&
-          writerTakeoverPending &&
-          writerTakeoverSlow && (
-            <section aria-label="Editing handoff status" aria-live="polite" className="app-status-banner is-warning" role="status">
-              <strong>Still waiting</strong>
-              <span>Another tab is finishing its work. You can keep viewing this map.</span>
-              <button type="button" onClick={republishBrowserWriterTakeoverRequest}>Try again</button>
-            </section>
-          )}
         {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
         {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Changes are not being saved</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Try again</button></section>}
       </div>}
