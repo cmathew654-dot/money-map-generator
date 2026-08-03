@@ -745,12 +745,14 @@ test.describe('approved desktop interaction regression', () => {
     await salaryAfterUndo.focus()
     await salaryAfterUndo.fill('5k')
     const clientSelect = page.getByLabel('Active client')
-    await clientSelect.selectOption({ index: 1 })
-    await expect(clientSelect).toHaveValue('sample-calloway')
+    await clientSelect.fill('Calloway')
+    await page.getByRole('option', { name: /The Calloway Family/ }).click()
+    await expect(clientSelect).toHaveValue('The Calloway Family')
     await expect(
       page.locator(".income-row:has(input[value='Salary / Wages'])"),
     ).toHaveCount(0)
-    await clientSelect.selectOption(CLIENT_ID)
+    await clientSelect.fill('Whitfield')
+    await page.getByRole('option', { name: /Jordan & Dana Whitfield/ }).click()
     await expect(
       page
         .locator(".income-row:has(input[value='Salary / Wages'])")

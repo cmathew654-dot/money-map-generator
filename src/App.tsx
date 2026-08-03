@@ -249,6 +249,7 @@ export default function App() {
   const writerFocusInitializedRef = useRef(false)
   const exportInFlightRef = useRef<'png' | 'pdf' | 'svg' | null>(null)
   const mapClipboardRef = useRef<Array<{ kind: 'account' | 'note'; id: string }>>([])
+  const mapCommandFeedbackRef = useRef<string | null>(null)
   const snapshotRef = useRef(snapshot)
   const historyRef = useRef(history)
   const appShellRef = useRef<HTMLElement>(null)
@@ -875,6 +876,7 @@ export default function App() {
     setMapTextEdit(null)
     setGuidedSetup(false)
     resetWizard()
+    addToast('Client duplicated')
   }
 
   const handleDelete = () => {
@@ -902,10 +904,9 @@ export default function App() {
 
   const handleTidyMap = () => {
     if (!canTidyMap) return
-    handleMapChange(tidiedClient)
+    handleMapChange(tidiedClient, 'Map layout reset')
     setSelectedMapTargetKey(null)
     setMapTextEdit(null)
-    addToast('Map tidied')
   }
 
   const handleRestoreGeneratedArrows = () => {
@@ -943,6 +944,7 @@ export default function App() {
     setMapTextEdit(null)
     resetWizard()
     setDialog(null)
+    addToast('Client deleted')
   }
 
   const showError = (title: string, error: unknown, fallback: string) => {
@@ -1119,7 +1121,7 @@ export default function App() {
     )
   }
 
-  const handleMapChange = (next: typeof activeClient) => {
+  const handleMapChange = (next: typeof activeClient, feedback?: string) => {
     bumpFormRevision()
     const current = snapshotRef.current
     commitSnapshot(
@@ -1129,6 +1131,35 @@ export default function App() {
       },
       null,
     )
+    const message = feedback ?? mapCommandFeedbackRef.current ?? (
+      (next.customArrows?.length ?? 0) > (activeClient.customArrows?.length ?? 0)
+        ? 'Flow added'
+        : undefined
+    )
+    mapCommandFeedbackRef.current = null
+    if (message) addToast(message)
+  }
+
+  const handleMapCommandCapture = (event: ReactMouseEvent<HTMLDivElement>) => {
+    const target = event.target
+    if (!(target instanceof HTMLElement)) return
+    const button = target.closest('button')
+    if (!button) return
+    const label = button.getAttribute('aria-label') ?? button.textContent?.trim()
+    if (!label) return
+    if (label.startsWith('Align ')) mapCommandFeedbackRef.current = 'Map items aligned'
+    else if (label.startsWith('Distribute ')) mapCommandFeedbackRef.current = 'Map items distributed'
+    else if (label === 'Duplicate') {
+      mapCommandFeedbackRef.current = selectedMapTargetKey?.startsWith('note:')
+        ? 'Note duplicated'
+        : 'Account duplicated'
+    } else if (label === 'Delete note') mapCommandFeedbackRef.current = 'Note deleted'
+    else if (label === 'Delete flow') mapCommandFeedbackRef.current = 'Flow deleted'
+    else if (label === 'Hide flow') mapCommandFeedbackRef.current = 'Flow hidden'
+    else if (label === 'Reset flow') mapCommandFeedbackRef.current = 'Flow reset'
+    else if (label === 'Reset note') mapCommandFeedbackRef.current = 'Note reset'
+    else if (label === 'Reset text position') mapCommandFeedbackRef.current = 'Text position reset'
+    else if (label === 'Reset item') mapCommandFeedbackRef.current = 'Map item reset'
   }
 
   const duplicateMapItem = (data: typeof activeClient, key: string) => {
@@ -1205,6 +1236,9 @@ export default function App() {
     if (next === activeClient || pastedKeys.length === 0) return false
     handleMapChange(next)
     setSelectedMapTargetKeys(pastedKeys)
+    addToast(pastedKeys.length === 1
+      ? pastedKeys[0].startsWith('note:') ? 'Note duplicated' : 'Account duplicated'
+      : 'Map items duplicated')
     return true
   }
 
@@ -1222,6 +1256,9 @@ export default function App() {
     if (next === activeClient) return false
     handleMapChange(next)
     setSelectedMapTargetKeys([])
+    addToast(deletable.length === 1
+      ? deletable[0].startsWith('note:') ? 'Note deleted' : 'Account deleted'
+      : 'Map items deleted')
     return true
   }
 
@@ -1391,6 +1428,7 @@ export default function App() {
       null,
     )
     setShapePopoverOpen(false)
+    addToast('Account added')
     if (select) {
       setSelectedMapTargetKey(`account:${account.id}`)
       return account.id
@@ -1475,6 +1513,7 @@ export default function App() {
       incomeSources: addIncomeSource(activeClient.incomeSources, ''),
     }
     handleClientChange(nextClient)
+    addToast('Income source added')
     if (wasEmpty) focusDataTarget('income', 'income')
     else setSelectedMapTargetKey('income')
   }
@@ -1491,7 +1530,7 @@ export default function App() {
     const nextClient = addCustomArrow(activeClient, sourceId, targetId)
     if (nextClient === activeClient) return
     const arrow = nextClient.customArrows?.at(-1)
-    handleMapChange(nextClient)
+    handleMapChange(nextClient, 'Flow added')
     if (arrow) setSelectedMapTargetKey(`arrow:custom:${arrow.id}`)
   }
 
@@ -1500,7 +1539,7 @@ export default function App() {
     const nextClient = addCustomArrow(activeClient, sourceId, targetId)
     if (nextClient === activeClient) return
     const arrow = nextClient.customArrows?.at(-1)
-    handleMapChange(nextClient)
+    handleMapChange(nextClient, 'Flow added')
     if (arrow) setSelectedMapTargetKey(`arrow:custom:${arrow.id}`)
   }
 
@@ -1515,6 +1554,7 @@ export default function App() {
     }
     handleClientChange(nextClient)
     focusDataTarget('need', 'need')
+    addToast('Fine print added')
   }
 
   const placeTextNote = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -1941,9 +1981,10 @@ export default function App() {
           </>
         )}
         <section
-          className={`preview-pane${selectedMapTargetKey && !mapTextEdit && !presentMode && canMutate ? ' has-map-inspector' : ''}`}
-          aria-label="Money Map preview"
-        >
+            className={`preview-pane${selectedMapTargetKey && !mapTextEdit && !presentMode && canMutate ? ' has-map-inspector' : ''}`}
+            aria-label="Money Map preview"
+            onClickCapture={handleMapCommandCapture}
+          >
           {selectedMapTargetKey && !mapTextEdit && !presentMode && canMutate && (
             <MapInspector
               data={activeClient}
@@ -2034,6 +2075,7 @@ export default function App() {
                   }
                   if (nextClient !== activeClient) {
                     handleClientChange(nextClient)
+                    if (mapTextEdit.target.kind === 'noteText') addToast('Text note added')
                   }
                   setMapTextEdit(null)
                 }}

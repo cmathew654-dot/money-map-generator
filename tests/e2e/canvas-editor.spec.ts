@@ -298,7 +298,7 @@ test('copy, paste, delete, and alignment shortcuts do nothing inside controls an
   const bodyHit = account.locator('.map-account-body-hit:not(ellipse)')
   const bodyBox = await bodyHit.boundingBox()
   if (!bodyBox) throw new Error('Account body hit has no measurable bounds')
-  await bodyHit.click({ position: { x: Math.min(32, bodyBox.width / 4), y: Math.max(16, bodyBox.height - 24) } })
+  await bodyHit.click({ position: { x: Math.min(18, bodyBox.width / 4), y: 18 } })
   const inspector = page.getByRole('region', { name: /Adjust Cash at Bank/ })
   const shape = inspector.getByLabel('Shape')
   await shape.focus()

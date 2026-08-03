@@ -1,5 +1,5 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test'
-import { fullForm, openApp } from './helpers'
+import { openApp } from './helpers'
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -11,6 +11,11 @@ async function stabilize(page: Page) {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(async () => { await document.fonts.ready })
   await page.locator('.toast').evaluateAll((toasts) => toasts.forEach((toast) => toast.remove()))
+}
+
+async function openData(page: Page) {
+  await page.getByRole('button', { name: 'Data', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Data' })).toBeVisible()
 }
 
 const elementScreenshotOptions = {
@@ -38,11 +43,11 @@ test.describe('desktop visual baselines', () => {
   )
   test('editor', async ({ page }, info) => {
     await openApp(page)
-    await fullForm(page)
+    await openData(page)
     const firstAccountSummary = page.locator('.account-card').first().locator('summary')
     await firstAccountSummary.evaluate((element) => {
-      const pane = element.closest<HTMLElement>('.form-pane')
-      if (!pane) throw new Error('Account summary is outside form pane')
+      const pane = element.closest<HTMLElement>('.editor-panel, .form-pane')
+      if (!pane) throw new Error('Account summary is outside the data panel')
       const paneRect = pane.getBoundingClientRect()
       const summaryRect = element.getBoundingClientRect()
       if (summaryRect.top < paneRect.top || summaryRect.bottom > paneRect.bottom) {
@@ -68,11 +73,60 @@ test.describe('desktop visual baselines', () => {
     await compareOrAttachReflow(page, info, 'present')
   })
 
+  test('tidy reports the layout reset', async ({ page }) => {
+    await openApp(page)
+    const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+    const body = account.locator('.map-account-body-hit').first()
+    const box = await body.boundingBox()
+    if (!box) throw new Error('Cash at Bank body is not visible')
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(box.x + box.width / 2 + 24, box.y + box.height / 2 + 18)
+    await page.mouse.up()
+    await expect(page.getByRole('button', { name: 'Tidy map' })).toBeEnabled()
+    await page.getByRole('button', { name: 'Tidy map' }).click()
+    await expect(page.locator('.toast').filter({ hasText: 'Map layout reset' })).toBeVisible()
+  })
+
+  test('data panel overlays and scrolls at narrow zoomed viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 640, height: 360 })
+    await openApp(page)
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
+    const geometry = await page.evaluate(() => {
+      const workspace = document.querySelector<HTMLElement>('.workspace')!
+      const rail = document.querySelector<HTMLElement>('.editor-rail')!
+      const panel = document.querySelector<HTMLElement>('.editor-panel')!
+      const preview = document.querySelector<HTMLElement>('.preview-pane')!
+      const panelRect = panel.getBoundingClientRect()
+      const railRect = rail.getBoundingClientRect()
+      const workspaceRect = workspace.getBoundingClientRect()
+      const previewRect = preview.getBoundingClientRect()
+      return {
+        panelPosition: getComputedStyle(panel).position,
+        panelOverflowY: getComputedStyle(panel).overflowY,
+        panelClientHeight: panel.clientHeight,
+        panelScrollHeight: panel.scrollHeight,
+        panelLeft: panelRect.left,
+        panelRight: panelRect.right,
+        railRight: railRect.right,
+        workspaceRight: workspaceRect.right,
+        previewTop: previewRect.top,
+        workspaceTop: workspaceRect.top,
+      }
+    })
+    expect(geometry.panelPosition).toBe('absolute')
+    expect(geometry.panelOverflowY).toMatch(/auto|scroll/)
+    expect(geometry.panelScrollHeight).toBeGreaterThan(geometry.panelClientHeight)
+    expect(Math.abs(geometry.panelLeft - geometry.railRight)).toBeLessThan(1)
+    expect(geometry.panelRight).toBeLessThanOrEqual(geometry.workspaceRight + 1)
+    expect(Math.abs(geometry.previewTop - geometry.workspaceTop)).toBeLessThan(1)
+  })
+
   test('selected account, arrow, note, and calculated text', async ({ page }, info) => {
     test.skip(info.project.name !== 'chromium-1440x900', 'Selected-state baselines use the canonical editor viewport.')
     test.slow()
     await openApp(page)
-    await fullForm(page)
+    await openData(page)
     const preview = page.locator('.preview-pane')
 
     const account = page.locator('[data-account-id][role="group"]').first()
