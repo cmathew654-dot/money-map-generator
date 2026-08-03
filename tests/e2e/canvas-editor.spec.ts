@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { openApp } from './helpers'
+import { BOOK_KEY, openApp } from './helpers'
 
 test('existing clients open on the canvas and Data restores rail focus when it closes', async ({ page }) => {
   await openApp(page)
@@ -117,4 +117,129 @@ test('Data heading regains focus after a Details request becomes stale', async (
 
   await dataButton.click()
   await expect(panel.getByRole('heading', { name: 'Data' })).toBeFocused()
+})
+
+test('Add exposes map actions and selects new records', async ({ page }) => {
+  await openApp(page)
+
+  const rail = page.getByRole('complementary', { name: 'Editor tools' })
+  const addButton = rail.getByRole('button', { name: 'Add', exact: true })
+  await addButton.click()
+  const panel = page.getByRole('dialog', { name: 'Add' })
+  await expect(panel.getByRole('heading', { name: 'Add' })).toBeFocused()
+  for (const name of [
+    'Add income source',
+    'Add account',
+    'Set monthly need',
+    'Add flow',
+    'Add text note',
+    'Add fine print',
+  ]) {
+    await expect(panel.getByRole('button', { name })).toBeVisible()
+  }
+
+  await panel.getByRole('button', { name: 'Add account' }).click()
+  await expect(page.locator('[data-map-target^="account:"][data-map-selected="true"]')).toHaveCount(1)
+  await expect(page.getByRole('region', { name: /Adjust/ })).toBeVisible()
+
+  await panel.getByRole('button', { name: 'Add income source' }).click()
+  await expect(page.locator('[data-map-target="income"][data-map-selected="true"]')).toHaveCount(1)
+
+  await panel.getByRole('button', { name: 'Add text note' }).click()
+  await expect(page.getByRole('textbox', { name: 'Edit map note' })).toBeFocused()
+
+  await page.keyboard.press('Escape')
+  await page.keyboard.press('Escape')
+  await expect(addButton).toBeFocused()
+})
+
+test('empty Add panel opens the matching Data section without coercing blanks', async ({ page }) => {
+  await openApp(page)
+
+  await page.getByRole('button', { name: 'Reset menu' }).click()
+  await page.getByRole('menuitem', { name: /Clear map/ }).click()
+  await page.getByRole('button', { name: 'Clear map', exact: true }).click()
+
+  const addButton = page.getByRole('button', { name: 'Add', exact: true })
+  await addButton.click()
+  const add = page.getByRole('dialog', { name: 'Add' })
+  await expect(add.getByRole('button', { name: 'Add income' })).toBeVisible()
+  await expect(add.getByRole('button', { name: 'Add account' })).toBeVisible()
+  await expect(add.getByRole('button', { name: 'Set monthly need' })).toBeVisible()
+  await expect(add.getByRole('button', { name: 'Open all data fields' })).toBeVisible()
+  await expect(add.getByRole('button', { name: 'Add flow' })).toHaveCount(0)
+  await expect(add.getByRole('button', { name: 'Add text note' })).toHaveCount(0)
+  await expect(add.getByRole('button', { name: 'Add fine print' })).toHaveCount(0)
+
+  const dataButton = page.getByRole('button', { name: 'Data', exact: true })
+  await add.getByRole('button', { name: 'Add income' }).click()
+  await expect(page.getByRole('dialog', { name: 'Data' }).locator('[data-form-section="income"]')).toHaveClass(/is-active/)
+  await dataButton.click()
+  await addButton.click()
+  await add.getByRole('button', { name: 'Add account' }).click()
+  await expect(page.getByRole('dialog', { name: 'Data' }).locator('[data-form-section="accounts"]')).toHaveClass(/is-active/)
+  await dataButton.click()
+  await addButton.click()
+  await add.getByRole('button', { name: 'Set monthly need' }).click()
+  await expect(page.getByRole('dialog', { name: 'Data' }).locator('[data-form-section="need"]')).toHaveClass(/is-active/)
+  await expect(page.getByRole('dialog', { name: 'Data' }).getByRole('textbox', { name: 'Monthly amount needed' })).toHaveValue('')
+})
+
+test('Contents lists semantic map targets and restores hidden generated flows', async ({ page }) => {
+  const seededBook = {
+    fileType: 'money-map-book',
+    version: 1,
+    clients: [{
+      id: 'task-4-contents',
+      client: { title: 'Task 4 contents', year: '2026', variant: 'annual' },
+      incomeSources: [{ id: 'task-4-income', label: 'Pension', amount: 1900, period: 'mo' }],
+      afterTaxIncome: 1900,
+      monthlyNeed: 4000,
+      asNeededAmount: null,
+      accounts: [
+        { id: 'task-4-short-term', bucket: 'shortTerm', label: 'Short-Term Funds', value: 100000 },
+        { id: 'cash-at-bank', bucket: 'cash', label: 'Cash at Bank', value: 25000 },
+        { id: 'managed-ira-jordan', bucket: 'taxDeferred', label: 'Managed IRA — Jordan', value: 250000 },
+        { id: 'managed-after-tax-trust', bucket: 'afterTax', label: 'Managed After-Tax Trust', value: 250000 },
+      ],
+      customArrows: [{ id: 'task-4-arrow', sourceId: 'managed-ira-jordan', targetId: 'managed-after-tax-trust', style: 'dotted' }],
+      footnotes: [{ id: 'task-4-footnote', label: 'Jordan 2026 RMD', gross: 10000, net: 8000 }],
+      hiddenArrows: ['income'],
+    }],
+  }
+  await page.addInitScript(({ key, book }) => {
+    localStorage.setItem(key, JSON.stringify(book))
+  }, { key: BOOK_KEY, book: seededBook })
+  await openApp(page)
+  await expect(page.getByText('Money Map', { exact: true }).first()).toBeVisible()
+
+  await page.getByRole('button', { name: 'Contents', exact: true }).click()
+  const panel = page.getByRole('dialog', { name: 'Contents' })
+  for (const name of [
+    'Income sources',
+    'Monthly income need',
+    'Cash at Bank',
+    'Flow from Income sources to Monthly need',
+    'Flow from Managed IRA — Jordan to Managed After-Tax Trust',
+    'Jordan 2026 RMD',
+  ]) {
+    await expect(panel.getByRole('button', { name, exact: true })).toBeVisible()
+  }
+  await expect(panel.getByRole('button', { name: 'Restore automatic flows', exact: true })).toBeVisible()
+
+  await panel.getByRole('button', { name: 'Cash at Bank', exact: true }).click()
+  await expect(page.locator('[data-map-target="account:cash-at-bank"][data-map-selected="true"]')).toHaveCount(1)
+  await panel.getByRole('button', { name: 'Restore automatic flows', exact: true }).click()
+  await expect(page.getByText('Automatic flows restored', { exact: true })).toBeVisible()
+  await expect(panel.getByRole('button', { name: 'Restore automatic flows', exact: true })).toHaveCount(0)
+})
+
+test('Help lists the editor keyboard shortcuts', async ({ page }) => {
+  await openApp(page)
+  await page.getByRole('button', { name: 'Help', exact: true }).click()
+  const panel = page.getByRole('dialog', { name: 'Help' })
+  await expect(panel.getByRole('heading', { name: 'Help' })).toBeFocused()
+  for (const text of ['Enter', 'Escape', 'Arrow keys', 'Duplicate', 'Delete', 'Copy / paste', 'Undo / redo', '?']) {
+    await expect(panel.getByText(text, { exact: true }).first()).toBeVisible()
+  }
 })

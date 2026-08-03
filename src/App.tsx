@@ -57,7 +57,7 @@ import {
   moneyMapAlternativeText,
   saveBookToFile,
 } from './export/export'
-import { Form, type FormSection } from './form/Form'
+import { addIncomeSource, Form, type FormSection } from './form/Form'
 import {
   Wizard,
   wizardStepNumberForMapTarget,
@@ -68,12 +68,14 @@ import {
 } from './render/MapSvg'
 import { MapInspector } from './render/MapInspector'
 import {
+  addCustomArrow,
   pannedScrollPosition,
   resetTextPositions,
   restoreGeneratedArrows,
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
+import { EditorPanels } from './ui/EditorPanels'
 import { EditorRail } from './ui/EditorRail'
 import {
   applyMapTextEdit,
@@ -663,7 +665,7 @@ export default function App() {
   }, [canMutate, handleRedo, handleUndo])
 
   useEffect(() => {
-    if (editorPanel !== 'data' || guidedSetup || presentMode) return
+    if (!editorPanel || guidedSetup || presentMode) return
     if (focusRequest) return
     window.requestAnimationFrame(() => editorPanelHeadingRef.current?.focus())
   }, [editorPanel, focusRequest, guidedSetup, presentMode])
@@ -1226,7 +1228,8 @@ export default function App() {
     setIsMapPanning(false)
   }
 
-  const handleQuickAdd = (bucket: Bucket) => {
+  const handleQuickAdd = (bucket: Bucket, select = false) => {
+    if (!canMutate) return ''
     const nextClient = appendBlankAccount(activeClient, bucket)
     const account = nextClient.accounts.at(-1)!
     const current = snapshotRef.current
@@ -1238,6 +1241,10 @@ export default function App() {
       null,
     )
     setShapePopoverOpen(false)
+    if (select) {
+      setSelectedMapTargetKey(`account:${account.id}`)
+      return account.id
+    }
     window.requestAnimationFrame(() => {
       const label = previewPaneRef.current?.querySelector<SVGGraphicsElement>(
         `[data-account-id="${account.id}"] .map-editable-text`,
@@ -1254,6 +1261,7 @@ export default function App() {
         }),
       })
     })
+    return account.id
   }
 
   const openTextNoteAt = (point: { x: number; y: number }) => {
@@ -1307,6 +1315,47 @@ export default function App() {
       x: (Math.max(mapRect.left, viewport.left) + Math.min(mapRect.right, viewport.right)) / 2,
       y: (Math.max(mapRect.top, viewport.top) + Math.min(mapRect.bottom, viewport.bottom)) / 2,
     }, mapRect))
+  }
+
+  const handlePanelAddIncome = () => {
+    if (!canMutate) return
+    const wasEmpty = activeClient.incomeSources.length === 0
+    const nextClient = {
+      ...activeClient,
+      incomeSources: addIncomeSource(activeClient.incomeSources, ''),
+    }
+    handleClientChange(nextClient)
+    if (wasEmpty) focusDataTarget('income', 'income')
+    else setSelectedMapTargetKey('income')
+  }
+
+  const handlePanelAddAccount = (bucket: Bucket) => {
+    if (!canMutate) return
+    const wasEmpty = activeClient.accounts.length === 0
+    const id = handleQuickAdd(bucket, true)
+    if (wasEmpty && id) focusDataTarget('accounts', id)
+  }
+
+  const handlePanelAddFlow = (sourceId: string, targetId: string) => {
+    if (!canMutate) return
+    const nextClient = addCustomArrow(activeClient, sourceId, targetId)
+    if (nextClient === activeClient) return
+    const arrow = nextClient.customArrows?.at(-1)
+    handleMapChange(nextClient)
+    if (arrow) setSelectedMapTargetKey(`arrow:custom:${arrow.id}`)
+  }
+
+  const handlePanelAddFinePrint = () => {
+    if (!canMutate) return
+    const nextClient = {
+      ...activeClient,
+      footnotes: [
+        ...activeClient.footnotes,
+        { id: newId('footnote'), label: '', gross: null, net: null },
+      ],
+    }
+    handleClientChange(nextClient)
+    focusDataTarget('need', 'need')
   }
 
   const placeTextNote = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -1661,11 +1710,49 @@ export default function App() {
             <EditorRail
               activePanel={editorPanel}
               onToggle={(panel) => {
-                if (panel !== 'data') return
                 if (editorPanel === panel) closeDataPanel()
-                else setEditorPanel(panel)
+                else {
+                  setFocusRequest(undefined)
+                  setEditorPanel(panel)
+                }
               }}
             />
+            {(editorPanel === 'add' || editorPanel === 'contents' || editorPanel === 'help') && (
+              <EditorPanels
+                activePanel={editorPanel}
+                canMutate={canMutate}
+                data={activeClient}
+                headingRef={editorPanelHeadingRef}
+                onAddAccount={handlePanelAddAccount}
+                onAddFinePrint={handlePanelAddFinePrint}
+                onAddFlow={handlePanelAddFlow}
+                onAddIncome={handlePanelAddIncome}
+                onAddTextNote={() => beginTextNotePlacement(true)}
+                onClose={closeDataPanel}
+                onOpenData={(focusId) => {
+                  if (focusId === 'income') {
+                    focusDataTarget('income', 'income')
+                  } else if (focusId === 'need') {
+                    focusDataTarget('need', 'need')
+                  } else if (focusId === 'accounts') {
+                    setEditorPanel('data')
+                    setDataFilter('')
+                    setDataSection('accounts')
+                    setFocusRequest(undefined)
+                  } else {
+                    setEditorPanel('data')
+                    setDataFilter('')
+                    setDataSection(undefined)
+                    setFocusRequest(undefined)
+                  }
+                }}
+                onRestoreGeneratedFlows={handleRestoreGeneratedArrows}
+                onSelectTarget={handleMapSelectionChange}
+                onSetNeed={() => focusDataTarget('need', 'need')}
+                selectedTargetKey={selectedMapTargetKey}
+                warnings={mapWarnings}
+              />
+            )}
             {editorPanel === 'data' && (
               <aside
                 aria-labelledby="editor-panel-title"
