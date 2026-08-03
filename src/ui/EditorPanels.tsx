@@ -29,6 +29,7 @@ interface ContentItem {
   key: string
   label: string
   search: string
+  hidden?: boolean
 }
 
 const panelTitles: Record<ToolPanel, string> = {
@@ -64,6 +65,7 @@ function contentItems(data: MoneyMapData): ContentItem[] {
       key: 'arrow:income',
       label: 'Flow from Income sources to Monthly need',
       search: 'flow income sources monthly income need automatic',
+      hidden: data.hiddenArrows?.includes('income'),
     })
   }
   const hasShortTerm = data.accounts.some((account) => account.bucket === 'shortTerm')
@@ -74,6 +76,7 @@ function contentItems(data: MoneyMapData): ContentItem[] {
     const shortTerm = data.accounts.find((account) => account.bucket === 'shortTerm')!
     items.push({
       key: 'arrow:asNeeded',
+      hidden: data.hiddenArrows?.includes('asNeeded'),
       label: `Flow from ${shortTerm.label || 'Short-term account'} to Monthly need`,
       search: `flow ${shortTerm.label} monthly need automatic withdrawal`,
     })
@@ -300,11 +303,19 @@ function ContentsPanel({
             <div className="editor-content-row" key={item.key} role="listitem">
               <button
                 aria-pressed={selectedTargetKey === item.key}
+                disabled={item.hidden}
                 type="button"
-                onClick={() => onSelectTarget(item.key)}
+                onClick={() => {
+                  if (!item.hidden) onSelectTarget(item.key)
+                }}
               >
                 {item.label}
               </button>
+              {item.hidden && (
+                <span className="editor-content-warning">
+                  Hidden; restore automatic flows to select.
+                </span>
+              )}
               {targetedWarnings.map((warning, index) => (
                 <span className="editor-content-warning" key={warning.code + index}>{warning.message}</span>
               ))}

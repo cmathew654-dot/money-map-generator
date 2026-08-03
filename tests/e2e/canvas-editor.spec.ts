@@ -124,6 +124,7 @@ test('Add exposes map actions and selects new records', async ({ page }) => {
 
   const rail = page.getByRole('complementary', { name: 'Editor tools' })
   const addButton = rail.getByRole('button', { name: 'Add', exact: true })
+  const dataButton = rail.getByRole('button', { name: 'Data', exact: true })
   await addButton.click()
   const panel = page.getByRole('dialog', { name: 'Add' })
   await expect(panel.getByRole('heading', { name: 'Add' })).toBeFocused()
@@ -145,6 +146,18 @@ test('Add exposes map actions and selects new records', async ({ page }) => {
   await panel.getByRole('button', { name: 'Add income source' }).click()
   await expect(page.locator('[data-map-target="income"][data-map-selected="true"]')).toHaveCount(1)
 
+  await panel.getByRole('button', { name: 'Set monthly need' }).click()
+  const dataPanel = page.getByRole('dialog', { name: 'Data' })
+  await expect(dataPanel.locator('[data-form-section="need"]')).toHaveClass(/is-active/)
+  await dataButton.click()
+  await addButton.click()
+  await panel.getByRole('button', { name: 'Add flow' }).click()
+  await expect(page.locator('[data-map-target^="arrow:custom:"][data-map-selected="true"]')).toHaveCount(1)
+
+  await panel.getByRole('button', { name: 'Add fine print' }).click()
+  await expect(dataPanel.locator('[data-form-section="need"]')).toHaveClass(/is-active/)
+  await dataButton.click()
+  await addButton.click()
   await panel.getByRole('button', { name: 'Add text note' }).click()
   await expect(page.getByRole('textbox', { name: 'Edit map note' })).toBeFocused()
 
@@ -213,25 +226,59 @@ test('Contents lists semantic map targets and restores hidden generated flows', 
   await openApp(page)
   await expect(page.getByText('Money Map', { exact: true }).first()).toBeVisible()
 
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  const addPanel = page.getByRole('dialog', { name: 'Add' })
+  await addPanel.getByRole('button', { name: 'Add text note' }).click()
+  const noteEditor = page.getByRole('textbox', { name: 'Edit map note' })
+  await noteEditor.fill('Review beneficiary update')
+  await noteEditor.press('Enter')
+  await expect(noteEditor).toHaveCount(0)
+
   await page.getByRole('button', { name: 'Contents', exact: true }).click()
   const panel = page.getByRole('dialog', { name: 'Contents' })
+  const hiddenGenerated = panel.getByRole('button', {
+    name: 'Flow from Income sources to Monthly need',
+    exact: true,
+  })
+  await expect(hiddenGenerated).toBeDisabled()
   for (const name of [
     'Income sources',
     'Monthly income need',
+    'Short-Term Funds',
     'Cash at Bank',
+    /^Managed IRA.*Jordan$/,
+    'Managed After-Tax Trust',
     'Flow from Income sources to Monthly need',
     'Flow from Managed IRA — Jordan to Managed After-Tax Trust',
+    'Review beneficiary update',
     'Jordan 2026 RMD',
   ]) {
     await expect(panel.getByRole('button', { name, exact: true })).toBeVisible()
   }
   await expect(panel.getByRole('button', { name: 'Restore automatic flows', exact: true })).toBeVisible()
 
-  await panel.getByRole('button', { name: 'Cash at Bank', exact: true }).click()
-  await expect(page.locator('[data-map-target="account:cash-at-bank"][data-map-selected="true"]')).toHaveCount(1)
+  for (const name of [
+    'Income sources',
+    'Monthly income need',
+    'Short-Term Funds',
+    'Cash at Bank',
+    /^Managed IRA.*Jordan$/,
+    'Managed After-Tax Trust',
+    /^Flow from Managed IRA.*Managed After-Tax Trust$/,
+    'Review beneficiary update',
+    'Jordan 2026 RMD',
+  ]) {
+    const item = panel.getByRole('button', { name, exact: true })
+    await item.click()
+    await expect(item).toHaveAttribute('aria-pressed', 'true')
+  }
+
   await panel.getByRole('button', { name: 'Restore automatic flows', exact: true }).click()
   await expect(page.getByText('Automatic flows restored', { exact: true })).toBeVisible()
   await expect(panel.getByRole('button', { name: 'Restore automatic flows', exact: true })).toHaveCount(0)
+  await expect(hiddenGenerated).toBeEnabled()
+  await hiddenGenerated.click()
+  await expect(hiddenGenerated).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('Help lists the editor keyboard shortcuts', async ({ page }) => {
