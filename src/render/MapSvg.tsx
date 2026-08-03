@@ -76,6 +76,7 @@ import {
   isCompatibleMapItemKey,
   moveCustomArrowLabel,
   moveMapNote,
+  resizeMapNote,
   retargetCustomArrow,
   snapRectToAlignment,
   snapRotation,
@@ -172,6 +173,7 @@ type DragMode =
   | 'arrowStart'
   | 'arrowEnd'
   | 'noteMove'
+  | 'noteResize'
   | 'flowLabelMove'
 
 interface DragSession {
@@ -201,6 +203,10 @@ interface ConnectorSession {
 type TextPointerDown = (
   target: MapTextEditTarget,
 ) => (event: PointerEvent<SVGElement>) => void
+
+const INCOME_HEADER = 'INCOME SOURCES'
+const INCOME_HEADER_TRACKING = 1.7
+const NEED_LABEL_TRACKING = 1.8
 
 function placedRotation(placed: Placed): number {
   return 'rot' in placed && typeof placed.rot === 'number'
@@ -586,12 +592,20 @@ function IncomePanel({
   const rowFs = sizes.rowValue
   const totalFs = sizes.totalValue
   const headerEdit = { kind: 'incomeHeader' } as const
-  const headerOffset = mapTextOffset(data, 'income', 'header', {
+  const headerRow = {
     x: placed.x + 12,
     y: placed.y + 7,
     w: placed.w - 24,
     h: 35,
-  })
+  }
+  const headerOffset = mapTextOffset(data, 'income', 'header', headerRow)
+  const headerHit = textHitRect(
+    headerRow,
+    [INCOME_HEADER],
+    headerFs,
+    'left',
+    INCOME_HEADER_TRACKING,
+  )
   const totalEdit = { kind: 'afterTaxIncome' } as const
   const totalOffset = mapTextOffset(data, 'income', 'total', {
     x: placed.x + 12,
@@ -615,10 +629,10 @@ function IncomePanel({
       />
       <g transform={`translate(${headerOffset.dx} ${headerOffset.dy})`}>
         <rect
-          x={placed.x + 12}
-          y={placed.y + 7}
-          width={placed.w - 24}
-          height={35}
+          x={headerHit.x}
+          y={headerHit.y}
+          width={headerHit.w}
+          height={headerHit.h}
           {...editableHitAreaProps(
             headerEdit,
             onElementClick,
@@ -632,14 +646,14 @@ function IncomePanel({
           fontFamily={FONT_SANS}
           fontSize={headerFs}
           fontWeight={700}
-          letterSpacing={1.7}
+          letterSpacing={INCOME_HEADER_TRACKING}
           {...editableTextProps(
             headerEdit,
             onElementClick,
             onTextPointerDown?.(headerEdit),
           )}
         >
-          INCOME SOURCES
+          {INCOME_HEADER}
         </text>
       </g>
       <line
@@ -802,6 +816,13 @@ function NeedCard({
     h: 38,
   }
   const labelOffset = mapTextOffset(data, 'need', 'label', labelRow)
+  const labelHit = textHitRect(
+    labelRow,
+    [fitted.label.display],
+    labelFs,
+    'center',
+    NEED_LABEL_TRACKING,
+  )
   const valueEdit = { kind: 'monthlyNeed' } as const
   const valueRow = {
     x: placed.x + 12,
@@ -810,6 +831,11 @@ function NeedCard({
     h: 52,
   }
   const valueOffset = mapTextOffset(data, 'need', 'value', valueRow)
+  const valueHit = textHitRect(
+    valueRow,
+    [fitted.value.display, fitted.value.exact],
+    valueFs,
+  )
   const supportingKey = mapTextOverrideKey('need', 'supporting')
   const supportingOffset = mapTextOffset(data, 'need', 'supporting', {
     x: placed.x + 12,
@@ -831,10 +857,10 @@ function NeedCard({
       />
       <g transform={`translate(${labelOffset.dx} ${labelOffset.dy})`}>
         <rect
-          x={labelRow.x}
-          y={labelRow.y}
-          width={labelRow.w}
-          height={labelRow.h}
+          x={labelHit.x}
+          y={labelHit.y}
+          width={labelHit.w}
+          height={labelHit.h}
           {...editableHitAreaProps(
             labelEdit,
             onElementClick,
@@ -848,7 +874,7 @@ function NeedCard({
           fontFamily={FONT_SANS}
           fontSize={labelFs}
           fontWeight={700}
-          letterSpacing={1.8}
+          letterSpacing={NEED_LABEL_TRACKING}
           textAnchor="middle"
           {...editableTextProps(
             labelEdit,
@@ -866,10 +892,10 @@ function NeedCard({
       </g>
       <g transform={`translate(${valueOffset.dx} ${valueOffset.dy})`}>
         <rect
-          x={valueRow.x}
-          y={valueRow.y}
-          width={valueRow.w}
-          height={valueRow.h}
+          x={valueHit.x}
+          y={valueHit.y}
+          width={valueHit.w}
+          height={valueHit.h}
           {...editableHitAreaProps(
             valueEdit,
             onElementClick,
@@ -1109,25 +1135,81 @@ function accountVisualTextProps(
   }
 }
 
+/**
+ * Fits a transparent edit target to the painted glyphs so the rest of the
+ * owning shape stays available as a grab target. `letterSpacing` matters for
+ * the tracked-out fixed labels, whose painted width exceeds `textWidth`.
+ */
+function textHitRect(
+  row: Placed,
+  lines: readonly string[],
+  fontSize: number,
+  align: 'left' | 'center' = 'center',
+  letterSpacing = 0,
+): Placed {
+  const painted = Math.max(
+    ...lines.map(
+      (line) =>
+        textWidth(line, fontSize) +
+        letterSpacing * Math.max(0, [...line].length - 1),
+    ),
+    1,
+  )
+  const w = Math.min(row.w, painted + 8)
+  return {
+    ...row,
+    w,
+    x: align === 'left' ? row.x : row.x + (row.w - w) / 2,
+  }
+}
+
 function accountTextHitRect(
   centerX: number,
   baselineY: number,
   accountWidth: number,
   fontSize: number,
   leading: number,
-  lineCount: number,
-) {
-  const width = Math.max(72, accountWidth * 0.84)
-  const height = Math.max(
-    28,
-    Math.max(0, lineCount - 1) * leading + fontSize * 1.4,
+  lines: readonly string[],
+): Placed {
+  return textHitRect(
+    {
+      x: centerX - accountWidth / 2,
+      y: baselineY - fontSize,
+      w: accountWidth,
+      h: Math.max(
+        28,
+        Math.max(0, lines.length - 1) * leading + fontSize * 1.4,
+      ),
+    },
+    lines,
+    fontSize,
   )
-  return {
-    height,
-    width,
-    x: centerX - width / 2,
-    y: baselineY - fontSize,
-  }
+}
+
+function ResizeHandle({
+  label,
+  onPointerDown,
+  rect,
+}: {
+  label: string
+  onPointerDown: (event: PointerEvent<SVGElement>) => void
+  rect: Placed
+}) {
+  return (
+    <rect
+      aria-label={`Resize ${label}`}
+      className="map-resize-handle"
+      data-pointer-action="resize"
+      height={14}
+      pointerEvents="all"
+      role="button"
+      tabIndex={-1}
+      width={14}
+      x={rect.x + rect.w - 7}
+      y={rect.y + rect.h - 7}
+      onPointerDown={onPointerDown}
+    />
+  )
 }
 function AccountContent({
   onElementClick,
@@ -1201,7 +1283,7 @@ function AccountContent({
     w,
     text.titleFontSize,
     text.titleLeading,
-    titleLines.length,
+    titleLines,
   )
   const captionHit =
     text.captionY === undefined
@@ -1212,7 +1294,7 @@ function AccountContent({
           w,
           text.captionFontSize,
           text.captionLeading,
-          captionLines.length,
+          captionLines,
         )
   const valueHit = accountTextHitRect(
     x + w / 2 + text.valueX,
@@ -1220,7 +1302,7 @@ function AccountContent({
     w,
     text.valueFontSize,
     text.valueFontSize,
-    1,
+    [valueText],
   )
   return (
     <>
@@ -1265,8 +1347,8 @@ function AccountContent({
         <rect
           x={titleHit.x}
           y={titleHit.y}
-          width={titleHit.width}
-          height={titleHit.height}
+          width={titleHit.w}
+          height={titleHit.h}
           {...editableHitAreaProps(
             titleEdit,
             onElementClick,
@@ -1305,8 +1387,8 @@ function AccountContent({
           <rect
             x={captionHit.x}
             y={captionHit.y}
-            width={captionHit.width}
-            height={captionHit.height}
+            width={captionHit.w}
+            height={captionHit.h}
             {...editableHitAreaProps(
               captionEdit,
               onElementClick,
@@ -1427,8 +1509,8 @@ function AccountContent({
         <rect
           x={valueHit.x}
           y={valueHit.y}
-          width={valueHit.width}
-          height={valueHit.height}
+          width={valueHit.w}
+          height={valueHit.h}
           {...editableHitAreaProps(
             valueEdit,
             onElementClick,
@@ -1990,16 +2072,24 @@ function Footnotes({
 function NoteBlock({
   interactive,
   onElementClick,
+  onTextPointerDown,
   placed,
 }: {
   interactive: boolean
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: (event: PointerEvent<SVGElement>) => void
   placed: PlacedNote
 }) {
   const editProps = editableLineTextProps(
     { kind: 'noteText', noteId: placed.note.id },
     onElementClick,
     true,
+  )
+  const hit = textHitRect(
+    { x: placed.x, y: placed.y, w: placed.w, h: placed.h },
+    placed.lines,
+    placed.fontSize,
+    'left',
   )
   return (
     <>
@@ -2016,13 +2106,14 @@ function NoteBlock({
         />
       )}
       <rect
-        height={placed.h}
-        width={placed.w}
-        x={placed.x}
-        y={placed.y}
+        height={hit.h}
+        width={hit.w}
+        x={hit.x}
+        y={hit.y}
         {...editableHitAreaProps(
           { kind: 'noteText', noteId: placed.note.id },
           onElementClick,
+          onTextPointerDown,
         )}
         pointerEvents={interactive ? 'all' : 'none'}
       />
@@ -2429,6 +2520,16 @@ export function MapSvg({
         session.key,
         snapped.rect.x,
         snapped.rect.y,
+      )
+      session.latestData = nextData
+      setPreviewData(nextData)
+      return
+    }
+    if (session.mode === 'noteResize' && session.startPlaced) {
+      const nextData = resizeMapNote(
+        data,
+        session.key,
+        session.startPlaced.w + delta.x,
       )
       session.latestData = nextData
       setPreviewData(nextData)
@@ -2900,8 +3001,20 @@ export function MapSvg({
         <IncomePanel
           data={displayData}
           onElementClick={onElementClick}
+          onTextPointerDown={
+            onChange
+              ? () => beginDrag('income', 'move', layout.income)
+              : undefined
+          }
           placed={layout.income}
         />
+        {onChange && selectedTargetKey === 'income' && (
+          <ResizeHandle
+            label="Income sources"
+            rect={layout.income}
+            onPointerDown={beginDrag('income', 'resize', layout.income)}
+          />
+        )}
       </g>
       <g
         data-connect-id={onChange ? 'need' : undefined}
@@ -2940,6 +3053,11 @@ export function MapSvg({
               ? (event) => event.stopPropagation()
               : undefined
           }
+          onTextPointerDown={
+            onChange
+              ? () => beginDrag('need', 'move', layout.need)
+              : undefined
+          }
           tag={displayData.needTag}
           value={displayData.monthlyNeed}
           placed={layout.need}
@@ -2947,6 +3065,13 @@ export function MapSvg({
             selectedTargetKey === mapTextOverrideKey('need', 'supporting')
           }
         />
+        {onChange && selectedTargetKey === 'need' && (
+          <ResizeHandle
+            label="Monthly income need"
+            rect={layout.need}
+            onPointerDown={beginDrag('need', 'resize', layout.need)}
+          />
+        )}
       </g>
       <g aria-label="Accounts" role="group">
         {renderedAccounts.map((placed) => {
@@ -3015,17 +3140,39 @@ export function MapSvg({
               {shape === 'drum' ? (
                 <Cylinder
                   onElementClick={onElementClick}
+                  onTextPointerDown={
+                    onChange
+                      ? () => beginDrag(placed.account.id, 'move', placed)
+                      : undefined
+                  }
                   placed={placed}
                   runway={runway}
                 />
               ) : (
                 <FlatAccount
                   onElementClick={onElementClick}
+                  onTextPointerDown={
+                    onChange
+                      ? () => beginDrag(placed.account.id, 'move', placed)
+                      : undefined
+                  }
                   placed={placed}
                   runway={runway}
                   shape={shape}
                 />
               )}
+              {onChange &&
+                selectedTargetKey === `account:${placed.account.id}` && (
+                  <ResizeHandle
+                    label={accountDisplayName(placed.account)}
+                    rect={placed}
+                    onPointerDown={beginDrag(
+                      placed.account.id,
+                      'resize',
+                      placed,
+                    )}
+                  />
+                )}
             </g>
           )
         })}
@@ -3078,8 +3225,25 @@ export function MapSvg({
             <NoteBlock
               interactive={Boolean(onChange)}
               onElementClick={onElementClick}
+              onTextPointerDown={
+                onChange
+                  ? beginDrag(placed.note.id, 'noteMove', placed)
+                  : undefined
+              }
               placed={placed}
             />
+            {onChange &&
+              selectedTargetKey === `note:${placed.note.id}` && (
+                <ResizeHandle
+                  label={`note: ${placed.note.text}`}
+                  rect={placed}
+                  onPointerDown={beginDrag(
+                    placed.note.id,
+                    'noteResize',
+                    placed,
+                  )}
+                />
+              )}
           </g>
         ))}
       </g>

@@ -2,7 +2,8 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { accountDisplayName } from '../src/model/format'
-import { incomeTextSizes, layoutMap } from '../src/layout/layout'
+import { incomeTextSizes, layoutMap, needTextLayout } from '../src/layout/layout'
+import { textWidth } from '../src/layout/textfit'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import {
   addCustomArrow,
@@ -925,6 +926,157 @@ describe('map note edits', () => {
     expect(noteFontFamily('sans')).toContain('Public Sans')
     expect(noteFontFamily('serif')).toContain('Literata')
     expect(noteFontFamily()).toContain('Literata')
+  })
+})
+
+describe('direct resize handles', () => {
+  const data = {
+    ...SAMPLE_WHITFIELD,
+    notes: [
+      { id: 'note-resize', text: 'Confirm the rollover.', x: 520, y: 480 },
+    ],
+  }
+
+  const resizeLabels = (markup: string) =>
+    [...markup.matchAll(/aria-label="(Resize [^"]*)"/g)].map((match) => match[1])
+
+  const editableLabels = (selectedTargetKey: string | null) =>
+    resizeLabels(
+      renderToStaticMarkup(
+        createElement(MapSvg, {
+          data,
+          onChange: () => undefined,
+          onElementClick: () => undefined,
+          selectedTargetKey,
+        }),
+      ),
+    )
+
+  it('offers no resize handle while nothing is selected', () => {
+    expect(editableLabels(null)).toEqual([])
+  })
+
+  it('gives the selected account exactly one named resize handle', () => {
+    expect(editableLabels('account:cash-at-bank')).toEqual([
+      'Resize Cash at Bank',
+    ])
+  })
+
+  it.each(['income', 'need', 'note:note-resize'])(
+    'gives the selected %s exactly one named resize handle',
+    (selectedTargetKey) => {
+      const labels = editableLabels(selectedTargetKey)
+
+      expect(labels).toHaveLength(1)
+      expect(labels[0]).toMatch(/^Resize .+/)
+    },
+  )
+
+  it('keeps resize handles out of noninteractive output', () => {
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
+
+    expect(resizeLabels(markup)).toEqual([])
+  })
+})
+
+describe('editable text hit geometry', () => {
+  it('fits the account title target to the rendered title, not the shape width', () => {
+    const markup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data: SAMPLE_WHITFIELD,
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+      }),
+    )
+    const placed = layoutMap(SAMPLE_WHITFIELD).accounts.find(
+      (candidate) => candidate.account.id === 'cash-at-bank',
+    )!
+    const hit =
+      /<rect[^>]*data-map-edit-key="accountLabel:cash-at-bank"[^>]*>/.exec(
+        markup,
+      )?.[0] ?? ''
+    const width = Number(/width="([\d.]+)"/.exec(hit)?.[1])
+    const rendered = Math.max(
+      ...placed.titleLines.map((line) =>
+        textWidth(line, placed.text.titleFontSize),
+      ),
+    )
+
+    expect(width).toBeGreaterThanOrEqual(rendered)
+    expect(width).toBeLessThanOrEqual(rendered + 16)
+    expect(width).toBeLessThan(placed.w * 0.84)
+  })
+
+  it('keeps fixed income, need, and note edit targets tight to their rendered text', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [{ id: 'note-tight', text: 'Rollover', x: 520, y: 480 }],
+    }
+    const markup = renderToStaticMarkup(
+      createElement(MapSvg, {
+        data,
+        onChange: () => undefined,
+        onElementClick: () => undefined,
+      }),
+    )
+    const tagFor = (pattern: string) =>
+      new RegExp(pattern).exec(markup)?.[0] ?? ''
+    const numberIn = (tag: string, attribute: string) =>
+      Number(new RegExp(`${attribute}="([\\d.]+)"`).exec(tag)?.[1] ?? 0)
+    const hitWidth = (key: string) =>
+      numberIn(tagFor(`<rect[^>]*data-map-edit-hit="${key}"[^>]*>`), 'width')
+    /** Painted width, including the tracking SVG adds between glyphs. */
+    const paintedWidth = (content: string, tag: string) =>
+      textWidth(content, numberIn(tag, 'font-size')) +
+      numberIn(tag, 'letter-spacing') * Math.max(0, [...content].length - 1)
+
+    const layout = layoutMap(data)
+    const note = layout.notes[0]
+    const needValue = needTextLayout(data, layout.need).value.exact
+    expect(note.lines).toHaveLength(1)
+
+    const rows = [
+      {
+        name: 'income header',
+        owner: layout.income.w - 24,
+        rendered: paintedWidth(
+          'INCOME SOURCES',
+          tagFor('<text[^>]*>INCOME SOURCES</text>'),
+        ),
+        width: hitWidth('incomeHeader'),
+      },
+      {
+        name: 'need value',
+        owner: layout.need.w - 24,
+        rendered: paintedWidth(
+          needValue,
+          tagFor('<text[^>]*data-edit-line-node="monthlyNeed"[^>]*>'),
+        ),
+        width: hitWidth('monthlyNeed'),
+      },
+      {
+        name: 'note text',
+        owner: note.w,
+        rendered: textWidth(note.lines[0], note.fontSize),
+        width: hitWidth(`noteText:${note.note.id}`),
+      },
+    ]
+
+    expect(
+      rows.map((row) => ({
+        name: row.name,
+        coversRenderedText: row.width >= row.rendered,
+        narrowerThanOwner: row.width < row.owner,
+        withinSmallPadding: row.width <= row.rendered + 12,
+      })),
+    ).toEqual(
+      rows.map((row) => ({
+        name: row.name,
+        coversRenderedText: true,
+        narrowerThanOwner: true,
+        withinSmallPadding: true,
+      })),
+    )
   })
 })
 

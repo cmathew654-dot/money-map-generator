@@ -359,6 +359,44 @@ test('client search matches title or year across a large book and restores focus
   await expect(combo).toBeFocused()
 })
 
+test('only a selected account exposes a resize handle, and dragging it resizes the account', async ({ page }) => {
+  await openApp(page)
+
+  const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+  const body = account.locator('.map-account-body-hit:not(ellipse)')
+  const size = () =>
+    body.evaluate((element) => {
+      const box = (element as SVGGraphicsElement).getBBox()
+      return { h: Math.round(box.height), w: Math.round(box.width) }
+    })
+
+  await expect(page.locator('.map-resize-handle')).toHaveCount(0)
+  await body.click()
+  await expect(account).toHaveAttribute('data-map-selected', 'true')
+
+  const handle = page.locator('.map-resize-handle')
+  await expect(handle).toHaveCount(1)
+
+  const before = await size()
+  const handleBox = await handle.boundingBox()
+  if (!handleBox) throw new Error('Resize handle geometry is not measurable')
+  const grip = {
+    x: handleBox.x + handleBox.width / 2,
+    y: handleBox.y + handleBox.height / 2,
+  }
+  await page.mouse.move(grip.x, grip.y)
+  await page.mouse.down()
+  await page.mouse.move(grip.x + 60, grip.y + 44, { steps: 6 })
+  await page.mouse.up()
+
+  await expect
+    .poll(async () => {
+      const now = await size()
+      return { taller: now.h > before.h, wider: now.w > before.w }
+    })
+    .toEqual({ taller: true, wider: true })
+})
+
 test('selected Income, Need, or account exposes one direct connector handle and a valid drop selects the new flow', async ({ page }) => {
   await openApp(page)
 

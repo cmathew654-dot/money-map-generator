@@ -64,13 +64,6 @@ describe('Session 40 App safety boundaries', () => {
       /const handlePageHide[\s\S]*?releaseBrowserWriter\(localStorage, tabId\)/,
     )
   })
-  it('tidies to grid anchors without dropping selection or inline editing', () => {
-    expect(appSource).toContain('tidyArrangement(activeClient, tidyAnchors)')
-    expect(appSource).toMatch(
-      /const handleTidyMap = \(\) => \{\s*if \(!canTidyMap\) return\s*handleMapChange\(tidiedClient, 'Map aligned to grid\.'\)\s*\}/,
-    )
-  })
-
   it('keeps lease release isolated to the tab lifecycle and guards commits', () => {
     expect(appSource).toMatch(
       /const commitSnapshot = useCallback\([\s\S]*?if \(!canMutate\) return/,

@@ -460,6 +460,13 @@ summary:focus-visible {
   stroke-width: 2;
 }
 
+.map-page svg .map-resize-handle {
+  fill: #fcfcfa;
+  stroke: #1e7a4a;
+  stroke-width: 2;
+  cursor: nwse-resize;
+}
+
 .map-interactive [data-connector-highlight='true'] {
   filter: drop-shadow(0 0 5px rgb(30 122 74 / 45%));
 }

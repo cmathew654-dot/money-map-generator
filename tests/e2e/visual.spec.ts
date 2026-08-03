@@ -73,7 +73,7 @@ test.describe('desktop visual baselines', () => {
     await compareOrAttachReflow(page, info, 'present')
   })
 
-  test('tidy reports the layout reset', async ({ page }) => {
+  test('tidy reports the grid alignment', async ({ page }) => {
     await openApp(page)
     const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
     const body = account.locator('.map-account-body-hit').first()
@@ -85,7 +85,7 @@ test.describe('desktop visual baselines', () => {
     await page.mouse.up()
     await expect(page.getByRole('button', { name: 'Tidy map' })).toBeEnabled()
     await page.getByRole('button', { name: 'Tidy map' }).click()
-    await expect(page.locator('.toast').filter({ hasText: 'Map layout reset' })).toBeVisible()
+    await expect(page.locator('.toast').filter({ hasText: 'Map aligned to grid.' })).toBeVisible()
   })
 
   test('data panel overlays and scrolls at narrow zoomed viewport', async ({ page }) => {

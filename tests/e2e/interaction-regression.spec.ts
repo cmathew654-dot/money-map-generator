@@ -300,7 +300,10 @@ test.describe('approved desktop interaction regression', () => {
     const beforeTextDrag = (await currentClient(page)).layoutOverrides?.[
       `text:${subject.id}:label`
     ]
-    await pointerDrag(page, labelTarget, { x: 30, y: 18 })
+    const beforeTextDragPosition = await svgPosition(
+      account.locator('.map-account-body-hit:not(ellipse)'),
+    )
+    await pointerDrag(page, labelTarget, { x: 34, y: 22 })
     await expect
       .poll(async () =>
         (await currentClient(page)).layoutOverrides?.[
@@ -309,13 +312,27 @@ test.describe('approved desktop interaction regression', () => {
       )
       .toEqual(beforeTextDrag)
 
-    const afterTextDrag = await currentClient(page)
-    expect(afterTextDrag.layoutOverrides?.[subject.id]?.dx).toBe(
-      afterBodyDrag?.dx,
-    )
-    expect(afterTextDrag.layoutOverrides?.[subject.id]?.dy).toBe(
-      afterBodyDrag?.dy,
-    )
+    await expect
+      .poll(async () => {
+        const now = await svgPosition(
+          account.locator('.map-account-body-hit:not(ellipse)'),
+        )
+        return {
+          movedRight: now.x > beforeTextDragPosition.x,
+          movedDown: now.y > beforeTextDragPosition.y,
+        }
+      })
+      .toEqual({ movedRight: true, movedDown: true })
+    await expect
+      .poll(async () =>
+        (await currentClient(page)).layoutOverrides?.[subject.id],
+      )
+      .not.toEqual(afterBodyDrag)
+
+    await labelTarget.click()
+    await expect(editor).toBeVisible()
+    await editor.press('Escape')
+    await expect(editor).toHaveCount(0)
   })
 
   test('editor close paths and connector cancellation preserve intent', async ({
@@ -613,16 +630,30 @@ test.describe('approved desktop interaction regression', () => {
     const movedPosition = await svgPosition(bodyHit)
     expect(movedPosition).not.toEqual(generatedPosition)
 
+    const movedOverride = (await currentClient(page)).layoutOverrides?.[
+      accountId
+    ]
+
     await page.getByRole('button', { name: 'Tidy map', exact: true }).click()
+    await expect(
+      page.locator('.toast').filter({ hasText: 'Map aligned to grid.' }),
+    ).toBeVisible()
+    const tidiedPosition = await svgPosition(bodyHit)
+    // Snapping to the nearest 12 units can never move an anchor more than 6.
+    expect(Math.abs(tidiedPosition.x - movedPosition.x)).toBeLessThanOrEqual(6)
+    expect(Math.abs(tidiedPosition.y - movedPosition.y)).toBeLessThanOrEqual(6)
+    expect(tidiedPosition).not.toEqual(generatedPosition)
+    expect(
+      (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
+    ).toBeDefined()
+
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect
       .poll(
         async () =>
-          (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
+          (await currentClient(page)).layoutOverrides?.[accountId],
       )
-      .toBeUndefined()
-    await expect.poll(() => svgPosition(bodyHit)).toEqual(generatedPosition)
-
-    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+      .toEqual(movedOverride)
     await expect
       .poll(
         async () => {
