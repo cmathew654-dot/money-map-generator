@@ -705,6 +705,16 @@ test.describe('approved desktop interaction regression', () => {
     await expect
       .poll(async () => (await currentClient(page)).incomeSources?.length)
       .toBe(1)
+    await expect
+      .poll(async () =>
+        (await currentClient(page)).incomeSources?.find(
+          (source) => source.label === 'Salary / Wages',
+        )?.amount,
+      )
+      .toBe(5000)
+    await salaryAmount.fill('5k')
+    await salaryAmount.press('Tab')
+    await expect(salaryAmount).toHaveValue('$5,000')
     const clearedWithSalary = financialContent(await currentClient(page))
     await pointerDrag(page, incomeCard, { x: 0, y: 12 }, { x: 0.92, y: 0.92 })
     await expect
@@ -713,10 +723,50 @@ test.describe('approved desktop interaction regression', () => {
     await expect(page.getByRole('group', { name: 'Cash at Bank' })).toHaveCount(0)
     await expect(incomeCard).toContainText('$5,000 mo.')
 
+    await salaryAmount.focus()
+    await salaryAmount.fill('5k')
+    await page.getByRole('button', { name: 'Reset menu' }).click()
+    await page.getByRole('menuitem', { name: 'Reset arrangement' }).click()
+    await page
+      .getByRole('dialog', { name: 'Reset arrangement' })
+      .getByRole('button', { name: 'Reset', exact: true })
+      .click()
+    await expect(salaryAmount).toHaveValue('$5,000')
+
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: 'Data' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: 'Data' })).toBeVisible()
+    const salaryAfterUndo = page
+      .locator(".income-row:has(input[value='Salary / Wages'])")
+      .getByLabel('Amount', { exact: true })
+    await expect(salaryAfterUndo).toHaveValue('$5,000')
+
+    await salaryAfterUndo.focus()
+    await salaryAfterUndo.fill('5k')
+    const clientSelect = page.getByLabel('Active client')
+    await clientSelect.selectOption({ index: 1 })
+    await expect(clientSelect).toHaveValue('sample-calloway')
+    await expect(
+      page.locator(".income-row:has(input[value='Salary / Wages'])"),
+    ).toHaveCount(0)
+    await clientSelect.selectOption(CLIENT_ID)
+    await expect(
+      page
+        .locator(".income-row:has(input[value='Salary / Wages'])")
+        .getByLabel('Amount', { exact: true }),
+    ).toHaveValue('$5,000')
+
     await page.reload()
     await expect(page.getByRole('group', { name: 'Cash at Bank' })).toHaveCount(0)
     await expect(incomeCard).toContainText('Salary / Wages')
     await expect(incomeCard).toContainText('$5,000 mo.')
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
+    await expect(
+      page
+        .locator(".income-row:has(input[value='Salary / Wages'])")
+        .getByLabel('Amount', { exact: true }),
+    ).toHaveValue('$5,000')
   })
 
   test('large as-needed values stay compact and selected controls leave Present Mode', async ({

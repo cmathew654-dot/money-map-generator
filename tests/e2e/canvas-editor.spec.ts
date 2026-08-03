@@ -94,3 +94,27 @@ test('Data filters records and Details focuses the selected account', async ({ p
   await expect(panel.locator('[data-form-section="accounts"]')).toHaveClass(/is-active/)
   await expect(panel.locator('[data-account-id="cash-at-bank"] input').first()).toBeFocused()
 })
+
+test('Data heading regains focus after a Details request becomes stale', async ({ page }) => {
+  await openApp(page)
+
+  const dataButton = page.getByRole('button', { name: 'Data', exact: true })
+  const panel = page.getByRole('dialog', { name: 'Data' })
+  await dataButton.click()
+  await expect(panel).toBeVisible()
+  await dataButton.click()
+
+  const cashAtBank = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+  await cashAtBank.locator('.map-account-body-hit:not(ellipse)').click()
+  await page.getByRole('region', { name: /Adjust Cash at Bank/ }).getByRole('button', { name: 'Details' }).click()
+  await expect(panel.locator('[data-account-id="cash-at-bank"] input').first()).toBeFocused()
+
+  await dataButton.click()
+  const managedIra = page.locator('[data-account-id="managed-ira-jordan"][role="group"]')
+  await managedIra.focus()
+  await managedIra.press('Enter')
+  await expect(managedIra).toHaveAttribute('data-map-selected', 'true')
+
+  await dataButton.click()
+  await expect(panel.getByRole('heading', { name: 'Data' })).toBeFocused()
+})

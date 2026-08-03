@@ -367,6 +367,12 @@ export default function App() {
 
   const bumpFormRevision = useCallback(() => {
     setFormRevision((revision) => revision + 1)
+    setFocusRequest(undefined)
+  }, [])
+
+  const closeDataPanel = useCallback(() => {
+    setFocusRequest(undefined)
+    setEditorPanel(null)
   }, [])
 
   const commitSnapshot = useCallback(
@@ -397,11 +403,11 @@ export default function App() {
       setSelectedMapTargetKey(null)
       setMapTextEdit(null)
       setDialog(null)
-      setEditorPanel(null)
+      closeDataPanel()
       setGuidedSetup(false)
       resetWizard()
     },
-    [bumpFormRevision, resetWizard, showSnapshot],
+    [bumpFormRevision, closeDataPanel, resetWizard, showSnapshot],
   )
 
   const handleUndo = useCallback(() => {
@@ -672,7 +678,7 @@ export default function App() {
       } else if (placingTextNote) {
         setPlacingTextNote(false)
       } else if (editorPanel) {
-        setEditorPanel(null)
+        closeDataPanel()
       } else if (selectedMapTargetKey) {
         setSelectedMapTargetKey(null)
       } else {
@@ -682,7 +688,7 @@ export default function App() {
     }
     window.addEventListener('keydown', handleEditorEscape)
     return () => window.removeEventListener('keydown', handleEditorEscape)
-  }, [dialog, editorPanel, mapTextEdit, placingTextNote, presentMode, selectedMapTargetKey, shapePopoverOpen])
+  }, [closeDataPanel, dialog, editorPanel, mapTextEdit, placingTextNote, presentMode, selectedMapTargetKey, shapePopoverOpen])
 
   const exitPresentMode = useCallback(() => {
     setPresentMode(false)
@@ -825,7 +831,7 @@ export default function App() {
       result.id,
     )
     setMapTextEdit(null)
-    setEditorPanel(null)
+    closeDataPanel()
     setGuidedSetup(true)
     resetWizard()
   }
@@ -1063,6 +1069,11 @@ export default function App() {
       const id = target.kind === 'account' ? target.id : target.kind
       if (id) focusDataTarget(section, id)
     }
+  }
+
+  const handleMapSelectionChange = (targetKey: string | null) => {
+    setSelectedMapTargetKey(targetKey)
+    setFocusRequest(undefined)
   }
 
   const handleClientChange = (next: typeof activeClient) => {
@@ -1628,6 +1639,7 @@ export default function App() {
                 onExportPng={() => void handleExportPng()}
                 onFullForm={() => {
                   setGuidedSetup(false)
+                  setFocusRequest(undefined)
                   setEditorPanel('data')
                 }}
                 onHoverAccount={setHighlightId}
@@ -1650,9 +1662,8 @@ export default function App() {
               activePanel={editorPanel}
               onToggle={(panel) => {
                 if (panel !== 'data') return
-                setEditorPanel((current) =>
-                  current === panel ? null : panel,
-                )
+                if (editorPanel === panel) closeDataPanel()
+                else setEditorPanel(panel)
               }}
             />
             {editorPanel === 'data' && (
@@ -1699,9 +1710,9 @@ export default function App() {
               data={activeClient}
               selectedTargetKey={selectedMapTargetKey}
               onChange={handleMapChange}
-              onClose={() => setSelectedMapTargetKey(null)}
+              onClose={() => handleMapSelectionChange(null)}
               onDetails={handleMapDetails}
-              onSelect={setSelectedMapTargetKey}
+              onSelect={handleMapSelectionChange}
             />
           )}
           <div
@@ -1743,7 +1754,7 @@ export default function App() {
                   onElementClick={
                     presentMode || !canMutate ? undefined : handleMapElementClick
                   }
-                  onSelectedTargetChange={setSelectedMapTargetKey}
+                  onSelectedTargetChange={handleMapSelectionChange}
                   selectedTargetKey={selectedMapTargetKey}
                 />
               </div>
