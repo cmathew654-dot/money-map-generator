@@ -165,6 +165,54 @@ async function clickBlankAccountBody(account: Locator) {
   })
 }
 
+test('foreign writer lease still hands editing to the focused tab', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'chromium-1280x720',
+    'The lease handoff regression runs once in Chromium.',
+  )
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'money-map-generator:writer',
+      JSON.stringify({ tabId: 'stale-tab', updatedAt: Date.now() }),
+    )
+  })
+  await openApp(page)
+  await expect
+    .poll(() => page.evaluate(() => {
+      const raw = localStorage.getItem('money-map-generator:writer')
+      return raw ? JSON.parse(raw).tabId : null
+    }))
+    .not.toBe('stale-tab')
+  await expect
+    .poll(() => page.locator('.map-page svg').getAttribute('class'))
+    .toBe('map-interactive')
+  const label = page.locator(
+    '[data-map-edit-visual="accountLabel:short-term-funds"]',
+  )
+  const account = page.locator(
+    '[data-account-id="short-term-funds"][role="group"]',
+  )
+  const before = await account.boundingBox()
+  const target = await label.boundingBox()
+  if (!before || !target) throw new Error('Short-Term Funds target is not measurable')
+  await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(
+    target.x + target.width / 2 + 80,
+    target.y + target.height / 2 + 40,
+    { steps: 6 },
+  )
+  await page.mouse.up()
+  await expect
+    .poll(async () => (await account.boundingBox())?.x ?? before.x)
+    .toBeGreaterThan(before.x + 20)
+  await expect
+    .poll(() => page.evaluate(() => window.getSelection()?.toString() ?? ''))
+    .toBe('')
+})
+
 test.describe('approved desktop interaction regression', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     const crossBrowserStateTest =

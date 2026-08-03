@@ -1,6 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const port = Number(process.env.PLAYWRIGHT_PORT ?? 4187)
+const serverCommand = process.env.PLAYWRIGHT_SERVER_MODE === 'dev'
+  ? `npm run dev -- --host 127.0.0.1 --port ${port}`
+  : `npm run build && npm run preview -- --host 127.0.0.1 --port ${port}`
 
 const viewports = [
   ['1280x720', { width: 1280, height: 720 }],
@@ -32,7 +35,7 @@ export default defineConfig({
     screenshot: 'only-on-failure', trace: 'retain-on-failure', video: 'retain-on-failure',
   },
   webServer: {
-    command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${port}`,
+    command: serverCommand,
     url: `http://127.0.0.1:${port}`, reuseExistingServer: false, timeout: 120_000,
     env: { VITE_DATA_MODE: 'real' },
   },

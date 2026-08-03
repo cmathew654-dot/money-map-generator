@@ -563,6 +563,7 @@ export default function App() {
       const result = acquireBrowserWriter(localStorage, tabId, true)
       if (result.status === 'acquired') {
         try { localStorage.removeItem(WRITER_TAKEOVER_REQUEST_KEY) } catch { /* The acquired lease remains valid. */ }
+        writerFocusInitializedRef.current = true
         finishBrowserWriterTakeover()
         return
       }
@@ -584,7 +585,6 @@ export default function App() {
   useEffect(() => {
     if (DATA_MODE !== 'real') return
     const checkInitialFocus = !writerFocusInitializedRef.current
-    writerFocusInitializedRef.current = true
     const requestOnFocus = () => {
       if (
         document.visibilityState !== 'visible' ||
@@ -605,6 +605,7 @@ export default function App() {
     return () => {
       window.removeEventListener('focus', requestOnFocus)
       window.removeEventListener('blur', resetFocusRequest)
+      writerFocusRequestedRef.current = false
     }
   }, [requestBrowserWriterTakeover, tabId])
   useEffect(() => {
@@ -674,7 +675,10 @@ export default function App() {
 
   useEffect(
     () => () => {
-      if (writerTakeoverTimerRef.current !== null) window.clearTimeout(writerTakeoverTimerRef.current)
+      if (writerTakeoverTimerRef.current !== null) {
+        window.clearTimeout(writerTakeoverTimerRef.current)
+        writerTakeoverTimerRef.current = null
+      }
       if (DATA_MODE === 'real') releaseBrowserWriter(localStorage, tabId)
     },
     [tabId],
