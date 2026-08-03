@@ -357,7 +357,10 @@ function editableHitAreaProps(
         event.preventDefault()
       }
       if (onPointerDown) onPointerDown(event)
-      else event.stopPropagation()
+      else {
+        event.preventDefault()
+        event.stopPropagation()
+      }
     },
     onDoubleClick: (event) => {
       event.stopPropagation()

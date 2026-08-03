@@ -878,6 +878,8 @@ summary:focus-visible {
 .map-page {
   width: min(100%, calc((100vh - 100px) * 1.294117647));
   max-width: 1320px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .map-page.is-zoomed {
