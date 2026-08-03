@@ -743,9 +743,6 @@ summary:focus-visible {
   padding: 24px;
 }
 
-.preview-pane.has-map-inspector .map-scroller {
-  top: 112px;
-}
 
 .map-inspector {
   position: absolute;
@@ -2102,7 +2099,7 @@ summary:focus-visible {
 /* S34 */
 .map-page svg .map-editable-hit {
   fill: transparent;
-  cursor: text;
+  cursor: grab;
   transition: fill 120ms ease;
 }
 
@@ -2358,7 +2355,7 @@ summary:focus-visible {
 }
 
 .map-interactive .map-editable-hit {
-  cursor: text;
+  cursor: grab;
 }
 
 .map-interactive [data-account-id][data-map-selected='true'] {

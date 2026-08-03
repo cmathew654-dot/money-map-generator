@@ -3020,14 +3020,22 @@ export function nudgeLayoutOverride(
     { ...rendered, x: rendered.x + delta.x, y: rendered.y + delta.y },
     OVERRIDE_BOUNDS,
   )
+  const nextDx = next.x - base.x
+  const nextDy = next.y - base.y
+  if (
+    Math.abs(nextDx - (previous.dx ?? 0)) < 1e-9 &&
+    Math.abs(nextDy - (previous.dy ?? 0)) < 1e-9
+  ) {
+    return data
+  }
   return {
     ...data,
     layoutOverrides: {
       ...data.layoutOverrides,
       [key]: {
         ...previous,
-        dx: next.x - base.x,
-        dy: next.y - base.y,
+        dx: nextDx,
+        dy: nextDy,
       },
     },
   }

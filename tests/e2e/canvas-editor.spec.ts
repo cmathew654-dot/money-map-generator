@@ -316,7 +316,7 @@ test('copy, paste, delete, and alignment shortcuts do nothing inside controls an
   await expect(page.locator('svg.map-interactive [data-account-id=cash-at-bank]')).toHaveCount(1)
 
   const label = account.getByRole('button', { name: 'Edit account name' })
-  await label.click()
+  await label.dblclick()
   const editor = page.getByRole('textbox', { name: 'Edit account name' })
   await expect(editor).toBeFocused()
   await page.keyboard.press('Control+C')
@@ -413,7 +413,7 @@ test('the inspector stays visible while an inline title editor is open', async (
   await account
     .locator('[data-map-edit-key="accountLabel:cash-at-bank"]')
     .first()
-    .click()
+    .dblclick()
   const editor = page.locator('.map-text-editor-input')
   await expect(editor).toBeVisible()
   await expect(inspector).toBeVisible()

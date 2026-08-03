@@ -259,7 +259,7 @@ function editableTextProps(
     'data-layout-key': fixedTextOverrideKey(edit) ?? undefined,
     'aria-keyshortcuts': fixedTextOverrideKey(edit) ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined,
     onPointerDown,
-    onClick: (
+    onDoubleClick: (
       event: MouseEvent<SVGTextElement | SVGTSpanElement>,
     ) => {
       event.stopPropagation()
@@ -359,11 +359,7 @@ function editableHitAreaProps(
       if (onPointerDown) onPointerDown(event)
       else event.stopPropagation()
     },
-    onClick: (event) => {
-      if (event.shiftKey || event.ctrlKey || event.metaKey) {
-        event.stopPropagation()
-        return
-      }
+    onDoubleClick: (event) => {
       event.stopPropagation()
       activate(event.currentTarget)
     },
@@ -2673,6 +2669,7 @@ export function MapSvg({
     const chip = element.closest<SVGElement>('[data-as-needed-chip]')
     const arrow = element.closest<SVGElement>('.map-arrow-editor')
     const account = element.closest<SVGElement>('[data-account-id]')
+    const container = element.closest<SVGElement>('[data-connect-id]')
     const target = element.closest<SVGElement>('[data-map-target]')
     const targetKey =
       note?.dataset.noteId
@@ -2682,7 +2679,10 @@ export function MapSvg({
           : arrow?.dataset.mapTarget ??
             (account?.dataset.accountId
               ? `account:${account.dataset.accountId}`
-              : target?.dataset.layoutKey ?? target?.dataset.mapTarget ?? null)
+              : container?.dataset.connectId ??
+                target?.dataset.layoutKey ??
+                target?.dataset.mapTarget ??
+                null)
     toggleSelectedTarget(targetKey, event)
   }
 

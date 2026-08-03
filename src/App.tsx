@@ -251,6 +251,7 @@ export default function App() {
   const exportInFlightRef = useRef<'png' | 'pdf' | 'svg' | null>(null)
   const mapClipboardRef = useRef<Array<{ kind: 'account' | 'note'; id: string }>>([])
   const mapCommandFeedbackRef = useRef<string | null>(null)
+  const discardMapTextCommitRef = useRef(false)
   const snapshotRef = useRef(snapshot)
   const historyRef = useRef(history)
   const appShellRef = useRef<HTMLElement>(null)
@@ -280,6 +281,10 @@ export default function App() {
     book.clients[0]
   const setSelectedMapTargetKey = (key: string | null) =>
     setSelectedMapTargetKeys(key ? [key] : [])
+  const closeMapTextEditor = useCallback((discard = false) => {
+    if (discard) discardMapTextCommitRef.current = true
+    setMapTextEdit(null)
+  }, [])
   useEffect(() => {
     setDataFilter('')
     setDataSection(undefined)
@@ -344,6 +349,13 @@ export default function App() {
     setPlacingTextNote(false)
     setSelectedMapTargetKey(null)
   }, [activeClient.id])
+
+  useEffect(() => {
+    if (mapTextEdit !== null || !discardMapTextCommitRef.current) return
+    window.setTimeout(() => {
+      discardMapTextCommitRef.current = false
+    }, 0)
+  }, [mapTextEdit])
 
   useEffect(() => {
     const nextKeys = selectedMapTargetKeys.filter(
@@ -452,15 +464,15 @@ export default function App() {
   const restoreHistorySnapshot = useCallback(
     (next: BookSnapshot) => {
       bumpFormRevision()
+      closeMapTextEditor(true)
       showSnapshot(next)
       setSelectedMapTargetKey(null)
-      setMapTextEdit(null)
       setDialog(null)
       closeDataPanel()
       setGuidedSetup(false)
       resetWizard()
     },
-    [bumpFormRevision, closeDataPanel, resetWizard, showSnapshot],
+    [bumpFormRevision, closeDataPanel, closeMapTextEditor, resetWizard, showSnapshot],
   )
 
   const handleUndo = useCallback(() => {
@@ -733,7 +745,7 @@ export default function App() {
     const handleEditorEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape' || presentMode || dialog) return
       if (mapTextEdit) {
-        setMapTextEdit(null)
+        closeMapTextEditor(true)
       } else if (shapePopoverOpen) {
         setShapePopoverOpen(false)
       } else if (placingTextNote) {
@@ -749,7 +761,7 @@ export default function App() {
     }
     window.addEventListener('keydown', handleEditorEscape)
     return () => window.removeEventListener('keydown', handleEditorEscape)
-  }, [closeDataPanel, dialog, editorPanel, mapTextEdit, placingTextNote, presentMode, selectedMapTargetKey, shapePopoverOpen])
+  }, [closeDataPanel, closeMapTextEditor, dialog, editorPanel, mapTextEdit, placingTextNote, presentMode, selectedMapTargetKey, shapePopoverOpen])
 
   const exitPresentMode = useCallback(() => {
     setPresentMode(false)
@@ -817,6 +829,7 @@ export default function App() {
         return
       }
 
+      closeMapTextEditor(true)
       commitSnapshot(
         {
           book: resolution.book,
@@ -824,12 +837,11 @@ export default function App() {
         },
         null,
       )
-      setMapTextEdit(null)
       resetWizard()
       rememberConnectedFile(handle)
       addToast(isReconnect ? 'Saving to this file again' : 'Changes will now save to this file')
     },
-    [addToast, canMutate, commitSnapshot, rememberConnectedFile, resetWizard],
+    [addToast, canMutate, closeMapTextEditor, commitSnapshot, rememberConnectedFile, resetWizard],
   )
 
   const handleCreateConnectedFile = async () => {
@@ -864,7 +876,7 @@ export default function App() {
   }
 
   const handlePresent = async () => {
-    setMapTextEdit(null)
+    closeMapTextEditor(true)
     setShapePopoverOpen(false)
     setMapZoom('fit')
     setPresentMode(true)
@@ -879,7 +891,7 @@ export default function App() {
 
   const selectClient = (id: string) => {
     bumpFormRevision()
-    setMapTextEdit(null)
+    closeMapTextEditor(true)
     setGuidedSetup(false)
     showSnapshot({ ...snapshotRef.current, activeClientId: id })
     resetWizard()
@@ -887,6 +899,7 @@ export default function App() {
 
   const handleNew = () => {
     const result = addClient(snapshotRef.current.book)
+    closeMapTextEditor(true)
     commitSnapshot(
       { book: result.book, activeClientId: result.id },
       result.id,
@@ -902,6 +915,7 @@ export default function App() {
       snapshotRef.current.book,
       activeClient.id,
     )
+    closeMapTextEditor(true)
     commitSnapshot(
       { book: result.book, activeClientId: result.id },
       result.id,
@@ -929,8 +943,8 @@ export default function App() {
 
   const handleResetTextPositions = () => {
     const next = resetTextPositions(activeClient)
+    closeMapTextEditor(true)
     if (next !== activeClient) handleMapChange(next)
-    setMapTextEdit(null)
     setDialog(null)
     addToast('Text positions reset')
   }
@@ -953,6 +967,7 @@ export default function App() {
       return
     }
     bumpFormRevision()
+    closeMapTextEditor(true)
     commitSnapshot(
       {
         book: updateClient(current.book, clientId, clearedClient(client)),
@@ -968,6 +983,7 @@ export default function App() {
 
   const confirmDelete = (clientId: string) => {
     const nextBook = deleteClient(snapshotRef.current.book, clientId)
+    closeMapTextEditor(true)
     commitSnapshot(
       { book: nextBook, activeClientId: nextBook.clients[0].id },
       clientId,
@@ -990,8 +1006,8 @@ export default function App() {
     if (!canMutate) return
     if (connectedFile) handleDisconnectFile()
     setRecovery(null)
+    closeMapTextEditor(true)
     commitSnapshot({ book: nextBook, activeClientId: nextBook.clients[0].id }, null)
-    setMapTextEdit(null)
     resetWizard()
     setDialog(null)
     addToast('Book backup opened')
@@ -1981,8 +1997,12 @@ export default function App() {
                 containerRef={previewPaneRef}
                 edit={mapTextEdit}
                 key={JSON.stringify(mapTextEdit.target)}
-                onCancel={() => setMapTextEdit(null)}
+                onCancel={() => closeMapTextEditor(true)}
                 onCommit={(rawValue) => {
+                  if (discardMapTextCommitRef.current) {
+                    setMapTextEdit(null)
+                    return
+                  }
                   let nextClient = applyMapTextEdit(
                     activeClient,
                     mapTextEdit.target,

@@ -181,6 +181,82 @@ test.describe('approved desktop interaction regression', () => {
     await expect.poll(() => storedClient(page)).not.toBeNull()
   })
 
+  test('single click selects an income panel without opening text edit', async ({
+    page,
+  }) => {
+    const incomeHit = page.locator(
+      '[data-map-target="income"] [data-map-edit-hit^="incomeAmount"]',
+    ).first()
+    await incomeHit.click()
+    await expect(
+      page.getByRole('region', { name: 'Adjust Income sources' }),
+    ).toBeVisible()
+    await expect(page.locator('textarea')).toHaveCount(0)
+  })
+
+  test('double click opens the income text editor', async ({ page }) => {
+    const incomeHit = page.locator(
+      '[data-map-target="income"] [data-map-edit-hit^="incomeAmount"]',
+    ).first()
+    await incomeHit.dblclick()
+    await expect(page.locator('.map-text-editor-input')).toBeVisible()
+  })
+
+  test('selection leaves map objects in place', async ({ page }) => {
+    const account = page.locator(
+      '[data-account-id="cash-at-bank"][role="group"]',
+    )
+    const before = await account.boundingBox()
+    if (!before) throw new Error('Account has no measurable bounds')
+    await account.locator('.map-account-body-hit:not(ellipse)').click()
+    await expect(account).toHaveAttribute('data-map-selected', 'true')
+    const after = await account.boundingBox()
+    if (!after) throw new Error('Selected account has no measurable bounds')
+    expect(Math.abs(after.x - before.x)).toBeLessThan(2)
+    expect(Math.abs(after.y - before.y)).toBeLessThan(2)
+  })
+  test('undo discards an open map text draft', async ({ page }) => {
+    const account = page.locator(
+      '[data-account-id="cash-at-bank"][role="group"]',
+    )
+    await page.getByRole('button', { name: 'Add text note', exact: true }).click()
+    await expect(page.locator('.text-placement-hint')).toBeVisible()
+    await page.locator('.map-page svg > [data-map-background="true"]').first().click({ force: true })
+    const editor = page.locator('.map-text-editor-input')
+    await expect(editor).toBeVisible()
+    await editor.fill('ORIGINAL NOTE')
+    await editor.press('Enter')
+    await expect(editor).toHaveCount(0)
+    const noteText = page.locator('[data-map-edit-hit^="noteText:"]').first()
+    await expect(noteText).toBeVisible()
+
+    const bodyHit = account.locator('.map-account-body-hit:not(ellipse)')
+    await pointerDrag(page, bodyHit, { x: 38, y: 20 }, { x: 0.16, y: 0.84 })
+    await expect
+      .poll(async () => {
+        const override = (await currentClient(page)).layoutOverrides?.[
+          'cash-at-bank'
+        ]
+        return Math.abs(override?.dx ?? 0) + Math.abs(override?.dy ?? 0)
+      })
+      .toBeGreaterThan(0)
+
+    await noteText.dblclick()
+    await expect(editor).toBeVisible()
+    await editor.fill('STALE DRAFT')
+    await page.keyboard.press('Control+Z')
+    await expect(editor).toHaveCount(0)
+    await expect
+      .poll(async () => (await currentClient(page)).layoutOverrides?.['cash-at-bank'])
+      .toBeUndefined()
+    await expect
+      .poll(async () =>
+        (await currentClient(page)).notes?.some((note) => note.text === 'ORIGINAL NOTE') ?? false,
+      )
+      .toBe(true)
+    await expect(page.locator('svg').getByText('STALE DRAFT')).toHaveCount(0)
+  })
+
   test('spawn, selection, shape, text, font, and drag gestures stay independent', async ({
     page,
   }) => {
@@ -235,7 +311,7 @@ test.describe('approved desktop interaction regression', () => {
     )
     const expectedFontSize = initialFontSize + 1
 
-    await labelTarget.click()
+    await labelTarget.dblclick()
     const editor = page.locator('.map-text-editor-input')
     await expect(editor).toBeVisible()
     await editor.fill('Edited Short-Term Shape')
@@ -254,7 +330,7 @@ test.describe('approved desktop interaction regression', () => {
       )
       .toBe(expectedFontSize)
 
-    await labelTarget.click()
+    await labelTarget.dblclick()
     await expect(editor).toBeVisible()
     await editor.press('Escape')
     await expect(editor).toHaveCount(0)
@@ -329,7 +405,7 @@ test.describe('approved desktop interaction regression', () => {
       )
       .not.toEqual(afterBodyDrag)
 
-    await labelTarget.click()
+    await labelTarget.dblclick()
     await expect(editor).toBeVisible()
     await editor.press('Escape')
     await expect(editor).toHaveCount(0)
@@ -356,7 +432,7 @@ test.describe('approved desktop interaction regression', () => {
       )
       .first()
 
-    await sourceLabel.click()
+    await sourceLabel.dblclick()
     const editor = page.locator('.map-text-editor-input')
     await editor.fill('Cancelled Source Rename')
     await editor.press('Escape')
@@ -367,7 +443,7 @@ test.describe('approved desktop interaction regression', () => {
       )?.label,
     ).toBe('Connector Source')
 
-    await sourceLabel.click()
+    await sourceLabel.dblclick()
     await editor.fill('Blurred Source Rename')
     await page.getByRole('button', { name: '+ Account', exact: true }).click()
     await page.keyboard.press('Escape')
@@ -566,7 +642,7 @@ test.describe('approved desktop interaction regression', () => {
     await account.focus()
     await page.keyboard.press('ArrowRight')
     const label = account.locator('[data-map-edit-key="accountLabel:cash-at-bank"]').first()
-    await label.click()
+    await label.dblclick()
     await page.getByRole('button', { name: 'Increase font size' }).click()
     await page.getByRole('button', { name: 'Close text editor' }).click()
     await label.focus()
@@ -583,7 +659,7 @@ test.describe('approved desktop interaction regression', () => {
       .toBe(true)
     const before = (await currentClient(page)).layoutOverrides!
     await page.getByRole('button', { name: 'More actions' }).click()
-    await page.getByRole('menuitem', { name: 'Reset all text positions…' }).click()
+    await page.getByRole('menuitem', { name: /Reset all text positions/ }).click()
     await page
       .getByRole('dialog', { name: 'Reset all text positions?' })
       .getByRole('button', { name: 'Reset text positions' })
@@ -872,13 +948,11 @@ test.describe('approved desktop interaction regression', () => {
     for (const label of ['Shape', 'Add flow to', 'Move', 'Size', 'Rotate']) {
       await expect(accountControls.getByLabel(label, { exact: true })).toBeVisible()
     }
-    const [inspectorBox, mapBox, transform] = await Promise.all([
+    const [inspectorBox, transform] = await Promise.all([
       accountControls.boundingBox(),
-      interactiveMap.boundingBox(),
       accountControls.evaluate((element) => getComputedStyle(element).transform),
     ])
-    if (!inspectorBox || !mapBox) throw new Error('Inspector or map has no measurable bounds')
-    expect(inspectorBox.y + inspectorBox.height).toBeLessThanOrEqual(mapBox.y)
+    if (!inspectorBox) throw new Error('Inspector has no measurable bounds')
     expect(transform).toBe('none')
 
     await page.getByRole('button', { name: 'Present' }).click()

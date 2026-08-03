@@ -16,6 +16,14 @@ import {
 } from '../src/model/samples'
 import { MapSvg } from '../src/render/MapSvg'
 
+  it('returns original data for zero-displacement nudges', () => {
+    const next = nudgeLayoutOverride(SAMPLE_WHITFIELD, 'cash-at-bank', {
+      x: 0,
+      y: 0,
+    })
+    expect(next).toBe(SAMPLE_WHITFIELD)
+  })
+
 describe('Session 40 layout/render repair', () => {
   it.each([
     ['Card', 'card', 'cash-at-bank'],
