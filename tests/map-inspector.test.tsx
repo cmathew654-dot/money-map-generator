@@ -193,8 +193,25 @@ describe('persistent map inspector', () => {
     expect(sans).toMatch(/<button[^>]*aria-pressed="true"[^>]*>Sans</)
   })
 
-  it('keeps every native inspector target at least 32 CSS pixels', () => {
+  it('keeps inspector controls compact without losing their focus outline', () => {
     const css = readFileSync('src/styles/app.css', 'utf8')
-    expect(css).toMatch(/\.map-inspector (?:button|select)[^{]*\{[^}]*min-height:\s*32px/s)
+    const controlBlock =
+      /\.map-inspector (?:button|select)[^{]*\{([^}]*)\}/s.exec(css)?.[1] ?? ''
+    const minHeight = Number(
+      /min-height:\s*(\d+)px/.exec(controlBlock)?.[1],
+    )
+
+    // Compact, but never below the 28px hit target the advisor needs.
+    expect(minHeight).toBeGreaterThanOrEqual(28)
+    expect(minHeight).toBeLessThan(32)
+    expect(css).toMatch(
+      /\.map-inspector button[^{]*\{[^}]*font-size:\s*1[12]px/s,
+    )
+    expect(css).toMatch(
+      /\.map-inspector select[^{]*\{[^}]*font-size:\s*1[12]px/s,
+    )
+    expect(css).toMatch(
+      /button:focus-visible[^{]*\{[^}]*outline:\s*2px solid/s,
+    )
   })
 })

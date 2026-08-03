@@ -637,8 +637,8 @@ summary:focus-visible {
 
 .editor-panel-body {
   display: grid;
-  gap: 14px;
-  padding: 14px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .editor-panel-intro {
@@ -651,19 +651,24 @@ summary:focus-visible {
 .editor-panel-section,
 .editor-panel-warnings {
   display: grid;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid #dde1dc;
-  border-radius: 7px;
-  background: #fcfcfa;
+  gap: 6px;
+  padding: 10px 0 0;
+  border-top: 1px solid #dde1dc;
+}
+
+.editor-panel-section:first-of-type {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .editor-panel-section h3,
 .editor-panel-warnings h3 {
   margin: 0 0 2px;
+  color: #1c2422;
   font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .editor-panel-field {
@@ -755,13 +760,13 @@ summary:focus-visible {
   position: absolute;
   z-index: 7;
   top: 12px;
-  right: 12px;
-  left: 12px;
+  right: 8px;
+  left: 8px;
   display: flex;
-  height: 88px;
+  height: 72px;
   align-items: stretch;
-  gap: 16px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 8px 8px;
   border: 1px solid #c9cfc9;
   border-radius: 10px;
   background:
@@ -774,11 +779,11 @@ summary:focus-visible {
 
 .map-inspector-heading {
   display: flex;
-  min-width: 154px;
+  min-width: 96px;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
-  padding-right: 14px;
+  gap: 6px;
+  padding-right: 8px;
   border-right: 1px solid #dde1dc;
 }
 
@@ -792,15 +797,16 @@ summary:focus-visible {
   color: #5b6663;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .map-inspector-heading strong {
-  max-width: 180px;
+  max-width: 88px;
   overflow: hidden;
   font-family: 'Literata', Georgia, serif;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -810,14 +816,14 @@ summary:focus-visible {
 .map-inspector-actions {
   display: flex;
   align-items: flex-end;
-  gap: 4px;
+  gap: 3px;
 }
 
 .map-inspector-controls {
   min-width: 0;
   flex: 1;
   flex-wrap: nowrap;
-  gap: 8px 12px;
+  gap: 6px 6px;
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -825,28 +831,31 @@ summary:focus-visible {
 .map-inspector-group,
 .map-inspector-field {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   margin: 0;
   color: #5b6663;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .map-inspector button,
 .map-inspector select {
-  min-width: 32px;
-  min-height: 32px;
+  min-width: 28px;
+  min-height: 28px;
+  font-size: 11px;
 }
 
 .map-inspector button {
-  padding: 4px 9px;
+  flex-shrink: 0;
+  padding: 3px 5px;
 }
 
 .map-inspector select {
-  max-width: 160px;
-  padding: 4px 26px 4px 8px;
+  max-width: 104px;
+  padding: 3px 18px 3px 6px;
   color: #1c2422;
   font-size: 12px;
   font-weight: 500;
@@ -864,19 +873,6 @@ summary:focus-visible {
   align-self: flex-end;
   border-color: #e1b6af;
   color: #a82f24;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .map-inspector {
-    animation: map-inspector-enter 150ms ease-out both;
-  }
-
-  @keyframes map-inspector-enter {
-    from {
-      opacity: 0;
-      transform: translateY(-5px);
-    }
-  }
 }
 
 .map-stage {
@@ -1232,11 +1228,10 @@ summary:focus-visible {
 }
 
 .form-section {
-  margin: 0 0 12px;
-  padding: 16px 14px;
-  border: 1px solid #dde1dc;
-  border-radius: 10px;
-  background: #f4f6f2;
+  margin: 0 0 10px;
+  padding: 12px 0 0;
+  border: 0;
+  background: none;
 }
 
 .form-section:last-child {
@@ -1244,18 +1239,18 @@ summary:focus-visible {
 }
 
 .form-section > h2 {
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   color: #5b6663;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .form-field {
@@ -1739,8 +1734,8 @@ summary:focus-visible {
 }
 
 .form-section.is-active {
-  border-color: #1e7a4a;
-  box-shadow: 0 0 0 1px rgb(30 122 74 / 18%);
+  border-top-color: #1e7a4a;
+  background: rgb(30 122 74 / 5%);
 }
 
 /* Editor congruence */
@@ -1749,18 +1744,21 @@ summary:focus-visible {
 }
 
 .client-form {
-  padding: 12px 14px 32px;
+  padding: 10px 14px 24px;
 }
 
 .form-section {
-  border-color: #c9cfc9;
-  background: #fcfcfa;
+  border-top: 1px solid #dde1dc;
+  background: none;
+}
+
+.form-section:first-of-type {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .form-section > h2 {
-  margin-bottom: 12px;
-  padding-bottom: 9px;
-  border-bottom: 1px solid #dde1dc;
+  margin-bottom: 8px;
   color: #1c2422;
 }
 

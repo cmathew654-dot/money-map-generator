@@ -59,6 +59,17 @@ test.describe('desktop visual baselines', () => {
     await compareOrAttachReflow(page, info, 'editor')
   })
 
+  test('editor with map inspector', async ({ page }, info) => {
+    await openApp(page)
+    const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+    await account.locator('.map-account-body-hit:not(ellipse)').click()
+    await expect(page.locator('.map-inspector')).toBeVisible()
+    await openData(page)
+    await expect(page.locator('.map-inspector')).toBeVisible()
+    await stabilize(page)
+    await compareOrAttachReflow(page, info, 'editor-inspector')
+  })
+
   test('wizard', async ({ page }, info) => {
     await openApp(page)
     await stabilize(page)
