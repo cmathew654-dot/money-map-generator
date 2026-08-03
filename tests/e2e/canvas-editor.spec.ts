@@ -174,6 +174,37 @@ test('Add exposes map actions and selects new records', async ({ page }) => {
   await expect(addButton).toBeFocused()
 })
 
+test('+ Account quick-add focuses and routes into the new account', async ({ page }) => {
+  await openApp(page)
+
+  const accounts = page.locator('svg.map-interactive [data-account-id][role="group"]')
+  const before = await accounts.count()
+  const beforeIds = await accounts.evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute('data-account-id')),
+  )
+  await page.getByRole('button', { name: '+ Account', exact: true }).click()
+
+  const popover = page.locator('.shape-popover')
+  await expect(popover).toBeVisible()
+  await expect.poll(() => page.evaluate(() => Boolean(
+    document.activeElement?.closest('.shape-popover'),
+  ))).toBe(true)
+
+  await popover.getByRole('button', { name: 'Cash', exact: true }).click()
+  await expect(accounts).toHaveCount(before + 1)
+  const afterIds = await accounts.evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute('data-account-id')),
+  )
+  const newIds = afterIds.filter(
+    (id): id is string => id !== null && !beforeIds.includes(id),
+  )
+  expect(newIds).toHaveLength(1)
+  await expect(
+    page.locator(`svg.map-interactive [data-account-id="${newIds[0]}"][role="group"]`),
+  ).toHaveAttribute('data-map-selected', 'true')
+  await expect(page.getByRole('textbox', { name: 'Edit account name' })).toBeFocused()
+})
+
 test('empty Add panel opens the matching Data section without coercing blanks', async ({ page }) => {
   await openApp(page)
 

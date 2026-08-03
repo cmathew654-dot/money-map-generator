@@ -68,3 +68,45 @@ Created a custom client, added income/account/note content, edited text, changed
 ## Deferred
 
 A rapid Tidy click immediately after another edit can coalesce history entries; normal-paced Tidy plus one Undo restores the exact pre-Tidy composition. Record as a v2 history-coalescing candidate. No deploy or push was performed; repo rules require local-only commits.
+
+
+## Slice 5 - Quick-add routes into the new object
+
+### Built
+
+- `src/App.tsx` (2175 LOC): quick-add popover focuses its first type button; Escape closes it and restores focus to + Account; choosing a type selects the new account and opens its name editor; opening the popover dismisses the pan/zoom hint.
+- `tests/e2e/canvas-editor.spec.ts` (583 LOC): added the required quick-add journey route.
+
+### RED
+
+Command:
+
+```
+$env:PLAYWRIGHT_PORT='4416'; npx playwright test tests/e2e/canvas-editor.spec.ts --project=chromium-1280x720 --workers=1 --reporter=line
+```
+
+Tail:
+
+```
+Error: expect(received).toBe(expected) // Object.is equality
+Expected: true
+Received: false
+Timeout 7500ms exceeded while waiting on the predicate
+17 passed, 1 failed
+[chromium-1280x720] ... + Account quick-add focuses and routes into the new account
+```
+
+Expected pre-fix failure: activeElement was not inside `.shape-popover`.
+
+### GREEN
+
+- Playwright: `18 passed (19.4s)`
+- Vitest: `28 passed`, `535 passed`
+- TypeScript: `npx tsc -b` exited 0 with no output.
+- Build: `built in 815ms`
+- npm test: `28 passed`, `535 passed`
+- `git diff --check`: exited 0 (Git emitted only the LF/CRLF normalization warning for the test file).
+
+### Deviations
+
+None. No commit was created; changes remain in the working tree for audit.

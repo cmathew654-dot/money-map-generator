@@ -270,6 +270,8 @@ export default function App() {
   } | null>(null)
   const suppressNextTextPlacementRef = useRef(false)
   const shapePopoverRef = useRef<HTMLDivElement>(null)
+  const shapePopoverButtonRef = useRef<HTMLButtonElement>(null)
+  const firstShapePresetRef = useRef<HTMLButtonElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const editorPanelHeadingRef = useRef<HTMLHeadingElement>(null)
   const { book, activeClientId } = snapshot
@@ -376,6 +378,11 @@ export default function App() {
       setSelectedMapTargetKeys(nextKeys)
     }
   }, [activeClient.accounts, activeClient.notes, selectedMapTargetKeys])
+
+  useEffect(() => {
+    if (!shapePopoverOpen) return
+    firstShapePresetRef.current?.focus()
+  }, [shapePopoverOpen])
 
   useEffect(() => {
     if (!shapePopoverOpen) return
@@ -732,6 +739,7 @@ export default function App() {
         closeMapTextEditor(true)
       } else if (shapePopoverOpen) {
         setShapePopoverOpen(false)
+        shapePopoverButtonRef.current?.focus()
       } else if (placingTextNote) {
         setPlacingTextNote(false)
       } else if (editorPanel) {
@@ -1459,11 +1467,9 @@ export default function App() {
       null,
     )
     setShapePopoverOpen(false)
+    setSelectedMapTargetKey(`account:${account.id}`)
     addToast('Account added')
-    if (select) {
-      setSelectedMapTargetKey(`account:${account.id}`)
-      return account.id
-    }
+    if (select) return account.id
     window.requestAnimationFrame(() => {
       const label = previewPaneRef.current?.querySelector<SVGGraphicsElement>(
         `[data-account-id="${account.id}"] .map-editable-text`,
@@ -2038,16 +2044,21 @@ export default function App() {
               </button>
               <div ref={shapePopoverRef} className="shape-quick-add">
                 <button
+                  ref={shapePopoverButtonRef}
                   aria-expanded={shapePopoverOpen}
                   type="button"
-                  onClick={() => setShapePopoverOpen((open) => !open)}
+                  onClick={() => {
+                    if (!shapePopoverOpen) dismissPanZoomHint()
+                    setShapePopoverOpen((open) => !open)
+                  }}
                 >
                   + Account
                 </button>
                 {shapePopoverOpen && (
                   <div className="shape-popover" aria-label="Add account">
-                    {ACCOUNT_PRESETS.map((preset) => (
+                    {ACCOUNT_PRESETS.map((preset, index) => (
                       <button
+                        ref={index === 0 ? firstShapePresetRef : undefined}
                         className={`account-preset-button bucket-${preset.bucket}`}
                         key={preset.bucket}
                         type="button"
