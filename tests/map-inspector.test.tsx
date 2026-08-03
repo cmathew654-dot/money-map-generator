@@ -47,7 +47,31 @@ const render = (selectedTargetKey: string, data = SAMPLE_WHITFIELD) =>
     }),
   )
 
+const renderSelection = (selectedTargetKeys: string[], data = SAMPLE_WHITFIELD) =>
+  renderToStaticMarkup(
+    createElement(MapInspector, {
+      data,
+      selectedTargetKey: selectedTargetKeys.at(-1)!,
+      selectedTargetKeys,
+      onChange: () => undefined,
+      onClose: () => undefined,
+      onSelect: () => undefined,
+    }),
+  )
+
 describe('persistent map inspector', () => {
+  it('shows alignment and distribution controls for compatible multi-selection', () => {
+    const markup = renderSelection(['account:cash-at-bank', 'note:audit-note'], {
+      ...SAMPLE_WHITFIELD,
+      notes: [{ id: 'audit-note', text: 'Keep this visible', x: 500, y: 400 }],
+    })
+
+    expect(markup).toContain('2 map items selected')
+    for (const label of ['Align left', 'Align center', 'Align right', 'Align top', 'Align middle', 'Align bottom', 'Distribute horizontally', 'Distribute vertically']) {
+      expect(markup).toContain(label)
+    }
+  })
+
   it('provides complete click alternatives for selected accounts', () => {
     const markup = render('account:cash-at-bank')
 

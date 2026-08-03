@@ -5,6 +5,7 @@ import type {
   MapNote,
   MoneyMapData,
 } from '../model/types'
+import { layoutMap, layoutOverrideRect } from '../layout/layout'
 import {
   ACCOUNT_TEXT_ROLES,
   accountTextOverrideKey,
@@ -41,6 +42,138 @@ export interface AlignmentGuide {
 export interface AlignmentMatch {
   delta: number
   guide: AlignmentGuide
+}
+
+export type MapItemKey = `account:${string}` | `note:${string}`
+export type MapAlignmentMode =
+  | 'left'
+  | 'center'
+  | 'right'
+  | 'top'
+  | 'middle'
+  | 'bottom'
+export type MapDistributionMode = 'horizontal' | 'vertical'
+
+export function isCompatibleMapItemKey(key: string): key is MapItemKey {
+  return key.startsWith('account:') || key.startsWith('note:')
+}
+
+export function layoutRect(
+  data: MoneyMapData,
+  key: string,
+): Rect | null {
+  if (key.startsWith('account:')) {
+    return layoutOverrideRect(data, key.slice('account:'.length))
+  }
+  if (!key.startsWith('note:')) return null
+  const noteId = key.slice('note:'.length)
+  const placed = layoutMap(data).notes.find(
+    (candidate) => candidate.note.id === noteId,
+  )
+  return placed ? { x: placed.x, y: placed.y, w: placed.w, h: placed.h } : null
+}
+
+function moveMapItemTo(
+  data: MoneyMapData,
+  key: MapItemKey,
+  x: number,
+  y: number,
+): MoneyMapData {
+  const current = layoutRect(data, key)
+  if (!current || (current.x === x && current.y === y)) return data
+  if (key.startsWith('note:')) {
+    return moveMapNote(data, key.slice('note:'.length), x, y)
+  }
+
+  const id = key.slice('account:'.length)
+  const previous = data.layoutOverrides?.[id] ?? {}
+  const base = layoutRect(
+    {
+      ...data,
+      layoutOverrides: {
+        ...data.layoutOverrides,
+        [id]: { ...previous, dx: undefined, dy: undefined },
+      },
+    },
+    key,
+  )
+  return base
+    ? withOverride(data, id, { dx: x - base.x, dy: y - base.y })
+    : data
+}
+
+export function alignMapItems(
+  data: MoneyMapData,
+  selectedKeys: readonly string[],
+  mode: MapAlignmentMode,
+): MoneyMapData {
+  const items = selectedKeys
+    .filter(isCompatibleMapItemKey)
+    .map((key) => ({ key, rect: layoutRect(data, key) }))
+    .filter((item): item is { key: MapItemKey; rect: Rect } => Boolean(item.rect))
+  if (items.length < 2) return data
+
+  const left = Math.min(...items.map(({ rect }) => rect.x))
+  const right = Math.max(...items.map(({ rect }) => rect.x + rect.w))
+  const top = Math.min(...items.map(({ rect }) => rect.y))
+  const bottom = Math.max(...items.map(({ rect }) => rect.y + rect.h))
+  const center = (left + right) / 2
+  const middle = (top + bottom) / 2
+
+  return items.reduce((next, { key, rect }) => {
+    const x =
+      mode === 'left'
+        ? left
+        : mode === 'center'
+          ? center - rect.w / 2
+          : mode === 'right'
+            ? right - rect.w
+            : rect.x
+    const y =
+      mode === 'top'
+        ? top
+        : mode === 'middle'
+          ? middle - rect.h / 2
+          : mode === 'bottom'
+            ? bottom - rect.h
+            : rect.y
+    return moveMapItemTo(next, key, x, y)
+  }, data)
+}
+
+export function distributeMapItems(
+  data: MoneyMapData,
+  selectedKeys: readonly string[],
+  mode: MapDistributionMode,
+): MoneyMapData {
+  const axis = mode === 'horizontal' ? 'x' : 'y'
+  const size = mode === 'horizontal' ? 'w' : 'h'
+  const items = selectedKeys
+    .filter(isCompatibleMapItemKey)
+    .map((key, index) => ({ key, rect: layoutRect(data, key), index }))
+    .filter(
+      (item): item is { key: MapItemKey; rect: Rect; index: number } =>
+        Boolean(item.rect),
+    )
+    .sort((left, right) => left.rect[axis] - right.rect[axis] || left.index - right.index)
+  if (items.length < 3) return data
+
+  const first = items[0].rect[axis]
+  const last = items.at(-1)!.rect[axis] + items.at(-1)!.rect[size]
+  const totalSize = items.reduce((sum, item) => sum + item.rect[size], 0)
+  const gap = (last - first - totalSize) / (items.length - 1)
+  let cursor = first
+
+  return items.reduce((next, { key, rect }) => {
+    const position = cursor
+    cursor += rect[size] + gap
+    return moveMapItemTo(
+      next,
+      key,
+      mode === 'horizontal' ? position : rect.x,
+      mode === 'vertical' ? position : rect.y,
+    )
+  }, data)
 }
 
 export function resetTextPosition(data: MoneyMapData, key: string): MoneyMapData {
@@ -416,6 +549,28 @@ export function duplicateMapNote(
     },
     rect: placed,
     targetKey: 'note:' + copyId,
+  }
+}
+
+export function deleteMapAccount(
+  data: MoneyMapData,
+  id: string,
+): MoneyMapData {
+  if (!data.accounts.some((account) => account.id === id)) return data
+  const layoutOverrides = Object.fromEntries(
+    Object.entries(data.layoutOverrides ?? {}).filter(
+      ([key]) => key !== id && !key.startsWith(`text:${id}:`),
+    ),
+  )
+  return {
+    ...data,
+    accounts: data.accounts.filter((account) => account.id !== id),
+    customArrows: data.customArrows?.filter(
+      (arrow) => arrow.sourceId !== id && arrow.targetId !== id,
+    ),
+    layoutOverrides: Object.keys(layoutOverrides).length
+      ? layoutOverrides
+      : undefined,
   }
 }
 

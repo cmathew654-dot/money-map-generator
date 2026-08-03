@@ -26,10 +26,12 @@ import {
 } from '../model/types'
 import {
   addCustomArrow,
+  alignMapItems,
   clamp,
   clampRectToBounds,
   deleteCustomArrow,
   deleteMapNote,
+  distributeMapItems,
   duplicateMapAccount,
   duplicateMapNote,
   hideGeneratedArrow,
@@ -47,6 +49,7 @@ import { ARROW_COLORS, ARTBOARD, TYPE } from './tokens'
 interface MapInspectorProps {
   data: MoneyMapData
   selectedTargetKey: string
+  selectedTargetKeys?: readonly string[]
   onChange: (data: MoneyMapData) => void
   onClose: () => void
   onDetails?: () => void
@@ -139,11 +142,20 @@ function textTargetTitle(data: MoneyMapData, key: string): string {
 export function MapInspector({
   data,
   selectedTargetKey,
+  selectedTargetKeys,
   onChange,
   onClose,
   onDetails,
   onSelect,
 }: MapInspectorProps) {
+  const selectionKeys = selectedTargetKeys?.length
+    ? selectedTargetKeys
+    : [selectedTargetKey]
+  const compatibleSelectionKeys = selectionKeys.filter(
+    (key): key is `account:${string}` | `note:${string}` =>
+      key.startsWith('account:') || key.startsWith('note:'),
+  )
+  const multiSelection = compatibleSelectionKeys.length > 1
   const layout = layoutMap(data)
   const accountId = selectedTargetKey.startsWith('account:')
     ? selectedTargetKey.slice('account:'.length)
@@ -387,7 +399,9 @@ export function MapInspector({
       patch.style ? { ...patch, color: resolvedArrowColor } : patch,
     ))
   }
-  const title = account?.label ??
+  const title = multiSelection
+    ? `${compatibleSelectionKeys.length} map items selected`
+    : account?.label ??
     (selectedTargetKey === 'income' ? 'Income sources' : undefined) ??
     (selectedTargetKey === 'need' ? 'Monthly income need' : undefined) ??
     (selectedTargetKey === 'asNeededChip' ? 'As-needed label' : undefined) ??
@@ -397,10 +411,11 @@ export function MapInspector({
     (note ? note.text : undefined) ??
     (isText ? textTargetTitle(data, selectedTargetKey) : 'Map item')
   const canOpenDetails =
+    !multiSelection &&
     Boolean(onDetails) &&
     Boolean(account || note || selectedTargetKey === 'income' || selectedTargetKey === 'need')
 
-  if (!account && !layoutKey && !arrow && !note) return null
+  if (!multiSelection && !account && !layoutKey && !arrow && !note) return null
 
   return (
     <section className="map-inspector" aria-label={`Adjust ${title}`}>
@@ -410,6 +425,23 @@ export function MapInspector({
         <button aria-label="Close inspector" type="button" onClick={onClose}>×</button>
       </div>
       <div className="map-inspector-controls">
+        {multiSelection && (
+          <>
+            <InspectorGroup label='Align'>
+              <button aria-label='Align left' type='button' onClick={() => onChange(alignMapItems(data, compatibleSelectionKeys, 'left'))}>Left</button>
+              <button aria-label='Align center' type='button' onClick={() => onChange(alignMapItems(data, compatibleSelectionKeys, 'center'))}>Center</button>
+              <button aria-label='Align right' type='button' onClick={() => onChange(alignMapItems(data, compatibleSelectionKeys, 'right'))}>Right</button>
+              <button aria-label='Align top' type='button' onClick={() => onChange(alignMapItems(data, compatibleSelectionKeys, 'top'))}>Top</button>
+              <button aria-label='Align middle' type='button' onClick={() => onChange(alignMapItems(data, compatibleSelectionKeys, 'middle'))}>Middle</button>
+              <button aria-label='Align bottom' type='button' onClick={() => onChange(alignMapItems(data, compatibleSelectionKeys, 'bottom'))}>Bottom</button>
+            </InspectorGroup>
+            <InspectorGroup label='Distribute'>
+              <button aria-label='Distribute horizontally' disabled={compatibleSelectionKeys.length < 3} type='button' onClick={() => onChange(distributeMapItems(data, compatibleSelectionKeys, 'horizontal'))}>Horizontal</button>
+              <button aria-label='Distribute vertically' disabled={compatibleSelectionKeys.length < 3} type='button' onClick={() => onChange(distributeMapItems(data, compatibleSelectionKeys, 'vertical'))}>Vertical</button>
+            </InspectorGroup>
+          </>
+        )}
+        {!multiSelection && <>
         {(layoutKey || note) && <MoveControls move={move} />}
         {(account || note) && <button type="button" onClick={duplicate}>Duplicate</button>}
 
@@ -578,6 +610,7 @@ export function MapInspector({
         {customArrowId && <button className="map-inspector-danger" type="button" onClick={() => { onChange(deleteCustomArrow(data, customArrowId)); onClose() }}>Delete flow</button>}
         {generatedKind && <button className="map-inspector-danger" type="button" onClick={() => { onChange(hideGeneratedArrow(data, generatedKind)); onClose() }}>Hide flow</button>}
         {noteId && <button className="map-inspector-danger" type="button" onClick={() => { onChange(deleteMapNote(data, noteId)); onClose() }}>Delete note</button>}
+        </>}
       </div>
     </section>
   )

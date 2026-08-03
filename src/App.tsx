@@ -46,7 +46,7 @@ import {
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
-import { layoutMap, NOTE_WIDTH, OVERRIDE_BOUNDS } from './layout/layout'
+import { layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
 import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import {
   exportPdf,
@@ -69,9 +69,16 @@ import {
 import { MapInspector } from './render/MapInspector'
 import {
   addCustomArrow,
+  deleteMapAccount,
+  deleteMapNote,
+  duplicateMapAccount,
+  duplicateMapNote,
+  isCompatibleMapItemKey,
+  layoutRect,
   pannedScrollPosition,
   resetTextPositions,
   restoreGeneratedArrows,
+  withOverride,
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
@@ -147,6 +154,12 @@ export function artboardPointFromClient(
   }
 }
 
+export function isEditingTarget(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement &&
+    (target.matches('input, textarea, select, [contenteditable=true]') ||
+      Boolean(target.closest('[data-map-text-editor], .map-text-editor')))
+}
+
 function initialPanZoomHintVisible(): boolean {
   try {
     return localStorage.getItem(PAN_ZOOM_HINT_STORAGE_KEY) !== 'dismissed'
@@ -196,9 +209,8 @@ export default function App() {
   const [highlightId, setHighlightId] = useState<string | null>(null)
   const [mapTextEdit, setMapTextEdit] =
     useState<ActiveMapTextEdit | null>(null)
-  const [selectedMapTargetKey, setSelectedMapTargetKey] = useState<
-    string | null
-  >(null)
+  const [selectedMapTargetKeys, setSelectedMapTargetKeys] = useState<string[]>([])
+  const selectedMapTargetKey = selectedMapTargetKeys.at(-1) ?? null
   const [dialog, setDialog] = useState<AppDialog | null>(null)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [connectedFile, setConnectedFile] =
@@ -235,6 +247,7 @@ export default function App() {
   const writerFocusRequestedRef = useRef(false)
   const writerFocusInitializedRef = useRef(false)
   const exportInFlightRef = useRef<'png' | 'pdf' | 'svg' | null>(null)
+  const mapClipboardRef = useRef<Array<{ kind: 'account' | 'note'; id: string }>>([])
   const snapshotRef = useRef(snapshot)
   const historyRef = useRef(history)
   const appShellRef = useRef<HTMLElement>(null)
@@ -262,6 +275,8 @@ export default function App() {
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
+  const setSelectedMapTargetKey = (key: string | null) =>
+    setSelectedMapTargetKeys(key ? [key] : [])
   useEffect(() => {
     setDataFilter('')
     setDataSection(undefined)
@@ -304,16 +319,25 @@ export default function App() {
   }, [activeClient.id])
 
   useEffect(() => {
-    if (
-      selectedMapTargetKey?.startsWith('account:') &&
-      !activeClient.accounts.some(
-        (account) =>
-          account.id === selectedMapTargetKey.slice('account:'.length),
-      )
-    ) {
-      setSelectedMapTargetKey(null)
+    const nextKeys = selectedMapTargetKeys.filter(
+      (key) => {
+        if (key.startsWith('account:')) {
+          return activeClient.accounts.some(
+            (account) => account.id === key.slice('account:'.length),
+          )
+        }
+        if (key.startsWith('note:')) {
+          return activeClient.notes?.some(
+            (note) => note.id === key.slice('note:'.length),
+          ) ?? false
+        }
+        return true
+      },
+    )
+    if (nextKeys.length !== selectedMapTargetKeys.length) {
+      setSelectedMapTargetKeys(nextKeys)
     }
-  }, [activeClient.accounts, selectedMapTargetKey])
+  }, [activeClient.accounts, activeClient.notes, selectedMapTargetKeys])
 
   useEffect(() => {
     if (!shapePopoverOpen) return
@@ -1078,6 +1102,11 @@ export default function App() {
     setFocusRequest(undefined)
   }
 
+  const handleMapSelectionKeysChange = (targetKeys: string[]) => {
+    setSelectedMapTargetKeys(targetKeys)
+    setFocusRequest(undefined)
+  }
+
   const handleClientChange = (next: typeof activeClient) => {
     const current = snapshotRef.current
     commitSnapshot(
@@ -1100,6 +1129,126 @@ export default function App() {
       null,
     )
   }
+
+  const duplicateMapItem = (data: typeof activeClient, key: string) => {
+    if (!isCompatibleMapItemKey(key)) return null
+    const sourceId = key.slice(key.indexOf(':') + 1)
+    const layout = layoutMap(data)
+    const sourceRect = layoutRect(data, key)
+    if (!sourceRect) return null
+    const blockedRects = [
+      layout.income,
+      layout.need,
+      ...layout.accounts
+        .filter((placed) => placed.account.id !== sourceId)
+        .map((placed) => rotatedBounds(placed, placed.rot)),
+      ...layout.notes
+        .filter((placed) => placed.note.id !== sourceId)
+        .map((placed) => ({ x: placed.x, y: placed.y, w: placed.w, h: placed.h })),
+      layoutOverrideRect(data, 'asNeededChip'),
+    ].filter((rect): rect is { x: number; y: number; w: number; h: number } => Boolean(rect))
+    if (key.startsWith('account:')) {
+      const result = duplicateMapAccount(
+        data,
+        sourceId,
+        sourceRect,
+        blockedRects,
+        OVERRIDE_BOUNDS,
+      )
+      if (!result) return null
+      let next = result.data
+      for (let pass = 0; pass < 8; pass += 1) {
+        const copyRect = layoutRect(next, result.targetKey)
+        if (!copyRect) break
+        const dx = result.rect.x - copyRect.x
+        const dy = result.rect.y - copyRect.y
+        if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) break
+        const copyId = result.targetKey.slice('account:'.length)
+        const override = next.layoutOverrides?.[copyId]
+        next = withOverride(next, copyId, {
+          dx: (override?.dx ?? 0) + dx,
+          dy: (override?.dy ?? 0) + dy,
+        })
+      }
+      return { data: next, targetKey: result.targetKey }
+    }
+    const result = duplicateMapNote(
+      data,
+      sourceId,
+      sourceRect,
+      blockedRects,
+      OVERRIDE_BOUNDS,
+    )
+    return result ? { data: result.data, targetKey: result.targetKey } : null
+  }
+
+  const copySelectedMapItems = () => {
+    mapClipboardRef.current = selectedMapTargetKeys
+      .filter(isCompatibleMapItemKey)
+      .map((key) => ({
+        kind: key.startsWith('account:') ? 'account' : 'note',
+        id: key.slice(key.indexOf(':') + 1),
+      }))
+  }
+
+  const pasteSelectedMapItems = () => {
+    if (!canMutate || mapClipboardRef.current.length === 0) return false
+    let next = activeClient
+    const pastedKeys: string[] = []
+    for (const entry of mapClipboardRef.current) {
+      const result = duplicateMapItem(next, `${entry.kind}:${entry.id}`)
+      if (!result) continue
+      next = result.data
+      pastedKeys.push(result.targetKey)
+    }
+    if (next === activeClient || pastedKeys.length === 0) return false
+    handleMapChange(next)
+    setSelectedMapTargetKeys(pastedKeys)
+    return true
+  }
+
+  const deleteSelectedMapItems = () => {
+    if (!canMutate) return false
+    const deletable = selectedMapTargetKeys.filter(isCompatibleMapItemKey)
+    if (deletable.length === 0) return false
+    let next = activeClient
+    for (const key of deletable) {
+      const id = key.slice(key.indexOf(':') + 1)
+      next = key.startsWith('account:')
+        ? deleteMapAccount(next, id)
+        : deleteMapNote(next, id)
+    }
+    if (next === activeClient) return false
+    handleMapChange(next)
+    setSelectedMapTargetKeys([])
+    return true
+  }
+
+  useEffect(() => {
+    const handleMapShortcut = (event: globalThis.KeyboardEvent) => {
+      if (presentMode || dialog || mapTextEdit || isEditingTarget(event.target)) return
+      const command = event.ctrlKey || event.metaKey
+      if (command && !event.altKey && event.key.toLowerCase() === 'c') {
+        copySelectedMapItems()
+        if (selectedMapTargetKeys.some(isCompatibleMapItemKey)) event.preventDefault()
+        return
+      }
+      if (command && !event.altKey && event.key.toLowerCase() === 'v') {
+        if (pasteSelectedMapItems()) event.preventDefault()
+        return
+      }
+      if (command && !event.altKey && event.key.toLowerCase() === 'd') {
+        copySelectedMapItems()
+        if (pasteSelectedMapItems()) event.preventDefault()
+        return
+      }
+      if (!command && !event.altKey && (event.key === 'Delete' || event.key === 'Backspace')) {
+        if (deleteSelectedMapItems()) event.preventDefault()
+      }
+    }
+    window.addEventListener('keydown', handleMapShortcut)
+    return () => window.removeEventListener('keydown', handleMapShortcut)
+  }, [activeClient, canMutate, dialog, mapTextEdit, presentMode, selectedMapTargetKeys])
 
   const dismissPanZoomHint = () => {
     setPanZoomHintVisible(false)
@@ -1796,6 +1945,7 @@ export default function App() {
             <MapInspector
               data={activeClient}
               selectedTargetKey={selectedMapTargetKey}
+              selectedTargetKeys={selectedMapTargetKeys}
               onChange={handleMapChange}
               onClose={() => handleMapSelectionChange(null)}
               onDetails={handleMapDetails}
@@ -1841,8 +1991,9 @@ export default function App() {
                   onElementClick={
                     presentMode || !canMutate ? undefined : handleMapElementClick
                   }
-                  onSelectedTargetChange={handleMapSelectionChange}
+                  onSelectedTargetKeysChange={handleMapSelectionKeysChange}
                   selectedTargetKey={selectedMapTargetKey}
+                  selectedTargetKeys={selectedMapTargetKeys}
                 />
               </div>
             </div>

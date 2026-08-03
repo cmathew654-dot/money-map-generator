@@ -72,6 +72,7 @@ import {
   accountTextPointerAction,
   clampRectToBounds,
   crossedDragThreshold,
+  isCompatibleMapItemKey,
   moveCustomArrowLabel,
   moveMapNote,
   retargetCustomArrow,
@@ -142,7 +143,9 @@ export type MapElementTarget =
 
 interface MapSvgProps {
   selectedTargetKey?: string | null
+  selectedTargetKeys?: readonly string[]
   onSelectedTargetChange?: (targetKey: string | null) => void
+  onSelectedTargetKeysChange?: (targetKeys: string[]) => void
   data: MoneyMapData
   onElementClick?: (target: MapElementTarget) => void
   onChange?: (data: MoneyMapData) => void
@@ -332,8 +335,18 @@ function editableHitAreaProps(
     'data-layout-key': fixedTextOverrideKey(edit) ?? undefined,
     'aria-keyshortcuts': fixedTextOverrideKey(edit) ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight' : undefined,
     fill: 'transparent',
-    onPointerDown: onPointerDown ?? ((event) => event.stopPropagation()),
+    onPointerDown: (event) => {
+      if (event.shiftKey || event.ctrlKey || event.metaKey) {
+        event.preventDefault()
+      }
+      if (onPointerDown) onPointerDown(event)
+      else event.stopPropagation()
+    },
     onClick: (event) => {
+      if (event.shiftKey || event.ctrlKey || event.metaKey) {
+        event.stopPropagation()
+        return
+      }
       event.stopPropagation()
       activate(event.currentTarget)
     },
@@ -1964,9 +1977,11 @@ function Footnotes({
 }
 
 function NoteBlock({
+  interactive,
   onElementClick,
   placed,
 }: {
+  interactive: boolean
   onElementClick?: (target: MapElementTarget) => void
   placed: PlacedNote
 }) {
@@ -1998,6 +2013,7 @@ function NoteBlock({
           { kind: 'noteText', noteId: placed.note.id },
           onElementClick,
         )}
+        pointerEvents={interactive ? 'all' : 'none'}
       />
       <text
         {...editProps}
@@ -2047,7 +2063,9 @@ export function accountKeyboardActivation(
 
 export function MapSvg({
   selectedTargetKey: controlledSelectedTargetKey,
+  selectedTargetKeys: controlledSelectedTargetKeys,
   onSelectedTargetChange,
+  onSelectedTargetKeysChange,
   data,
   onElementClick,
   onChange,
@@ -2069,20 +2087,51 @@ export function MapSvg({
   )
   const [dragging, setDragging] = useState(false)
   const [snapping, setSnapping] = useState<AlignmentSnap | null>(null)
-  const [localSelectedTargetKey, setLocalSelectedTargetKey] = useState<
-    string | null
-  >(null)
-  const selectedTargetKey = onChange
-    ? controlledSelectedTargetKey === undefined
-      ? localSelectedTargetKey
-      : controlledSelectedTargetKey
-    : null
+  const [localSelectedTargetKeys, setLocalSelectedTargetKeys] = useState<string[]>([])
+  const selectedTargetKeys = onChange
+    ? controlledSelectedTargetKeys ??
+      (controlledSelectedTargetKey === undefined
+        ? localSelectedTargetKeys
+        : controlledSelectedTargetKey
+          ? [controlledSelectedTargetKey]
+          : [])
+    : []
+  const selectedTargetKey = selectedTargetKeys.at(-1) ?? null
+
+  const setSelectedTargets = (targetKeys: string[]) => {
+    if (
+      controlledSelectedTargetKeys === undefined &&
+      controlledSelectedTargetKey === undefined
+    ) {
+      setLocalSelectedTargetKeys(targetKeys)
+    }
+    onSelectedTargetKeysChange?.(targetKeys)
+    onSelectedTargetChange?.(targetKeys.at(-1) ?? null)
+  }
 
   const setSelectedTarget = (targetKey: string | null) => {
-    if (controlledSelectedTargetKey === undefined) {
-      setLocalSelectedTargetKey(targetKey)
+    setSelectedTargets(targetKey ? [targetKey] : [])
+  }
+
+  const toggleSelectedTarget = (
+    targetKey: string | null,
+    event: MouseEvent<SVGSVGElement>,
+  ) => {
+    if (
+      !targetKey ||
+      !(event.shiftKey || event.ctrlKey || event.metaKey) ||
+      !isCompatibleMapItemKey(targetKey)
+    ) {
+      setSelectedTarget(targetKey)
+      return
     }
-    onSelectedTargetChange?.(targetKey)
+    const compatible = selectedTargetKeys.filter(isCompatibleMapItemKey)
+    const index = compatible.indexOf(targetKey)
+    setSelectedTargets(
+      index < 0
+        ? [...compatible, targetKey]
+        : compatible.filter((key) => key !== targetKey),
+    )
   }
   const displayData = previewData ?? data
   const layout = layoutMap(displayData)
@@ -2390,6 +2439,7 @@ export function MapSvg({
     const note = element.closest<SVGElement>('[data-note-id]')
     const chip = element.closest<SVGElement>('[data-as-needed-chip]')
     const arrow = element.closest<SVGElement>('.map-arrow-editor')
+    const account = element.closest<SVGElement>('[data-account-id]')
     const target = element.closest<SVGElement>('[data-map-target]')
     const targetKey =
       note?.dataset.noteId
@@ -2397,10 +2447,10 @@ export function MapSvg({
         : chip
           ? 'asNeededChip'
           : arrow?.dataset.mapTarget ??
-            target?.dataset.layoutKey ??
-            target?.dataset.mapTarget ??
-            null
-    setSelectedTarget(targetKey)
+            (account?.dataset.accountId
+              ? `account:${account.dataset.accountId}`
+              : target?.dataset.layoutKey ?? target?.dataset.mapTarget ?? null)
+    toggleSelectedTarget(targetKey, event)
   }
 
   const selectedAccountId =
@@ -2628,7 +2678,7 @@ export function MapSvg({
       />
       <g
         data-connect-id={onChange ? 'income' : undefined}
-        data-map-selected={selectedTargetKey === 'income' ? 'true' : undefined}
+        data-map-selected={selectedTargetKeys.includes('income') ? 'true' : undefined}
         data-map-target={onChange ? 'income' : undefined}
         aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight Enter Space' : undefined}
         {...interactiveGroupProps(
@@ -2651,7 +2701,7 @@ export function MapSvg({
       </g>
       <g
         data-connect-id={onChange ? 'need' : undefined}
-        data-map-selected={selectedTargetKey === 'need' ? 'true' : undefined}
+        data-map-selected={selectedTargetKeys.includes('need') ? 'true' : undefined}
         data-map-target={onChange ? 'need' : undefined}
         aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Enter Space' : undefined}
         {...interactiveGroupProps(
@@ -2710,7 +2760,7 @@ export function MapSvg({
                 onChange ? 'account:' + placed.account.id : undefined
               }
               data-map-selected={
-                selectedTargetKey === 'account:' + placed.account.id
+                selectedTargetKeys.includes('account:' + placed.account.id)
                   ? 'true'
                   : undefined
               }
@@ -2785,7 +2835,7 @@ export function MapSvg({
             arrow={asNeeded}
             amount={displayData.asNeededAmount}
             onElementClick={onElementClick}
-            selected={selectedTargetKey === 'asNeededChip'}
+              selected={selectedTargetKey === 'asNeededChip'}
           />
         </g>
       )}
@@ -2795,7 +2845,7 @@ export function MapSvg({
             aria-label={onChange ? `Adjust note: ${placed.note.text}` : undefined}
             className={onChange ? 'map-draggable map-note' : 'map-note'}
             data-map-selected={
-              selectedTargetKey === `note:${placed.note.id}`
+              selectedTargetKeys.includes(`note:${placed.note.id}`)
                 ? 'true'
                 : undefined
             }
@@ -2816,6 +2866,7 @@ export function MapSvg({
             tabIndex={onChange ? 0 : undefined}
           >
             <NoteBlock
+              interactive={Boolean(onChange)}
               onElementClick={onElementClick}
               placed={placed}
             />

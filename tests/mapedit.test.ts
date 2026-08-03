@@ -8,10 +8,13 @@ import {
   addCustomArrow,
   accountTextPointerAction,
   addMapNote,
+  alignMapItems,
   cycleCustomArrowStyle,
   deleteCustomArrow,
   deleteMapNote,
+  distributeMapItems,
   hideGeneratedArrow,
+  layoutRect,
   resizeMapNote,
   retargetCustomArrow,
   restoreGeneratedArrows,
@@ -107,6 +110,68 @@ describe('alignment snapping', () => {
     expect(
       snapRectToAlignment({ x: 70, y: 80, w: 100, h: 100 }, other, 24).rect,
     ).toEqual({ x: 70, y: 80, w: 100, h: 100 })
+  })
+})
+
+describe('multi-item alignment', () => {
+  const data = {
+    ...SAMPLE_WHITFIELD,
+    notes: [
+      { id: 'n', text: 'Keep this note', x: 420, y: 410, w: 220 },
+    ],
+  }
+
+  it.each([
+    ['left', (rect: { x: number; y: number; w: number; h: number }) => rect.x],
+    ['center', (rect: { x: number; y: number; w: number; h: number }) => rect.x + rect.w / 2],
+    ['right', (rect: { x: number; y: number; w: number; h: number }) => rect.x + rect.w],
+    ['top', (rect: { x: number; y: number; w: number; h: number }) => rect.y],
+    ['middle', (rect: { x: number; y: number; w: number; h: number }) => rect.y + rect.h / 2],
+    ['bottom', (rect: { x: number; y: number; w: number; h: number }) => rect.y + rect.h],
+  ] as const)('aligns %s without changing item content or size', (mode, anchor) => {
+    const beforeAccount = layoutRect(data, 'account:cash-at-bank')!
+    const beforeNote = layoutRect(data, 'note:n')!
+    const next = alignMapItems(data, ['account:cash-at-bank', 'note:n'], mode)
+    const afterAccount = layoutRect(next, 'account:cash-at-bank')!
+    const afterNote = layoutRect(next, 'note:n')!
+
+    expect(anchor(afterAccount)).toBeCloseTo(anchor(afterNote), 8)
+    expect(afterAccount.w).toBe(beforeAccount.w)
+    expect(afterAccount.h).toBe(beforeAccount.h)
+    expect(afterNote.w).toBe(beforeNote.w)
+    expect(afterNote.h).toBe(beforeNote.h)
+    expect(next.accounts).toEqual(data.accounts)
+    expect(next.notes?.[0]).toMatchObject({ id: 'n', text: 'Keep this note', w: 220 })
+  })
+
+  it('distributes three notes across first and last extents in stable order', () => {
+    const threeNotes = {
+      ...SAMPLE_WHITFIELD,
+      notes: [
+        { id: 'a', text: 'A', x: 100, y: 120, w: 100, fs: 12 },
+        { id: 'b', text: 'B', x: 270, y: 380, w: 140, fs: 16 },
+        { id: 'c', text: 'C', x: 650, y: 520, w: 180, fs: 18 },
+      ],
+    }
+    const beforeRects = ['note:a', 'note:b', 'note:c'].map((key) => layoutRect(threeNotes, key)!)
+    const first = beforeRects[0]
+    const last = beforeRects[2]
+    const gap = (last.x + last.w - first.x - beforeRects.reduce((sum, rect) => sum + rect.w, 0)) / 2
+    const expectedMiddleX = first.x + first.w + gap
+    const next = distributeMapItems(
+      threeNotes,
+      ['note:a', 'note:b', 'note:c'],
+      'horizontal',
+    )
+    const rects = ['note:a', 'note:b', 'note:c'].map((key) => layoutRect(next, key)!)
+    expect(rects[0].x).toBeCloseTo(first.x, 8)
+    expect(rects[1].x).toBeCloseTo(expectedMiddleX, 8)
+    expect(rects[2].x).toBeCloseTo(last.x, 8)
+    expect(next.notes).toEqual([
+      expect.objectContaining({ id: 'a', text: 'A', y: 120, w: 100, fs: 12 }),
+      expect.objectContaining({ id: 'b', text: 'B', y: 380, w: 140, fs: 16 }),
+      expect.objectContaining({ id: 'c', text: 'C', y: 520, w: 180, fs: 18 }),
+    ])
   })
 })
 

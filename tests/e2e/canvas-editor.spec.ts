@@ -290,3 +290,30 @@ test('Help lists the editor keyboard shortcuts', async ({ page }) => {
     await expect(panel.getByText(text, { exact: true }).first()).toBeVisible()
   }
 })
+
+test('copy, paste, delete, and alignment shortcuts do nothing inside controls and text overlays', async ({ page }) => {
+  await openApp(page)
+
+  const account = page.locator('[data-account-id=cash-at-bank][role=group]')
+  const bodyHit = account.locator('.map-account-body-hit:not(ellipse)')
+  const bodyBox = await bodyHit.boundingBox()
+  if (!bodyBox) throw new Error('Account body hit has no measurable bounds')
+  await bodyHit.click({ position: { x: Math.min(32, bodyBox.width / 4), y: Math.max(16, bodyBox.height - 24) } })
+  const inspector = page.getByRole('region', { name: /Adjust Cash at Bank/ })
+  const shape = inspector.getByLabel('Shape')
+  await shape.focus()
+  await page.keyboard.press('Delete')
+  await page.keyboard.press('Control+C')
+  await page.keyboard.press('Control+V')
+  await expect(page.locator('svg.map-interactive [data-account-id=cash-at-bank]')).toHaveCount(1)
+
+  const label = account.getByRole('button', { name: 'Edit account name' })
+  await label.click()
+  const editor = page.getByRole('textbox', { name: 'Edit account name' })
+  await expect(editor).toBeFocused()
+  await page.keyboard.press('Control+C')
+  await page.keyboard.press('Control+V')
+  await page.keyboard.press('Delete')
+  await editor.press('Escape')
+  await expect(page.locator('svg.map-interactive [data-account-id=cash-at-bank]')).toHaveCount(1)
+})
