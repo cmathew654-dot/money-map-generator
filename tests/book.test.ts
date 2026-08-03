@@ -968,4 +968,43 @@ describe('account bucket defaults', () => {
     })
     expect(original.accounts).toBe(existingAccounts)
   })
+
+  it('nudges a new account off ground occupied by a dragged account', () => {
+    const occupant = blankAccountFor('afterTax')
+    const base: MoneyMapData = {
+      ...blankClient(),
+      accounts: [occupant],
+    }
+
+    // Where a second afterTax account naturally lands — the new account's default slot.
+    const natural = layoutMap({
+      ...base,
+      accounts: [occupant, blankAccountFor('afterTax')],
+    })
+    const [occupantSlot, defaultSlot] = natural.accounts
+
+    // Drag the occupant so it clips the left edge of that default slot by 10px.
+    const dx = defaultSlot.x - occupantSlot.w + 10 - occupantSlot.x
+    const dy = defaultSlot.y - occupantSlot.y
+    const dragged: MoneyMapData = {
+      ...base,
+      layoutOverrides: { [occupant.id]: { dx, dy } },
+    }
+
+    const result = appendBlankAccount(dragged, 'afterTax')
+    const placed = layoutMap(result).accounts
+
+    for (let i = 0; i < placed.length; i += 1) {
+      for (let j = i + 1; j < placed.length; j += 1) {
+        const a = placed[i]
+        const b = placed[j]
+        const overlaps =
+          a.x < b.x + b.w &&
+          a.x + a.w > b.x &&
+          a.y < b.y + b.h &&
+          a.y + a.h > b.y
+        expect(overlaps).toBe(false)
+      }
+    }
+  })
 })
