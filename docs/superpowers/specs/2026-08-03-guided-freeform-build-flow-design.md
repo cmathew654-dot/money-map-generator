@@ -40,3 +40,14 @@ Flows and notes remain secondary sections below essentials. Automatic flows are 
 ## Scope
 
 Likely files: `src/ui/EditorPanels.tsx`, `src/App.tsx`, `src/styles/app.css`, and focused panel tests. No new dependencies or state owner changes.
+
+## Top-bar hierarchy
+
+Apply the same principle to the header without turning it into a checklist:
+
+- Left: Money Map wordmark and client identity.
+- Center: undo/redo, shown as contextual history actions.
+- Primary right: Present, Print, and Export.
+- Overflow: New client, Book, Reset, and recovery/settings actions.
+
+All actions remain available, but high-frequency presentation/output actions are visually primary and lifecycle/settings actions stop competing for equal attention.
