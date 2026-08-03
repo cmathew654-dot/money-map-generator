@@ -168,6 +168,31 @@ describe('persistent map inspector', () => {
     expect(accountText).not.toContain('managed-ira-jordan')
   })
 
+  it('exposes the selected notes font choice as pressed serif/sans buttons', () => {
+    const noteAt = (font?: 'serif' | 'sans') =>
+      render('note:audit-note', {
+        ...SAMPLE_WHITFIELD,
+        notes: [
+          {
+            id: 'audit-note',
+            text: 'Keep this visible',
+            x: 500,
+            y: 400,
+            ...(font ? { font } : {}),
+          },
+        ],
+      })
+
+    const legacy = noteAt()
+    const sans = noteAt('sans')
+
+    expect(legacy).toContain('Font')
+    expect(legacy).toMatch(/<button[^>]*aria-pressed="true"[^>]*>Serif</)
+    expect(legacy).toMatch(/<button[^>]*aria-pressed="false"[^>]*>Sans</)
+    expect(sans).toMatch(/<button[^>]*aria-pressed="false"[^>]*>Serif</)
+    expect(sans).toMatch(/<button[^>]*aria-pressed="true"[^>]*>Sans</)
+  })
+
   it('keeps every native inspector target at least 32 CSS pixels', () => {
     const css = readFileSync('src/styles/app.css', 'utf8')
     expect(css).toMatch(/\.map-inspector (?:button|select)[^{]*\{[^}]*min-height:\s*32px/s)

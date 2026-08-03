@@ -27,6 +27,7 @@ import {
   updateClient,
   type BookHistory,
   type BookSnapshot,
+  type TidyAnchor,
 } from './model/book'
 import {
   chooseExistingBookFile,
@@ -292,10 +293,35 @@ export default function App() {
   const hasTextPositionOverrides = Object.entries(activeClient.layoutOverrides ?? {}).some(
     ([key, override]) => key.startsWith('text:') && (override.dx !== undefined || override.dy !== undefined),
   )
-  const tidiedClient = tidyArrangement(activeClient)
-  const canTidyMap = tidiedClient !== activeClient
   const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
-  const mapWarnings = layoutMap(activeClient).warnings
+  const mapLayout = layoutMap(activeClient)
+  const mapWarnings = mapLayout.warnings
+  const asNeededChipRect = layoutOverrideRect(activeClient, 'asNeededChip')
+  const tidyAnchors: TidyAnchor[] = [
+    { key: 'income', x: mapLayout.income.x, y: mapLayout.income.y },
+    { key: 'need', x: mapLayout.need.x, y: mapLayout.need.y },
+    ...mapLayout.accounts.map((placed) => ({
+      key: placed.account.id,
+      x: placed.x,
+      y: placed.y,
+    })),
+    ...mapLayout.notes.map((placed) => ({
+      key: `note:${placed.note.id}`,
+      x: placed.note.x,
+      y: placed.note.y,
+    })),
+    ...(asNeededChipRect
+      ? [
+          {
+            key: 'asNeededChip',
+            x: asNeededChipRect.x,
+            y: asNeededChipRect.y,
+          },
+        ]
+      : []),
+  ]
+  const tidiedClient = tidyArrangement(activeClient, tidyAnchors)
+  const canTidyMap = tidiedClient !== activeClient
   const previewClient = (() => {
     const fsInfo = mapTextEdit
       ? mapTextEditFsInfo(activeClient, mapTextEdit.target)
@@ -904,9 +930,7 @@ export default function App() {
 
   const handleTidyMap = () => {
     if (!canTidyMap) return
-    handleMapChange(tidiedClient, 'Map layout reset')
-    setSelectedMapTargetKey(null)
-    setMapTextEdit(null)
+    handleMapChange(tidiedClient, 'Map aligned to grid.')
   }
 
   const handleRestoreGeneratedArrows = () => {

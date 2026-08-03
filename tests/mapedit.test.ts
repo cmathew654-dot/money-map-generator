@@ -20,6 +20,7 @@ import {
   restoreGeneratedArrows,
   setCustomArrowColor,
   setMapNoteBackground,
+  setMapNoteFont,
   snapRectToAlignment,
 } from '../src/render/mapInteraction'
 import {
@@ -887,6 +888,43 @@ describe('map note edits', () => {
     expect(solid.notes?.[0].bg).toBe(true)
     expect(transparent.notes?.[0].bg).toBe(false)
     expect(setMapNoteBackground(data, 'missing', true)).toBe(data)
+  })
+
+  it('sets the font on only the target note and ignores unknown ids', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [
+        note,
+        { id: 'note-other', text: 'Keep this note.', x: 620, y: 560 },
+      ],
+    }
+    const sans = setMapNoteFont(data, note.id, 'sans')
+
+    expect(sans.notes?.[0].font).toBe('sans')
+    expect(sans.notes?.[1].font).toBeUndefined()
+    expect(setMapNoteFont(sans, note.id, 'serif').notes?.[0].font).toBe('serif')
+    expect(setMapNoteFont(data, 'missing', 'sans')).toBe(data)
+  })
+
+  it('renders the chosen note font and leaves legacy notes on serif', () => {
+    const noteFontFamily = (font?: 'serif' | 'sans') => {
+      const markup = renderToStaticMarkup(
+        createElement(MapSvg, {
+          data: {
+            ...SAMPLE_WHITFIELD,
+            notes: [{ ...note, ...(font ? { font } : {}) }],
+          },
+          onChange: () => undefined,
+          onElementClick: () => undefined,
+        }),
+      )
+      const tag = /<text[^>]*map-note-text[^>]*>/.exec(markup)?.[0] ?? ''
+      return /font-family="([^"]*)"/.exec(tag)?.[1] ?? ''
+    }
+
+    expect(noteFontFamily('sans')).toContain('Public Sans')
+    expect(noteFontFamily('serif')).toContain('Literata')
+    expect(noteFontFamily()).toContain('Literata')
   })
 })
 

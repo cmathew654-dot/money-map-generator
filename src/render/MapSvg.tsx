@@ -2032,7 +2032,7 @@ function NoteBlock({
           editProps.className ? ` ${editProps.className}` : ''
         }`}
         fill={placed.note.bg ? INK : MUTED}
-        fontFamily={FONT_SERIF}
+        fontFamily={placed.note.font === 'sans' ? FONT_SANS : FONT_SERIF}
         fontSize={placed.fontSize}
         x={placed.x}
         y={placed.y + placed.fontSize}

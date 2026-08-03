@@ -3,6 +3,7 @@ import type {
   GeneratedArrowKind,
   LayoutOverride,
   MapNote,
+  MapNoteFont,
   MoneyMapData,
 } from '../model/types'
 import { layoutMap, layoutOverrideRect } from '../layout/layout'
@@ -624,6 +625,20 @@ export function setMapNoteBackground(
     ...data,
     notes: data.notes.map((note) =>
       note.id === id ? { ...note, bg } : note,
+    ),
+  }
+}
+
+export function setMapNoteFont(
+  data: MoneyMapData,
+  id: string,
+  font: MapNoteFont,
+): MoneyMapData {
+  if (!data.notes?.some((note) => note.id === id)) return data
+  return {
+    ...data,
+    notes: data.notes.map((note) =>
+      note.id === id ? { ...note, font } : note,
     ),
   }
 }

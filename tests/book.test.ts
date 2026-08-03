@@ -28,6 +28,7 @@ import {
   accountShape,
   nextAccountShape,
   type Bucket,
+  type MoneyMapData,
 } from '../src/model/types'
 
 describe('book operations', () => {
@@ -302,67 +303,66 @@ describe('book operations', () => {
     expect(reset.layoutOverrides).toBeUndefined()
   })
 
-  it('tidies visual offsets and preserves authored map details', () => {
-    const source = structuredClone(SAMPLE_WHITFIELD)
-    const accountId = source.accounts[0].id
-    source.notes = [
-      { id: 'keep-note', text: 'Keep me here.', x: 512, y: 418, fs: 18 },
-    ]
-    source.customArrows = source.customArrows?.map((arrow, index) =>
-      index === 0 ? { ...arrow, labelDx: 26, labelDy: -14 } : arrow,
-    )
-    source.layoutOverrides = {
-      income: { dx: 24, dy: -12, w: 320, rot: 5 },
-      need: { dx: -30, dy: 18 },
-      asNeededChip: { dx: 12, dy: 9 },
-      [accountId]: { dx: 42, dy: 33, w: 280, h: 240, rot: 15 },
-      [`text:${accountId}:label`]: { dx: 18, dy: -6, fs: 22 },
-      'arrow:income': {
-        bow: 31,
-        startAt: { dx: 4, dy: 7 },
-        endAt: { dx: -2, dy: 5 },
-        style: 'dashed',
-        color: 'blue',
+  it('snaps map anchors to the 12-unit grid and keeps the rest of the composition', () => {
+    const source: MoneyMapData = {
+      ...structuredClone(SAMPLE_WHITFIELD),
+      notes: [{ id: 'note-grid', text: 'Keep', x: 517, y: 481, fs: 19 }],
+      layoutOverrides: {
+        income: { dx: 5, dy: 7, w: 321, rot: 4 },
+        'text:masthead:label': { dx: 3, dy: 9 },
       },
+      customArrows: [
+        {
+          id: 'arrow-grid',
+          sourceId: 'income',
+          targetId: 'need',
+          style: 'solid',
+          label: 'Keep label',
+          labelDx: 11,
+          labelDy: -8,
+        },
+      ],
     }
 
-    const tidied = tidyArrangement(source)
+    const tidied = tidyArrangement(source, [
+      { key: 'income', x: 813, y: 159 },
+      { key: 'note:note-grid', x: 517, y: 481 },
+    ])
 
-    expect(tidied.layoutOverrides).toEqual({
-      income: { w: 320, rot: 5 },
-      [accountId]: { w: 280, h: 240, rot: 15 },
-      [`text:${accountId}:label`]: { fs: 22 },
-      'arrow:income': {
-        bow: 31,
-        startAt: { dx: 4, dy: 7 },
-        endAt: { dx: -2, dy: 5 },
-        style: 'dashed',
-        color: 'blue',
-      },
+    expect(tidied.layoutOverrides?.income).toMatchObject({
+      dx: 8,
+      dy: 4,
+      w: 321,
+      rot: 4,
     })
-    expect(tidied.notes).toEqual(source.notes)
-    expect(tidied.accounts).toEqual(source.accounts)
-    expect(tidied.customArrows?.[0]).not.toHaveProperty('labelDx')
-    expect(tidied.customArrows?.[0]).not.toHaveProperty('labelDy')
+    expect(tidied.layoutOverrides?.['text:masthead:label']).toEqual({
+      dx: 3,
+      dy: 9,
+    })
+    expect(tidied.notes?.[0]).toMatchObject({ x: 516, y: 480, fs: 19 })
     expect(tidied.customArrows?.[0]).toMatchObject({
-      id: source.customArrows?.[0].id,
-      sourceId: source.customArrows?.[0].sourceId,
-      targetId: source.customArrows?.[0].targetId,
-      style: source.customArrows?.[0].style,
+      labelDx: 11,
+      labelDy: -8,
     })
-    expect(tidied.customArrows?.[0]?.color).toBe(
-      source.customArrows?.[0]?.color,
-    )
-    expect(source.layoutOverrides.income).toMatchObject({ dx: 24, dy: -12 })
+    expect(source.layoutOverrides?.income).toMatchObject({ dx: 5, dy: 7 })
   })
 
-  it('keeps the same client reference when no item position needs tidying', () => {
-    const source = structuredClone(SAMPLE_WHITFIELD)
-    source.layoutOverrides = {
-      'text:masthead:label': { fs: 16 },
+  it('keeps the same client reference when every anchor already sits on the grid', () => {
+    const source: MoneyMapData = {
+      ...structuredClone(SAMPLE_WHITFIELD),
+      notes: [{ id: 'note-grid', text: 'Keep', x: 516, y: 480, fs: 19 }],
+      layoutOverrides: {
+        income: { dx: 8, dy: 4, w: 321, rot: 4 },
+        'text:masthead:label': { fs: 16 },
+      },
     }
 
-    expect(tidyArrangement(source)).toBe(source)
+    expect(
+      tidyArrangement(source, [
+        { key: 'income', x: 816, y: 156 },
+        { key: 'note:note-grid', x: 516, y: 480 },
+      ]),
+    ).toBe(source)
   })
 
   it('changes semantic account type without changing effective shape', () => {
@@ -726,6 +726,22 @@ describe('parseBook', () => {
     expect(parseBook(JSON.stringify(legacy))).toEqual(legacy)
   })
 
+  it.each(['serif', 'sans'] as const)(
+    'round-trips a %s note font and leaves legacy notes on serif',
+    (font) => {
+      const book = newBook()
+      book.clients[0].notes = [
+        { id: 'note-font', text: 'Confirm the rollover.', x: 500, y: 420, font },
+        { id: 'note-legacy', text: 'Review at year end.', x: 520, y: 480 },
+      ]
+
+      const parsed = parseBook(JSON.stringify(book))
+
+      expect(parsed.clients[0].notes?.[0].font).toBe(font)
+      expect(parsed.clients[0].notes?.[1].font).toBeUndefined()
+    },
+  )
+
   it.each([
     {},
     [{ id: 1, text: 'Note', x: 10, y: 20 }],
@@ -735,6 +751,8 @@ describe('parseBook', () => {
     [{ id: 'note', text: 'Note', x: 10, y: 20, w: null }],
     [{ id: 'note', text: 'Note', x: 10, y: 20, w: 'wide' }],
     [{ id: 'note', text: 'Note', x: 10, y: 20, bg: 'yes' }],
+    [{ id: 'note', text: 'Note', x: 10, y: 20, font: 'comic' }],
+    [{ id: 'note', text: 'Note', x: 10, y: 20, font: 12 }],
   ])('rejects malformed map notes with a human message', (notes) => {
     const value = newBook() as unknown as {
       clients: { notes?: unknown }[]

@@ -20,6 +20,7 @@ import {
 import {
   ACCOUNT_SHAPES,
   CUSTOM_ARROW_COLORS,
+  MAP_NOTE_FONTS,
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
   accountShape,
@@ -42,6 +43,7 @@ import {
   resetTextPosition,
   setCustomArrowColor,
   setMapNoteBackground,
+  setMapNoteFont,
   withOverride,
 } from './mapInteraction'
 import { ARROW_COLORS, ARTBOARD, TYPE } from './tokens'
@@ -585,6 +587,11 @@ export function MapInspector({
             <InspectorGroup label="Background">
               <button aria-pressed={Boolean(note.bg)} type="button" onClick={() => onChange(setMapNoteBackground(data, noteId, !note.bg))}>{note.bg ? 'On' : 'Off'}</button>
             </InspectorGroup>
+            <InspectorGroup label="Font">
+              {MAP_NOTE_FONTS.map((font) => (
+                <button key={font} aria-pressed={(note.font ?? 'serif') === font} type="button" onClick={() => onChange(setMapNoteFont(data, noteId, font))}>{font === 'serif' ? 'Serif' : 'Sans'}</button>
+              ))}
+            </InspectorGroup>
           </>
         )}
 
@@ -601,7 +608,7 @@ export function MapInspector({
             if (arrowKey) resetArrow()
             else if (noteId) onChange({
               ...moveMapNote(data, noteId, (ARTBOARD.width - NOTE_WIDTH) / 2, ARTBOARD.height / 2),
-              notes: data.notes?.map((candidate) => candidate.id === noteId ? { ...candidate, x: (ARTBOARD.width - NOTE_WIDTH) / 2, y: ARTBOARD.height / 2, w: undefined, bg: undefined, fs: undefined } : candidate),
+              notes: data.notes?.map((candidate) => candidate.id === noteId ? { ...candidate, x: (ARTBOARD.width - NOTE_WIDTH) / 2, y: ARTBOARD.height / 2, w: undefined, bg: undefined, fs: undefined, font: undefined } : candidate),
             })
             else if (layoutKey) onChange(isText ? resetTextPosition(data, layoutKey) : withoutOverride(data, layoutKey))
           }}>{arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text position' : 'Reset item'}</button>

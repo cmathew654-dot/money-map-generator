@@ -97,6 +97,9 @@ export function isMigratedFlowId(id: string): boolean {
   return id.startsWith(MIGRATED_FLOW_ID_PREFIX)
 }
 
+export const MAP_NOTE_FONTS = ['serif', 'sans'] as const
+export type MapNoteFont = (typeof MAP_NOTE_FONTS)[number]
+
 export interface MapNote {
   id: string
   text: string
@@ -105,6 +108,8 @@ export interface MapNote {
   w?: number
   bg?: boolean
   fs?: number
+  /** Absent means serif, so existing notes keep their look. */
+  font?: MapNoteFont
 }
 
 export const ACCOUNT_TEXT_ROLES = [

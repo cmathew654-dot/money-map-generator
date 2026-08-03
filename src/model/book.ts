@@ -9,6 +9,7 @@ import type {
   AccountShape,
   Bucket,
   CustomArrow,
+  MapNoteFont,
   MoneyMapData,
   MoneyMapFile,
 } from './types'
@@ -16,6 +17,7 @@ import {
   ACCOUNT_SHAPES,
   ACCOUNT_TEXT_ROLES,
   CUSTOM_ARROW_COLORS,
+  MAP_NOTE_FONTS,
   MAP_TEXT_ELEMENTS,
   accountShape,
   accountTextOverrideKey,
@@ -350,32 +352,59 @@ export function resetArrangement(data: MoneyMapData): MoneyMapData {
   return reset
 }
 
-export function tidyArrangement(data: MoneyMapData): MoneyMapData {
-  const layoutOverrides = { ...data.layoutOverrides }
-  let changed = false
+/** Where an item currently sits on the map, keyed by layout key or `note:<id>`. */
+export interface TidyAnchor {
+  key: string
+  x: number
+  y: number
+}
 
-  for (const [key, override] of Object.entries(layoutOverrides)) {
-    if (override.dx === undefined && override.dy === undefined) continue
-    const { dx: _dx, dy: _dy, ...preserved } = override
-    changed = true
-    if (Object.keys(preserved).length > 0) layoutOverrides[key] = preserved
-    else delete layoutOverrides[key]
+const TIDY_GRID = 12
+
+/**
+ * Snaps each anchor to the nearest grid line and leaves everything else — sizes,
+ * rotations, text offsets, arrow labels — exactly as the advisor arranged it.
+ */
+export function tidyArrangement(
+  data: MoneyMapData,
+  anchors: readonly TidyAnchor[],
+): MoneyMapData {
+  const snap = (value: number) => Math.round(value / TIDY_GRID) * TIDY_GRID
+  let next = data
+
+  for (const anchor of anchors) {
+    const dx = snap(anchor.x) - anchor.x
+    const dy = snap(anchor.y) - anchor.y
+    if (dx === 0 && dy === 0) continue
+
+    if (anchor.key.startsWith('note:')) {
+      const id = anchor.key.slice('note:'.length)
+      if (!next.notes?.some((note) => note.id === id)) continue
+      next = {
+        ...next,
+        notes: next.notes.map((note) =>
+          note.id === id ? { ...note, x: note.x + dx, y: note.y + dy } : note,
+        ),
+      }
+      continue
+    }
+
+    const overrides = next.layoutOverrides ?? {}
+    const override = overrides[anchor.key] ?? {}
+    next = {
+      ...next,
+      layoutOverrides: {
+        ...overrides,
+        [anchor.key]: {
+          ...override,
+          ...(dx === 0 ? {} : { dx: (override.dx ?? 0) + dx }),
+          ...(dy === 0 ? {} : { dy: (override.dy ?? 0) + dy }),
+        },
+      },
+    }
   }
 
-  const customArrows = data.customArrows?.map((arrow) => {
-    if (arrow.labelDx === undefined && arrow.labelDy === undefined) return arrow
-    const { labelDx: _labelDx, labelDy: _labelDy, ...preserved } = arrow
-    changed = true
-    return preserved
-  })
-
-  if (!changed) return data
-  return {
-    ...data,
-    layoutOverrides:
-      Object.keys(layoutOverrides).length > 0 ? layoutOverrides : undefined,
-    customArrows,
-  }
+  return next
 }
 
 export function newBook(): MoneyMapFile {
@@ -739,7 +768,9 @@ function validateClient(value: unknown, index: number, allowMissingItemIds = fal
             (typeof note.w !== 'number' || !Number.isFinite(note.w))) ||
           (note.fs !== undefined &&
             (typeof note.fs !== 'number' || !Number.isFinite(note.fs))) ||
-          (note.bg !== undefined && typeof note.bg !== 'boolean'),
+          (note.bg !== undefined && typeof note.bg !== 'boolean') ||
+          (note.font !== undefined &&
+            !MAP_NOTE_FONTS.includes(note.font as MapNoteFont)),
       )
     ) {
       throw new Error(`Client ${index + 1} has invalid map notes.`)
