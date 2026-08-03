@@ -1,3 +1,9 @@
+import { layoutMap, OVERRIDE_BOUNDS, rotatedBounds } from '../layout/layout'
+import {
+  duplicatePlacement,
+  placementsOverlap,
+  withOverride,
+} from '../render/mapInteraction'
 import {
   blankClient,
   SAMPLE_CALLOWAY,
@@ -201,10 +207,29 @@ export function appendBlankAccount(
   data: MoneyMapData,
   bucket: Bucket,
 ): MoneyMapData {
-  return {
+  const account = blankAccountFor(bucket)
+  const withAccount: MoneyMapData = {
     ...data,
-    accounts: [...data.accounts, blankAccountFor(bucket)],
+    accounts: [...data.accounts, account],
   }
+
+  const layout = layoutMap(withAccount)
+  const placed = layout.accounts.find((item) => item.account.id === account.id)
+  if (!placed) return withAccount
+
+  const sourceRect = rotatedBounds(placed, placed.rot)
+  const blockedRects = layout.accounts
+    .filter((item) => item.account.id !== account.id)
+    .map((item) => rotatedBounds(item, item.rot))
+  if (!blockedRects.some((rect) => placementsOverlap(sourceRect, rect))) {
+    return withAccount
+  }
+
+  const nudged = duplicatePlacement(sourceRect, blockedRects, OVERRIDE_BOUNDS)
+  return withOverride(withAccount, account.id, {
+    dx: nudged.x - sourceRect.x,
+    dy: nudged.y - sourceRect.y,
+  })
 }
 
 export interface BookSnapshot {

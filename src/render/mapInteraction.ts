@@ -462,7 +462,17 @@ export function addMapNote(
   }
 }
 
-function duplicatePlacement(
+/** AABB intersection test. Shared by duplicate-placement and add-account collision checks. */
+export function placementsOverlap(a: Rect, b: Rect): boolean {
+  return (
+    a.x < b.x + b.w &&
+    a.x + a.w > b.x &&
+    a.y < b.y + b.h &&
+    a.y + a.h > b.y
+  )
+}
+
+export function duplicatePlacement(
   sourceRect: Rect,
   blockedRects: readonly Rect[],
   bounds: RectBounds,
@@ -474,12 +484,7 @@ function duplicatePlacement(
   const blocked =
     forward.x !== sourceRect.x + 24 ||
     forward.y !== sourceRect.y + 24 ||
-    blockedRects.some((rect) =>
-      forward.x < rect.x + rect.w &&
-      forward.x + forward.w > rect.x &&
-      forward.y < rect.y + rect.h &&
-      forward.y + forward.h > rect.y,
-    )
+    blockedRects.some((rect) => placementsOverlap(forward, rect))
   return blocked
     ? clampRectToBounds(
         { ...sourceRect, x: sourceRect.x - 24, y: sourceRect.y - 24 },
