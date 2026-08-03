@@ -250,6 +250,40 @@ test.describe('approved desktop interaction regression', () => {
     await expect(page.locator('.map-text-editor-input')).toBeVisible()
   })
 
+  test('dragging an income text run suppresses native selection and preserves editor selection', async ({
+    page,
+  }) => {
+    const incomeCard = page.locator('[data-map-target="income"]')
+    const incomeHit = incomeCard.locator('[data-map-edit-hit^="incomeAmount"]').first()
+    const incomeBody = incomeCard.locator('rect').first()
+    const before = await svgPosition(incomeBody)
+    const box = await incomeHit.boundingBox()
+    if (!box) throw new Error('Income text hit has no measurable bounds')
+    const start = {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    }
+
+    await page.mouse.move(start.x, start.y)
+    await page.mouse.down()
+    await page.mouse.move(start.x + 100, start.y, { steps: 8 })
+    await page.mouse.up()
+
+    expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('')
+    await expect.poll(() => svgPosition(incomeBody)).not.toEqual(before)
+
+    await incomeHit.dblclick()
+    const editor = page.locator('.map-text-editor-input')
+    await expect(editor).toBeVisible()
+    await editor.press('Control+A')
+    expect(
+      await editor.evaluate((element) => {
+        const textarea = element as HTMLTextAreaElement
+        return textarea.value.length > 0 && textarea.selectionStart !== textarea.selectionEnd
+      }),
+    ).toBe(true)
+  })
+
   test('selection leaves map objects in place', async ({ page }) => {
     const account = page.locator(
       '[data-account-id="cash-at-bank"][role="group"]',
