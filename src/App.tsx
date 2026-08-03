@@ -618,7 +618,15 @@ export default function App() {
   }, [isWriter, tabId])
   useEffect(() => {
     if (DATA_MODE !== 'real') return
-    const flush = () => flushBrowserSave(); const hidden = () => { if (document.visibilityState === 'hidden') flush() }
+    const flush = () => flushBrowserSave()
+    const hidden = () => {
+      if (document.visibilityState !== 'hidden') return
+      flush()
+      if (currentBrowserWriter(localStorage) === tabId) {
+        releaseBrowserWriter(localStorage, tabId)
+        setIsWriter(false)
+      }
+    }
     const handlePageHide = () => { flushBrowserSave(); releaseBrowserWriter(localStorage, tabId) }
     const handlePageShow = () => {
       if (acquireBrowserWriter(localStorage, tabId).status === 'acquired') {
