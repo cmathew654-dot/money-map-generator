@@ -126,7 +126,7 @@ describe('Session 40 map interaction affordances', () => {
       /class="map-account-body-hit"[^>]*pointer-events="all"/,
     )
     expect(markup).not.toContain('map-rotate-handle')
-    expect(markup).not.toContain('map-resize-handle')
+    expect(markup).toContain('map-resize-handle')
     expect(markup).toContain('data-pointer-action')
   })
 
