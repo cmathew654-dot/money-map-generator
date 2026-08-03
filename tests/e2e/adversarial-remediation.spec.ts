@@ -55,9 +55,11 @@ test.describe('adversarial remediation', () => {
     expect(outside).toEqual([])
   })
 
-  test('shows map attention without exposing implementation terms', async ({ page }) => {
+  test('keeps extreme content free of warning UI and implementation terms', async ({ page }) => {
     await loadClient(page, extremeClient())
-    await expect(page.getByText('Map needs attention', { exact: true })).toBeVisible()
+    await expect(page.locator('.map-page')).toBeVisible()
+    await expect(page.getByText('Map needs attention')).toHaveCount(0)
+    await expect(page.locator('[aria-label="Map warnings"]')).toHaveCount(0)
     await expect(page.locator('body')).not.toContainText(/VITE_DATA_MODE|writer|lease|clients array|accountLabel:[\w-]+/i)
   })
 

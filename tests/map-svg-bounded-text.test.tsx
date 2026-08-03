@@ -60,6 +60,12 @@ describe('MapSvg bounded text', () => {
     const positioned = layout.accounts.find((candidate) => candidate.account.positions?.length)!
     const subAccount = layout.accounts.find((candidate) => candidate.account.subAccounts?.length)!
     const footnote = footnoteLineLayouts(data)[0].text
+    // The amount still abbreviates on its own; the stored note is simply no
+    // longer part of the string the shape is measured and fitted against.
+    const accountValue = {
+      display: account.valueText,
+      exact: money(account.account.value),
+    }
     const pairs = [
       masthead.title,
       masthead.label,
@@ -70,10 +76,7 @@ describe('MapSvg bounded text', () => {
       need.supporting,
       flowLabelText(arrow),
       footnote,
-      {
-        display: account.valueText,
-        exact: `${money(account.account.value)} ${account.account.valueTag}`,
-      },
+      accountValue,
       {
         display: positioned.positionRows[0].valueText,
         exact: money(positioned.account.positions![0].value),
@@ -85,7 +88,10 @@ describe('MapSvg bounded text', () => {
     ]
     const markup = renderToStaticMarkup(createElement(MapSvg, { data }))
 
-    expect(pairs.filter((pair) => pair.display !== pair.exact).length).toBeGreaterThan(8)
+    expect(accountValue.exact).toBe(money(account.account.value))
+    expect(accountValue.display).not.toContain(long)
+    expect(data.accounts[0].valueTag).toBe(long)
+    expect(pairs.filter((pair) => pair.display !== pair.exact).length).toBe(8)
     for (const pair of pairs) {
       if (pair.display !== pair.exact) {
         expect(pair.display).toMatch(/…$/)

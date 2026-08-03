@@ -365,10 +365,7 @@ export function incomePanelMetrics(
   const contentHeight = dividerY + 80
   const sourceWidths = data.incomeSources.flatMap((source) => [
     textWidth(source.label, sizes.rowLabel),
-    textWidth(moneyPer(source.amount, source.period), rowFontSize) +
-      (source.qualifier
-        ? 7 + textWidth(source.qualifier, sizes.rowQualifier)
-        : 0),
+    textWidth(moneyPer(source.amount, source.period), rowFontSize),
   ])
   const headerWidth =
     textWidth('INCOME SOURCES', headerFontSize) +
@@ -417,9 +414,7 @@ export function incomeSourceTextLayout(
     id: source.id,
     label: fittedTextLine(source.label, width, sizes.rowLabel),
     amount: fittedTextLine(
-      `${moneyPer(source.amount, source.period)}${
-        source.qualifier ? ` ${source.qualifier}` : ''
-      }`,
+      moneyPer(source.amount, source.period),
       width,
       sizes.rowValue,
     ),
@@ -472,11 +467,7 @@ export function needTextLayout(
   )
   return {
     label: fittedTextLine('MONTHLY INCOME NEED', width, labelSize),
-    value: fittedTextLine(
-      taggedMoney(data.monthlyNeed, data.needTag),
-      width,
-      valueSize,
-    ),
+    value: fittedTextLine(money(data.monthlyNeed), width, valueSize),
     supporting: fittedCalculatedTextLine(
       supporting ?? '',
       width,
@@ -799,10 +790,6 @@ interface AccountSizing {
   valueText: string
 }
 
-function taggedMoney(value: number | null, tag: string | undefined): string {
-  return `${money(value)}${tag ? ` ${tag}` : ''}`
-}
-
 function accountSizing(
   account: Account,
   width: number,
@@ -967,7 +954,7 @@ function accountSizing(
       valueFontSize,
     )
     const valueText = fittedTextLine(
-      taggedMoney(account.value, account.valueTag),
+      money(account.value),
       usableValueWidth,
       valueFontSize,
     ).display
@@ -2276,7 +2263,7 @@ function accountTextBlock(
       ? placed.titleLines
       : role === 'caption'
         ? placed.captionLines
-        : [taggedMoney(placed.account.value, placed.account.valueTag)]
+        : [money(placed.account.value)]
   const fontSize =
     role === 'label'
       ? text.titleFontSize
@@ -2476,7 +2463,7 @@ function baseLayout(data: MoneyMapData): MapLayout {
         Math.min(
           480,
           textWidth(
-            taggedMoney(data.monthlyNeed, data.needTag),
+            money(data.monthlyNeed),
             needValueSize,
           ) + 40,
         ),
@@ -2807,7 +2794,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       )
     }
     warnAbbreviation(
-      { display: account.valueText, exact: taggedMoney(account.account.value, account.account.valueTag) },
+      { display: account.valueText, exact: money(account.account.value) },
       key('value'),
       'Account amount and note',
       'the account shape',
@@ -2970,10 +2957,7 @@ export function layoutOverrideRect(
       layout.income.w - 24,
       Math.max(
         textWidth(source.label, sizes.rowValue * (13 / 14)),
-        textWidth(moneyPer(source.amount, source.period), sizes.rowValue) +
-          (source.qualifier
-            ? 7 + textWidth(source.qualifier, sizes.rowValue * (12 / 14))
-            : 0),
+        textWidth(moneyPer(source.amount, source.period), sizes.rowValue),
       ) + 16,
     )
     return movedTextBlock(

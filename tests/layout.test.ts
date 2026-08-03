@@ -386,13 +386,15 @@ describe('layoutMap', () => {
   })
 
   it('identifies every extreme editable text role that must be abbreviated', () => {
-    const { data } = extremeTextData()
+    const { data, text } = extremeTextData()
 
     const warnings = layoutMap(data).warnings
+    // The monthly need card is sized from the same tag-free money string it
+    // renders, so that amount no longer abbreviates. The tag stays stored.
+    expect(data.needTag).toBe(text)
     const expected = [
       ['text:masthead:label', 'Map heading'],
       ['text:income:row:extreme-income', 'Income source'],
-      ['text:need:value', 'Monthly income need'],
       ['text:extreme-account:label', 'Account name'],
       ['text:extreme-account:caption', 'Account description'],
       ['text:extreme-account:rows', 'Investment name'],
@@ -411,15 +413,22 @@ describe('layoutMap', () => {
     }
   })
 
-  it('never advises changing a financial amount when account value text is abbreviated', () => {
-    const { data } = extremeTextData()
+  it('never warns about an account amount because of its stored value note', () => {
+    const { data, text } = extremeTextData()
+    const untagged = structuredClone(data)
+    delete untagged.accounts[0].valueTag
+    // The amount itself is extreme enough to abbreviate either way; what must
+    // not differ is anything the stored note could influence.
+    const valueWarnings = (client: typeof data) =>
+      layoutMap(client).warnings.filter(
+        (warning) => warning.targetKey === 'text:extreme-account:value',
+      )
 
-    expect(layoutMap(data).warnings).toContainEqual({
-      code: 'text-abbreviated',
-      targetKey: 'text:extreme-account:value',
-      fieldLabel: 'Account amount and note',
-      message: 'Reduce the account amount text size or shorten its optional note so the full amount fits on the map.',
-    })
+    expect(layoutMap(data).accounts[0].valueText).toBe(
+      layoutMap(untagged).accounts[0].valueText,
+    )
+    expect(valueWarnings(data)).toEqual(valueWarnings(untagged))
+    expect(data.accounts[0].valueTag).toBe(text)
   })
 
   it('returns bounded displayed text while retaining every extreme raw field', () => {
@@ -547,25 +556,29 @@ describe('layoutMap', () => {
     expect(largeNote.h).toBeGreaterThan(defaultNote.h)
   })
 
-  it('keeps a long tagged value inside the assigned account width', () => {
-    const data = blankClient()
-    data.accounts = [
-      {
-        id: 'tag-width',
-        bucket: 'cash',
-        label: 'Tagged value',
-        value: 165_000,
-        valueTag: 'estimated balance plus pending annual distribution',
-        inWaterfall: false,
-      },
-    ]
+  it('keeps a long stored value note out of the account width and value text', () => {
+    const valueTag = 'estimated balance plus pending annual distribution'
+    const account = {
+      id: 'tag-width',
+      bucket: 'cash' as const,
+      label: 'Tagged value',
+      value: 165_000,
+      inWaterfall: false,
+    }
+    const tagged = blankClient()
+    tagged.accounts = [{ ...account, valueTag }]
+    const plain = blankClient()
+    plain.accounts = [account]
 
-    const placed = layoutMap(data).accounts[0]
-    expect(placed.w).toBe(250)
-    expect(placed.valueText).toMatch(/…$/)
+    const placed = layoutMap(tagged).accounts[0]
+
+    expect(placed.valueText).toBe(money(account.value))
+    expect(placed.valueText).not.toMatch(/…$/)
+    expect(placed.w).toBe(layoutMap(plain).accounts[0].w)
     expect(textWidth(placed.valueText, TYPE.value)).toBeLessThanOrEqual(
       placed.usableValueWidth,
     )
+    expect(tagged.accounts[0].valueTag).toBe(valueTag)
   })
 
   it('re-wraps a 24-unit label and strictly grows its account shape', () => {
@@ -649,7 +662,8 @@ describe('layoutMap', () => {
     ).toBeGreaterThan(moved.x + moved.w)
   })
 
-  it('refits a tagged value at the overridden size without growing its shape', () => {
+  it('refits a value with a stored note at the overridden size without growing its shape', () => {
+    const valueTag = 'estimated pending distribution'
     const data = blankClient()
     data.accounts = [
       {
@@ -657,7 +671,7 @@ describe('layoutMap', () => {
         bucket: 'cash',
         label: 'Tagged value',
         value: 165_000,
-        valueTag: 'estimated pending distribution',
+        valueTag,
         inWaterfall: false,
       },
     ]
@@ -669,10 +683,12 @@ describe('layoutMap', () => {
     const enlarged = layoutMap(data).accounts[0]
     expect(enlarged.w).toBe(base.w)
     expect(enlarged.text.valueFontSize).toBe(28)
-    expect(enlarged.valueText).toMatch(/…$/)
+    expect(enlarged.valueText).toBe(money(data.accounts[0].value))
+    expect(enlarged.valueText).not.toMatch(/…$/)
     expect(textWidth(enlarged.valueText, 28)).toBeLessThanOrEqual(
       enlarged.usableValueWidth,
     )
+    expect(data.accounts[0].valueTag).toBe(valueTag)
   })
 
   it.each([
@@ -1393,14 +1409,16 @@ describe('layoutMap', () => {
       row.label,
       sizes.rowLabel,
     )
-    const valueWidth =
-      textWidth(moneyPer(row.amount, row.period), sizes.rowValue) +
-      7 +
-      textWidth(row.qualifier!, sizes.rowQualifier)
+    // The stored qualifier no longer widens the row, so the fit is money-only.
+    const valueWidth = textWidth(
+      moneyPer(row.amount, row.period),
+      sizes.rowValue,
+    )
 
     expect(headerWidth).toBeLessThanOrEqual(innerWidth)
     expect(labelWidth).toBeLessThanOrEqual(innerWidth)
     expect(valueWidth).toBeLessThanOrEqual(innerWidth)
+    expect(row.qualifier).toBeDefined()
   })
 
   it('fits long income rows and floors resized height at content height', () => {

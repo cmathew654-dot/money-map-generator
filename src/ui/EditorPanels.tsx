@@ -1,7 +1,7 @@
 import { useState, type ReactNode, type RefObject } from 'react'
 import { ACCOUNT_PRESETS } from '../model/book'
 import type { Bucket, MoneyMapData } from '../model/types'
-import { footnoteHasContent, layoutMap, type LayoutWarning } from '../layout/layout'
+import { footnoteHasContent, layoutMap } from '../layout/layout'
 import type { EditorPanel } from '../App'
 
 type ToolPanel = Exclude<EditorPanel, 'data'>
@@ -10,7 +10,6 @@ interface EditorPanelsProps {
   activePanel: ToolPanel
   data: MoneyMapData
   selectedTargetKey: string | null
-  warnings: readonly LayoutWarning[]
   canMutate: boolean
   headingRef: RefObject<HTMLHeadingElement | null>
   onClose(): void
@@ -257,7 +256,6 @@ function AddPanel({
 function ContentsPanel({
   data,
   selectedTargetKey,
-  warnings,
   canMutate,
   onSelectTarget,
   onRestoreGeneratedFlows,
@@ -265,7 +263,6 @@ function ContentsPanel({
   EditorPanelsProps,
   | 'data'
   | 'selectedTargetKey'
-  | 'warnings'
   | 'canMutate'
   | 'onSelectTarget'
   | 'onRestoreGeneratedFlows'
@@ -273,7 +270,6 @@ function ContentsPanel({
   const [filter, setFilter] = useState('')
   const query = filter.trim().toLocaleLowerCase()
   const items = contentItems(data).filter((item) => !query || item.search.toLocaleLowerCase().includes(query))
-  const globalWarnings = warnings.filter((warning) => !warning.targetKey)
   const hasHiddenFlows = (data.hiddenArrows?.length ?? 0) > 0
 
   return (
@@ -287,18 +283,8 @@ function ContentsPanel({
           onChange={(event) => setFilter(event.target.value)}
         />
       </label>
-      {globalWarnings.length > 0 && (
-        <section aria-label="Map warnings" className="editor-panel-warnings">
-          <h3>Map needs attention</h3>
-          {globalWarnings.map((warning, index) => <p key={warning.code + index}>{warning.message}</p>)}
-        </section>
-      )}
       <div className="editor-content-list" role="list" aria-label="Map contents">
         {items.map((item) => {
-          const targetedWarnings = warnings.filter((warning) =>
-            warning.targetKey === item.key ||
-            (warning.targetKey?.startsWith('text:') && item.key.startsWith('account:') && warning.targetKey.includes(item.key.slice('account:'.length))),
-          )
           return (
             <div className="editor-content-row" key={item.key} role="listitem">
               <button
@@ -316,9 +302,6 @@ function ContentsPanel({
                   Hidden; restore automatic flows to select.
                 </span>
               )}
-              {targetedWarnings.map((warning, index) => (
-                <span className="editor-content-warning" key={warning.code + index}>{warning.message}</span>
-              ))}
             </div>
           )
         })}
@@ -359,7 +342,6 @@ export function EditorPanels({
   activePanel,
   data,
   selectedTargetKey,
-  warnings,
   canMutate,
   headingRef,
   onClose,
@@ -395,7 +377,6 @@ export function EditorPanels({
           onRestoreGeneratedFlows={onRestoreGeneratedFlows}
           onSelectTarget={onSelectTarget}
           selectedTargetKey={selectedTargetKey}
-          warnings={warnings}
         />
       )}
       {activePanel === 'help' && <HelpPanel />}

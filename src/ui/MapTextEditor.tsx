@@ -859,6 +859,9 @@ export function MapTextEditor({
         finish('close')
       } else if (event.key === 'Escape') {
         event.preventDefault()
+        // Dismissing the editor must not reach the app-level Escape handler,
+        // which would read the just-cleared edit and drop the selection too.
+        event.stopPropagation()
         finish('escape')
       }
     },
@@ -899,6 +902,7 @@ export function MapTextEditor({
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             event.preventDefault()
+            event.stopPropagation()
             finish('escape')
           } else if (
             sizeOnly &&

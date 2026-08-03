@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { BOOK_KEY, openApp } from './helpers'
+import { SAMPLE_WHITFIELD } from '../../src/model/samples'
 
 test('existing clients open on the canvas and Data restores rail focus when it closes', async ({ page }) => {
   await openApp(page)
@@ -357,6 +358,98 @@ test('client search matches title or year across a large book and restores focus
   await expect(page.getByRole('listbox')).toHaveCount(0)
   await expect(combo).toHaveValue('Household 119')
   await expect(combo).toBeFocused()
+})
+
+test('map layout diagnostics never surface as advisor-facing warnings', async ({ page }) => {
+  const overflowingAccountId = SAMPLE_WHITFIELD.accounts[0].id
+  const overflowingBook = {
+    fileType: 'money-map-book',
+    version: 1,
+    clients: [
+      {
+        ...structuredClone(SAMPLE_WHITFIELD),
+        // Same fixture the mapedit unit test proves yields an untargeted warning.
+        layoutOverrides: {
+          ...SAMPLE_WHITFIELD.layoutOverrides,
+          [overflowingAccountId]: { h: 900 },
+        },
+      },
+    ],
+  }
+  await page.addInitScript(({ key, book }) => {
+    localStorage.setItem(key, JSON.stringify(book))
+  }, { key: BOOK_KEY, book: overflowingBook })
+  await openApp(page)
+
+  // Proves the seeded book loaded, so the absence assertions are not vacuous.
+  await expect(
+    page.locator(`[data-account-id="${overflowingAccountId}"][role="group"]`),
+  ).toBeVisible()
+  await expect(page.getByText('Map needs attention')).toHaveCount(0)
+  await expect(page.locator('[aria-label="Map warnings"]')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Contents', exact: true }).click()
+  const contents = page.getByRole('dialog', { name: 'Contents' })
+  await expect(contents).toBeVisible()
+  await expect(contents.getByText('Map needs attention')).toHaveCount(0)
+  await expect(contents.locator('[aria-label="Map warnings"]')).toHaveCount(0)
+})
+
+test('the inspector stays visible while an inline title editor is open', async ({ page }) => {
+  await openApp(page)
+
+  const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+  await account.locator('.map-account-body-hit:not(ellipse)').click()
+  const inspector = page.locator('.map-inspector')
+  await expect(inspector).toBeVisible()
+
+  await account
+    .locator('[data-map-edit-key="accountLabel:cash-at-bank"]')
+    .first()
+    .click()
+  const editor = page.locator('.map-text-editor-input')
+  await expect(editor).toBeVisible()
+  await expect(inspector).toBeVisible()
+
+  await editor.fill('Renamed while inspecting')
+  await expect(inspector).toBeVisible()
+  await editor.press('Escape')
+  await expect(editor).toHaveCount(0)
+  await expect(inspector).toBeVisible()
+})
+
+test('an armed text note lands over an account without disturbing it', async ({ page }) => {
+  await openApp(page)
+
+  const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+  const body = account.locator('.map-account-body-hit:not(ellipse)')
+  const position = () =>
+    body.evaluate((element) => {
+      const box = (element as SVGGraphicsElement).getBBox()
+      return { x: Math.round(box.x), y: Math.round(box.y) }
+    })
+  const before = await position()
+
+  await page.getByRole('button', { name: 'Add text note', exact: true }).click()
+  const box = await body.boundingBox()
+  if (!box) throw new Error('Account body has no measurable bounds')
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+
+  const editor = page.locator('.map-text-editor-input')
+  await expect(editor).toBeVisible()
+  await editor.fill('Inside account note')
+  await editor.press('Enter')
+  await expect(editor).toHaveCount(0)
+
+  await expect(page.locator('svg.map-interactive')).toHaveAttribute(
+    'data-selected-target',
+    /^note:/,
+  )
+  await expect(page.locator('.map-inspector')).toContainText(
+    'Inside account note',
+  )
+  expect(await position()).toEqual(before)
+  await expect(account).not.toHaveAttribute('data-map-selected', 'true')
 })
 
 test('only a selected account exposes a resize handle, and dragging it resizes the account', async ({ page }) => {

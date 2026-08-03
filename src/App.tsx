@@ -295,7 +295,6 @@ export default function App() {
   )
   const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
   const mapLayout = layoutMap(activeClient)
-  const mapWarnings = mapLayout.warnings
   const asNeededChipRect = layoutOverrideRect(activeClient, 'asNeededChip')
   const tidyAnchors: TidyAnchor[] = [
     { key: 'income', x: mapLayout.income.x, y: mapLayout.income.y },
@@ -1587,17 +1586,23 @@ export default function App() {
       suppressNextTextPlacementRef.current = false
       return
     }
+    const svg = mapPageRef.current?.querySelector('svg')
+    if (!svg) return
+    const rect = svg.getBoundingClientRect()
     if (
-      !(event.target instanceof Element) ||
-      !event.target.closest('[data-map-background]')
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
     ) {
       return
     }
-    const svg = mapPageRef.current?.querySelector('svg')
-    if (!svg) return
+    // Armed placement outranks whatever shape sits under the pointer.
+    event.preventDefault()
+    event.stopPropagation()
     openTextNoteAt(artboardPointFromClient(
       { x: event.clientX, y: event.clientY },
-      svg.getBoundingClientRect(),
+      rect,
     ))
   }
 
@@ -1878,13 +1883,6 @@ export default function App() {
               <button type="button" onClick={republishBrowserWriterTakeoverRequest}>Try again</button>
             </section>
           )}
-        {mapWarnings.length > 0 && <details className="app-status-banner is-danger"><summary>Map needs attention</summary>{mapWarnings.map((warning, index) => {
-          const targetKey = warning.targetKey
-          const key = `${warning.code}:${targetKey ?? index}`
-          return targetKey && targetKey !== 'client'
-            ? <button key={key} type="button" onClick={() => setSelectedMapTargetKey(targetKey)}>{warning.message}</button>
-            : <span key={key}>{warning.message}</span>
-        })}</details>}
         {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
         {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Changes are not being saved</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Try again</button></section>}
       </div>}
@@ -1896,7 +1894,7 @@ export default function App() {
                 currentStep={wizardStep}
                 data={activeClient}
                 done={wizardDone}
-                hasWarnings={mapWarnings.length > 0}
+                hasWarnings={false}
                 focusRequest={focusRequest}
                 onChange={handleClientChange}
                 onCurrentStepChange={setWizardStep}
@@ -1966,7 +1964,6 @@ export default function App() {
                 onSelectTarget={handleMapSelectionChange}
                 onSetNeed={() => focusDataTarget('need', 'need')}
                 selectedTargetKey={selectedMapTargetKey}
-                warnings={mapWarnings}
               />
             )}
             {editorPanel === 'data' && (
@@ -2005,11 +2002,11 @@ export default function App() {
           </>
         )}
         <section
-            className={`preview-pane${selectedMapTargetKey && !mapTextEdit && !presentMode && canMutate ? ' has-map-inspector' : ''}`}
+            className={`preview-pane${selectedMapTargetKey && !presentMode && canMutate ? ' has-map-inspector' : ''}`}
             aria-label="Money Map preview"
             onClickCapture={handleMapCommandCapture}
           >
-          {selectedMapTargetKey && !mapTextEdit && !presentMode && canMutate && (
+          {selectedMapTargetKey && !presentMode && canMutate && (
             <MapInspector
               data={activeClient}
               selectedTargetKey={selectedMapTargetKey}
@@ -2045,7 +2042,7 @@ export default function App() {
                 className={`map-page${
                   mapZoom === 'fit' ? '' : ' is-zoomed'
                 }${placingTextNote ? ' is-placing-text' : ''}`}
-                onClick={placeTextNote}
+                onClickCapture={placeTextNote}
                 style={
                   mapZoom === 'fit'
                     ? undefined
@@ -2099,7 +2096,12 @@ export default function App() {
                   }
                   if (nextClient !== activeClient) {
                     handleClientChange(nextClient)
-                    if (mapTextEdit.target.kind === 'noteText') addToast('Text note added')
+                    if (mapTextEdit.target.kind === 'noteText') {
+                      setSelectedMapTargetKey(
+                        `note:${mapTextEdit.target.noteId}`,
+                      )
+                      addToast('Text note added')
+                    }
                   }
                   setMapTextEdit(null)
                 }}

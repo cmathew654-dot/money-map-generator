@@ -78,7 +78,6 @@ const accountNameSeeds = [...ACCOUNT_TYPE_SEEDS, ...CARRIER_SEEDS]
 const incomeSourceSeeds = incomePresets.flatMap((preset) =>
   preset.label ? [preset.label] : [],
 )
-const incomeQualifierSeeds = ['Gross', 'After-Tax', 'Net']
 const noSeeds: readonly string[] = []
 
 const months = [
@@ -432,12 +431,6 @@ export function NeedSection({
         value={data.monthlyNeed}
         onChange={(monthlyNeed) => onChange({ ...data, monthlyNeed })}
       />
-      <TextField
-        label="Amount note"
-        placeholder="e.g. est., + RMD"
-        value={data.needTag ?? ''}
-        onChange={(needTag) => onChange({ ...data, needTag })}
-      />
       <p className="help-text">
         The red number — what the household must cover each month.
       </p>
@@ -549,18 +542,6 @@ export function IncomeSection({
                   <option value="yr">yr</option>
                 </select>
               </label>
-              <TextField
-                autocomplete={{
-                  bookTerms: vocabulary,
-                  seeds: incomeQualifierSeeds,
-                }}
-                label="Amount note"
-                placeholder="e.g. Gross, After-Tax"
-                value={source.qualifier ?? ''}
-                onChange={(qualifier) =>
-                  updateSource(index, { ...source, qualifier })
-                }
-              />
             </div>
           </div>
         ))}
@@ -879,12 +860,6 @@ function AccountCard({
               label="Value"
               value={account.value}
               onChange={(value) => onChange({ ...account, value })}
-            />
-            <TextField
-              label="Amount note"
-              placeholder="e.g. est., + RMD"
-              value={account.valueTag ?? ''}
-              onChange={(valueTag) => onChange({ ...account, valueTag })}
             />
           </div>
           <TextField

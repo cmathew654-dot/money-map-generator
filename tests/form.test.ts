@@ -55,11 +55,60 @@ describe('income source presets', () => {
     )
 
     expect(markup).toContain('Income source')
-    expect(markup).toContain('Amount note')
-    expect(markup).toContain('e.g. Gross, After-Tax')
+    expect(markup).not.toContain('Amount note')
+    expect(markup).not.toContain('e.g. Gross, After-Tax')
     expect(markup).toContain('Social Security')
     expect(markup).toContain('Something else')
     expect(markup).not.toContain('+ Add income source')
+  })
+
+  it('hides every amount-note control while keeping the stored tags', () => {
+    const data = blankClient()
+    data.monthlyNeed = 4_000
+    data.needTag = 'goal'
+    data.incomeSources = [
+      {
+        id: 'income-test',
+        label: 'Rental Income',
+        amount: 1_900,
+        period: 'mo',
+        qualifier: 'Gross',
+      },
+    ]
+    data.accounts = [
+      {
+        id: 'account-test',
+        bucket: 'cash',
+        label: 'Cash at Bank',
+        value: 25_000,
+        valueTag: 'est.',
+      },
+    ]
+
+    const sections = [
+      renderToStaticMarkup(
+        createElement(IncomeSection, { data, onChange: () => undefined }),
+      ),
+      renderToStaticMarkup(
+        createElement(NeedSection, { data, onChange: () => undefined }),
+      ),
+      renderToStaticMarkup(
+        createElement(AccountsSection, {
+          data,
+          selectedAccountId: 'account-test',
+          onChange: () => undefined,
+        }),
+      ),
+    ]
+
+    for (const markup of sections) {
+      expect(markup).not.toContain('Amount note')
+      expect(markup).not.toContain('e.g. est., + RMD')
+      expect(markup).not.toContain('e.g. Gross, After-Tax')
+    }
+    expect(data.needTag).toBe('goal')
+    expect(data.incomeSources[0].qualifier).toBe('Gross')
+    expect(data.accounts[0].valueTag).toBe('est.')
   })
 })
 

@@ -1080,6 +1080,64 @@ describe('editable text hit geometry', () => {
   })
 })
 
+describe('amount notes and layout diagnostics', () => {
+  const tagged = {
+    ...SAMPLE_WHITFIELD,
+    needTag: 'goal',
+    incomeSources: SAMPLE_WHITFIELD.incomeSources.map((source) => ({
+      ...source,
+      qualifier: 'Gross',
+    })),
+    accounts: SAMPLE_WHITFIELD.accounts.map((account) => ({
+      ...account,
+      valueTag: 'est.',
+    })),
+  }
+
+  it.each([
+    ['interactive', true],
+    ['noninteractive', false],
+  ])('leaves amount-note text out of %s map output', (_name, interactive) => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        MapSvg,
+        interactive
+          ? {
+              data: tagged,
+              onChange: () => undefined,
+              onElementClick: () => undefined,
+            }
+          : { data: tagged },
+      ),
+    )
+
+    expect(markup).not.toContain('Gross')
+    expect(markup).not.toContain('est.')
+    expect(markup).not.toContain('goal')
+    expect(markup).toContain('Cash at Bank')
+  })
+
+  it('keeps the amount-note values on the client that rendered without them', () => {
+    expect(tagged.needTag).toBe('goal')
+    expect(tagged.incomeSources[0].qualifier).toBe('Gross')
+    expect(tagged.accounts[0].valueTag).toBe('est.')
+  })
+
+  it('still reports global layout diagnostics for internal use', () => {
+    const overflowing = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: {
+        ...SAMPLE_WHITFIELD.layoutOverrides,
+        [SAMPLE_WHITFIELD.accounts[0].id]: { h: 900 },
+      },
+    }
+
+    expect(
+      layoutMap(overflowing).warnings.some((warning) => !warning.targetKey),
+    ).toBe(true)
+  })
+})
+
 describe('noninteractive map rendering', () => {
   it('uses plain language for editable text and arrow accessibility names', () => {
     const data = {
@@ -1223,7 +1281,10 @@ describe('noninteractive map rendering', () => {
       /font-size="18\.571428571428573"[^>]*>Social Security/,
     )
     expect(markup).toMatch(/font-size="20"[^>]*><tspan>\$2,400 mo\./)
-    expect(markup).toMatch(/font-size="17\.142857142857142"[^>]*>Gross/)
+    expect(markup).not.toContain('Gross')
+    expect(
+      data.incomeSources.some((source) => source.qualifier === 'Gross'),
+    ).toBe(true)
     expect(markup).toMatch(/font-size="21"[^>]*>\$5,900/)
     expect(markup).toMatch(/font-size="22"[^>]*>MONTHLY INCOME NEED/)
     expect(markup).toMatch(/font-size="40"[^>]*><tspan[^>]*>\$15,000/)

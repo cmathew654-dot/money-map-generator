@@ -538,31 +538,14 @@ function IncomeRow({
         )}
       >
         {text.amount.display === text.amount.exact ? (
-          <>
-            <tspan
+          <tspan
             {...editableLineTextProps(
               { kind: 'incomeAmount', incomeIndex: index, incomeId: source.id },
               onElementClick,
             )}
-            >
-              {moneyPer(source.amount, source.period)}
-            </tspan>
-            {source.qualifier && (
-              <tspan
-                dx={7}
-                fill={MUTED}
-                fontFamily={FONT_SANS}
-                fontSize={fontSize * (12 / 14)}
-                fontWeight={400}
-                {...editableLineTextProps(
-                  { kind: 'incomeAmount', incomeIndex: index, incomeId: source.id },
-                  onElementClick,
-                )}
-              >
-                {source.qualifier}
-              </tspan>
-            )}
-          </>
+          >
+            {moneyPer(source.amount, source.period)}
+          </tspan>
         ) : text.amount.display}
       </text>
     </g>
@@ -790,7 +773,6 @@ function NeedCard({
   onSupportingFocus,
   onSupportingPointerDown,
   supportingSelected,
-  tag,
   value,
   placed,
 }: {
@@ -801,7 +783,6 @@ function NeedCard({
   onSupportingFocus?: () => void
   onSupportingPointerDown?: (event: PointerEvent<SVGElement>) => void
   supportingSelected?: boolean
-  tag?: string
   value: number | null
   placed: Placed
 }) {
@@ -921,16 +902,6 @@ function NeedCard({
               ? money(value)
               : fitted.value.display}
           </tspan>
-          {tag && fitted.value.display === fitted.value.exact && (
-            <tspan
-              fill={MUTED}
-              fontStyle="italic"
-              fontWeight={400}
-              {...editableLineTextProps(valueEdit, onElementClick)}
-            >
-              {` ${tag}`}
-            </tspan>
-          )}
         </text>
       </g>
       {mathLine && fitted.supporting.display ? (
@@ -1477,7 +1448,7 @@ function AccountContent({
         fontWeight={600}
         textAnchor="middle"
         {...valueTextProps}
-        aria-label={`${money(account.value)}${account.valueTag ? ` ${account.valueTag}` : ''}`}
+        aria-label={money(account.value)}
       >
         <tspan
           style={numericStyle}
@@ -1486,24 +1457,8 @@ function AccountContent({
             onElementClick,
           )}
         >
-          {valueText === `${money(account.value)}${account.valueTag ? ` ${account.valueTag}` : ''}`
-            ? money(account.value)
-            : valueText}
+          {valueText}
         </tspan>
-        {account.valueTag &&
-          valueText === `${money(account.value)} ${account.valueTag}` && (
-          <tspan
-            fill={MUTED}
-            fontStyle="italic"
-            fontWeight={400}
-            {...editableLineTextProps(
-              { kind: 'accountValue', accountId: account.id },
-              onElementClick,
-            )}
-          >
-            {` ${account.valueTag}`}
-          </tspan>
-        )}
       </text>
       {onElementClick && (
         <rect
@@ -3058,7 +3013,6 @@ export function MapSvg({
               ? () => beginDrag('need', 'move', layout.need)
               : undefined
           }
-          tag={displayData.needTag}
           value={displayData.monthlyNeed}
           placed={layout.need}
           supportingSelected={
