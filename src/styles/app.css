@@ -953,9 +953,14 @@ summary:focus-visible {
 
 @media (max-width: 700px) {
   .map-chrome {
+    /* Pin to the browser viewport, not to .preview-pane's box — at narrow
+       widths the pane can be taller than the viewport (mobile stacked
+       layout), which pushes an absolutely-positioned chrome off-screen. */
+    position: fixed;
     right: 16px;
+    bottom: 16px;
     left: 16px;
-    max-width: calc(100% - 32px);
+    max-width: none;
     align-items: flex-start;
     justify-content: flex-start;
     flex-wrap: wrap;
