@@ -13,3 +13,16 @@ test('Menu supports Home, End, and printable-character navigation', async ({ pag
   await page.keyboard.press('s')
   await expect(page.getByRole('menuitem', { name: 'SVG image' })).toBeFocused()
 })
+
+test('active client combobox keeps input focus through Arrow navigation and Escape', async ({ page }) => {
+  await openApp(page)
+
+  const combo = page.getByRole('combobox', { name: 'Active client' })
+  await combo.focus()
+  await combo.press('ArrowDown')
+  await expect(page.getByRole('listbox')).toBeVisible()
+  await expect(combo).toHaveAttribute('aria-activedescendant', /.+/)
+  await combo.press('Escape')
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await expect(combo).toBeFocused()
+})

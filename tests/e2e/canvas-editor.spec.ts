@@ -317,3 +317,98 @@ test('copy, paste, delete, and alignment shortcuts do nothing inside controls an
   await editor.press('Escape')
   await expect(page.locator('svg.map-interactive [data-account-id=cash-at-bank]')).toHaveCount(1)
 })
+
+test('client search matches title or year across a large book and restores focus after Escape', async ({ page }) => {
+  const clients = Array.from({ length: 120 }, (_, index) => ({
+    id: `task-6-client-${index}`,
+    client: {
+      title: `Household ${index}`,
+      year: String(2020 + index),
+      variant: 'annual' as const,
+    },
+    incomeSources: [],
+    afterTaxIncome: null,
+    monthlyNeed: null,
+    asNeededAmount: null,
+    accounts: [],
+    footnotes: [],
+  }))
+  await page.addInitScript(({ key, value }) => {
+    localStorage.setItem(key, JSON.stringify(value))
+  }, {
+    key: BOOK_KEY,
+    value: { fileType: 'money-map-book', version: 1, clients },
+  })
+  await openApp(page)
+
+  const combo = page.getByRole('combobox', { name: 'Active client' })
+  await combo.fill('  HOUSEHOLD 119 ')
+  await expect(page.getByRole('listbox')).toBeVisible()
+  await expect(page.getByRole('option')).toHaveCount(1)
+  await combo.press('ArrowDown')
+  await expect(combo).toHaveAttribute('aria-activedescendant', /.+/)
+  await combo.press('Enter')
+  await expect(combo).toHaveValue('Household 119')
+  await expect(combo).toBeFocused()
+
+  await combo.fill('2039')
+  await expect(page.getByRole('option', { name: /Household 19/ })).toBeVisible()
+  await combo.press('Escape')
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await expect(combo).toHaveValue('Household 119')
+  await expect(combo).toBeFocused()
+})
+
+test('selected Income, Need, or account exposes one direct connector handle and a valid drop selects the new flow', async ({ page }) => {
+  await openApp(page)
+
+  const account = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+  await account.locator('.map-account-body-hit:not(ellipse)').click()
+  const handle = page.locator('.map-connector-handle')
+  await expect(handle).toHaveCount(1)
+  await expect(handle).toHaveAttribute('tabindex', '-1')
+  await expect(handle).toHaveAttribute('data-connector-source', 'cash-at-bank')
+
+  const destination = page.locator('[data-connect-id="need"][role="group"]')
+  const handleBox = await handle.boundingBox()
+  const destinationBox = await destination.boundingBox()
+  if (!handleBox || !destinationBox) throw new Error('Connector geometry is not measurable')
+  const handlePoint = {
+    x: handleBox.x + handleBox.width / 2,
+    y: handleBox.y + handleBox.height / 2,
+  }
+  const destinationPoint = {
+    x: destinationBox.x + destinationBox.width / 2,
+    y: destinationBox.y + destinationBox.height / 2,
+  }
+  await page.mouse.move(handlePoint.x, handlePoint.y)
+  await page.mouse.down()
+  await page.mouse.move(destinationPoint.x, destinationPoint.y, { steps: 5 })
+  await expect(destination).toHaveAttribute('data-connector-highlight', 'true')
+  await page.mouse.up()
+  await expect(page.locator('[data-map-target^="arrow:custom:"][data-map-selected="true"]')).toHaveCount(1)
+
+  await page.getByRole('button', { name: 'Undo' }).click()
+  await account.locator('.map-account-body-hit:not(ellipse)').click()
+  const refreshedHandle = page.locator('.map-connector-handle')
+  const refreshedBox = await refreshedHandle.boundingBox()
+  const background = page.locator('[data-map-background="true"]').first()
+  const backgroundBox = await background.boundingBox()
+  if (!refreshedBox || !backgroundBox) throw new Error('Connector cancellation geometry is not measurable')
+  await page.mouse.move(refreshedBox.x + refreshedBox.width / 2, refreshedBox.y + refreshedBox.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(backgroundBox.x + 28, backgroundBox.y + 28, { steps: 5 })
+  await page.mouse.up()
+  await expect(page.locator('[data-map-target^="arrow:custom:"][data-map-selected="true"]')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled()
+
+  await page.mouse.move(refreshedBox.x + refreshedBox.width / 2, refreshedBox.y + refreshedBox.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(destinationPoint.x, destinationPoint.y, { steps: 5 })
+  await expect(destination).toHaveAttribute('data-connector-highlight', 'true')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('[data-connector-preview="true"]')).toHaveCount(0)
+  await page.mouse.up()
+  await expect(page.locator('[data-map-target^="arrow:custom:"][data-map-selected="true"]')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled()
+})

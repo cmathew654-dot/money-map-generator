@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -149,6 +150,7 @@ interface MapSvgProps {
   data: MoneyMapData
   onElementClick?: (target: MapElementTarget) => void
   onChange?: (data: MoneyMapData) => void
+  onConnectorDrop?: (sourceId: string, targetId: string) => void
   highlightId?: string | null
 }
 
@@ -185,6 +187,15 @@ interface DragSession {
   startPlaced?: Placed
   startScreen: Point
   startedAt: number
+}
+
+interface ConnectorSession {
+  active: boolean
+  inverseScreenCtm: TransformMatrix
+  pointerId: number
+  sourceId: string
+  startScreen: Point
+  targetId: string | null
 }
 
 type TextPointerDown = (
@@ -2069,6 +2080,7 @@ export function MapSvg({
   data,
   onElementClick,
   onChange,
+  onConnectorDrop,
   highlightId,
 }: MapSvgProps) {
   const id = useId().replaceAll(':', '')
@@ -2081,12 +2093,15 @@ export function MapSvg({
   ) as Record<CustomArrowColor, string>
   const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<DragSession | null>(null)
+  const connectorRef = useRef<ConnectorSession | null>(null)
   const suppressNextClickRef = useRef(false)
   const [previewData, setPreviewData] = useState<MoneyMapData | null>(
     null,
   )
   const [dragging, setDragging] = useState(false)
   const [snapping, setSnapping] = useState<AlignmentSnap | null>(null)
+  const [connectorPreview, setConnectorPreview] = useState<Point | null>(null)
+  const [connectorTargetId, setConnectorTargetId] = useState<string | null>(null)
   const [localSelectedTargetKeys, setLocalSelectedTargetKeys] = useState<string[]>([])
   const selectedTargetKeys = onChange
     ? controlledSelectedTargetKeys ??
@@ -2163,6 +2178,50 @@ export function MapSvg({
     return account ? accountDisplayName(account) : 'Map item'
   }
 
+  const connectorSourceId =
+    onChange &&
+    (selectedTargetKey === 'income' || selectedTargetKey === 'need'
+      ? selectedTargetKey
+      : selectedTargetKey?.startsWith('account:')
+        ? selectedTargetKey.slice('account:'.length)
+        : null)
+  const connectorSourceOutline = connectorSourceId
+    ? outlineForId(connectorSourceId)
+    : undefined
+  const connectorHandlePoint = connectorSourceOutline
+    ? {
+        x: connectorSourceOutline.x + connectorSourceOutline.w + 10,
+        y: connectorSourceOutline.y + connectorSourceOutline.h / 2,
+      }
+    : null
+  const connectorTargetAtPoint = (
+    clientX: number,
+    clientY: number,
+    sourceId: string,
+  ): string | null => {
+    for (const element of document.elementsFromPoint(clientX, clientY)) {
+      const target = element
+        .closest<SVGElement>('[data-connect-id]')
+        ?.getAttribute('data-connect-id')
+      if (!target || target === sourceId) continue
+      if (
+        target === 'income' ||
+        target === 'need' ||
+        data.accounts.some((account) => account.id === target)
+      ) {
+        if (
+          !data.customArrows?.some(
+            (arrow) =>
+              arrow.sourceId === sourceId && arrow.targetId === target,
+          )
+        ) {
+          return target
+        }
+      }
+    }
+    return null
+  }
+
   const beginDrag = (
     key: string,
     mode: DragMode,
@@ -2195,11 +2254,97 @@ export function MapSvg({
       startedAt: performance.now(),
     }
   }
+  const beginConnectorDrag = (sourceId: string) => (
+    event: PointerEvent<SVGCircleElement>,
+  ) => {
+    if (!onChange || event.button !== 0) return
+    event.preventDefault()
+    event.stopPropagation()
+    const svg = svgRef.current
+    const screenCtm = svg?.getScreenCTM()
+    if (!screenCtm) return
+    connectorRef.current = {
+      active: false,
+      inverseScreenCtm: screenCtm.inverse(),
+      pointerId: event.pointerId,
+      sourceId,
+      startScreen: { x: event.clientX, y: event.clientY },
+      targetId: null,
+    }
+    svg?.setPointerCapture(event.pointerId)
+  }
   const cancelDrag = () => {
     dragRef.current = null
     setDragging(false)
     setPreviewData(null)
     setSnapping(null)
+  }
+  const cancelConnectorDrag = () => {
+    const session = connectorRef.current
+    if (
+      session &&
+      svgRef.current?.hasPointerCapture(session.pointerId)
+    ) {
+      svgRef.current.releasePointerCapture(session.pointerId)
+    }
+    connectorRef.current = null
+    setConnectorPreview(null)
+    setConnectorTargetId(null)
+    setDragging(false)
+    if (session) {
+      suppressNextClickRef.current = true
+      window.setTimeout(() => {
+        suppressNextClickRef.current = false
+      }, 0)
+    }
+  }
+  useEffect(() => {
+    const cancelOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (
+        event.key !== 'Escape' ||
+        (!connectorRef.current && !dragRef.current)
+      ) {
+        return
+      }
+      event.preventDefault()
+      event.stopPropagation()
+      event.stopImmediatePropagation()
+      if (connectorRef.current) cancelConnectorDrag()
+      if (dragRef.current) cancelDrag()
+    }
+    window.addEventListener('keydown', cancelOnEscape, true)
+    return () => window.removeEventListener('keydown', cancelOnEscape, true)
+  }, [])
+  const previewConnectorDrag = (
+    event: PointerEvent<SVGSVGElement>,
+  ): boolean => {
+    const session = connectorRef.current
+    if (!session || session.pointerId !== event.pointerId) return false
+    const currentScreen = { x: event.clientX, y: event.clientY }
+    if (
+      !session.active &&
+      !crossedDragThreshold(session.startScreen, currentScreen)
+    ) {
+      return true
+    }
+    if (!session.active) {
+      session.active = true
+      setDragging(true)
+    }
+    event.preventDefault()
+    const point = screenPointToArtboard(
+      currentScreen,
+      session.inverseScreenCtm,
+    )
+    const targetId = connectorTargetAtPoint(
+      event.clientX,
+      event.clientY,
+      session.sourceId,
+    )
+    session.targetId = targetId
+    setConnectorPreview(point)
+    setConnectorTargetId(targetId)
+    return true
   }
   const previewDrag = (event: PointerEvent<SVGSVGElement>) => {
     const session = dragRef.current
@@ -2426,6 +2571,38 @@ export function MapSvg({
     onChange?.(session.latestData)
   }
 
+  const finishConnectorDrag = (
+    event: PointerEvent<SVGSVGElement>,
+  ): boolean => {
+    const session = connectorRef.current
+    if (!session || session.pointerId !== event.pointerId) return false
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    const targetId = session.active
+      ? connectorTargetAtPoint(
+          event.clientX,
+          event.clientY,
+          session.sourceId,
+        )
+      : null
+    const active = session.active
+    const sourceId = session.sourceId
+    connectorRef.current = null
+    setConnectorPreview(null)
+    setConnectorTargetId(null)
+    setDragging(false)
+    suppressNextClickRef.current = true
+    window.setTimeout(() => {
+      suppressNextClickRef.current = false
+    }, 0)
+    if (!active) return true
+
+    event.preventDefault()
+    if (targetId) onConnectorDrop?.(sourceId, targetId)
+    return true
+  }
+
   const handleMapClickCapture = (event: MouseEvent<SVGSVGElement>) => {
     if (suppressNextClickRef.current) {
       suppressNextClickRef.current = false
@@ -2480,6 +2657,11 @@ export function MapSvg({
         if (event.key === 'Escape') {
           if (!onChange) return
           event.preventDefault()
+          if (connectorRef.current) {
+            event.stopPropagation()
+            cancelConnectorDrag()
+            return
+          }
           if (dragRef.current) cancelDrag()
           setSelectedTarget(null)
           return
@@ -2556,9 +2738,28 @@ export function MapSvg({
       onClickCapture={
         onChange ? handleMapClickCapture : undefined
       }
-      onPointerCancel={onChange ? cancelDrag : undefined}
-      onPointerMove={onChange ? previewDrag : undefined}
-      onPointerUp={onChange ? finishDrag : undefined}
+      onPointerCancel={
+        onChange
+          ? () => {
+              cancelConnectorDrag()
+              cancelDrag()
+            }
+          : undefined
+      }
+      onPointerMove={
+        onChange
+          ? (event) => {
+              if (!previewConnectorDrag(event)) previewDrag(event)
+            }
+          : undefined
+      }
+      onPointerUp={
+        onChange
+          ? (event) => {
+              if (!finishConnectorDrag(event)) finishDrag(event)
+            }
+          : undefined
+      }
     >
       <rect
         data-map-background="true"
@@ -2678,6 +2879,9 @@ export function MapSvg({
       />
       <g
         data-connect-id={onChange ? 'income' : undefined}
+        data-connector-highlight={
+          connectorTargetId === 'income' ? 'true' : undefined
+        }
         data-map-selected={selectedTargetKeys.includes('income') ? 'true' : undefined}
         data-map-target={onChange ? 'income' : undefined}
         aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight Enter Space' : undefined}
@@ -2701,6 +2905,9 @@ export function MapSvg({
       </g>
       <g
         data-connect-id={onChange ? 'need' : undefined}
+        data-connector-highlight={
+          connectorTargetId === 'need' ? 'true' : undefined
+        }
         data-map-selected={selectedTargetKeys.includes('need') ? 'true' : undefined}
         data-map-target={onChange ? 'need' : undefined}
         aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Enter Space' : undefined}
@@ -2766,6 +2973,9 @@ export function MapSvg({
               }
               data-account-shape={shape}
               data-connect-id={onChange ? placed.account.id : undefined}
+              data-connector-highlight={
+                connectorTargetId === placed.account.id ? 'true' : undefined
+              }
               aria-keyshortcuts={onChange ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight BracketLeft BracketRight Enter Space' : undefined}
               key={placed.account.id}
               {...interactiveGroupProps(
@@ -2879,6 +3089,32 @@ export function MapSvg({
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
       />
+      {connectorHandlePoint && connectorSourceId && (
+        <circle
+          aria-hidden="true"
+          className="map-connector-handle"
+          cx={connectorHandlePoint.x}
+          cy={connectorHandlePoint.y}
+          data-connector-source={connectorSourceId}
+          data-pointer-action="connect"
+          pointerEvents="all"
+          r={7}
+          tabIndex={-1}
+          onPointerDown={beginConnectorDrag(connectorSourceId)}
+        />
+      )}
+      {connectorHandlePoint && connectorPreview && (
+        <line
+          aria-hidden="true"
+          className="map-connector-preview"
+          data-connector-preview="true"
+          pointerEvents="none"
+          x1={connectorHandlePoint.x}
+          x2={connectorPreview.x}
+          y1={connectorHandlePoint.y}
+          y2={connectorPreview.y}
+        />
+      )}
       {onChange && dragging && snapping && (
         <g
           aria-hidden="true"

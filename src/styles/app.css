@@ -189,9 +189,57 @@ summary:focus-visible {
 }
 
 .client-select {
+  width: 100%;
+  padding: 6px 28px 6px 9px;
+}
+
+.client-combobox {
+  position: relative;
   width: min(240px, 22vw);
   min-width: 140px;
-  padding: 6px 28px 6px 9px;
+}
+
+.client-combobox-input {
+  box-sizing: border-box;
+}
+
+.client-combobox-list {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  max-height: 248px;
+  overflow-y: auto;
+  border: 1px solid #cbd1c9;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgb(28 36 34 / 16%);
+}
+
+.client-combobox-option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  color: #303a37;
+  cursor: default;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.client-combobox-option + .client-combobox-option {
+  border-top: 1px solid #eef0ec;
+}
+
+.client-combobox-option.is-active {
+  background: #eef4ef;
+}
+
+.client-combobox-option small {
+  color: #5b6663;
+  font-size: 11px;
 }
 
 .header-spacer {
@@ -396,6 +444,24 @@ summary:focus-visible {
 .map-page svg .map-arrow-handle-hit {
   cursor: grab;
   pointer-events: stroke;
+}
+
+.map-page svg .map-connector-handle {
+  fill: #fcfcfa;
+  stroke: #1e7a4a;
+  stroke-width: 2;
+  cursor: crosshair;
+}
+
+.map-page svg .map-connector-preview {
+  fill: none;
+  stroke: #1e7a4a;
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+.map-interactive [data-connector-highlight='true'] {
+  filter: drop-shadow(0 0 5px rgb(30 122 74 / 45%));
 }
 
 .map-page svg .map-flow-label {
@@ -1988,6 +2054,11 @@ summary:focus-visible {
     font-size: 16px;
   }
 
+  .app-header .client-combobox {
+    width: 140px;
+    min-width: 120px;
+  }
+
   .app-header .client-select {
     width: 140px;
     min-width: 120px;
@@ -2169,6 +2240,11 @@ summary:focus-visible {
 }
 
 @media (max-width: 900px) {
+  .app-header .client-combobox {
+    width: 240px;
+    min-width: 240px;
+  }
+
   .app-header .client-select {
     width: 240px;
     min-width: 240px;

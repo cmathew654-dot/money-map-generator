@@ -41,6 +41,7 @@ import {
   mapTextEditRawValue,
   type MapTextEditTarget,
 } from '../src/ui/MapTextEditor'
+import { filterClientOptions } from '../src/ui/ClientCombobox'
 
 const accountId = 'managed-ira-jordan'
 
@@ -741,6 +742,46 @@ describe('custom arrow edits', () => {
         .color,
     ).toBe('blue')
     expect(setCustomArrowColor(base, 'missing', 'red')).toBe(base)
+  })
+})
+
+describe('client combobox and direct connector handles', () => {
+  it('filters clients by normalized title or year substring without a fuzzy model', () => {
+    const clients = Array.from({ length: 120 }, (_, index) => ({
+      ...SAMPLE_WHITFIELD,
+      id: `client-${index}`,
+      client: {
+        ...SAMPLE_WHITFIELD.client,
+        title: `Household ${index}`,
+        year: String(2020 + index),
+      },
+    }))
+
+    expect(filterClientOptions(clients, '  HOUSEHOLD 119 ')).toHaveLength(1)
+    expect(filterClientOptions(clients, '  2039 ')).toHaveLength(1)
+    expect(filterClientOptions(clients, '')).toHaveLength(120)
+  })
+
+  it.each(['income', 'need', 'account:' + accountId])(
+    'renders one non-focusable connector handle for %s', (selectedTargetKey) => {
+      const markup = renderToStaticMarkup(
+        createElement(MapSvg, {
+          data: SAMPLE_WHITFIELD,
+          onChange: () => undefined,
+          onElementClick: () => undefined,
+          selectedTargetKey,
+        }),
+      )
+
+      expect(markup.match(/class="map-connector-handle"/g)).toHaveLength(1)
+      expect(markup).toContain('data-connector-source="' + selectedTargetKey.replace('account:', '') + '"')
+      expect(markup).toContain('tabindex="-1"')
+    },
+  )
+
+  it('does not render connector handles for the print map', () => {
+    const markup = renderToStaticMarkup(createElement(MapSvg, { data: SAMPLE_WHITFIELD }))
+    expect(markup).not.toContain('map-connector-handle')
   })
 })
 

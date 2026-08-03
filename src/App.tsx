@@ -84,6 +84,7 @@ import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import { EditorPanels } from './ui/EditorPanels'
 import { EditorRail } from './ui/EditorRail'
+import { ClientCombobox } from './ui/ClientCombobox'
 import {
   applyMapTextEdit,
   applyMapTextFontSize,
@@ -1494,6 +1495,15 @@ export default function App() {
     if (arrow) setSelectedMapTargetKey(`arrow:custom:${arrow.id}`)
   }
 
+  const handleConnectorDrop = (sourceId: string, targetId: string) => {
+    if (!canMutate) return
+    const nextClient = addCustomArrow(activeClient, sourceId, targetId)
+    if (nextClient === activeClient) return
+    const arrow = nextClient.customArrows?.at(-1)
+    handleMapChange(nextClient)
+    if (arrow) setSelectedMapTargetKey(`arrow:custom:${arrow.id}`)
+  }
+
   const handlePanelAddFinePrint = () => {
     if (!canMutate) return
     const nextClient = {
@@ -1581,18 +1591,11 @@ export default function App() {
           <span>Money Map</span>
         </div>
         <div className="header-client-actions">
-          <select
-            aria-label="Active client"
-            className="client-select"
+          <ClientCombobox
+            clients={book.clients}
             value={activeClient.id}
-            onChange={(event) => selectClient(event.target.value)}
-          >
-            {book.clients.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.client.title || 'Untitled'}
-              </option>
-            ))}
-          </select>
+            onChange={selectClient}
+          />
           <button
             className="quiet-button compact-button"
             disabled={!canMutate}
@@ -1988,6 +1991,11 @@ export default function App() {
                   data={previewClient}
                   highlightId={presentMode ? undefined : highlightId}
                   onChange={presentMode || !canMutate ? undefined : handleMapChange}
+                  onConnectorDrop={
+                    presentMode || !canMutate
+                      ? undefined
+                      : handleConnectorDrop
+                  }
                   onElementClick={
                     presentMode || !canMutate ? undefined : handleMapElementClick
                   }
