@@ -245,6 +245,7 @@ export default function App() {
   const fileSaveRevision = useRef(0)
   const fileWriteQueue = useRef<Promise<void>>(Promise.resolve())
   const writerTakeoverTimerRef = useRef<number | null>(null)
+  const releaseTimerRef = useRef<number | null>(null)
   const writerFocusRequestedRef = useRef(false)
   const writerFocusInitializedRef = useRef(false)
   const exportInFlightRef = useRef<'png' | 'pdf' | 'svg' | null>(null)
@@ -622,13 +623,27 @@ export default function App() {
   }, [isWriter, tabId])
   useEffect(() => {
     if (DATA_MODE !== 'real') return
+    // A StrictMode dev double-mount runs cleanup then setup synchronously;
+    // cancel a pending deferred release if we're still here for the
+    // remount, so the lease is never actually dropped for a fake unmount.
+    if (releaseTimerRef.current !== null) {
+      window.clearTimeout(releaseTimerRef.current)
+      releaseTimerRef.current = null
+    }
     const flush = () => flushBrowserSave()
     const hidden = () => {
-      if (document.visibilityState !== 'hidden') return
-      flush()
-      if (currentBrowserWriter(localStorage) === tabId) {
-        releaseBrowserWriter(localStorage, tabId)
-        setIsWriter(false)
+      if (document.visibilityState === 'hidden') {
+        flush()
+        if (currentBrowserWriter(localStorage) === tabId) {
+          releaseBrowserWriter(localStorage, tabId)
+          setIsWriter(false)
+        }
+        return
+      }
+      // A tab returning to view re-requests the lease instead of staying
+      // read-only forever (Slice 9: the missing 'visible' counterpart).
+      if (document.visibilityState === 'visible' && !presentMode && currentBrowserWriter(localStorage) !== tabId) {
+        requestBrowserWriterTakeover()
       }
     }
     const handlePageHide = () => { flushBrowserSave(); releaseBrowserWriter(localStorage, tabId) }
@@ -671,7 +686,7 @@ export default function App() {
     }
     window.addEventListener('pagehide', handlePageHide); window.addEventListener('beforeunload', handlePageHide); window.addEventListener('pageshow', handlePageShow); document.addEventListener('visibilitychange', hidden); window.addEventListener('storage', storage)
     return () => { window.removeEventListener('pagehide', handlePageHide); window.removeEventListener('beforeunload', handlePageHide); window.removeEventListener('pageshow', handlePageShow); document.removeEventListener('visibilitychange', hidden); window.removeEventListener('storage', storage) }
-  }, [finishBrowserWriterTakeover, flushBrowserSave, showHistory, showSnapshot, tabId])
+  }, [finishBrowserWriterTakeover, flushBrowserSave, presentMode, requestBrowserWriterTakeover, showHistory, showSnapshot, tabId])
 
   useEffect(
     () => () => {
@@ -679,7 +694,13 @@ export default function App() {
         window.clearTimeout(writerTakeoverTimerRef.current)
         writerTakeoverTimerRef.current = null
       }
-      if (DATA_MODE === 'real') releaseBrowserWriter(localStorage, tabId)
+      if (DATA_MODE !== 'real') return
+      // Deferred (not called directly) so a StrictMode dev double-mount can
+      // cancel it in the effect above before it ever strands the tab.
+      releaseTimerRef.current = window.setTimeout(() => {
+        releaseTimerRef.current = null
+        releaseBrowserWriter(localStorage, tabId)
+      }, 0)
     },
     [tabId],
   )
@@ -1915,6 +1936,15 @@ export default function App() {
             aria-label="Money Map preview"
             onClickCapture={handleMapCommandCapture}
           >
+          {DATA_MODE === 'real' && !presentMode && !canMutate && (
+            <button
+              type="button"
+              className="map-readonly-banner"
+              onClick={requestBrowserWriterTakeover}
+            >
+              View only — editing is active in another tab. Click to take over.
+            </button>
+          )}
           {selectedMapTargetKey && !presentMode && canMutate && (
             <MapInspector
               data={activeClient}
