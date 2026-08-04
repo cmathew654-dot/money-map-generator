@@ -2996,6 +2996,16 @@ function movedTextBlock(
   return { ...block, x: block.x + offset.dx, y: block.y + offset.dy }
 }
 
+/** Rendered centre of the as-needed chip, or null when the map has no chip. */
+export function asNeededChipCenter(
+  data: MoneyMapData,
+): { x: number; y: number } | null {
+  return (
+    layoutMap(data).arrows.find((arrow) => arrow.kind === 'asNeeded')?.labelAt ??
+    null
+  )
+}
+
 export function layoutOverrideRect(
   data: MoneyMapData,
   key: string,

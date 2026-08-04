@@ -46,7 +46,7 @@ import {
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
-import { buildTidyAnchors, layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
+import { asNeededChipCenter, buildTidyAnchors, layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
 import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import {
   exportPdf,
@@ -196,6 +196,43 @@ function mapTextEditFontState(
  */
 export function armMapTextDiscard(discard: boolean, editorOpen: boolean) {
   return discard && editorOpen
+}
+
+/**
+ * The as-needed chip's default anchor is a stateless scored pick, so it can
+ * teleport when unrelated items move. A chip WITH an override rides the frozen
+ * legacy base instead. So on the first map edit of any kind, materialize the
+ * current scored position as an override: the chip does not move now, and from
+ * then on it behaves as placed. Fresh maps keep the smart initial placement.
+ */
+export function freezeAsNeededChip(
+  before: MoneyMapData,
+  after: MoneyMapData,
+): MoneyMapData {
+  if (before.layoutOverrides?.asNeededChip) return after
+  const scored = asNeededChipCenter(before)
+  // The override rides the frozen legacy base, so measure that base under the
+  // edited geometry and fold in whatever chip delta the edit itself wrote.
+  const base = asNeededChipCenter({
+    ...after,
+    layoutOverrides: {
+      ...after.layoutOverrides,
+      asNeededChip: { dx: 0, dy: 0 },
+    },
+  })
+  if (!scored || !base) return after
+  const edit = after.layoutOverrides?.asNeededChip ?? {}
+  return {
+    ...after,
+    layoutOverrides: {
+      ...after.layoutOverrides,
+      asNeededChip: {
+        ...edit,
+        dx: scored.x - base.x + (edit.dx ?? 0),
+        dy: scored.y - base.y + (edit.dy ?? 0),
+      },
+    },
+  }
 }
 
 export default function App() {
@@ -1175,9 +1212,12 @@ export default function App() {
     )
   }
 
-  const handleMapChange = (next: typeof activeClient, feedback?: string) => {
+  const handleMapChange = (rawNext: typeof activeClient, feedback?: string) => {
     bumpFormRevision()
     const current = snapshotRef.current
+    const before =
+      current.book.clients.find((item) => item.id === rawNext.id) ?? activeClient
+    const next = freezeAsNeededChip(before, rawNext)
     commitSnapshot(
       {
         book: updateClient(current.book, next.id, next),
