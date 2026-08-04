@@ -189,6 +189,15 @@ function mapTextEditFontState(
   }
 }
 
+/**
+ * Arm the "swallow the next commit" flag only when an editor is actually open.
+ * Callers close the editor defensively (client switch, undo, dialogs); arming
+ * with nothing open leaves the flag stuck and eats a later real commit.
+ */
+export function armMapTextDiscard(discard: boolean, editorOpen: boolean) {
+  return discard && editorOpen
+}
+
 export default function App() {
   const [initialLoad] = useState(initialBrowserBook)
   const [snapshot, setSnapshot] = useState<BookSnapshot>(() => {
@@ -286,9 +295,10 @@ export default function App() {
   const setSelectedMapTargetKey = (key: string | null) =>
     setSelectedMapTargetKeys(key ? [key] : [])
   const closeMapTextEditor = useCallback((discard = false) => {
-    if (discard) discardMapTextCommitRef.current = true
+    if (armMapTextDiscard(discard, mapTextEdit !== null))
+      discardMapTextCommitRef.current = true
     setMapTextEdit(null)
-  }, [])
+  }, [mapTextEdit])
   useEffect(() => {
     setDataFilter('')
     setDataSection(undefined)
