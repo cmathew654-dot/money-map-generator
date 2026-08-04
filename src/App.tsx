@@ -2112,7 +2112,11 @@ export default function App() {
               )}
               {panZoomHintVisible && (
                 <aside className="pan-zoom-hint">
-                  <span>Hold Ctrl (or ⌘ on Mac) while scrolling to zoom. Drag the map background to pan.</span>
+                  <span>
+                    {mapZoom === 'fit'
+                      ? 'Hold Ctrl (or ⌘ on Mac) while scrolling to zoom.'
+                      : 'Hold Ctrl (or ⌘ on Mac) while scrolling to zoom. Drag the map background to pan.'}
+                  </span>
                   <button type="button" onClick={dismissPanZoomHint}>Got it</button>
                 </aside>
               )}
