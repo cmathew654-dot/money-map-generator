@@ -458,6 +458,13 @@ summary:focus-visible {
   cursor: nwse-resize;
 }
 
+.map-page svg .map-rotate-handle {
+  fill: #fcfcfa;
+  stroke: #1e7a4a;
+  stroke-width: 2;
+  cursor: grab;
+}
+
 .map-interactive [data-connector-highlight='true'] {
   filter: drop-shadow(0 0 5px rgb(30 122 74 / 45%));
 }

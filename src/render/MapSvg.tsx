@@ -1181,6 +1181,74 @@ function ResizeHandle({
     />
   )
 }
+export function rotateHandleTarget(
+  data: MoneyMapData,
+  selectedTargetKey: string | null | undefined,
+): { key: string; label: string; rect: Placed } | null {
+  if (!selectedTargetKey) return null
+  if (selectedTargetKey.startsWith('note:')) {
+    const noteId = selectedTargetKey.slice('note:'.length)
+    const placed = layoutMap(data).notes.find(
+      (candidate) => candidate.note.id === noteId,
+    )
+    return placed
+      ? {
+          key: selectedTargetKey,
+          label: `note: ${placed.note.text}`,
+          rect: placed,
+        }
+      : null
+  }
+  const footnote = selectedTargetKey.startsWith('text:footnotes:')
+  if (selectedTargetKey !== 'asNeededChip' && !footnote) return null
+  const rect = layoutOverrideRect(data, selectedTargetKey)
+  if (!rect) return null
+  const footnoteId = selectedTargetKey.split(':').pop()
+  return {
+    key: selectedTargetKey,
+    label: footnote
+      ? `footnote: ${
+          data.footnotes.find((candidate) => candidate.id === footnoteId)
+            ?.label ?? 'line'
+        }`
+      : 'as needed chip',
+    rect,
+  }
+}
+
+function RotateHandle({
+  label,
+  onPointerDown,
+  rect,
+  rot,
+}: {
+  label: string
+  onPointerDown: (event: PointerEvent<SVGElement>) => void
+  rect: Placed
+  rot: number
+}) {
+  const centerX = rect.x + rect.w / 2
+  return (
+    <circle
+      aria-label={`Rotate ${label}`}
+      className="map-rotate-handle"
+      cx={centerX}
+      cy={rect.y - 18}
+      data-pointer-action="rotate"
+      pointerEvents="all"
+      r={7}
+      role="button"
+      tabIndex={-1}
+      transform={
+        rot === 0
+          ? undefined
+          : `rotate(${rot} ${centerX} ${rect.y + rect.h / 2})`
+      }
+      onPointerDown={onPointerDown}
+    />
+  )
+}
+
 function AccountContent({
   onElementClick,
   onTextPointerDown,
@@ -2715,6 +2783,10 @@ export function MapSvg({
     toggleSelectedTarget(targetKey, event)
   }
 
+  const rotateTarget = onChange
+    ? rotateHandleTarget(displayData, selectedTargetKey)
+    : null
+
   const selectedAccountId =
     onChange && selectedTargetKey?.startsWith('account:')
       ? selectedTargetKey.slice('account:'.length)
@@ -3254,6 +3326,18 @@ export function MapSvg({
         x={layout.footnotesAt.x}
         y={layout.footnotesAt.y}
       />
+      {rotateTarget && (
+        <RotateHandle
+          label={rotateTarget.label}
+          rect={rotateTarget.rect}
+          rot={displayData.layoutOverrides?.[rotateTarget.key]?.rot ?? 0}
+          onPointerDown={beginDrag(
+            rotateTarget.key,
+            'rotate',
+            rotateTarget.rect,
+          )}
+        />
+      )}
       {connectorHandlePoint && connectorSourceId && (
         <circle
           aria-hidden="true"
