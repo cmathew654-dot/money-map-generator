@@ -1506,7 +1506,7 @@ export default function App() {
     [],
   )
 
-  const beginMapPan =(event: ReactPointerEvent<HTMLDivElement>) => {
+  const beginMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (
       mapZoom === 'fit' ||
       event.button !== 0 ||
