@@ -88,6 +88,7 @@ import {
   applyMapTextEdit,
   applyMapTextFontSize,
   adjustMapTextFontSize,
+  consumeMapTextDiscard,
   mapTextEditFsInfo,
   mapTextEditRawValue,
   MapTextEditor,
@@ -2102,7 +2103,7 @@ export default function App() {
                 key={JSON.stringify(mapTextEdit.target)}
                 onCancel={() => closeMapTextEditor(true)}
                 onCommit={(rawValue) => {
-                  if (discardMapTextCommitRef.current) {
+                  if (consumeMapTextDiscard(discardMapTextCommitRef)) {
                     setMapTextEdit(null)
                     return
                   }

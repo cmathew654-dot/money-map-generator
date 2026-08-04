@@ -1165,6 +1165,19 @@ summary:focus-visible {
   box-shadow: 0 3px 10px rgb(28 36 34 / 16%);
 }
 
+/* Size-only targets show a label instead of a text field, so the pill widens. */
+.map-text-size-controls.is-size-only {
+  width: auto;
+}
+
+.map-text-size-label {
+  padding: 0 8px 0 6px;
+  color: #5b6663;
+  font: 600 11px/1 'Public Sans', 'Segoe UI', sans-serif;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
 .map-text-size-controls button {
   min-width: 0;
   height: 22px;

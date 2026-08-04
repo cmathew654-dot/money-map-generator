@@ -9,6 +9,8 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from 'react'
+import { NOTE_LEADING } from '../layout/layout'
+import { textWidth } from '../layout/textfit'
 import { money, parseMoneyInput } from '../model/format'
 import type { AccountTextRole, MoneyMapData } from '../model/types'
 import {
@@ -157,6 +159,9 @@ export function mapTextEditorPillPosition(
         : rect.top - pillHeight - gap,
   }
 }
+
+/** Rendered width of the "Text size" pill label, for pill centring. */
+const SIZE_LABEL_WIDTH = 62
 
 type MapTextEditKind = MapTextEditTarget['kind']
 type MapTextEditorStyleBase = Omit<MapTextEditorTextStyle, 'fontSize'>
@@ -338,6 +343,12 @@ export function mapTextEditFsInfo(
         fallback: TYPE.subValue,
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
+    case 'incomeHeader':
+      return {
+        key: mapTextOverrideKey('income', 'header'),
+        fallback: TYPE.panelHeader,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
     case 'incomeAmount':
       return {
         key: mapTextOverrideKey('income', 'row'),
@@ -380,6 +391,38 @@ export function mapTextEditFsInfo(
     default:
       return null
   }
+}
+
+/** Editor leading, matched to the leading the map itself renders text at. */
+export const MAP_TEXT_EDITOR_LINE_HEIGHT = NOTE_LEADING / TYPE.note
+
+/**
+ * Screen width for the editor input: wide enough for the text being typed, but
+ * never narrower than the rect the text occupied before the edit started.
+ */
+export function mapTextEditorInputWidth(
+  text: string,
+  style: MapTextEditorTextStyle,
+  minWidth: number,
+  scale = 1,
+): number {
+  // ponytail: estimated advance widths (textfit), not measured glyphs — swap in
+  // a canvas measure only if the caret visibly drifts from the text.
+  const natural =
+    textWidth(text, style.fontSize) +
+    (style.letterSpacing ?? 0) * text.length +
+    style.fontSize
+  return Math.max(minWidth, natural * scale)
+}
+
+/**
+ * Reads the "discard this commit" flag and clears it, so a commit arriving for
+ * the *next* edit inside the same tick is not swallowed by a stale flag.
+ */
+export function consumeMapTextDiscard(ref: { current: boolean }): boolean {
+  if (!ref.current) return false
+  ref.current = false
+  return true
 }
 
 export function adjustMapTextFontSize(
@@ -719,7 +762,7 @@ export function MapTextEditor({
         : textStyle.letterSpacing * mapScale,
     lineHeight: `${
       multiline
-        ? textStyle.fontSize * mapScale * 1.25
+        ? textStyle.fontSize * mapScale * MAP_TEXT_EDITOR_LINE_HEIGHT
         : edit.rect.height
     }px`,
     textAlign: textStyle.textAlign,
@@ -728,7 +771,12 @@ export function MapTextEditor({
       edit.rect.top -
       (containerRect?.top ?? 0) +
       (container?.scrollTop ?? 0),
-    width: Math.max(edit.rect.width, 24),
+    width: mapTextEditorInputWidth(
+      multiline ? '' : rawValue,
+      textStyle,
+      Math.max(edit.rect.width, 24),
+      mapScale,
+    ),
   }
   const pillButtonCount = edit.fontSize === undefined ? 1 : 3
   const pillAnchor = edit.anchorRect
@@ -746,7 +794,7 @@ export function MapTextEditor({
   const pillScreenPosition = mapTextEditorPillPosition(
     pillAnchor,
     mapRect?.top ?? pillAnchor.top,
-    pillButtonCount * 36,
+    pillButtonCount * 36 + (sizeOnly ? SIZE_LABEL_WIDTH : 0),
   )
   const pillStyle: CSSProperties = {
     left:
@@ -884,7 +932,9 @@ export function MapTextEditor({
       <div
         ref={sizeControlsRef}
         aria-label={sizeOnly ? `Adjust ${mapTextEditorTargetLabel(edit.target)}` : undefined}
-        className={`map-text-size-controls is-${pillScreenPosition.placement}`}
+        className={`map-text-size-controls is-${pillScreenPosition.placement}${
+          sizeOnly ? ' is-size-only' : ''
+        }`}
         role={sizeOnly ? 'group' : undefined}
         style={pillStyle}
         tabIndex={sizeOnly ? 0 : undefined}
@@ -914,6 +964,9 @@ export function MapTextEditor({
           }
         }}
       >
+        {sizeOnly && (
+          <span className="map-text-size-label">Text size</span>
+        )}
         {edit.fontSize !== undefined && (
           <>
             <button
