@@ -7,7 +7,6 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
   type MouseEvent as ReactMouseEvent,
-  type WheelEvent as ReactWheelEvent,
 } from 'react'
 import {
   ACCOUNT_PRESETS,
@@ -196,6 +195,30 @@ function mapTextEditFontState(
  */
 export function armMapTextDiscard(discard: boolean, editorOpen: boolean) {
   return discard && editorOpen
+}
+
+/** Ctrl/Cmd + wheel is the zoom gesture; a plain wheel must scroll normally. */
+export function shouldZoomOnWheel(event: {
+  ctrlKey: boolean
+  metaKey: boolean
+  deltaY: number
+}) {
+  return (event.ctrlKey || event.metaKey) && event.deltaY !== 0
+}
+
+/**
+ * React attaches wheel listeners passively, so an onWheel handler's
+ * preventDefault() is a no-op and the browser zooms the whole page on
+ * ctrl+wheel. The listener has to be attached natively with passive: false.
+ */
+export function bindMapWheel(
+  el: HTMLElement | null,
+  handler: (event: WheelEvent) => void,
+) {
+  if (!el) return undefined
+  const listener = (event: Event) => handler(event as WheelEvent)
+  el.addEventListener('wheel', listener, { passive: false })
+  return () => el.removeEventListener('wheel', listener)
 }
 
 /**
@@ -1442,8 +1465,8 @@ export default function App() {
     })
   }
 
-  const handleMapWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    if ((!event.ctrlKey && !event.metaKey) || event.deltaY === 0) return
+  const handleMapWheel = (event: WheelEvent) => {
+    if (!shouldZoomOnWheel(event)) return
     event.preventDefault()
     const currentLevel =
       mapZoom === 'fit' ? Math.round(fitZoom / 10) * 10 : mapZoom
@@ -1454,9 +1477,9 @@ export default function App() {
     if (nextLevel === currentLevel && mapZoom !== 'fit') return
     dismissPanZoomHint()
 
-    const scroller = event.currentTarget
+    const scroller = previewPaneRef.current
     const page = mapPageRef.current
-    if (!page) {
+    if (!scroller || !page) {
       setMapZoom(nextLevel)
       return
     }
@@ -1472,7 +1495,18 @@ export default function App() {
     setMapZoom(nextLevel)
   }
 
-  const beginMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
+  const handleMapWheelRef = useRef(handleMapWheel)
+  handleMapWheelRef.current = handleMapWheel
+  // The scroller is rendered unconditionally, so a mount-once bind is enough.
+  useEffect(
+    () =>
+      bindMapWheel(previewPaneRef.current, (event) =>
+        handleMapWheelRef.current(event),
+      ),
+    [],
+  )
+
+  const beginMapPan =(event: ReactPointerEvent<HTMLDivElement>) => {
     if (
       mapZoom === 'fit' ||
       event.button !== 0 ||
@@ -2024,7 +2058,6 @@ export default function App() {
             }}
             onPointerMove={continueMapPan}
             onPointerUp={finishMapPan}
-            onWheel={handleMapWheel}
           >
             <div
               className={`map-stage${
