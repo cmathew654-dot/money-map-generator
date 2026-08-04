@@ -167,6 +167,37 @@ export function synchronizeMoneyDraft(
   if (parseMoneyInput(draft ?? '') === value) return draft
   return value === null ? '' : String(value)
 }
+/** Plain dollar drafts only — k/m shorthand and junk pass through untouched. */
+const PLAIN_MONEY_DRAFT = /^([+-]?)(\$?)(\d*)(\.\d*)?$/
+
+/**
+ * Regroup a money draft with thousands separators, keeping the caret on the
+ * character the user was standing next to (commas are not counted).
+ */
+export function formatMoneyDraft(
+  draft: string,
+  caret: number,
+): { text: string; caret: number } {
+  const match = PLAIN_MONEY_DRAFT.exec(draft.replace(/,/g, ''))
+  if (!match) return { text: draft, caret }
+
+  const [, sign, dollar, digits, decimals = ''] = match
+  const grouped = digits
+    .replace(/^0+(?=\d)/, '')
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  const text = `${sign}${dollar}${grouped}${decimals}`
+  if (text === draft) return { text, caret }
+
+  const wanted = draft.slice(0, caret).replace(/,/g, '').length
+  let seen = 0
+  let index = 0
+  while (index < text.length && seen < wanted) {
+    if (text[index] !== ',') seen += 1
+    index += 1
+  }
+  return { text, caret: index }
+}
+
 type PendingFocusTarget = {
   focus(): void
 }
@@ -300,9 +331,18 @@ function MoneyField({
           setDraft(null)
         }}
         onChange={(event) => {
-          const nextDraft = event.target.value
-          setDraft(nextDraft)
-          onChange(parseMoneyInput(nextDraft))
+          const input = event.target
+          const { text, caret } = formatMoneyDraft(
+            input.value,
+            input.selectionStart ?? input.value.length,
+          )
+          if (text !== input.value) {
+            // keep the DOM in sync now so React's render leaves the caret alone
+            input.value = text
+            input.setSelectionRange(caret, caret)
+          }
+          setDraft(text)
+          onChange(parseMoneyInput(text))
         }}
         onFocus={(event) => {
           isFocused.current = true
@@ -341,7 +381,7 @@ function MoneyField({
             event.key === 'ArrowUp' ? 1 : -1,
             tier,
           )
-          const nextDraft = String(next)
+          const nextDraft = formatMoneyDraft(String(next), 0).text
           setDraft(nextDraft)
           onChange(next)
         }}
