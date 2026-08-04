@@ -858,7 +858,8 @@ summary:focus-visible {
   padding: 3px 5px;
 }
 
-.map-inspector select {
+.map-inspector select,
+.map-inspector input[type='text'] {
   width: auto;
   min-width: 104px;
   padding: 3px 18px 3px 6px;
@@ -869,8 +870,13 @@ summary:focus-visible {
   text-transform: none;
 }
 
+.map-inspector input[type='text'] {
+  padding-right: 6px;
+}
+
 .map-inspector button:focus-visible,
-.map-inspector select:focus-visible {
+.map-inspector select:focus-visible,
+.map-inspector input[type='text']:focus-visible {
   outline: 2px solid #1e7a4a;
   outline-offset: 2px;
 }
