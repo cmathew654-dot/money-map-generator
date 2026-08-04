@@ -148,6 +148,7 @@ export interface Arrow {
   targetId?: string
   style?: CustomArrow['style']
   color?: CustomArrow['color']
+  sw?: CustomArrow['sw']
   label?: string
 }
 
@@ -1786,6 +1787,7 @@ function customArrowLayouts(
         id: record.id,
         style: record.style ?? 'solid',
         color: record.color,
+        sw: record.sw,
         label: record.label,
         labelAt: record.label
           ? (() => {

@@ -58,6 +58,7 @@ import type {
 } from '../model/types'
 import {
   CUSTOM_ARROW_COLORS,
+  DEFAULT_CUSTOM_ARROW_WIDTH,
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
   accountShape,
@@ -1766,7 +1767,7 @@ function ArrowPath({
       stroke={color}
       strokeDasharray={dotted ? '0.1 9' : dashed ? '7 6' : undefined}
       strokeLinecap={dotted ? 'round' : 'butt'}
-      strokeWidth={2}
+      strokeWidth={arrow.sw ?? DEFAULT_CUSTOM_ARROW_WIDTH}
     />
   )
 }

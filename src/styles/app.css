@@ -1859,6 +1859,25 @@ summary:focus-visible {
   outline-offset: 1px;
 }
 
+.map-inspector-color[popovertarget] {
+  anchor-name: --map-inspector-swatch;
+}
+
+.map-inspector-swatches:popover-open {
+  position: absolute;
+  position-anchor: --map-inspector-swatch;
+  top: anchor(bottom);
+  left: anchor(left);
+  display: flex;
+  margin: 4px 0 0;
+  gap: 3px;
+  padding: 6px;
+  border: 1px solid #c9cfc9;
+  border-radius: 8px;
+  background: rgb(252 252 250 / 98%);
+  box-shadow: 0 5px 18px rgb(28 36 34 / 18%);
+}
+
 .map-page.is-placing-text [data-map-background] {
   cursor: crosshair;
 }

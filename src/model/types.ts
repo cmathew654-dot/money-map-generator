@@ -83,7 +83,13 @@ export interface CustomArrow {
   labelDx?: number
   labelDy?: number
   color?: CustomArrowColor
+  /** Per-arrow stroke width override, in artboard units. */
+  sw?: number
 }
+
+export const DEFAULT_CUSTOM_ARROW_WIDTH = 2
+export const MIN_CUSTOM_ARROW_WIDTH = 1
+export const MAX_CUSTOM_ARROW_WIDTH = 6
 
 export type GeneratedArrowKind = 'income' | 'asNeeded'
 

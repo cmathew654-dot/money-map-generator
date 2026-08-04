@@ -9,7 +9,9 @@ import type {
 import { layoutMap, layoutOverrideRect } from '../layout/layout'
 import {
   ACCOUNT_TEXT_ROLES,
+  MAX_CUSTOM_ARROW_WIDTH,
   MAX_MAP_TEXT_FONT_SIZE,
+  MIN_CUSTOM_ARROW_WIDTH,
   MIN_MAP_TEXT_FONT_SIZE,
   accountTextOverrideKey,
   newId,
@@ -402,6 +404,21 @@ export function setCustomArrowColor(
     ...data,
     customArrows: data.customArrows.map((arrow) =>
       arrow.id === id ? { ...arrow, color } : arrow,
+    ),
+  }
+}
+
+export function setCustomArrowWidth(
+  data: MoneyMapData,
+  id: string,
+  sw: number,
+): MoneyMapData {
+  if (!data.customArrows?.some((arrow) => arrow.id === id)) return data
+  const clamped = clamp(sw, MIN_CUSTOM_ARROW_WIDTH, MAX_CUSTOM_ARROW_WIDTH)
+  return {
+    ...data,
+    customArrows: data.customArrows.map((arrow) =>
+      arrow.id === id ? { ...arrow, sw: clamped } : arrow,
     ),
   }
 }
