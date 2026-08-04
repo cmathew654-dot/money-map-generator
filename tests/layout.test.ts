@@ -105,10 +105,13 @@ function expectAsNeededChipClear(data: MoneyMapData) {
   const labelAt = layout.arrows.find(
     (arrow) => arrow.kind === 'asNeeded',
   )!.labelAt!
+  // Real chip footprint (AS_NEEDED_CHIP_WIDTH x AS_NEEDED_CHIP_HEIGHT) — a
+  // padded rect is provably unsatisfiable jointly with arrow clearance on
+  // saturated maps (Calloway scan, 2026-08-04).
   const chip = {
-    x: labelAt.x - 250 / 2,
+    x: labelAt.x - 188 / 2,
     y: labelAt.y - 38 / 2,
-    w: 250,
+    w: 188,
     h: 38,
   }
 
@@ -1113,6 +1116,40 @@ describe('layoutMap', () => {
     expectAsNeededChipClear(data)
   })
 
+  it('keeps the default Calloway as-needed chip off the income flow line', () => {
+    const layout = layoutMap(SAMPLE_CALLOWAY)
+    const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')!
+    const chip = {
+      x: asNeeded.labelAt!.x - 188 / 2,
+      y: asNeeded.labelAt!.y - 38 / 2,
+      w: 188,
+      h: 38,
+    }
+    const incomeArrows = layout.arrows.filter(
+      (arrow) => arrow.kind === 'income',
+    )
+    expect(incomeArrows.length).toBeGreaterThan(0)
+
+    const hits = incomeArrows.filter((income) =>
+      Array.from({ length: 41 }, (_, index) =>
+        pointOnQuadratic(
+          income.start,
+          income.control,
+          income.end,
+          index / 40,
+        ),
+      ).some(
+        (point) =>
+          point.x >= chip.x &&
+          point.x <= chip.x + chip.w &&
+          point.y >= chip.y &&
+          point.y <= chip.y + chip.h,
+      ),
+    )
+
+    expect(hits).toEqual([])
+  })
+
   it('keeps the default as-needed chip clear of a tall income panel', () => {
     const stress: MoneyMapData = {
       ...SAMPLE_WHITFIELD,
@@ -1157,7 +1194,7 @@ describe('layoutMap', () => {
     const chip = { x: legacyAnchor.x - 125, y: legacyAnchor.y - 19, w: 250, h: 38 }
     const pathPoint = (arrow: typeof crossing, t: number) => pointOnQuadratic(arrow.start, arrow.control, arrow.end, t)
     expect(Array.from({ length: 41 }, (_, index) => pathPoint(crossing, index / 40)).some((point) => point.x >= chip.x && point.x <= chip.x + chip.w && point.y >= chip.y && point.y <= chip.y + chip.h)).toBe(true)
-    const finalChip = { x: asNeeded.labelAt!.x - 125, y: asNeeded.labelAt!.y - 19, w: 250, h: 38 }
+    const finalChip = { x: asNeeded.labelAt!.x - 94, y: asNeeded.labelAt!.y - 19, w: 188, h: 38 }
     expect(Array.from({ length: 41 }, (_, index) => pathPoint(crossing, index / 40)).some((point) => point.x >= finalChip.x && point.x <= finalChip.x + finalChip.w && point.y >= finalChip.y && point.y <= finalChip.y + finalChip.h)).toBe(false)
   })
 
@@ -1165,7 +1202,7 @@ describe('layoutMap', () => {
     const layout = layoutMap(SAMPLE_WHITFIELD)
     const arrow = layout.arrows.find((candidate) => candidate.kind === 'asNeeded')!
     const otherArrows = layout.arrows.filter((candidate) => candidate !== arrow)
-    const chip = { x: arrow.labelAt!.x - 125, y: arrow.labelAt!.y - 19, w: 250, h: 38 }
+    const chip = { x: arrow.labelAt!.x - 94, y: arrow.labelAt!.y - 19, w: 188, h: 38 }
     expect(otherArrows.some((other) => Array.from({ length: 41 }, (_, index) => pointOnQuadratic(other.start, other.control, other.end, index / 40)).some((point) => point.x >= chip.x && point.x <= chip.x + chip.w && point.y >= chip.y && point.y <= chip.y + chip.h))).toBe(false)
   })
 
