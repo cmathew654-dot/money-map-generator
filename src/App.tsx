@@ -1362,7 +1362,8 @@ export default function App() {
   }
 
   const changeZoom = (change: number) => {
-    dismissPanZoomHint()
+    // Toolbar zoom doesn't demonstrate the wheel/pan gestures, so the hint
+    // stays up and gains the pan wording once zoom leaves 'fit' (slice 12).
     const scroller = previewPaneRef.current
     const page = mapPageRef.current
     if (scroller && page) {
