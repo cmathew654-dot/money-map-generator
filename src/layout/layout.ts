@@ -1807,6 +1807,7 @@ function asNeededArrow(
   override?: LayoutOverride,
   otherArrows: Arrow[] = [],
   obstacles: Placed[] = [],
+  frozen = false,
 ): Arrow {
   const arrow = routedArrow({
     kind: 'asNeeded',
@@ -1831,8 +1832,13 @@ function asNeededArrow(
     }
   }
   const fallback = anchorFor(fallbackT, 1)
-  // ponytail: naive candidate sampling and naive penalty weights (one arrow hit
-  // outweighs a whole chip of box overlap); proper label-placement pass if maps get dense
+  // A hand-placed chip anchors off the legacy fallback, never the scored pick:
+  // the drag delta layers on a continuous base, so nothing teleports.
+  if (frozen) return { ...arrow, labelAt: fallback }
+  // ponytail: coarse lexicographic buckets (arrow hits, then overlap area in
+  // 2000px^2 steps) — stable against 1px nudges but rare flips remain at bucket
+  // edges; killing those needs placement hysteresis, i.e. carrying state across
+  // layouts.
   const candidates = [
     0.7, 0.55, 0.4, 0.8, 0.3, 0.9, 0.2, 0.6, 0.45, 0.15, 0.1, 0.05,
   ].flatMap((t) =>
@@ -1870,26 +1876,30 @@ function asNeededArrow(
     }
     return hits
   }
-  // A single arrow-sample hit costs more than a fully covered chip (250 x 38),
-  // so a chip that grazes a panel always beats one sitting on a flow line.
-  const ARROW_HIT_PENALTY = 20_000
-  const penalty = (candidate: Point) =>
-    obstacles.reduce(
-      (total, obstacle) => total + overlapArea(chipRect(candidate), obstacle),
-      0,
-    ) +
+  // Lexicographic: any arrow hit loses to any amount of box overlap, and
+  // overlap is bucketed so a pixel of drift cannot flip the winner.
+  const score = (candidate: Point): [number, number] => [
     otherArrows.reduce(
-      (total, other) => total + arrowHits(candidate, other) * ARROW_HIT_PENALTY,
+      (total, other) => total + arrowHits(candidate, other),
       0,
-    )
+    ),
+    Math.round(
+      obstacles.reduce(
+        (total, obstacle) => total + overlapArea(chipRect(candidate), obstacle),
+        0,
+      ) / 2000,
+    ),
+  ]
   const ranked = [fallback, ...candidates]
   let labelAt = ranked[0]
-  let best = penalty(ranked[0])
+  let best = score(ranked[0])
   for (const candidate of ranked.slice(1)) {
-    if (best === 0) break
-    const score = penalty(candidate)
-    if (score < best) {
-      best = score
+    const current = score(candidate)
+    if (
+      current[0] < best[0] ||
+      (current[0] === best[0] && current[1] < best[1])
+    ) {
+      best = current
       labelAt = candidate
     }
   }
@@ -2531,6 +2541,7 @@ function arrowsForFinalGeometry(
             (arrow): arrow is Arrow => arrow !== undefined,
           ),
           [income, need, ...accounts.map(obstacleBounds)],
+          chipOverride !== undefined,
         ),
         chipOverride,
       ),

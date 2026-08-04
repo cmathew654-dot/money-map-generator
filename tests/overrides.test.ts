@@ -541,9 +541,12 @@ describe('layout overrides', () => {
   })
 
   it('applies the chip delta on top of its automatic position', () => {
-    const baseChip = layoutMap(SAMPLE_WHITFIELD).arrows.find(
-      (arrow) => arrow.kind === 'asNeeded',
-    )!.labelAt!
+    // An overridden chip layers its delta on the FROZEN legacy base (not the
+    // scored default) so hand placement is deterministic — assert linearity
+    // against the zero-delta frozen base rather than the automatic position.
+    const baseChip = layoutMap(
+      withOverrides({ asNeededChip: { dx: 0, dy: 0 } }),
+    ).arrows.find((arrow) => arrow.kind === 'asNeeded')!.labelAt!
     const movedChip = layoutMap(
       withOverrides({ asNeededChip: { dx: 35, dy: -24 } }),
     ).arrows.find((arrow) => arrow.kind === 'asNeeded')!.labelAt!
