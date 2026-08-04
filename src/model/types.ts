@@ -123,6 +123,7 @@ export type AccountTextRole = (typeof ACCOUNT_TEXT_ROLES)[number]
 export const MIN_ACCOUNT_TEXT_FONT_SIZE = 9
 export const MAX_ACCOUNT_TEXT_FONT_SIZE = 28
 export const MAP_TEXT_ELEMENTS = {
+  asNeeded: ['amount'],
   income: ['header', 'row', 'total'],
   need: ['label', 'value', 'supporting'],
   footnotes: ['line'],

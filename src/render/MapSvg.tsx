@@ -9,6 +9,7 @@ import {
   type SVGProps,
 } from 'react'
 import {
+  asNeededChipFontSize,
   hexagonInset,
   incomePanelMetrics,
   footnoteLineLayouts,
@@ -1826,7 +1827,6 @@ function ArrowEditor({
   customMarkerIds,
   markerId,
   onBeginDrag,
-  onElementClick,
   onSelect,
   selected,
   targetKey,
@@ -1839,7 +1839,6 @@ function ArrowEditor({
     mode: DragMode,
     outline?: OutlineElement,
   ) => (event: PointerEvent<SVGElement>) => void
-  onElementClick?: (target: MapElementTarget) => void
   onSelect: () => void
   selected: boolean
   targetKey: string
@@ -1873,11 +1872,6 @@ function ArrowEditor({
         d={arrow.d}
         fill="none"
         onPointerDown={onBeginDrag('arrowBow')}
-      />
-      <FlowArrowLabel
-        arrow={arrow}
-        onElementClick={onElementClick}
-        onPointerDown={onBeginDrag('flowLabelMove')}
       />
       {selected && ([
         ['arrowStart', arrow.start],
@@ -1926,18 +1920,21 @@ function rotateTransform(
 export function AsNeededLabel({
   arrow,
   amount,
+  fontSize = TYPE.arrowLabel,
   onElementClick,
   onTextPointerDown,
   selected,
 }: {
   arrow: Arrow
   amount: number | null
+  fontSize?: number
   onElementClick?: (target: MapElementTarget) => void
   onTextPointerDown?: (event: PointerEvent<SVGElement>) => void
   selected?: boolean
 }) {
   if (!arrow.labelAt) return null
   const amountText = mapMoney(amount, 10)
+  const scale = fontSize / TYPE.arrowLabel
   const accessibleLabel =
     'Monthly income drawn as needed ' + amountText.exact
   return (
@@ -1949,20 +1946,20 @@ export function AsNeededLabel({
     >
       <title>{accessibleLabel}</title>
       <rect
-        x={arrow.labelAt.x - 94}
-        y={arrow.labelAt.y - 19}
-        width={188}
-        height={38}
-        rx={19}
+        x={arrow.labelAt.x - 94 * scale}
+        y={arrow.labelAt.y - 19 * scale}
+        width={188 * scale}
+        height={38 * scale}
+        rx={19 * scale}
         fill="#ffffff"
         stroke={FLOW_GREEN}
         strokeDasharray="5 4"
       />
       <rect
-        x={arrow.labelAt.x - 87}
-        y={arrow.labelAt.y - 15}
-        width={174}
-        height={30}
+        x={arrow.labelAt.x - 87 * scale}
+        y={arrow.labelAt.y - 15 * scale}
+        width={174 * scale}
+        height={30 * scale}
         {...editableHitAreaProps(
           { kind: 'asNeededAmount' },
           onElementClick,
@@ -1971,10 +1968,10 @@ export function AsNeededLabel({
       />
       <text
         x={arrow.labelAt.x}
-        y={arrow.labelAt.y + 5}
+        y={arrow.labelAt.y + 5 * scale}
         fill={INK}
         fontFamily={FONT_SANS}
-        fontSize={TYPE.arrowLabel}
+        fontSize={fontSize}
         textAnchor="middle"
         {...editableLineTextProps(
           { kind: 'asNeededAmount' },
@@ -1983,7 +1980,7 @@ export function AsNeededLabel({
       >
         As needed
         <tspan
-          dx={7}
+          dx={7 * scale}
           fontFamily={FONT_SERIF}
           fontWeight={600}
           style={numericStyle}
@@ -2987,7 +2984,6 @@ export function MapSvg({
                   customMarkerIds={customMarkerIds}
                   markerId={markerId}
                 />
-                <FlowArrowLabel arrow={arrow} />
               </g>
             )
           }
@@ -3024,7 +3020,6 @@ export function MapSvg({
               arrow={arrow}
               customMarkerIds={customMarkerIds}
               markerId={markerId}
-              onElementClick={onElementClick}
               onSelect={() => setSelectedTarget(key)}
               onBeginDrag={(mode) =>
                 beginDrag(
@@ -3244,6 +3239,27 @@ export function MapSvg({
         })}
       </g>
 
+      {/* Painted after the accounts layer so cylinders never cover a label. */}
+      <g aria-label="Flow labels" role="group">
+        {layout.arrows.map((arrow, index) => (
+          <FlowArrowLabel
+            arrow={arrow}
+            key={`${arrow.kind}-${arrow.id ?? index}`}
+            onElementClick={onChange ? onElementClick : undefined}
+            onPointerDown={
+              onChange && arrow.id
+                ? beginDrag(
+                    `arrow:custom:${arrow.id}`,
+                    'flowLabelMove',
+                    undefined,
+                    arrow,
+                  )
+                : undefined
+            }
+          />
+        ))}
+      </g>
+
       {asNeeded && (
         <g
           data-map-target={onChange ? 'asNeededChip' : undefined}
@@ -3266,6 +3282,7 @@ export function MapSvg({
           <AsNeededLabel
             arrow={asNeeded}
             amount={displayData.asNeededAmount}
+            fontSize={asNeededChipFontSize(displayData)}
             onElementClick={onElementClick}
             onTextPointerDown={
               onChange ? beginDrag('asNeededChip', 'move') : undefined

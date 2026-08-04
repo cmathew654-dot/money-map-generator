@@ -338,6 +338,12 @@ export function mapTextEditFsInfo(
         fallback: TYPE.subValue,
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
+    case 'asNeededAmount':
+      return {
+        key: mapTextOverrideKey('asNeeded', 'amount'),
+        fallback: TYPE.arrowLabel,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
     case 'incomeAmount':
       return {
         key: mapTextOverrideKey('income', 'row'),

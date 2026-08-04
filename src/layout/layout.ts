@@ -591,6 +591,20 @@ export function mastheadTextLayout(data: MoneyMapData) {
   }
 }
 
+/**
+ * ponytail: the chip's pill geometry (AS_NEEDED_CHIP_WIDTH/HEIGHT) stays at its
+ * default footprint for obstacle/bounds math; only the drawn chip scales with
+ * this size. Thread the size through arrowBounds if collisions start to lie.
+ */
+export function asNeededChipFontSize(data: MoneyMapData): number {
+  return clamp(
+    data.layoutOverrides?.[mapTextOverrideKey('asNeeded', 'amount')]?.fs ??
+      TYPE.arrowLabel,
+    MIN_MAP_TEXT_FONT_SIZE,
+    MAX_MAP_TEXT_FONT_SIZE,
+  )
+}
+
 export function flowLabelText(arrow: Arrow): FittedText {
   return fittedTextLine(
     arrow.label ?? '',
