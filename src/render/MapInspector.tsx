@@ -10,6 +10,7 @@ import {
 import type {
   AccountShape,
   Bucket,
+  CustomArrowColor,
   LayoutOverride,
   MoneyMapData,
 } from '../model/types'
@@ -72,6 +73,16 @@ function withoutOverride(data: MoneyMapData, key: string): MoneyMapData {
     layoutOverrides:
       Object.keys(layoutOverrides).length > 0 ? layoutOverrides : undefined,
   }
+}
+
+function setNoteColor(data: MoneyMapData, id: string, color: CustomArrowColor | undefined): MoneyMapData {
+  const key = `note:${id}`
+  if (color) return withOverride(data, key, { color })
+  const existing = data.layoutOverrides?.[key]
+  if (!existing) return data
+  const { color: _removed, ...rest } = existing
+  if (Object.keys(rest).length === 0) return withoutOverride(data, key)
+  return { ...data, layoutOverrides: { ...data.layoutOverrides, [key]: rest } }
 }
 
 function InspectorGroup({ label, children }: { label: string; children: ReactNode }) {
@@ -196,6 +207,7 @@ export function MapInspector({
   const note = noteId
     ? data.notes?.find((candidate) => candidate.id === noteId)
     : undefined
+  const noteColor = noteId ? data.layoutOverrides?.[`note:${noteId}`]?.color : undefined
   const isText = selectedTargetKey.startsWith('text:')
   const layoutKey = accountId ??
     (selectedTargetKey === 'income' || selectedTargetKey === 'need' || selectedTargetKey === 'asNeededChip' || isText
@@ -583,6 +595,28 @@ export function MapInspector({
             <InspectorGroup label="Size">
               <button aria-label="Decrease note size" type="button" onClick={() => onChange(resizeMapNote(data, noteId, (layout.notes.find((candidate) => candidate.note.id === noteId)?.w ?? NOTE_WIDTH) - 24))}>−</button>
               <button aria-label="Increase note size" type="button" onClick={() => onChange(resizeMapNote(data, noteId, (layout.notes.find((candidate) => candidate.note.id === noteId)?.w ?? NOTE_WIDTH) + 24))}>+</button>
+            </InspectorGroup>
+            <InspectorGroup label="Color">
+              {CUSTOM_ARROW_COLORS.map((color) => (
+                <button
+                  aria-label={`${color[0].toUpperCase() + color.slice(1)} note color`}
+                  aria-pressed={noteColor === color}
+                  className="map-inspector-color"
+                  key={color}
+                  style={{ backgroundColor: ARROW_COLORS[color] }}
+                  title={color[0].toUpperCase() + color.slice(1)}
+                  type="button"
+                  onClick={() => onChange(setNoteColor(data, noteId, color))}
+                />
+              ))}
+              <button
+                aria-label="Clear note color"
+                aria-pressed={noteColor === undefined}
+                className="map-inspector-color"
+                title="None"
+                type="button"
+                onClick={() => onChange(setNoteColor(data, noteId, undefined))}
+              />
             </InspectorGroup>
             <InspectorGroup label="Background">
               <button aria-pressed={Boolean(note.bg)} type="button" onClick={() => onChange(setMapNoteBackground(data, noteId, !note.bg))}>{note.bg ? 'On' : 'Off'}</button>
