@@ -224,7 +224,10 @@ export default function App() {
   const [browserSaveStatus, setBrowserSaveStatus] = useState<BrowserSaveStatus>(initialLoad.status === 'error' ? 'error' : 'saved')
   const [browserSaveError, setBrowserSaveError] = useState(initialLoad.status === 'error' ? initialLoad.message : '')
   const [recovery, setRecovery] = useState(initialLoad.status === 'recovery' ? { raw: initialLoad.raw, message: initialLoad.message } : null)
-  const [tabId] = useState(() => newId('tab'))
+  // Tab ids must be unique across tabs minted in the same millisecond
+  // (session restore opens siblings together); newId's realm-local counter
+  // can't guarantee that, so add per-tab entropy.
+  const [tabId] = useState(() => `${newId('tab')}-${Math.random().toString(36).slice(2, 6)}`)
   const [isWriter, setIsWriter] = useState(() => DATA_MODE === 'real' && acquireBrowserWriter(localStorage, tabId).status === 'acquired')
   const [writerTakeoverPending, setWriterTakeoverPending] = useState(false)
   const [presentMode, setPresentMode] = useState(false)
