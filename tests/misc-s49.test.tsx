@@ -24,6 +24,7 @@ function contentsMarkup(): string {
       onClose: () => {},
       onOpenData: () => {},
       onSelectTarget: () => {},
+      onOpenTarget: () => {},
       onAddIncome: () => {},
       onAddAccount: () => {},
       onSetNeed: () => {},
