@@ -251,7 +251,7 @@ test.describe('approved desktop interaction regression', () => {
   })
 
   test('dragging the as-needed chip writes a layout override', async ({ page }) => {
-    const chip = page.locator('[data-as-needed-chip="true"]')
+    const chip = page.locator('[data-as-needed-chip="true"]').first()
     const before = await chip.boundingBox()
     if (!before) throw new Error('As-needed chip has no measurable bounds')
     await pointerDrag(page, chip, { x: 72, y: 36 })
@@ -265,8 +265,8 @@ test.describe('approved desktop interaction regression', () => {
   })
 
   test('clicking the as-needed amount opens its editor', async ({ page }) => {
-    const amount = page.locator('[data-as-needed-chip="true"] [data-map-edit-hit="asNeededAmount"]')
-    await amount.click()
+    const amount = page.locator('[data-as-needed-chip="true"] [data-map-edit-hit="asNeededAmount"]').first()
+    await amount.dblclick()
     await expect(page.locator('.map-text-editor-input')).toBeVisible()
   })
 
