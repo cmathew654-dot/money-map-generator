@@ -109,6 +109,55 @@ type FileSaveStatus = 'saved' | 'saving'
 type BrowserSaveStatus = 'saved' | 'saving' | 'error'
 type MapZoom = 'fit' | number
 
+const MIN_ZOOM = 25
+const MAX_ZOOM = 200
+
+export function clampZoom(level: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, level))
+}
+
+/** Selection key -> the Data panel section and row it belongs to. */
+export function dataTargetForMapKey(
+  key: string | null | undefined,
+): { section: FormSection; id: string } | null {
+  if (!key) return null
+  if (key === 'income' || key === 'need') return { section: key, id: key }
+  if (key.startsWith('account:')) {
+    return { section: 'accounts', id: key.slice('account:'.length) }
+  }
+  if (key.startsWith('note:')) {
+    return { section: 'notes', id: key.slice('note:'.length) }
+  }
+  return null
+}
+
+function flowEndpointId(key: string) {
+  if (key === 'income' || key === 'need') return key
+  if (key.startsWith('account:')) return key.slice('account:'.length)
+  return null
+}
+
+/** Two selected map items make a flow; anything else leaves the button dead. */
+export function flowEndpointsFromSelection(keys: readonly string[]) {
+  if (keys.length !== 2) return null
+  const source = flowEndpointId(keys[0])
+  const target = flowEndpointId(keys[1])
+  if (!source || !target || source === target) return null
+  return { source, target }
+}
+
+/** New notes land bottom-centre of the visible map, cascading so they don't stack. */
+export function noteSpawnPoint(
+  visible: { left: number; right: number; top: number; bottom: number },
+  index: number,
+) {
+  const step = 18 * (index % 6)
+  return {
+    x: (visible.left + visible.right) / 2 + step,
+    y: Math.max(visible.top + 24, visible.bottom - 72 - step),
+  }
+}
+
 export function canMutateBook(dataMode: 'demo' | 'real', isWriter: boolean, recovering: boolean) {
   return !recovering && (dataMode === 'demo' || isWriter)
 }
@@ -1199,20 +1248,18 @@ export default function App() {
     setFocusRequest({ id, at: focusRequestCounter.current })
   }
 
-  const handleMapDetails = () => {
-    const targetKey = selectedMapTargetKey
-    if (!targetKey) return
-    if (targetKey === 'income' || targetKey === 'need') {
-      focusDataTarget(targetKey, targetKey)
-      return
-    }
-    if (targetKey.startsWith('account:')) {
-      focusDataTarget('accounts', targetKey.slice('account:'.length))
-      return
-    }
-    if (targetKey.startsWith('note:')) {
-      focusDataTarget('notes', targetKey.slice('note:'.length))
-    }
+  const openDetailsForTargetKey = (targetKey: string | null) => {
+    const target = dataTargetForMapKey(targetKey)
+    if (target) focusDataTarget(target.section, target.id)
+  }
+
+  const handleMapDetails = () => openDetailsForTargetKey(selectedMapTargetKey)
+
+  const handleMapDoubleClick = () => {
+    // The first click of the double click already selected the item; a text
+    // edit means the pointer was on a label, which owns the gesture.
+    if (mapTextEdit) return
+    handleMapDetails()
   }
 
   const handleMapElementClick = (target: MapElementTarget) => {
@@ -1498,7 +1545,7 @@ export default function App() {
         current === 'fit'
           ? Math.round(fitZoom / 10) * 10
           : current
-      return Math.min(200, Math.max(50, level + change))
+      return clampZoom(level + change)
     })
   }
 
@@ -1507,10 +1554,7 @@ export default function App() {
     event.preventDefault()
     const currentLevel =
       mapZoom === 'fit' ? Math.round(fitZoom / 10) * 10 : mapZoom
-    const nextLevel = Math.min(
-      200,
-      Math.max(50, currentLevel + (event.deltaY < 0 ? 10 : -10)),
-    )
+    const nextLevel = clampZoom(currentLevel + (event.deltaY < 0 ? 10 : -10))
     if (nextLevel === currentLevel && mapZoom !== 'fit') return
     dismissPanZoomHint()
 
@@ -1692,10 +1736,12 @@ export default function App() {
     if (!svg || !scroller) return
     const mapRect = svg.getBoundingClientRect()
     const viewport = scroller.getBoundingClientRect()
-    openTextNoteAt(artboardPointFromClient({
-      x: (Math.max(mapRect.left, viewport.left) + Math.min(mapRect.right, viewport.right)) / 2,
-      y: (Math.max(mapRect.top, viewport.top) + Math.min(mapRect.bottom, viewport.bottom)) / 2,
-    }, mapRect))
+    openTextNoteAt(artboardPointFromClient(noteSpawnPoint({
+      left: Math.max(mapRect.left, viewport.left),
+      right: Math.min(mapRect.right, viewport.right),
+      top: Math.max(mapRect.top, viewport.top),
+      bottom: Math.min(mapRect.bottom, viewport.bottom),
+    }, activeClient.notes?.length ?? 0), mapRect))
   }
 
   const handlePanelAddIncome = () => {
@@ -1786,11 +1832,13 @@ export default function App() {
     }
   }
 
+  const selectedFlowPair = flowEndpointsFromSelection(selectedMapTargetKeys)
+
   const zoomControls = (
     <div className="zoom-cluster" aria-label="Map zoom">
       <button
         aria-label="Zoom out"
-        disabled={mapZoom === 50}
+        disabled={mapZoom === MIN_ZOOM}
         type="button"
         onClick={() => changeZoom(-10)}
       >
@@ -1801,7 +1849,7 @@ export default function App() {
       </output>
       <button
         aria-label="Zoom in"
-        disabled={mapZoom === 200}
+        disabled={mapZoom === MAX_ZOOM}
         type="button"
         onClick={() => changeZoom(10)}
       >
@@ -2022,6 +2070,7 @@ export default function App() {
                   }
                 }}
                 onRestoreGeneratedFlows={handleRestoreGeneratedArrows}
+                onOpenTarget={openDetailsForTargetKey}
                 onSelectTarget={handleMapSelectionChange}
                 onSetNeed={() => focusDataTarget('need', 'need')}
                 selectedTargetKey={selectedMapTargetKey}
@@ -2112,6 +2161,7 @@ export default function App() {
                   mapZoom === 'fit' ? '' : ' is-zoomed'
                 }${placingTextNote ? ' is-placing-text' : ''}`}
                 onClickCapture={placeTextNote}
+                onDoubleClick={handleMapDoubleClick}
                 style={
                   mapZoom === 'fit'
                     ? undefined
@@ -2206,6 +2256,21 @@ export default function App() {
                 onClick={(event) => beginTextNotePlacement(event.detail === 0)}
               >
                 + Text note
+              </button>
+              <button
+                disabled={!canMutate || !selectedFlowPair}
+                title={
+                  selectedFlowPair
+                    ? 'Connect the two selected items'
+                    : 'Select two map items to connect them'
+                }
+                type="button"
+                onClick={() => {
+                  const pair = selectedFlowPair
+                  if (pair) handlePanelAddFlow(pair.source, pair.target)
+                }}
+              >
+                + Flow
               </button>
               <div ref={shapePopoverRef} className="shape-quick-add">
                 <button
