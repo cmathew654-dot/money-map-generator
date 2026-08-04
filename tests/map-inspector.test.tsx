@@ -193,6 +193,39 @@ describe('persistent map inspector', () => {
     expect(sans).toMatch(/<button[^>]*aria-pressed="true"[^>]*>Sans</)
   })
 
+  it('shows note color swatches that set and clear the note override', () => {
+    const noteData = {
+      ...SAMPLE_WHITFIELD,
+      notes: [{ id: 'audit-note', text: 'Keep this visible', x: 500, y: 400 }],
+    }
+    const changes: MoneyMapData[] = []
+    const inspector = MapInspector({
+      data: noteData,
+      selectedTargetKey: 'note:audit-note',
+      onChange: (next) => { changes.push(next) },
+      onClose: () => undefined,
+      onSelect: () => undefined,
+    })
+
+    expect(render('note:audit-note', noteData)).toContain('aria-label="Blue note color"')
+    const markup = render('note:audit-note', noteData)
+    expect(markup).toContain('role="group" aria-label="Color"')
+    expect(markup).toContain('aria-label="Clear note color"')
+    expect(markup.match(/class="map-inspector-color"/g)).toHaveLength(8)
+    findControl(inspector, 'Blue note color').props.onClick?.()
+    expect(changes.at(-1)?.layoutOverrides?.['note:audit-note']).toEqual({ color: 'blue' })
+
+    const clearInspector = MapInspector({
+      data: { ...noteData, layoutOverrides: { 'note:audit-note': { color: 'blue' } } },
+      selectedTargetKey: 'note:audit-note',
+      onChange: (next) => { changes.push(next) },
+      onClose: () => undefined,
+      onSelect: () => undefined,
+    })
+    findControl(clearInspector, 'Clear note color').props.onClick?.()
+    expect(changes.at(-1)?.layoutOverrides?.['note:audit-note']).toBeUndefined()
+  })
+
   it('keeps inspector controls compact without losing their focus outline', () => {
     const css = readFileSync('src/styles/app.css', 'utf8')
     const controlBlock =

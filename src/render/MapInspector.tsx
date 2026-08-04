@@ -207,6 +207,7 @@ export function MapInspector({
   const note = noteId
     ? data.notes?.find((candidate) => candidate.id === noteId)
     : undefined
+  const noteColor = noteId ? data.layoutOverrides?.[`note:${noteId}`]?.color : undefined
   const isText = selectedTargetKey.startsWith('text:')
   const layoutKey = accountId ??
     (selectedTargetKey === 'income' || selectedTargetKey === 'need' || selectedTargetKey === 'asNeededChip' || isText
@@ -594,6 +595,28 @@ export function MapInspector({
             <InspectorGroup label="Size">
               <button aria-label="Decrease note size" type="button" onClick={() => onChange(resizeMapNote(data, noteId, (layout.notes.find((candidate) => candidate.note.id === noteId)?.w ?? NOTE_WIDTH) - 24))}>−</button>
               <button aria-label="Increase note size" type="button" onClick={() => onChange(resizeMapNote(data, noteId, (layout.notes.find((candidate) => candidate.note.id === noteId)?.w ?? NOTE_WIDTH) + 24))}>+</button>
+            </InspectorGroup>
+            <InspectorGroup label="Color">
+              {CUSTOM_ARROW_COLORS.map((color) => (
+                <button
+                  aria-label={`${color[0].toUpperCase() + color.slice(1)} note color`}
+                  aria-pressed={noteColor === color}
+                  className="map-inspector-color"
+                  key={color}
+                  style={{ backgroundColor: ARROW_COLORS[color] }}
+                  title={color[0].toUpperCase() + color.slice(1)}
+                  type="button"
+                  onClick={() => onChange(setNoteColor(data, noteId, color))}
+                />
+              ))}
+              <button
+                aria-label="Clear note color"
+                aria-pressed={noteColor === undefined}
+                className="map-inspector-color"
+                title="None"
+                type="button"
+                onClick={() => onChange(setNoteColor(data, noteId, undefined))}
+              />
             </InspectorGroup>
             <InspectorGroup label="Background">
               <button aria-pressed={Boolean(note.bg)} type="button" onClick={() => onChange(setMapNoteBackground(data, noteId, !note.bg))}>{note.bg ? 'On' : 'Off'}</button>
