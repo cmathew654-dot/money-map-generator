@@ -32,6 +32,7 @@ import {
   clamp,
   clampRectToBounds,
   deleteCustomArrow,
+  deleteMapAccount,
   deleteMapNote,
   distributeMapItems,
   duplicateMapAccount,
@@ -452,7 +453,7 @@ export function MapInspector({
       <div className="map-inspector-heading">
         <div><span>Selected</span><strong>{title}</strong></div>
         {canOpenDetails && <button aria-label="Details" type="button" onClick={onDetails}>Details</button>}
-        <button aria-label="Close inspector" type="button" onClick={onClose}>×</button>
+        <button aria-label="Close inspector" title="Close" type="button" onClick={onClose}>×</button>
       </div>
       <div className="map-inspector-controls">
         {multiSelection && (
@@ -685,6 +686,7 @@ export function MapInspector({
         {customArrowId && <button className="map-inspector-danger" type="button" onClick={() => { onChange(deleteCustomArrow(data, customArrowId)); onClose() }}>Delete flow</button>}
         {generatedKind && <button className="map-inspector-danger" type="button" onClick={() => { onChange(hideGeneratedArrow(data, generatedKind)); onClose() }}>Hide flow</button>}
         {noteId && <button className="map-inspector-danger" type="button" onClick={() => { onChange(deleteMapNote(data, noteId)); onClose() }}>Delete note</button>}
+        {account && <button className="map-inspector-danger" type="button" onClick={() => { onChange(deleteMapAccount(data, account.id)); onClose() }}>Delete account</button>}
         </>}
       </div>
     </section>

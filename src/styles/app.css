@@ -767,7 +767,7 @@ summary:focus-visible {
   right: 8px;
   left: 8px;
   display: flex;
-  height: 72px;
+  min-height: 72px;
   align-items: stretch;
   gap: 8px;
   padding: 8px 8px;
@@ -828,8 +828,6 @@ summary:focus-visible {
   flex: 1;
   flex-wrap: wrap;
   gap: 6px 6px;
-  overflow-x: auto;
-  scrollbar-width: thin;
 }
 
 .map-inspector-group,
