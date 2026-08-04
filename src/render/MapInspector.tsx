@@ -42,6 +42,7 @@ import {
   retargetCustomArrow,
   resetTextPosition,
   setCustomArrowColor,
+  setCustomArrowLabel,
   setMapNoteBackground,
   setMapNoteFont,
   setMapNoteFontSize,
@@ -582,6 +583,19 @@ export function MapInspector({
             )}
             {customArrow && (
               <>
+                <label className="map-inspector-field">Label
+                  <input
+                    aria-label="Label"
+                    defaultValue={customArrow.label ?? ''}
+                    key={`${customArrow.id}:${customArrow.label ?? ''}`}
+                    placeholder="Name this flow"
+                    // Mirrors the `.map-inspector select` rule; app.css is out of scope for this change.
+                    style={{ minWidth: 104, minHeight: 28, padding: '3px 6px', color: '#1c2422', fontSize: 12, fontWeight: 500, letterSpacing: 0, textTransform: 'none' }}
+                    type="text"
+                    onBlur={(event) => onChange(setCustomArrowLabel(data, customArrow.id, event.target.value))}
+                    onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur() }}
+                  />
+                </label>
                 {(['sourceId', 'targetId'] as const).map((field) => (
                   <label className="map-inspector-field" key={field}>{field === 'sourceId' ? 'From' : 'To'}
                     <select
