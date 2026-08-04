@@ -1139,6 +1139,36 @@ describe('layoutMap', () => {
     expectAsNeededChipClear(stress)
   })
 
+
+  it('moves the as-needed chip away from a crossing arrow path', () => {
+    const shortTerm = SAMPLE_WHITFIELD.accounts.find((account) => account.bucket === 'shortTerm')!
+    const data: MoneyMapData = {
+      ...structuredClone(SAMPLE_WHITFIELD),
+      customArrows: [{ id: 'crossing-arrow', sourceId: shortTerm.id, targetId: 'need', style: 'solid' }],
+      layoutOverrides: { 'arrow:custom:crossing-arrow': { bow: 180 } },
+    }
+    const layout = layoutMap(data)
+    const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')!
+    const crossing = layout.arrows.find((arrow) => arrow.id === 'crossing-arrow')!
+    const legacyPoint = pointOnQuadratic(asNeeded.start, asNeeded.control, asNeeded.end, 0.7)
+    const legacyTangent = { x: 2 * 0.3 * (asNeeded.control.x - asNeeded.start.x) + 2 * 0.7 * (asNeeded.end.x - asNeeded.control.x), y: 2 * 0.3 * (asNeeded.control.y - asNeeded.start.y) + 2 * 0.7 * (asNeeded.end.y - asNeeded.control.y) }
+    const legacyLength = Math.hypot(legacyTangent.x, legacyTangent.y) || 1
+    const legacyAnchor = { x: legacyPoint.x - (legacyTangent.y / legacyLength) * 70, y: legacyPoint.y + (legacyTangent.x / legacyLength) * 70 }
+    const chip = { x: legacyAnchor.x - 125, y: legacyAnchor.y - 19, w: 250, h: 38 }
+    const pathPoint = (arrow: typeof crossing, t: number) => pointOnQuadratic(arrow.start, arrow.control, arrow.end, t)
+    expect(Array.from({ length: 41 }, (_, index) => pathPoint(crossing, index / 40)).some((point) => point.x >= chip.x && point.x <= chip.x + chip.w && point.y >= chip.y && point.y <= chip.y + chip.h)).toBe(true)
+    const finalChip = { x: asNeeded.labelAt!.x - 125, y: asNeeded.labelAt!.y - 19, w: 250, h: 38 }
+    expect(Array.from({ length: 41 }, (_, index) => pathPoint(crossing, index / 40)).some((point) => point.x >= finalChip.x && point.x <= finalChip.x + finalChip.w && point.y >= finalChip.y && point.y <= finalChip.y + finalChip.h)).toBe(false)
+  })
+
+  it('keeps a collision-free as-needed anchor near its own curve', () => {
+    const layout = layoutMap(SAMPLE_WHITFIELD)
+    const arrow = layout.arrows.find((candidate) => candidate.kind === 'asNeeded')!
+    const otherArrows = layout.arrows.filter((candidate) => candidate !== arrow)
+    const chip = { x: arrow.labelAt!.x - 125, y: arrow.labelAt!.y - 19, w: 250, h: 38 }
+    expect(otherArrows.some((other) => Array.from({ length: 41 }, (_, index) => pointOnQuadratic(other.start, other.control, other.end, index / 40)).some((point) => point.x >= chip.x && point.x <= chip.x + chip.w && point.y >= chip.y && point.y <= chip.y + chip.h))).toBe(false)
+  })
+
   it('routes custom arrows between rotated element outlines with clearance', () => {
     const data = structuredClone(SAMPLE_WHITFIELD)
     const sourceId = data.accounts[0].id

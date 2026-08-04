@@ -252,6 +252,7 @@ export const NOTE_MAX_WIDTH = 600
 export const NOTE_LEADING = 21
 const MIGRATED_FLOW_MIN_Y = 128
 const AS_NEEDED_CHIP_WIDTH = 188
+const AS_NEEDED_CHIP_CLEARANCE_WIDTH = 250
 const AS_NEEDED_CHIP_HEIGHT = 38
 const OUTLINE_SAMPLES = 512
 const DEFAULT_BOW_FRACTION = 0.15
@@ -1805,6 +1806,8 @@ function asNeededArrow(
   shortTerm: PlacedAccount,
   need: Placed,
   override?: LayoutOverride,
+  otherArrows: Arrow[] = [],
+  obstacles: Placed[] = [],
 ): Arrow {
   const arrow = routedArrow({
     kind: 'asNeeded',
@@ -1813,22 +1816,65 @@ function asNeededArrow(
     override,
     sourceId: shortTerm.account.id,
   })
-  const { start, control, end } = arrow
-  const t = 0.7
-  const point = pointOnQuadratic(start, control, end, t)
-  const tangent = {
-    x: 2 * (1 - t) * (control.x - start.x) + 2 * t * (end.x - control.x),
-    y: 2 * (1 - t) * (control.y - start.y) + 2 * t * (end.y - control.y),
+  const fallbackT = 0.7
+  const anchorFor = (t: number, side: number, distance = 70) => {
+    const point = pointOnQuadratic(arrow.start, arrow.control, arrow.end, t)
+    const tangent = {
+      x: 2 * (1 - t) * (arrow.control.x - arrow.start.x) +
+        2 * t * (arrow.end.x - arrow.control.x),
+      y: 2 * (1 - t) * (arrow.control.y - arrow.start.y) +
+        2 * t * (arrow.end.y - arrow.control.y),
+    }
+    const length = Math.hypot(tangent.x, tangent.y) || 1
+    return {
+      x: point.x - side * (tangent.y / length) * distance,
+      y: point.y + side * (tangent.x / length) * distance,
+    }
   }
-  const tangentLength = Math.hypot(tangent.x, tangent.y) || 1
+  const fallback = anchorFor(fallbackT, 1)
+  // ponytail: naive candidate sampling; proper label-placement pass if maps get dense
+  const candidates = [0.7, 0.55, 0.4, 0.8, 0.3].flatMap((t) =>
+    [150, 110, 70].flatMap((distance) =>
+      [1, -1].map((side) => anchorFor(t, side, distance)),
+    ),
+  )
+  const chipRect = (center: Point) => ({
+    x: center.x - AS_NEEDED_CHIP_CLEARANCE_WIDTH / 2,
+    y: center.y - AS_NEEDED_CHIP_HEIGHT / 2,
+    w: AS_NEEDED_CHIP_CLEARANCE_WIDTH,
+    h: AS_NEEDED_CHIP_HEIGHT,
+  })
+  const overlaps = (left: Placed, right: Placed) =>
+    left.x < right.x + right.w &&
+    left.x + left.w > right.x &&
+    left.y < right.y + right.h &&
+    left.y + left.h > right.y
+  const intersects = (center: Point, other: Arrow) => {
+    const rect = chipRect(center)
+    for (let index = 0; index <= 24; index += 1) {
+      const point = pointOnQuadratic(
+        other.start,
+        other.control,
+        other.end,
+        index / 24,
+      )
+      if (
+        point.x >= rect.x &&
+        point.x <= rect.x + rect.w &&
+        point.y >= rect.y &&
+        point.y <= rect.y + rect.h
+      ) return true
+    }
+    return false
+  }
+  const clears = (candidate: Point) =>
+    !otherArrows.some((other) => intersects(candidate, other)) &&
+    !obstacles.some((obstacle) => overlaps(chipRect(candidate), obstacle))
+  const labelAt = clears(fallback)
+    ? fallback
+    : candidates.find(clears) ?? fallback
 
-  return {
-    ...arrow,
-    labelAt: {
-      x: point.x - (tangent.y / tangentLength) * 70,
-      y: point.y + (tangent.x / tangentLength) * 70,
-    },
-  }
+  return { ...arrow, labelAt }
 }
 
 function pathCoordinates(path: string): { x: number; y: number }[] {
@@ -2039,7 +2085,7 @@ export interface FootnoteLineLayout {
 
 export function footnoteText(footnote: Footnote, fontSize: number): FittedText {
   return fittedTextLine(
-    `${footnote.label}: ${money(footnote.gross)} → ${money(footnote.net)} after withholding`,
+    `${footnote.label}: ${money(footnote.gross)} â†’ ${money(footnote.net)} after withholding`,
     720,
     fontSize,
   )
@@ -2445,14 +2491,12 @@ function arrowsForFinalGeometry(
   hiddenArrows: GeneratedArrowKind[] | undefined,
 ): Arrow[] {
   const hidden = new Set(hiddenArrows)
+  const incomeArrowLayout = hidden.has('income')
+    ? undefined
+    : incomeArrow(income, need, overrides?.['arrow:income'])
+  const custom = customArrowLayouts(customArrows, income, need, accounts, overrides)
   const arrows: Arrow[] = []
-  if (!hidden.has('income')) {
-    arrows.push(incomeArrow(
-      income,
-      need,
-      overrides?.['arrow:income'],
-    ))
-  }
+  if (incomeArrowLayout) arrows.push(incomeArrowLayout)
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
   )
@@ -2463,14 +2507,16 @@ function arrowsForFinalGeometry(
           shortTerm,
           need,
           overrides?.['arrow:asNeeded'],
+          [incomeArrowLayout, ...custom].filter(
+            (arrow): arrow is Arrow => arrow !== undefined,
+          ),
+          [income, need, ...accounts.map(obstacleBounds)],
         ),
         chipOverride,
       ),
     )
   }
-  arrows.push(
-    ...customArrowLayouts(customArrows, income, need, accounts, overrides),
-  )
+  arrows.push(...custom)
   return arrows
 }
 
@@ -3082,3 +3128,4 @@ export function nudgeLayoutOverride(
     },
   }
 }
+
