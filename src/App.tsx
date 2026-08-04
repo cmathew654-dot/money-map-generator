@@ -116,6 +116,40 @@ export function canWriteConnectedBook(canMutate: boolean, connected: boolean) {
   return canMutate && connected
 }
 
+/** Selection keys name accounts, notes and custom arrows by id; the rest of the map is always there. */
+export function mapTargetKeyStillExists(
+  key: string,
+  client:
+    | {
+        accounts: { id: string }[]
+        notes?: { id: string }[]
+        customArrows?: { id: string }[]
+      }
+    | undefined,
+) {
+  const has = (items: { id: string }[] | undefined, prefix: string) =>
+    items?.some((item) => item.id === key.slice(prefix.length)) ?? false
+  if (key.startsWith('account:')) return has(client?.accounts, 'account:')
+  if (key.startsWith('note:')) return has(client?.notes, 'note:')
+  if (key.startsWith('arrow:custom:')) return has(client?.customArrows, 'arrow:custom:')
+  return true
+}
+
+export function canStartMapPan(state: {
+  mapZoom: MapZoom
+  button: number
+  presentMode: boolean
+  onBackground: boolean
+}) {
+  if (state.mapZoom === 'fit' || state.button !== 0) return false
+  // Presenting has no map furniture to grab, so the whole surface pans.
+  return state.presentMode || state.onBackground
+}
+
+export function presentExitZoom(stashed: MapZoom | null, current: MapZoom) {
+  return stashed ?? current
+}
+
 export function browserPersistenceLabel(dataMode: 'demo' | 'real', isWriter: boolean, status: BrowserSaveStatus, switching = false) {
   if (dataMode === 'demo') return 'Public demo — changes are temporary'
   if (switching) return 'Getting this tab ready to edit…'
@@ -300,6 +334,7 @@ export default function App() {
   const [writerTakeoverPending, setWriterTakeoverPending] = useState(false)
   const [presentMode, setPresentMode] = useState(false)
   const [mapZoom, setMapZoom] = useState<MapZoom>('fit')
+  const presentZoomRef = useRef<MapZoom | null>(null)
   const [panZoomHintVisible, setPanZoomHintVisible] = useState(
     initialPanZoomHintVisible,
   )
@@ -410,25 +445,13 @@ export default function App() {
   }, [mapTextEdit])
 
   useEffect(() => {
-    const nextKeys = selectedMapTargetKeys.filter(
-      (key) => {
-        if (key.startsWith('account:')) {
-          return activeClient.accounts.some(
-            (account) => account.id === key.slice('account:'.length),
-          )
-        }
-        if (key.startsWith('note:')) {
-          return activeClient.notes?.some(
-            (note) => note.id === key.slice('note:'.length),
-          ) ?? false
-        }
-        return true
-      },
+    const nextKeys = selectedMapTargetKeys.filter((key) =>
+      mapTargetKeyStillExists(key, activeClient),
     )
     if (nextKeys.length !== selectedMapTargetKeys.length) {
       setSelectedMapTargetKeys(nextKeys)
     }
-  }, [activeClient.accounts, activeClient.notes, selectedMapTargetKeys])
+  }, [activeClient, selectedMapTargetKeys])
 
   useEffect(() => {
     if (!shapePopoverOpen) return
@@ -523,13 +546,20 @@ export default function App() {
       bumpFormRevision()
       closeMapTextEditor(true)
       showSnapshot(next)
-      setSelectedMapTargetKey(null)
+      const restoredClient = next.book.clients.find(
+        (client) => client.id === next.activeClientId,
+      )
+      setSelectedMapTargetKeys((keys) => {
+        const kept = keys.filter((key) =>
+          mapTargetKeyStillExists(key, restoredClient),
+        )
+        return kept.length === keys.length ? keys : kept
+      })
       setDialog(null)
-      closeDataPanel()
       setGuidedSetup(false)
       resetWizard()
     },
-    [bumpFormRevision, closeDataPanel, closeMapTextEditor, resetWizard, showSnapshot],
+    [bumpFormRevision, closeMapTextEditor, resetWizard, showSnapshot],
   )
 
   const handleUndo = useCallback(() => {
@@ -810,13 +840,13 @@ export default function App() {
   useEffect(() => {
     const handleEditorEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape' || presentMode || dialog) return
-      if (mapTextEdit) {
+      if (placingTextNote) {
+        setPlacingTextNote(false)
+      } else if (mapTextEdit) {
         closeMapTextEditor(true)
       } else if (shapePopoverOpen) {
         setShapePopoverOpen(false)
         shapePopoverButtonRef.current?.focus()
-      } else if (placingTextNote) {
-        setPlacingTextNote(false)
       } else if (editorPanel) {
         closeDataPanel()
       } else if (selectedMapTargetKey) {
@@ -832,6 +862,8 @@ export default function App() {
 
   const exitPresentMode = useCallback(() => {
     setPresentMode(false)
+    setMapZoom((current) => presentExitZoom(presentZoomRef.current, current))
+    presentZoomRef.current = null
     if (document.fullscreenElement) {
       void document.exitFullscreen().catch(() => undefined)
     }
@@ -844,7 +876,7 @@ export default function App() {
     }
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
-        setPresentMode(false)
+        exitPresentMode()
       }
     }
     window.addEventListener('keydown', handlePresentKeyDown)
@@ -945,6 +977,7 @@ export default function App() {
   const handlePresent = async () => {
     closeMapTextEditor(true)
     setShapePopoverOpen(false)
+    presentZoomRef.current = mapZoom
     setMapZoom('fit')
     setPresentMode(true)
     const shell = appShellRef.current
@@ -1507,11 +1540,16 @@ export default function App() {
   )
 
   const beginMapPan = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const onBackground =
+      event.target instanceof Element &&
+      Boolean(event.target.closest('[data-map-background]'))
     if (
-      mapZoom === 'fit' ||
-      event.button !== 0 ||
-      !(event.target instanceof Element) ||
-      !event.target.closest('[data-map-background]')
+      !canStartMapPan({
+        mapZoom,
+        button: event.button,
+        presentMode,
+        onBackground,
+      })
     ) {
       return
     }
