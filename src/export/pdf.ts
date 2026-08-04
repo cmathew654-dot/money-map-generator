@@ -50,6 +50,26 @@ function utf16beHex(value: string): string {
   return hex.toUpperCase()
 }
 
+function pdfDate(now: Date): string {
+  const pad = (value: number, width = 2) => String(value).padStart(width, '0')
+  return `D:${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}+00'00'`
+}
+
+/**
+ * 32 hex digits for the trailer /ID, from the image bytes and page geometry.
+ * ponytail: FNV-1a x4, not a real digest — swap in SHA-256 if /ID ever needs collision resistance.
+ */
+function documentId(jpegBytes: Uint8Array, pixelWidth: number, pixelHeight: number): string {
+  const seeds = [0x811c9dc5, 0x01000193, 0x7fffffff, 0xdeadbeef]
+  return seeds
+    .map((seed) => {
+      let hash = seed ^ pixelWidth ^ (pixelHeight << 8)
+      for (const byte of jpegBytes) hash = Math.imul(hash ^ byte, 0x01000193) >>> 0
+      return hash.toString(16).padStart(8, '0').toUpperCase()
+    })
+    .join('')
+}
+
 export function buildPdf(
   jpegBytes: Uint8Array,
   pixelWidth: number,
@@ -64,6 +84,7 @@ export function buildPdf(
   const title = metadata.title || 'Money Map'
   const language = metadata.language || 'en-US'
   const alternativeText = metadata.alternativeText || 'A Money Map financial planning diagram.'
+  const id = documentId(jpegBytes, pixelWidth, pixelHeight)
   const content = text(`q\n${PAGE_WIDTH} 0 0 ${PAGE_HEIGHT} 0 0 cm\n/Figure <</MCID 0>> BDC\n/Im0 Do\nEMC\nQ\n`)
   const objects = [
     object(1, `<< /Type /Catalog /Pages 2 0 R /MarkInfo << /Marked true >> /Lang <${utf16beHex(language)}> /StructTreeRoot 7 0 R >>`),
@@ -71,7 +92,7 @@ export function buildPdf(
     object(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /StructParents 0 /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`),
     object(4, stream(`/Type /XObject /Subtype /Image /Width ${pixelWidth} /Height ${pixelHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode`, jpegBytes)),
     object(5, stream('', content)),
-    object(6, `<< /Title <${utf16beHex(title)}> >>`),
+    object(6, `<< /Title <${utf16beHex(title)}> /Producer <${utf16beHex('Money Map')}> /Creator <${utf16beHex('Money Map')}> /CreationDate (${pdfDate(new Date())}) >>`),
     object(7, '<< /Type /StructTreeRoot /K [8 0 R] /ParentTree 9 0 R /ParentTreeNextKey 1 >>'),
     object(8, '<< /Type /StructElem /S /Document /P 7 0 R /K [10 0 R] >>'),
     object(9, '<< /Nums [0 [10 0 R]] >>'),
@@ -85,6 +106,6 @@ export function buildPdf(
     position += pdfObject.length
   }
   const xrefOffset = position
-  const xref = text(['xref', `0 ${objects.length + 1}`, '0000000000 65535 f ', ...offsets.map(xrefEntry).map((entry) => entry.trimEnd()), 'trailer', `<< /Size ${objects.length + 1} /Root 1 0 R /Info 6 0 R >>`, 'startxref', String(xrefOffset), '%%EOF', ''].join('\n'))
+  const xref = text(['xref', `0 ${objects.length + 1}`, '0000000000 65535 f ', ...offsets.map(xrefEntry).map((entry) => entry.trimEnd()), 'trailer', `<< /Size ${objects.length + 1} /Root 1 0 R /Info 6 0 R /ID [<${id}> <${id}>] >>`, 'startxref', String(xrefOffset), '%%EOF', ''].join('\n'))
   return join([header, ...objects, xref])
 }

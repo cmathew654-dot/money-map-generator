@@ -27,7 +27,7 @@ describe('buildPdf', () => {
     expect(source).toContain('/Filter /DCTDecode')
     expect(source).toContain(`/Length ${jpeg.length} >>\nstream\n`)
     expect(source).toContain('/Width 2640 /Height 2040')
-    expect(source).toContain('trailer\n<< /Size 11 /Root 1 0 R /Info 6 0 R >>')
+    expect(source).toContain('trailer\n<< /Size 11 /Root 1 0 R /Info 6 0 R /ID [<')
   })
 
   it('computes xref offsets from the actual byte positions', () => {

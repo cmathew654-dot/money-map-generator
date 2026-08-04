@@ -44,7 +44,25 @@ function endpointLabel(data: MoneyMapData, id: string): string {
   return data.accounts.find((account) => account.id === id)?.label || 'Untitled account'
 }
 
-function contentItems(data: MoneyMapData): ContentItem[] {
+const GROUP_ORDER = ['Income', 'Needs', 'Accounts', 'Flows', 'Notes'] as const
+type ContentGroup = (typeof GROUP_ORDER)[number]
+
+function groupOf(key: string): ContentGroup {
+  if (key === 'income') return 'Income'
+  if (key === 'need') return 'Needs'
+  if (key.startsWith('account:')) return 'Accounts'
+  if (key.startsWith('arrow:')) return 'Flows'
+  return 'Notes'
+}
+
+/** Non-empty groups in panel order; membership follows the item key's type prefix. */
+export function contentGroups(items: ContentItem[]): [ContentGroup, ContentItem[]][] {
+  return GROUP_ORDER
+    .map((group): [ContentGroup, ContentItem[]] => [group, items.filter((item) => groupOf(item.key) === group)])
+    .filter(([, groupItems]) => groupItems.length > 0)
+}
+
+export function contentItems(data: MoneyMapData): ContentItem[] {
   const layout = layoutMap(data)
   const items: ContentItem[] = [
     { key: 'income', label: 'Income sources', search: 'income sources income' },
@@ -286,29 +304,34 @@ function ContentsPanel({
           onChange={(event) => setFilter(event.target.value)}
         />
       </label>
-      <div className="editor-content-list" role="list" aria-label="Map contents">
-        {items.map((item) => {
-          return (
-            <div className="editor-content-row" key={item.key} role="listitem">
-              <button
-                aria-pressed={selectedTargetKey === item.key}
-                disabled={item.hidden}
-                type="button"
-                onClick={() => {
-                  if (!item.hidden) onSelectTarget(item.key)
-                }}
-                onDoubleClick={() => onOpenTarget(item.key)}
-              >
-                {item.label}
-              </button>
-              {item.hidden && (
-                <span className="editor-content-warning">
-                  Hidden; restore automatic flows to select.
-                </span>
-              )}
+      <div aria-label="Map contents">
+        {contentGroups(items).map(([group, groupItems]) => (
+          <section aria-label={group} className="editor-panel-section" key={group}>
+            <h3>{group}</h3>
+            <div className="editor-content-list" role="list">
+              {groupItems.map((item) => (
+                <div className="editor-content-row" key={item.key} role="listitem">
+                  <button
+                    aria-pressed={selectedTargetKey === item.key}
+                    disabled={item.hidden}
+                    type="button"
+                    onClick={() => {
+                      if (!item.hidden) onSelectTarget(item.key)
+                    }}
+                    onDoubleClick={() => onOpenTarget(item.key)}
+                  >
+                    {item.label}
+                  </button>
+                  {item.hidden && (
+                    <span className="editor-content-warning">
+                      Hidden; restore automatic flows to select.
+                    </span>
+                  )}
+                </div>
+              ))}
             </div>
-          )
-        })}
+          </section>
+        ))}
         {items.length === 0 && <p className="empty-state">No matching map contents.</p>}
       </div>
       {hasHiddenFlows && (
