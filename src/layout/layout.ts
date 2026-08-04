@@ -2085,7 +2085,7 @@ export interface FootnoteLineLayout {
 
 export function footnoteText(footnote: Footnote, fontSize: number): FittedText {
   return fittedTextLine(
-    `${footnote.label}: ${money(footnote.gross)} â†’ ${money(footnote.net)} after withholding`,
+    `${footnote.label}: ${money(footnote.gross)} → ${money(footnote.net)} after withholding`,
     720,
     fontSize,
   )
