@@ -415,10 +415,18 @@ export function tidyArrangement(
 
   const placed: { x: number; y: number; w: number; h: number }[] = []
   for (const anchor of anchors) {
-    let x = snap(anchor.x)
-    let y = snap(anchor.y)
     const w = anchor.w ?? TIDY_DEFAULT_W
     const h = anchor.h ?? TIDY_DEFAULT_H
+    let x = snap(anchor.x)
+    let y = snap(anchor.y)
+
+    // The renderer clamps overrides into these bounds, so a snap that lands
+    // outside would write a delta the item never actually moves by — and tidy
+    // would report work left to do forever.
+    if (bounds !== undefined) {
+      x = Math.min(Math.max(x, bounds.left), bounds.right - w)
+      y = Math.min(Math.max(y, bounds.top), bounds.bottom - h)
+    }
 
     if (placed.some((rect) => placementsOverlap({ x, y, w, h }, rect))) {
       let found = false
@@ -478,8 +486,9 @@ export function tidyArrangement(
   let next = data
 
   anchors.forEach((anchor, i) => {
-    const dx = placed[i].x - anchor.x
-    const dy = placed[i].y - anchor.y
+    // Sub-pixel residue is invisible on screen but keeps the Tidy button live.
+    const dx = Math.abs(placed[i].x - anchor.x) < 0.5 ? 0 : placed[i].x - anchor.x
+    const dy = Math.abs(placed[i].y - anchor.y) < 0.5 ? 0 : placed[i].y - anchor.y
     if (dx === 0 && dy === 0) return
 
     if (anchor.key.startsWith('note:')) {

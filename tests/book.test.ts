@@ -448,6 +448,36 @@ describe('book operations', () => {
       }
     }
   })
+
+  it('converges for an item pinned at the bottom bound', () => {
+    // The renderer clamps an override to bounds.bottom - h. With h off the grid
+    // the clamp limit is off the grid too, so an unclamped snap wrote a phantom
+    // delta on every tidy click while the item never moved.
+    const bounds = { left: 48, top: 118, right: 1272, bottom: 972 }
+    const h = 122.8467
+    const pinnedY = bounds.bottom - h // 849.1533 — already at the clamp limit
+    const source: MoneyMapData = {
+      ...structuredClone(SAMPLE_WHITFIELD),
+      layoutOverrides: { daf: { dx: 0, dy: 40 } },
+    }
+    const anchors = [{ key: 'daf', x: 600, y: pinnedY, w: 180, h }] as const
+
+    // Steady state already: tidy must be a no-op, so canTidyMap reads false.
+    expect(tidyArrangement(source, anchors, bounds)).toBe(source)
+
+    // And no drift accumulates across repeated clicks.
+    let current = source
+    for (let i = 0; i < 3; i++) current = tidyArrangement(current, anchors, bounds)
+    expect(current.layoutOverrides?.daf).toEqual({ dx: 0, dy: 40 })
+  })
+
+  it('ignores sub-pixel snap residue', () => {
+    const source: MoneyMapData = structuredClone(SAMPLE_WHITFIELD)
+    expect(
+      tidyArrangement(source, [{ key: 'acc-a', x: 599.982, y: 300.019, w: 180, h: 120 }]),
+    ).toBe(source)
+  })
+
   it('changes semantic account type without changing effective shape', () => {
     const note = {
       id: 'note-account',
