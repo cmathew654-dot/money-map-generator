@@ -1,4 +1,13 @@
-# Handoff — Map-polish waves 1+2 COMPLETE (2026-08-04, session 47)
+# Handoff — Map-polish waves 1+2 COMPLETE + visual-pass fix round (2026-08-04, session 47)
+
+## FIX ROUND ADDENDUM (post-visual-pass, same session)
+
+A headless visual review after wave 2 found three defects the 569-green suite missed; all fixed, merged, re-verified visually. HEAD now `84d7d84`, vitest 574/574, tsc clean, playwright 20/20.
+
+- `13eeba4` — last wave-1 mojibake survivor (`→` in the withholding footnote, layout.ts). Full-tree sweep clean.
+- `9f0550e` (lane/fix-notedrop) — SILENT NOTE LOSS after client switch: session-46 regression from `355779c` (`discardMapTextCommitRef` armed by defensive closes with no editor open, never cleared, next commit swallowed). Root guard `armMapTextDiscard(discard, editorOpen)` in `closeMapTextEditor` covers all 10 callers. Visually re-verified 3/3 survive + reload.
+- `e03c86c` (lane/fix-anchor) — chip sat ON the income line on Calloway: map saturation → all candidates failed binary `clears` → legacy unscored fallback. Now least-bad penalty scoring (box overlap area + arrow-hit ×20k), provably identical wherever a clear spot exists. KEY RULING: clearance tests padded the chip to 250px vs real 188px footprint — jointly unsatisfiable at 250 on Calloway (exhaustive scan), satisfiable at 188. Tests + scorer aligned to the true 188×38 rect; fine t values (0.05–0.15) added. Calloway chip now in the gutter at (394,395), reads attached to its own arrow; Whitfield unchanged.
+- Visual nits logged, not fixed: Calloway chip has only ~4–6px margin to the income curve at 1440 (no headroom if the label widens); Whitfield chip floats ~70px from its arrow tip (pre-existing); new notes all spawn at artboard center and stack (pre-existing).
 
 Supersedes `2026-08-03-parallel-lanes-wave1-handoff.md`. The session-46 sequence (dogfood → four verdicts → push-update ceremony → s44 lane cleanup) still stands and takes precedence.
 
