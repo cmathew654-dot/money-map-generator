@@ -2143,10 +2143,9 @@ function NoteBlock({
   )
   return (
     <>
-      {(placed.note.bg || color) && (
+      {placed.note.bg && (
         <rect
           className="map-note-card"
-          data-note-color={color}
           fill={color ? ARROW_COLORS[color] : '#ffffff'}
           fillOpacity={color ? 0.12 : undefined}
           height={placed.h + 20}
@@ -2175,7 +2174,8 @@ function NoteBlock({
         className={`map-note-text${
           editProps.className ? ` ${editProps.className}` : ''
         }`}
-        fill={placed.note.bg ? INK : MUTED}
+        data-note-color={color}
+        fill={color ? ARROW_COLORS[color] : placed.note.bg ? INK : MUTED}
         fontFamily={placed.note.font === 'sans' ? FONT_SANS : FONT_SERIF}
         fontSize={placed.fontSize}
         x={placed.x}
