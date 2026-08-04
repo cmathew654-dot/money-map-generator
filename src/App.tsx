@@ -1201,8 +1201,11 @@ export default function App() {
     setFocusRequest(undefined)
   }
 
-  const handleClientChange = (next: typeof activeClient) => {
+  const handleClientChange = (rawNext: typeof activeClient) => {
     const current = snapshotRef.current
+    const before =
+      current.book.clients.find((item) => item.id === rawNext.id) ?? activeClient
+    const next = freezeAsNeededChip(before, rawNext)
     commitSnapshot(
       {
         book: updateClient(current.book, next.id, next),
@@ -1210,6 +1213,24 @@ export default function App() {
       },
       next.id,
     )
+  }
+
+  /**
+   * Pointer-down on the map, before the first preview frame: materialize the
+   * chip's scored anchor so it stops re-picking per frame mid-drag. Position-
+   * preserving and invisible, so it goes through showSnapshot — no undo step.
+   */
+  const handleMapGestureStart = () => {
+    const current = snapshotRef.current
+    const before =
+      current.book.clients.find((item) => item.id === activeClient.id) ??
+      activeClient
+    const next = freezeAsNeededChip(before, before)
+    if (next === before) return
+    showSnapshot({
+      book: updateClient(current.book, next.id, next),
+      activeClientId: current.activeClientId,
+    })
   }
 
   const handleMapChange = (rawNext: typeof activeClient, feedback?: string) => {
@@ -1512,7 +1533,10 @@ export default function App() {
 
   const handleQuickAdd = (bucket: Bucket, select = false) => {
     if (!canMutate) return ''
-    const nextClient = appendBlankAccount(activeClient, bucket)
+    const nextClient = freezeAsNeededChip(
+      activeClient,
+      appendBlankAccount(activeClient, bucket),
+    )
     const account = nextClient.accounts.at(-1)!
     const current = snapshotRef.current
     commitSnapshot(
@@ -2031,6 +2055,7 @@ export default function App() {
                   onElementClick={
                     presentMode || !canMutate ? undefined : handleMapElementClick
                   }
+                  onGestureStart={presentMode || !canMutate ? undefined : handleMapGestureStart}
                   onSelectedTargetKeysChange={handleMapSelectionKeysChange}
                   selectedTargetKey={selectedMapTargetKey}
                   selectedTargetKeys={selectedMapTargetKeys}

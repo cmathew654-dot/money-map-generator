@@ -1,4 +1,5 @@
 import appSource from '../src/App.tsx?raw'
+import mapSvgSource from '../src/render/MapSvg.tsx?raw'
 import { describe, expect, it } from 'vitest'
 
 import { freezeAsNeededChip } from '../src/App'
@@ -89,6 +90,72 @@ describe('as-needed chip freeze on first edit', () => {
     expect(appSource).toMatch(
       /const handleMapChange = \([\s\S]{0,400}?freezeAsNeededChip\(/,
     )
+  })
+
+  // (a) Note add / income add / fine print / form panels all commit through
+  // handleClientChange, which bypassed handleMapChange's freeze entirely.
+  it('freezes on the handleClientChange commit path', () => {
+    expect(appSource).toMatch(
+      /const handleClientChange = \([\s\S]{0,400}?freezeAsNeededChip\(/,
+    )
+  })
+
+  // (c) handleQuickAdd is the one raw commitSnapshot caller that moves geometry.
+  it('freezes on the handleQuickAdd commit path', () => {
+    expect(appSource).toMatch(
+      /const handleQuickAdd = \([\s\S]{0,400}?freezeAsNeededChip\(/,
+    )
+  })
+})
+
+describe('as-needed chip freeze at gesture start', () => {
+  // (b) A freeze with no edit applied must be a pure no-op on screen: the chip
+  // renders at exactly the scored position it had before the override existed.
+  it.each(SAMPLES)(
+    'materializes the override without moving the chip (%s)',
+    (_name, sample) => {
+      const frozen = freezeAsNeededChip(sample, sample)
+      expect(frozen).not.toBe(sample)
+      expect(frozen.layoutOverrides?.asNeededChip).toBeDefined()
+      expectCenterNear(asNeededChipCenter(frozen), asNeededChipCenter(sample))
+      const before = layoutOverrideRect(sample, 'asNeededChip')
+      const after = layoutOverrideRect(frozen, 'asNeededChip')
+      expect(after!.x).toBeCloseTo(before!.x, 1)
+      expect(after!.y).toBeCloseTo(before!.y, 1)
+    },
+  )
+
+  it.each(SAMPLES)(
+    'is idempotent once the chip is already frozen (%s)',
+    (_name, sample) => {
+      const frozen = freezeAsNeededChip(sample, sample)
+      expect(freezeAsNeededChip(frozen, frozen)).toBe(frozen)
+    },
+  )
+
+  it('fires the gesture-start hook from beginDrag before any preview frame', () => {
+    expect(mapSvgSource).toMatch(/onGestureStart\?: \(\) => void/)
+    expect(mapSvgSource).toMatch(
+      /const beginDrag = \([\s\S]{0,900}?onGestureStart\?\.\(\)[\s\S]{0,200}?dragRef\.current = \{/,
+    )
+  })
+
+  it('wires the gesture-start hook to MapSvg behind the mutation guard', () => {
+    expect(appSource).toMatch(
+      /onGestureStart=\{presentMode \|\| !canMutate \? undefined : handleMapGestureStart\}/,
+    )
+  })
+
+  // The gesture-start freeze is invisible, so it must not cost an undo step:
+  // showSnapshot writes app state without pushing history; commitSnapshot would.
+  it('freezes at gesture start without pushing a history entry', () => {
+    const handler = appSource.match(
+      /const handleMapGestureStart = \(\) => \{[\s\S]*?\n  \}/,
+    )
+    expect(handler).not.toBeNull()
+    expect(handler![0]).toContain('freezeAsNeededChip(')
+    expect(handler![0]).toContain('showSnapshot(')
+    expect(handler![0]).not.toContain('commitSnapshot(')
   })
 })
 

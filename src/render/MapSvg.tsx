@@ -151,6 +151,11 @@ interface MapSvgProps {
   data: MoneyMapData
   onElementClick?: (target: MapElementTarget) => void
   onChange?: (data: MoneyMapData) => void
+  /**
+   * Fired once at pointer-down, before the first preview frame, so the host can
+   * settle any layout that would otherwise re-derive mid-drag.
+   */
+  onGestureStart?: () => void
   onConnectorDrop?: (sourceId: string, targetId: string) => void
   highlightId?: string | null
 }
@@ -2219,6 +2224,7 @@ export function MapSvg({
   data,
   onElementClick,
   onChange,
+  onGestureStart,
   onConnectorDrop,
   highlightId,
 }: MapSvgProps) {
@@ -2377,6 +2383,11 @@ export function MapSvg({
       mode === 'move'
         ? layoutOverrideRect(data, key) ?? startPlaced
         : startPlaced
+
+    // Settle host-side layout before frame 1. The host's freeze is position-
+    // preserving, so `dragStartPlaced` above stays valid; the next render hands
+    // previewDrag the settled `data` and finishDrag commits against it.
+    onGestureStart?.()
 
     dragRef.current = {
       active: false,
