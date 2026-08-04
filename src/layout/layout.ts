@@ -252,6 +252,7 @@ export const NOTE_MAX_WIDTH = 600
 export const NOTE_LEADING = 21
 const MIGRATED_FLOW_MIN_Y = 128
 const AS_NEEDED_CHIP_WIDTH = 188
+const AS_NEEDED_CHIP_CLEARANCE_WIDTH = 250
 const AS_NEEDED_CHIP_HEIGHT = 38
 const OUTLINE_SAMPLES = 512
 const DEFAULT_BOW_FRACTION = 0.15
@@ -572,7 +573,7 @@ function mastheadLabel(data: MoneyMapData): string {
   const period = mastheadPeriodLabel(data.client)
   const label = data.client.mastheadLabel?.trim() || 'Money Map'
   return data.client.variant === 'postNote'
-    ? `${label} â€” ${period}`
+    ? `${label} — ${period}`
     : `${label} ${period}`
 }
 
@@ -1833,17 +1834,23 @@ function asNeededArrow(
   const fallback = anchorFor(fallbackT, 1)
   // ponytail: naive candidate sampling; proper label-placement pass if maps get dense
   const candidates = [0.7, 0.55, 0.4, 0.8, 0.3].flatMap((t) =>
-    [70, 110, 150].flatMap((distance) =>
+    [150, 110, 70].flatMap((distance) =>
       [1, -1].map((side) => anchorFor(t, side, distance)),
     ),
   )
+  const chipRect = (center: Point) => ({
+    x: center.x - AS_NEEDED_CHIP_CLEARANCE_WIDTH / 2,
+    y: center.y - AS_NEEDED_CHIP_HEIGHT / 2,
+    w: AS_NEEDED_CHIP_CLEARANCE_WIDTH,
+    h: AS_NEEDED_CHIP_HEIGHT,
+  })
+  const overlaps = (left: Placed, right: Placed) =>
+    left.x < right.x + right.w &&
+    left.x + left.w > right.x &&
+    left.y < right.y + right.h &&
+    left.y + left.h > right.y
   const intersects = (center: Point, other: Arrow) => {
-    const rect = {
-      x: center.x - AS_NEEDED_CHIP_WIDTH / 2,
-      y: center.y - AS_NEEDED_CHIP_HEIGHT / 2,
-      w: AS_NEEDED_CHIP_WIDTH,
-      h: AS_NEEDED_CHIP_HEIGHT,
-    }
+    const rect = chipRect(center)
     for (let index = 0; index <= 24; index += 1) {
       const point = pointOnQuadratic(
         other.start,
@@ -1860,15 +1867,12 @@ function asNeededArrow(
     }
     return false
   }
-  const labelAt = (otherArrows.length <= 1 || !otherArrows.some((other) => intersects(fallback, other)))
+  const clears = (candidate: Point) =>
+    !otherArrows.some((other) => intersects(candidate, other)) &&
+    !obstacles.some((obstacle) => overlaps(chipRect(candidate), obstacle))
+  const labelAt = clears(fallback)
     ? fallback
-    : candidates.find(
-      (candidate) => !otherArrows.some((other) => intersects(candidate, other)) &&
-        !obstacles.some((obstacle) => {
-          const rect = { x: candidate.x - AS_NEEDED_CHIP_WIDTH / 2, y: candidate.y - AS_NEEDED_CHIP_HEIGHT / 2, w: AS_NEEDED_CHIP_WIDTH, h: AS_NEEDED_CHIP_HEIGHT }
-          return rect.x < obstacle.x + obstacle.w && rect.x + rect.w > obstacle.x && rect.y < obstacle.y + obstacle.h && rect.y + rect.h > obstacle.y
-        }),
-    ) ?? fallback
+    : candidates.find(clears) ?? fallback
 
   return { ...arrow, labelAt }
 }
@@ -2861,7 +2865,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   for (const account of accounts) {
     const key = (role: AccountTextRole) =>
       accountTextOverrideKey(account.account.id, role)
-    if (account.titleLines.at(-1)?.endsWith('â€¦')) {
+    if (account.titleLines.at(-1)?.endsWith('…')) {
       warnAbbreviation(
         { display: account.titleLines.join(' '), exact: accountDisplayName(account.account) },
         key('label'),
@@ -2869,7 +2873,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
         'the account shape',
       )
     }
-    if (account.captionLines.at(-1)?.endsWith('â€¦')) {
+    if (account.captionLines.at(-1)?.endsWith('…')) {
       warnAbbreviation(
         { display: account.captionLines.join(' '), exact: account.account.caption ?? '' },
         key('caption'),
@@ -2884,7 +2888,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       'the account shape',
       'Reduce the account amount text size or shorten its optional note so the full amount fits on the map.',
     )
-    if (account.positionRows.some((row) => row.labelLines.at(-1)?.endsWith('â€¦'))) {
+    if (account.positionRows.some((row) => row.labelLines.at(-1)?.endsWith('…'))) {
       warnings.push({
         code: 'text-abbreviated',
         targetKey: key('rows'),
@@ -2893,9 +2897,9 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       })
     }
     if (account.subAccountLayouts.some((item) =>
-      item.titleLines.at(-1)?.endsWith('â€¦') ||
-      item.captionLines.at(-1)?.endsWith('â€¦') ||
-      item.valueText.endsWith('â€¦')
+      item.titleLines.at(-1)?.endsWith('…') ||
+      item.captionLines.at(-1)?.endsWith('…') ||
+      item.valueText.endsWith('…')
     )) {
       warnings.push({
         code: 'text-abbreviated',
