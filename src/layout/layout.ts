@@ -5,6 +5,7 @@ import {
   moneyPer,
 } from '../model/format'
 import { gapLine, runwayLine } from '../model/math'
+import type { TidyAnchor } from '../model/book'
 import type {
   Account,
   AccountShape,
@@ -160,6 +161,47 @@ export interface MapLayout {
   contentBounds: Placed
   footnotesAt: { x: number; y: number }
   warnings: LayoutWarning[]
+}
+
+/**
+ * Anchor list for tidyArrangement, carrying each item's real placed size so
+ * the de-overlap pass sees true footprints instead of the 180x120 fallback.
+ * x/y semantics match what tidy writes back: placement coords for accounts
+ * and cards, model coords for notes, override rect for the as-needed chip.
+ */
+export function buildTidyAnchors(
+  layout: MapLayout,
+  asNeededChipRect: { x: number; y: number; w?: number; h?: number } | null,
+): TidyAnchor[] {
+  return [
+    { key: 'income', x: layout.income.x, y: layout.income.y, w: layout.income.w, h: layout.income.h },
+    { key: 'need', x: layout.need.x, y: layout.need.y, w: layout.need.w, h: layout.need.h },
+    ...layout.accounts.map((placed) => ({
+      key: placed.account.id,
+      x: placed.x,
+      y: placed.y,
+      w: placed.w,
+      h: placed.h,
+    })),
+    ...layout.notes.map((placed) => ({
+      key: `note:${placed.note.id}`,
+      x: placed.note.x,
+      y: placed.note.y,
+      w: placed.w,
+      h: placed.h,
+    })),
+    ...(asNeededChipRect
+      ? [
+          {
+            key: 'asNeededChip',
+            x: asNeededChipRect.x,
+            y: asNeededChipRect.y,
+            w: asNeededChipRect.w,
+            h: asNeededChipRect.h,
+          },
+        ]
+      : []),
+  ]
 }
 
 export interface LayoutWarning {

@@ -388,20 +388,28 @@ export interface TidyAnchor {
 
 const TIDY_GRID = 12
 // ponytail: fallback box size when a caller doesn't pass real w/h — good enough for
-// nudge-until-clear; upgrade path is wiring actual placed w/h into TidyAnchor.
+// overlap checks; upgrade path is wiring actual placed w/h into TidyAnchor.
 const TIDY_DEFAULT_W = 180
 const TIDY_DEFAULT_H = 120
-// ponytail: O(n²) pairwise pass — fine at advisor map sizes (<50 items)
-const TIDY_MAX_NUDGES = 200
+const TIDY_MAX_RING = 1200
+// Relocated items keep this much clearance from neighbors: exact edge-to-edge
+// adjacency reads as touching on screen and can round into a 1px overlap.
+const TIDY_CLEARANCE = 4
 
 /**
- * Snaps each anchor to the nearest grid line, then nudges any items that still
- * overlap down/right in grid steps until clear. Leaves everything else — sizes,
+ * Snaps each anchor to the nearest grid line, then searches outward in grid
+ * rings for the nearest clear placement. Leaves everything else — sizes,
  * rotations, text offsets, arrow labels — exactly as the advisor arranged it.
  */
 export function tidyArrangement(
   data: MoneyMapData,
   anchors: readonly TidyAnchor[],
+  bounds?: {
+    left: number
+    top: number
+    right: number
+    bottom: number
+  },
 ): MoneyMapData {
   const snap = (value: number) => Math.round(value / TIDY_GRID) * TIDY_GRID
 
@@ -411,14 +419,58 @@ export function tidyArrangement(
     let y = snap(anchor.y)
     const w = anchor.w ?? TIDY_DEFAULT_W
     const h = anchor.h ?? TIDY_DEFAULT_H
-    for (
-      let tries = 0;
-      tries < TIDY_MAX_NUDGES &&
-      placed.some((rect) => placementsOverlap({ x, y, w, h }, rect));
-      tries++
-    ) {
-      x += TIDY_GRID
-      y += TIDY_GRID
+
+    if (placed.some((rect) => placementsOverlap({ x, y, w, h }, rect))) {
+      let found = false
+      for (
+        let distance = TIDY_GRID;
+        distance <= TIDY_MAX_RING && !found;
+        distance += TIDY_GRID
+      ) {
+        const candidates: { dx: number; dy: number }[] = []
+        for (let dx = -distance; dx <= distance; dx += TIDY_GRID) {
+          for (let dy = -distance; dy <= distance; dy += TIDY_GRID) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) !== distance) continue
+            candidates.push({ dx, dy })
+          }
+        }
+        candidates.sort(
+          (a, b) =>
+            a.dx * a.dx + a.dy * a.dy - (b.dx * b.dx + b.dy * b.dy) ||
+            a.dy - b.dy ||
+            a.dx - b.dx,
+        )
+
+        for (const { dx, dy } of candidates) {
+          const candidateX = x + dx
+          const candidateY = y + dy
+          if (
+            (bounds === undefined ||
+              // The renderer clamps override positions at the bounds, so a
+              // candidate whose footprint sticks out would silently not move.
+              (candidateX >= bounds.left &&
+                candidateX + w <= bounds.right &&
+                candidateY >= bounds.top &&
+                candidateY + h <= bounds.bottom)) &&
+            !placed.some((rect) =>
+              placementsOverlap(
+                {
+                  x: candidateX - TIDY_CLEARANCE,
+                  y: candidateY - TIDY_CLEARANCE,
+                  w: w + TIDY_CLEARANCE * 2,
+                  h: h + TIDY_CLEARANCE * 2,
+                },
+                rect,
+              ),
+            )
+          ) {
+            x = candidateX
+            y = candidateY
+            found = true
+            break
+          }
+        }
+      }
     }
     placed.push({ x, y, w, h })
   }

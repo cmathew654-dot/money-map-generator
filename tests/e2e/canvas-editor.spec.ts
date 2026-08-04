@@ -1,6 +1,46 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { BOOK_KEY, openApp } from './helpers'
 import { SAMPLE_WHITFIELD } from '../../src/model/samples'
+
+async function pointerDrag(page: Page, locator: Locator, delta: { x: number; y: number }, startRatio = { x: 0.16, y: 0.84 }) {
+  const box = await locator.boundingBox()
+  if (!box) throw new Error('Pointer target has no measurable bounds')
+  const start = { x: box.x + box.width * startRatio.x, y: box.y + box.height * startRatio.y }
+  await page.mouse.move(start.x, start.y)
+  await page.mouse.down()
+  await page.mouse.move(start.x + delta.x, start.y + delta.y, { steps: 8 })
+  await page.mouse.up()
+}
+
+
+test('Tidy map separates overlapping account bounding boxes', async ({ page }) => {
+  await openApp(page)
+
+  const source = page.locator('[data-account-id="cash-at-bank"][role="group"]')
+  const target = page.locator('[data-account-id="managed-ira-jordan"][role="group"]')
+  const sourceBody = source.locator('.map-account-body-hit:not(ellipse)')
+  const sourceBox = await sourceBody.boundingBox()
+  const targetBody = target.locator('.map-account-body-hit:not(ellipse)')
+  const targetBox = await targetBody.boundingBox()
+  if (!sourceBox || !targetBox) throw new Error('Account geometry is not measurable')
+  const start = { x: sourceBox.x + sourceBox.width * 0.16, y: sourceBox.y + sourceBox.height * 0.84 }
+  const destination = { x: targetBox.x + targetBox.width / 2, y: targetBox.y + targetBox.height / 2 }
+
+  await pointerDrag(page, sourceBody, {
+    x: destination.x - start.x,
+    y: destination.y - start.y,
+  })
+
+  const overlaps = async () => {
+    const [a, b] = await Promise.all([source.boundingBox(), target.boundingBox()])
+    if (!a || !b) return false
+    return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
+  }
+  await expect.poll(overlaps).toBe(true)
+
+  await page.getByRole('button', { name: 'Tidy map', exact: true }).click()
+  await expect.poll(overlaps).toBe(false)
+})
 
 test('existing clients open on the canvas and Data restores rail focus when it closes', async ({ page }) => {
   await openApp(page)

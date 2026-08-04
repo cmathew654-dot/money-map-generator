@@ -27,7 +27,6 @@ import {
   updateClient,
   type BookHistory,
   type BookSnapshot,
-  type TidyAnchor,
 } from './model/book'
 import {
   chooseExistingBookFile,
@@ -47,7 +46,7 @@ import {
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
-import { layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
+import { buildTidyAnchors, layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
 import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import {
   exportPdf,
@@ -306,30 +305,8 @@ export default function App() {
   const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
   const mapLayout = layoutMap(activeClient)
   const asNeededChipRect = layoutOverrideRect(activeClient, 'asNeededChip')
-  const tidyAnchors: TidyAnchor[] = [
-    { key: 'income', x: mapLayout.income.x, y: mapLayout.income.y },
-    { key: 'need', x: mapLayout.need.x, y: mapLayout.need.y },
-    ...mapLayout.accounts.map((placed) => ({
-      key: placed.account.id,
-      x: placed.x,
-      y: placed.y,
-    })),
-    ...mapLayout.notes.map((placed) => ({
-      key: `note:${placed.note.id}`,
-      x: placed.note.x,
-      y: placed.note.y,
-    })),
-    ...(asNeededChipRect
-      ? [
-          {
-            key: 'asNeededChip',
-            x: asNeededChipRect.x,
-            y: asNeededChipRect.y,
-          },
-        ]
-      : []),
-  ]
-  const tidiedClient = tidyArrangement(activeClient, tidyAnchors)
+  const tidyAnchors = buildTidyAnchors(mapLayout, asNeededChipRect)
+  const tidiedClient = tidyArrangement(activeClient, tidyAnchors, OVERRIDE_BOUNDS)
   const canTidyMap = tidiedClient !== activeClient
   const previewClient = (() => {
     const fsInfo = mapTextEdit

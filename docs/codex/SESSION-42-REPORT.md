@@ -202,3 +202,23 @@ No new dependencies, state owner, context provider, CSS-in-JS, or speculative
 refactor was added. Native Safari and the remaining manual Chrome workflow
 items above were not claimed because the visible print dialog interrupted the
 connector; they remain follow-up dogfood work rather than hidden failures.
+
+
+## Frozen tidy algorithm repair addendum
+
+- src/model/book.ts — 911 LOC: added optional bounds and deterministic Chebyshev-ring placement search (12px through 1200px), preserving snap order, write-back, and identity behavior.
+- src/App.tsx — 2195 LOC: passed existing OVERRIDE_BOUNDS to tidyArrangement; pre-existing staged session work retained.
+- tests/book.test.ts — 1094 LOC: added bounded and unbounded three-anchor overlap coverage; pre-existing tests unchanged.
+
+Verification from this repair session:
+
+~~~
+npm test
+Test Files 28 passed (28)
+Tests 540 passed (540)
+
+npx tsc --noEmit
+exit=0
+~~~
+
+The requested Playwright command could not start its Vite web server in this restricted runner: esbuild reported Access denied while reading ../../.. and could not resolve vite.config.ts. The direct npx vitest invocation hit the same sandbox startup restriction; npm test completed all 540 tests successfully. No git write commands were run.

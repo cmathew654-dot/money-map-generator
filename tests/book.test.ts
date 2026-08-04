@@ -16,7 +16,7 @@ import {
   tidyArrangement,
   updateClient,
 } from '../src/model/book'
-import { layoutMap } from '../src/layout/layout'
+import { buildTidyAnchors, layoutMap } from '../src/layout/layout'
 import { placementsOverlap } from '../src/render/mapInteraction'
 import {
   blankClient,
@@ -33,6 +33,19 @@ import {
 } from '../src/model/types'
 
 describe('book operations', () => {
+  it('builds tidy anchors with each account placement dimensions', () => {
+    const layout = layoutMap(structuredClone(SAMPLE_WHITFIELD))
+    expect(buildTidyAnchors).toBeDefined()
+    const anchors = buildTidyAnchors(layout, null)
+
+    for (const placed of layout.accounts) {
+      expect(anchors.find((anchor) => anchor.key === placed.account.id)).toMatchObject({
+        w: placed.w,
+        h: placed.h,
+      })
+    }
+  })
+
   it('creates a truly blank client', () => {
     const blank = blankClient()
 
@@ -385,6 +398,56 @@ describe('book operations', () => {
     expect(rectB.y % 12).toBe(0)
   })
 
+  it('separates overlapping anchors within bounds', () => {
+    const source: MoneyMapData = structuredClone(SAMPLE_WHITFIELD)
+    const anchors = [
+      { key: 'acc-a', x: 1260, y: 960, w: 120, h: 120 },
+      { key: 'acc-b', x: 1260, y: 960, w: 120, h: 120 },
+      { key: 'acc-c', x: 1260, y: 960, w: 120, h: 120 },
+    ] as const
+    const bounds = { left: 48, top: 118, right: 1272, bottom: 972 }
+
+    const tidied = tidyArrangement(source, anchors, bounds)
+    const rects = anchors.map((anchor) => ({
+      x: anchor.x + (tidied.layoutOverrides?.[anchor.key]?.dx ?? 0),
+      y: anchor.y + (tidied.layoutOverrides?.[anchor.key]?.dy ?? 0),
+      w: anchor.w,
+      h: anchor.h,
+    }))
+
+    for (let i = 0; i < rects.length; i++) {
+      expect(rects[i].x).toBeGreaterThanOrEqual(bounds.left)
+      expect(rects[i].x).toBeLessThanOrEqual(bounds.right)
+      expect(rects[i].y).toBeGreaterThanOrEqual(bounds.top)
+      expect(rects[i].y).toBeLessThanOrEqual(bounds.bottom)
+      for (let j = i + 1; j < rects.length; j++) {
+        expect(placementsOverlap(rects[i], rects[j])).toBe(false)
+      }
+    }
+  })
+
+  it('separates overlapping anchors without bounds', () => {
+    const source: MoneyMapData = structuredClone(SAMPLE_WHITFIELD)
+    const anchors = [
+      { key: 'acc-a', x: 300, y: 300, w: 120, h: 120 },
+      { key: 'acc-b', x: 300, y: 300, w: 120, h: 120 },
+      { key: 'acc-c', x: 300, y: 300, w: 120, h: 120 },
+    ] as const
+
+    const tidied = tidyArrangement(source, anchors)
+    const rects = anchors.map((anchor) => ({
+      x: anchor.x + (tidied.layoutOverrides?.[anchor.key]?.dx ?? 0),
+      y: anchor.y + (tidied.layoutOverrides?.[anchor.key]?.dy ?? 0),
+      w: anchor.w,
+      h: anchor.h,
+    }))
+
+    for (let i = 0; i < rects.length; i++) {
+      for (let j = i + 1; j < rects.length; j++) {
+        expect(placementsOverlap(rects[i], rects[j])).toBe(false)
+      }
+    }
+  })
   it('changes semantic account type without changing effective shape', () => {
     const note = {
       id: 'note-account',
