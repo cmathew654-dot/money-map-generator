@@ -404,6 +404,21 @@ export function setCustomArrowColor(
   }
 }
 
+export function setCustomArrowLabel(
+  data: MoneyMapData,
+  id: string,
+  label: string,
+): MoneyMapData {
+  if (!data.customArrows?.some((arrow) => arrow.id === id)) return data
+  const trimmed = label.trim()
+  return {
+    ...data,
+    customArrows: data.customArrows.map((arrow) =>
+      arrow.id === id ? { ...arrow, label: trimmed || undefined } : arrow,
+    ),
+  }
+}
+
 export function moveCustomArrowLabel(
   data: MoneyMapData,
   id: string,
