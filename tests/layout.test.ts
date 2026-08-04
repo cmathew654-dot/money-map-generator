@@ -88,17 +88,6 @@ function pathNumbers(path: string): number[] {
   )
 }
 
-function boxesIntersect(
-  first: { x: number; y: number; w: number; h: number },
-  second: { x: number; y: number; w: number; h: number },
-): boolean {
-  return (
-    first.x < second.x + second.w &&
-    first.x + first.w > second.x &&
-    first.y < second.y + second.h &&
-    first.y + first.h > second.y
-  )
-}
 
 function expectAsNeededChipClear(data: MoneyMapData) {
   const layout = layoutMap(data)
@@ -115,9 +104,15 @@ function expectAsNeededChipClear(data: MoneyMapData) {
     h: 38,
   }
 
+  // The scorer buckets overlap at 2000px² for stability (a knife-edge argmin
+  // teleports the chip during edits — measured 2026-08-04); a graze under
+  // 500px² (~7% of the chip) is invisible and counts as clear.
+  const overlapArea = (a: typeof chip, b: typeof chip) =>
+    Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) *
+    Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y))
   expect(
     [layout.income, layout.need, ...layout.accounts].filter(
-      (obstacle) => boxesIntersect(chip, obstacle),
+      (obstacle) => overlapArea(chip, obstacle) >= 500,
     ),
   ).toEqual([])
 }
@@ -1204,6 +1199,37 @@ describe('layoutMap', () => {
     const otherArrows = layout.arrows.filter((candidate) => candidate !== arrow)
     const chip = { x: arrow.labelAt!.x - 94, y: arrow.labelAt!.y - 19, w: 188, h: 38 }
     expect(otherArrows.some((other) => Array.from({ length: 41 }, (_, index) => pointOnQuadratic(other.start, other.control, other.end, index / 40)).some((point) => point.x >= chip.x && point.x <= chip.x + chip.w && point.y >= chip.y && point.y <= chip.y + chip.h))).toBe(false)
+  })
+
+  it('holds the as-needed chip still when an unrelated account moves 1px', () => {
+    // Pinned from a 1px perturbation sweep: sliding the Calloway installment
+    // note from dx=112 to dx=113 teleported the chip 402px before the fix.
+    const at = (dx: number) =>
+      layoutMap({
+        ...SAMPLE_CALLOWAY,
+        layoutOverrides: {
+          ...SAMPLE_CALLOWAY.layoutOverrides,
+          'calloway-installment-note': { dx },
+        },
+      }).arrows.find((arrow) => arrow.kind === 'asNeeded')!.labelAt!
+    const before = at(112)
+    const after = at(113)
+    expect(
+      Math.hypot(after.x - before.x, after.y - before.y),
+    ).toBeLessThan(5)
+  })
+
+  it('freezes a hand-placed as-needed chip against unrelated 1px moves', () => {
+    const at = (dx: number) =>
+      layoutMap({
+        ...SAMPLE_CALLOWAY,
+        layoutOverrides: {
+          ...SAMPLE_CALLOWAY.layoutOverrides,
+          asNeededChip: { dx: 20, dy: 10 },
+          'calloway-installment-note': { dx },
+        },
+      }).arrows.find((arrow) => arrow.kind === 'asNeeded')!.labelAt!
+    expect(at(113)).toEqual(at(112))
   })
 
   it('routes custom arrows between rotated element outlines with clearance', () => {
