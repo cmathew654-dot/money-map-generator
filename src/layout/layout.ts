@@ -252,7 +252,6 @@ export const NOTE_MAX_WIDTH = 600
 export const NOTE_LEADING = 21
 const MIGRATED_FLOW_MIN_Y = 128
 const AS_NEEDED_CHIP_WIDTH = 188
-const AS_NEEDED_CHIP_CLEARANCE_WIDTH = 250
 const AS_NEEDED_CHIP_HEIGHT = 38
 const OUTLINE_SAMPLES = 512
 const DEFAULT_BOW_FRACTION = 0.15
@@ -1832,25 +1831,29 @@ function asNeededArrow(
     }
   }
   const fallback = anchorFor(fallbackT, 1)
-  // ponytail: naive candidate sampling; proper label-placement pass if maps get dense
-  const candidates = [0.7, 0.55, 0.4, 0.8, 0.3].flatMap((t) =>
-    [150, 110, 70].flatMap((distance) =>
+  // ponytail: naive candidate sampling and naive penalty weights (one arrow hit
+  // outweighs a whole chip of box overlap); proper label-placement pass if maps get dense
+  const candidates = [
+    0.7, 0.55, 0.4, 0.8, 0.3, 0.9, 0.2, 0.6, 0.45, 0.15, 0.1, 0.05,
+  ].flatMap((t) =>
+    [150, 110, 70, 190, 230].flatMap((distance) =>
       [1, -1].map((side) => anchorFor(t, side, distance)),
     ),
   )
   const chipRect = (center: Point) => ({
-    x: center.x - AS_NEEDED_CHIP_CLEARANCE_WIDTH / 2,
+    x: center.x - AS_NEEDED_CHIP_WIDTH / 2,
     y: center.y - AS_NEEDED_CHIP_HEIGHT / 2,
-    w: AS_NEEDED_CHIP_CLEARANCE_WIDTH,
+    w: AS_NEEDED_CHIP_WIDTH,
     h: AS_NEEDED_CHIP_HEIGHT,
   })
-  const overlaps = (left: Placed, right: Placed) =>
-    left.x < right.x + right.w &&
-    left.x + left.w > right.x &&
-    left.y < right.y + right.h &&
-    left.y + left.h > right.y
-  const intersects = (center: Point, other: Arrow) => {
+  const overlapArea = (left: Placed, right: Placed) =>
+    Math.max(0, Math.min(left.x + left.w, right.x + right.w) -
+      Math.max(left.x, right.x)) *
+    Math.max(0, Math.min(left.y + left.h, right.y + right.h) -
+      Math.max(left.y, right.y))
+  const arrowHits = (center: Point, other: Arrow) => {
     const rect = chipRect(center)
+    let hits = 0
     for (let index = 0; index <= 24; index += 1) {
       const point = pointOnQuadratic(
         other.start,
@@ -1863,16 +1866,33 @@ function asNeededArrow(
         point.x <= rect.x + rect.w &&
         point.y >= rect.y &&
         point.y <= rect.y + rect.h
-      ) return true
+      ) hits += 1
     }
-    return false
+    return hits
   }
-  const clears = (candidate: Point) =>
-    !otherArrows.some((other) => intersects(candidate, other)) &&
-    !obstacles.some((obstacle) => overlaps(chipRect(candidate), obstacle))
-  const labelAt = clears(fallback)
-    ? fallback
-    : candidates.find(clears) ?? fallback
+  // A single arrow-sample hit costs more than a fully covered chip (250 x 38),
+  // so a chip that grazes a panel always beats one sitting on a flow line.
+  const ARROW_HIT_PENALTY = 20_000
+  const penalty = (candidate: Point) =>
+    obstacles.reduce(
+      (total, obstacle) => total + overlapArea(chipRect(candidate), obstacle),
+      0,
+    ) +
+    otherArrows.reduce(
+      (total, other) => total + arrowHits(candidate, other) * ARROW_HIT_PENALTY,
+      0,
+    )
+  const ranked = [fallback, ...candidates]
+  let labelAt = ranked[0]
+  let best = penalty(ranked[0])
+  for (const candidate of ranked.slice(1)) {
+    if (best === 0) break
+    const score = penalty(candidate)
+    if (score < best) {
+      best = score
+      labelAt = candidate
+    }
+  }
 
   return { ...arrow, labelAt }
 }
