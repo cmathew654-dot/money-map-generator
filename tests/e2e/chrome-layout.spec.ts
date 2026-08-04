@@ -53,6 +53,36 @@ test.describe('toolbar reachable at 200 percent zoom (slice 11)', () => {
   })
 })
 
+test.describe('toasts never cover the toolbar (slice 8)', () => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'chromium-1280x720',
+      'The toast/toolbar overlap check runs once in the default Chromium project.',
+    )
+    await openApp(page)
+  })
+
+  test('a toast triggered by adding an account does not cover the Tidy map button', async ({ page }) => {
+    await page.getByRole('button', { name: '+ Account', exact: true }).click()
+    await page
+      .getByLabel('Add account')
+      .getByRole('button', { name: 'Short-Term', exact: true })
+      .click()
+
+    await expect(page.locator('.toast-region .toast').first()).toBeVisible()
+
+    const tidyButton = page.getByRole('button', { name: 'Tidy map' })
+    const hitsButton = await tidyButton.evaluate((button) => {
+      const box = button.getBoundingClientRect()
+      const cx = box.left + box.width / 2
+      const cy = box.top + box.height / 2
+      const hit = document.elementFromPoint(cx, cy)
+      return hit === button || Boolean(hit && button.contains(hit))
+    })
+    expect(hitsButton).toBe(true)
+  })
+})
+
 test.describe('honest pan hint (slice 12)', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(

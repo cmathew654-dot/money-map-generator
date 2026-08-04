@@ -511,11 +511,20 @@ summary:focus-visible {
   position: fixed;
   z-index: 20;
   right: 18px;
-  bottom: 18px;
+  bottom: 64px;
   display: grid;
   width: min(300px, calc(100vw - 36px));
   gap: 8px;
   pointer-events: none;
+}
+
+@media (max-width: 700px) {
+  /* .map-chrome pins to the viewport and can wrap into multiple rows below
+     this width (see .map-chrome's own media query) — give the toast region
+     enough headroom to clear it in that layout too. */
+  .toast-region {
+    bottom: 140px;
+  }
 }
 
 .toast {

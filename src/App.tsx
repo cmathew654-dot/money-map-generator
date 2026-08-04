@@ -505,7 +505,7 @@ export default function App() {
     setToasts((current) => [
       ...current,
       { id: toastCounter.current, message },
-    ])
+    ].slice(-2))
   }, [])
 
   const dismissToast = useCallback((id: number) => {
