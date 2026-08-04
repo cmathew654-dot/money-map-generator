@@ -17,6 +17,7 @@ import {
   updateClient,
 } from '../src/model/book'
 import { layoutMap } from '../src/layout/layout'
+import { placementsOverlap } from '../src/render/mapInteraction'
 import {
   blankClient,
   SAMPLE_CALLOWAY,
@@ -363,6 +364,25 @@ describe('book operations', () => {
         { key: 'note:note-grid', x: 516, y: 480 },
       ]),
     ).toBe(source)
+  })
+
+  it('resolves overlaps between accounts onto the grid', () => {
+    const source: MoneyMapData = structuredClone(SAMPLE_WHITFIELD)
+
+    const tidied = tidyArrangement(source, [
+      { key: 'acc-a', x: 696, y: 300, w: 180, h: 120 },
+      // ~20px overlap with acc-a once both are snapped to the grid
+      { key: 'acc-b', x: 856, y: 300, w: 180, h: 120 },
+    ])
+
+    const rectA = { x: 696 + (tidied.layoutOverrides?.['acc-a']?.dx ?? 0), y: 300 + (tidied.layoutOverrides?.['acc-a']?.dy ?? 0), w: 180, h: 120 }
+    const rectB = { x: 856 + (tidied.layoutOverrides?.['acc-b']?.dx ?? 0), y: 300 + (tidied.layoutOverrides?.['acc-b']?.dy ?? 0), w: 180, h: 120 }
+
+    expect(placementsOverlap(rectA, rectB)).toBe(false)
+    expect(rectA.x % 12).toBe(0)
+    expect(rectA.y % 12).toBe(0)
+    expect(rectB.x % 12).toBe(0)
+    expect(rectB.y % 12).toBe(0)
   })
 
   it('changes semantic account type without changing effective shape', () => {

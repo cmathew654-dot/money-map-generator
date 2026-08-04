@@ -382,12 +382,21 @@ export interface TidyAnchor {
   key: string
   x: number
   y: number
+  w?: number
+  h?: number
 }
 
 const TIDY_GRID = 12
+// ponytail: fallback box size when a caller doesn't pass real w/h — good enough for
+// nudge-until-clear; upgrade path is wiring actual placed w/h into TidyAnchor.
+const TIDY_DEFAULT_W = 180
+const TIDY_DEFAULT_H = 120
+// ponytail: O(n²) pairwise pass — fine at advisor map sizes (<50 items)
+const TIDY_MAX_NUDGES = 200
 
 /**
- * Snaps each anchor to the nearest grid line and leaves everything else — sizes,
+ * Snaps each anchor to the nearest grid line, then nudges any items that still
+ * overlap down/right in grid steps until clear. Leaves everything else — sizes,
  * rotations, text offsets, arrow labels — exactly as the advisor arranged it.
  */
 export function tidyArrangement(
@@ -395,23 +404,42 @@ export function tidyArrangement(
   anchors: readonly TidyAnchor[],
 ): MoneyMapData {
   const snap = (value: number) => Math.round(value / TIDY_GRID) * TIDY_GRID
+
+  const placed: { x: number; y: number; w: number; h: number }[] = []
+  for (const anchor of anchors) {
+    let x = snap(anchor.x)
+    let y = snap(anchor.y)
+    const w = anchor.w ?? TIDY_DEFAULT_W
+    const h = anchor.h ?? TIDY_DEFAULT_H
+    for (
+      let tries = 0;
+      tries < TIDY_MAX_NUDGES &&
+      placed.some((rect) => placementsOverlap({ x, y, w, h }, rect));
+      tries++
+    ) {
+      x += TIDY_GRID
+      y += TIDY_GRID
+    }
+    placed.push({ x, y, w, h })
+  }
+
   let next = data
 
-  for (const anchor of anchors) {
-    const dx = snap(anchor.x) - anchor.x
-    const dy = snap(anchor.y) - anchor.y
-    if (dx === 0 && dy === 0) continue
+  anchors.forEach((anchor, i) => {
+    const dx = placed[i].x - anchor.x
+    const dy = placed[i].y - anchor.y
+    if (dx === 0 && dy === 0) return
 
     if (anchor.key.startsWith('note:')) {
       const id = anchor.key.slice('note:'.length)
-      if (!next.notes?.some((note) => note.id === id)) continue
+      if (!next.notes?.some((note) => note.id === id)) return
       next = {
         ...next,
         notes: next.notes.map((note) =>
           note.id === id ? { ...note, x: note.x + dx, y: note.y + dy } : note,
         ),
       }
-      continue
+      return
     }
 
     const overrides = next.layoutOverrides ?? {}
@@ -427,7 +455,7 @@ export function tidyArrangement(
         },
       },
     }
-  }
+  })
 
   return next
 }
