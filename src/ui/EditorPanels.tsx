@@ -15,6 +15,7 @@ interface EditorPanelsProps {
   onClose(): void
   onOpenData(focusId?: string): void
   onSelectTarget(key: string): void
+  onOpenTarget(key: string): void
   onAddIncome(): void
   onAddAccount(bucket: Bucket): void
   onSetNeed(): void
@@ -258,6 +259,7 @@ function ContentsPanel({
   selectedTargetKey,
   canMutate,
   onSelectTarget,
+  onOpenTarget,
   onRestoreGeneratedFlows,
 }: Pick<
   EditorPanelsProps,
@@ -265,6 +267,7 @@ function ContentsPanel({
   | 'selectedTargetKey'
   | 'canMutate'
   | 'onSelectTarget'
+  | 'onOpenTarget'
   | 'onRestoreGeneratedFlows'
 >) {
   const [filter, setFilter] = useState('')
@@ -294,6 +297,7 @@ function ContentsPanel({
                 onClick={() => {
                   if (!item.hidden) onSelectTarget(item.key)
                 }}
+                onDoubleClick={() => onOpenTarget(item.key)}
               >
                 {item.label}
               </button>
@@ -347,6 +351,7 @@ export function EditorPanels({
   onClose,
   onOpenData,
   onSelectTarget,
+  onOpenTarget,
   onAddIncome,
   onAddAccount,
   onSetNeed,
@@ -374,6 +379,7 @@ export function EditorPanels({
         <ContentsPanel
           canMutate={canMutate}
           data={data}
+          onOpenTarget={onOpenTarget}
           onRestoreGeneratedFlows={onRestoreGeneratedFlows}
           onSelectTarget={onSelectTarget}
           selectedTargetKey={selectedTargetKey}
