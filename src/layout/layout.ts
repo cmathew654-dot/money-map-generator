@@ -572,7 +572,7 @@ function mastheadLabel(data: MoneyMapData): string {
   const period = mastheadPeriodLabel(data.client)
   const label = data.client.mastheadLabel?.trim() || 'Money Map'
   return data.client.variant === 'postNote'
-    ? `${label} — ${period}`
+    ? `${label} â€” ${period}`
     : `${label} ${period}`
 }
 
@@ -1805,6 +1805,8 @@ function asNeededArrow(
   shortTerm: PlacedAccount,
   need: Placed,
   override?: LayoutOverride,
+  otherArrows: Arrow[] = [],
+  obstacles: Placed[] = [],
 ): Arrow {
   const arrow = routedArrow({
     kind: 'asNeeded',
@@ -1813,22 +1815,62 @@ function asNeededArrow(
     override,
     sourceId: shortTerm.account.id,
   })
-  const { start, control, end } = arrow
-  const t = 0.7
-  const point = pointOnQuadratic(start, control, end, t)
-  const tangent = {
-    x: 2 * (1 - t) * (control.x - start.x) + 2 * t * (end.x - control.x),
-    y: 2 * (1 - t) * (control.y - start.y) + 2 * t * (end.y - control.y),
+  const fallbackT = 0.7
+  const anchorFor = (t: number, side: number, distance = 70) => {
+    const point = pointOnQuadratic(arrow.start, arrow.control, arrow.end, t)
+    const tangent = {
+      x: 2 * (1 - t) * (arrow.control.x - arrow.start.x) +
+        2 * t * (arrow.end.x - arrow.control.x),
+      y: 2 * (1 - t) * (arrow.control.y - arrow.start.y) +
+        2 * t * (arrow.end.y - arrow.control.y),
+    }
+    const length = Math.hypot(tangent.x, tangent.y) || 1
+    return {
+      x: point.x - side * (tangent.y / length) * distance,
+      y: point.y + side * (tangent.x / length) * distance,
+    }
   }
-  const tangentLength = Math.hypot(tangent.x, tangent.y) || 1
+  const fallback = anchorFor(fallbackT, 1)
+  // ponytail: naive candidate sampling; proper label-placement pass if maps get dense
+  const candidates = [0.7, 0.55, 0.4, 0.8, 0.3].flatMap((t) =>
+    [70, 110, 150].flatMap((distance) =>
+      [1, -1].map((side) => anchorFor(t, side, distance)),
+    ),
+  )
+  const intersects = (center: Point, other: Arrow) => {
+    const rect = {
+      x: center.x - AS_NEEDED_CHIP_WIDTH / 2,
+      y: center.y - AS_NEEDED_CHIP_HEIGHT / 2,
+      w: AS_NEEDED_CHIP_WIDTH,
+      h: AS_NEEDED_CHIP_HEIGHT,
+    }
+    for (let index = 0; index <= 24; index += 1) {
+      const point = pointOnQuadratic(
+        other.start,
+        other.control,
+        other.end,
+        index / 24,
+      )
+      if (
+        point.x >= rect.x &&
+        point.x <= rect.x + rect.w &&
+        point.y >= rect.y &&
+        point.y <= rect.y + rect.h
+      ) return true
+    }
+    return false
+  }
+  const labelAt = (otherArrows.length <= 1 || !otherArrows.some((other) => intersects(fallback, other)))
+    ? fallback
+    : candidates.find(
+      (candidate) => !otherArrows.some((other) => intersects(candidate, other)) &&
+        !obstacles.some((obstacle) => {
+          const rect = { x: candidate.x - AS_NEEDED_CHIP_WIDTH / 2, y: candidate.y - AS_NEEDED_CHIP_HEIGHT / 2, w: AS_NEEDED_CHIP_WIDTH, h: AS_NEEDED_CHIP_HEIGHT }
+          return rect.x < obstacle.x + obstacle.w && rect.x + rect.w > obstacle.x && rect.y < obstacle.y + obstacle.h && rect.y + rect.h > obstacle.y
+        }),
+    ) ?? fallback
 
-  return {
-    ...arrow,
-    labelAt: {
-      x: point.x - (tangent.y / tangentLength) * 70,
-      y: point.y + (tangent.x / tangentLength) * 70,
-    },
-  }
+  return { ...arrow, labelAt }
 }
 
 function pathCoordinates(path: string): { x: number; y: number }[] {
@@ -2039,7 +2081,7 @@ export interface FootnoteLineLayout {
 
 export function footnoteText(footnote: Footnote, fontSize: number): FittedText {
   return fittedTextLine(
-    `${footnote.label}: ${money(footnote.gross)} → ${money(footnote.net)} after withholding`,
+    `${footnote.label}: ${money(footnote.gross)} â†’ ${money(footnote.net)} after withholding`,
     720,
     fontSize,
   )
@@ -2445,14 +2487,12 @@ function arrowsForFinalGeometry(
   hiddenArrows: GeneratedArrowKind[] | undefined,
 ): Arrow[] {
   const hidden = new Set(hiddenArrows)
+  const incomeArrowLayout = hidden.has('income')
+    ? undefined
+    : incomeArrow(income, need, overrides?.['arrow:income'])
+  const custom = customArrowLayouts(customArrows, income, need, accounts, overrides)
   const arrows: Arrow[] = []
-  if (!hidden.has('income')) {
-    arrows.push(incomeArrow(
-      income,
-      need,
-      overrides?.['arrow:income'],
-    ))
-  }
+  if (incomeArrowLayout) arrows.push(incomeArrowLayout)
   const shortTerm = accounts.find(
     (placed) => placed.account.bucket === 'shortTerm',
   )
@@ -2463,14 +2503,16 @@ function arrowsForFinalGeometry(
           shortTerm,
           need,
           overrides?.['arrow:asNeeded'],
+          [incomeArrowLayout, ...custom].filter(
+            (arrow): arrow is Arrow => arrow !== undefined,
+          ),
+          [income, need, ...accounts.map(obstacleBounds)],
         ),
         chipOverride,
       ),
     )
   }
-  arrows.push(
-    ...customArrowLayouts(customArrows, income, need, accounts, overrides),
-  )
+  arrows.push(...custom)
   return arrows
 }
 
@@ -2819,7 +2861,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
   for (const account of accounts) {
     const key = (role: AccountTextRole) =>
       accountTextOverrideKey(account.account.id, role)
-    if (account.titleLines.at(-1)?.endsWith('…')) {
+    if (account.titleLines.at(-1)?.endsWith('â€¦')) {
       warnAbbreviation(
         { display: account.titleLines.join(' '), exact: accountDisplayName(account.account) },
         key('label'),
@@ -2827,7 +2869,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
         'the account shape',
       )
     }
-    if (account.captionLines.at(-1)?.endsWith('…')) {
+    if (account.captionLines.at(-1)?.endsWith('â€¦')) {
       warnAbbreviation(
         { display: account.captionLines.join(' '), exact: account.account.caption ?? '' },
         key('caption'),
@@ -2842,7 +2884,7 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       'the account shape',
       'Reduce the account amount text size or shorten its optional note so the full amount fits on the map.',
     )
-    if (account.positionRows.some((row) => row.labelLines.at(-1)?.endsWith('…'))) {
+    if (account.positionRows.some((row) => row.labelLines.at(-1)?.endsWith('â€¦'))) {
       warnings.push({
         code: 'text-abbreviated',
         targetKey: key('rows'),
@@ -2851,9 +2893,9 @@ export function layoutMap(data: MoneyMapData): MapLayout {
       })
     }
     if (account.subAccountLayouts.some((item) =>
-      item.titleLines.at(-1)?.endsWith('…') ||
-      item.captionLines.at(-1)?.endsWith('…') ||
-      item.valueText.endsWith('…')
+      item.titleLines.at(-1)?.endsWith('â€¦') ||
+      item.captionLines.at(-1)?.endsWith('â€¦') ||
+      item.valueText.endsWith('â€¦')
     )) {
       warnings.push({
         code: 'text-abbreviated',
@@ -3082,3 +3124,4 @@ export function nudgeLayoutOverride(
     },
   }
 }
+
