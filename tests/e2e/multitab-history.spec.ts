@@ -62,7 +62,7 @@ test('writer takeover waits for a delayed incumbent to flush its pending edit', 
   await expect(second.getByLabel('Title')).toHaveValue('Page A pending handoff edit')
   await expect.poll(() => second.evaluate((key) => localStorage.getItem(key), BOOK_KEY)).toContain('Page A pending handoff edit')
 })
-test('takeover waits for a crashed lease to expire and then succeeds', async ({ context, page }) => {
+test('a stale lease from a crashed tab is reclaimed promptly on load, no TTL wait', async ({ context, page }) => {
   await context.addInitScript(() => {
     if (!location.origin.startsWith('http://127.0.0.1:')) return
     localStorage.setItem('money-map-generator:writer', JSON.stringify({
@@ -71,8 +71,13 @@ test('takeover waits for a crashed lease to expire and then succeeds', async ({ 
     }))
   })
   await openApp(page)
+  await fullForm(page)
+  const start = Date.now()
   await focusPage(page)
-  await expect(page.getByLabel('Title')).toBeEnabled({ timeout: 4_000 })
+  // There is no lease TTL to wait out: acquireBrowserWriter(force) always
+  // succeeds. Reclamation completes well under the old 9s TTL window.
+  expect(Date.now() - start).toBeLessThan(5_000)
+  await expect(page.getByLabel('Title')).toBeEnabled()
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('money-map-generator:writer') || '{}').tabId)).not.toBe('crashed-tab')
 })
 

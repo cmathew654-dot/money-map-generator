@@ -61,22 +61,26 @@ test.describe('desktop behavioral certification', () => {
     await expect(page.locator('.app-shell')).not.toHaveClass(/is-presenting/)
   })
 
-  test('writer ownership follows the focused page without guard UI', async ({ context, page }) => {
+  test('writer ownership follows the focused page, with the banner marking the read-only tab', async ({ context, page }) => {
+    await fullForm(page)
     const firstTitle = page.getByLabel('Title')
+    const firstBanner = page.locator('.map-readonly-banner')
     const second = await context.newPage(); await openApp(second)
+    await fullForm(second)
     const secondTitle = second.getByLabel('Title')
+    const secondBanner = second.locator('.map-readonly-banner')
 
     await focusPage(second)
     await expect(secondTitle).toBeEnabled()
+    await expect(secondBanner).toHaveCount(0)
     await expect(firstTitle).toBeDisabled()
-    await expect(second.getByText('Read-only tab')).toHaveCount(0)
-    await expect(second.getByRole('button', { name: 'Take over editing' })).toHaveCount(0)
+    await expect(firstBanner).toBeVisible()
 
     await focusPage(page)
     await expect(firstTitle).toBeEnabled()
+    await expect(firstBanner).toHaveCount(0)
     await expect(secondTitle).toBeDisabled()
-    await expect(page.getByText('Read-only tab')).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Take over editing' })).toHaveCount(0)
+    await expect(secondBanner).toBeVisible()
   })
 
   test('writer ownership survives rapid tab handoffs with edits', async ({ context, page }) => {

@@ -1,8 +1,7 @@
 import { expect, test } from '@playwright/test'
-import { openApp } from './helpers'
+import { fullForm, openApp } from './helpers'
 
 const PAN_ZOOM_HINT_KEY = 'money-map-generator:pan-zoom-hint:v1'
-const TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
 const WRITER_KEY = 'money-map-generator:writer'
 
 test('pan and zoom guidance is editor-only and remembers either dismissal path', async ({ page }) => {
@@ -13,10 +12,13 @@ test('pan and zoom guidance is editor-only and remembers either dismissal path',
   }, { key: PAN_ZOOM_HINT_KEY, guard: 'pan-zoom-hint-test-ready' })
   await openApp(page)
 
-  const hint = page.getByText(
-    'Hold Ctrl (or ⌘ on Mac) while scrolling to zoom. Drag the map background to pan.',
-  )
+  // Slice 12 (daa1b9a): at fit zoom, panning is disabled (beginMapPan no-ops
+  // while mapZoom === 'fit'), so the hint omits the pan wording it can't
+  // honor yet.
+  const hint = page.locator('.pan-zoom-hint')
   await expect(hint).toBeVisible()
+  await expect(hint).toContainText('Hold Ctrl')
+  await expect(hint).not.toContainText('pan')
 
   await page.getByRole('button', { name: 'Present' }).click()
   await expect(hint).toHaveCount(0)
@@ -38,6 +40,11 @@ test('pan and zoom guidance is editor-only and remembers either dismissal path',
     deltaY: -100,
   })
   await expect(hint).toHaveCount(0)
+  // The zoom actually moved past fit — panning (tested next) now works, and
+  // a freshly-shown hint at this zoom level would include the pan wording
+  // (see 'omits pan wording at fit zoom, states it once zoomed past fit' in
+  // tests/e2e/chrome-layout.spec.ts, which asserts that branch directly).
+  await expect(page.getByRole('button', { name: 'Fit' })).not.toHaveAttribute('aria-pressed', 'true')
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), PAN_ZOOM_HINT_KEY)).toBe('dismissed')
 
   await page.evaluate((key) => localStorage.removeItem(key), PAN_ZOOM_HINT_KEY)
@@ -74,35 +81,24 @@ test('pan and zoom guidance is editor-only and remembers either dismissal path',
   await expect(hint).toHaveCount(0)
 })
 
-test('a delayed writer handoff offers a retry without replacing the live lease', async ({ page }) => {
-  const now = new Date('2026-08-01T12:00:00Z')
-  await page.clock.install({ time: now })
-  await page.addInitScript(({ writerKey }) => {
+test('the read-only banner offers an instant click-to-take-over of a live writer lease', async ({ page }) => {
+  await page.addInitScript((writerKey) => {
     localStorage.setItem(writerKey, JSON.stringify({ tabId: 'other-live-tab', updatedAt: Date.now() }))
-  }, { writerKey: WRITER_KEY })
+  }, WRITER_KEY)
   await openApp(page)
-  await page.clock.runFor(2_000)
+  await fullForm(page)
 
-  const status = page.getByRole('status', { name: 'Editing handoff status' })
-  await expect(status).toContainText(/another tab|other tab/i, { timeout: 3_500 })
-  await expect(status.getByRole('button', { name: 'Try again' })).toBeVisible()
+  const banner = page.locator('.map-readonly-banner')
+  await expect(banner).toBeVisible()
+  await expect(page.getByLabel('Title')).toBeDisabled()
 
-  const before = await page.evaluate(({ requestKey, writerKey }) => ({
-    request: JSON.parse(localStorage.getItem(requestKey) || '{}') as { requestedAt?: number },
-    writer: localStorage.getItem(writerKey),
-  }), { requestKey: TAKEOVER_REQUEST_KEY, writerKey: WRITER_KEY })
+  await banner.click()
 
-  const retriedAt = (await page.evaluate(() => Date.now())) + 1_000
-  expect(retriedAt).toBeGreaterThan(before.request.requestedAt ?? 0)
-  await page.clock.pauseAt(retriedAt)
-  await status.getByRole('button', { name: 'Try again' }).click()
-
-  const after = await page.evaluate(({ requestKey, writerKey }) => ({
-    request: JSON.parse(localStorage.getItem(requestKey) || '{}') as { requestedAt?: number },
-    writer: localStorage.getItem(writerKey),
-  }), { requestKey: TAKEOVER_REQUEST_KEY, writerKey: WRITER_KEY })
-  expect(after.request.requestedAt).toBe(retriedAt)
-  expect(after.writer).toBe(before.writer)
+  await expect(banner).toHaveCount(0)
+  await expect(page.getByLabel('Title')).toBeEnabled()
+  await expect
+    .poll(() => page.evaluate((writerKey) => JSON.parse(localStorage.getItem(writerKey) || '{}').tabId, WRITER_KEY))
+    .not.toBe('other-live-tab')
 })
 
 test('the first-run hint does not displace or cover map controls at 200 percent', async ({ page }) => {
