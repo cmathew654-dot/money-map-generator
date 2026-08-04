@@ -403,6 +403,7 @@ function fixedTextOverrideKey(target: MapTextEditTarget): string | null {
     case 'incomeHeader':
       return mapTextOverrideKey('income', 'header')
     case 'incomeAmount':
+    case 'incomeRowLabel':
       return target.incomeId
         ? mapItemTextOverrideKey('income', 'row', target.incomeId)
         : mapTextOverrideKey('income', 'row')
@@ -496,6 +497,7 @@ function IncomeRow({
   fontSize,
   index,
   onElementClick,
+  onTextPointerDown,
   valueOffset,
   source,
   text,
@@ -505,12 +507,18 @@ function IncomeRow({
   fontSize: number
   index: number
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: TextPointerDown
   valueOffset: number
   source: IncomeSource
   text: IncomeSourceTextLayout
   x: number
   y: number
 }) {
+  const labelEdit = {
+    kind: 'incomeRowLabel',
+    incomeIndex: index,
+    incomeId: source.id,
+  } as const
   return (
     <g>
       <text
@@ -520,9 +528,10 @@ function IncomeRow({
         fontFamily={FONT_SANS}
         fontSize={fontSize * (13 / 14)}
         aria-label={text.label.exact}
-        {...editableLineTextProps(
-          { kind: 'incomeAmount', incomeIndex: index, incomeId: source.id },
+        {...editableTextProps(
+          labelEdit,
           onElementClick,
+          onTextPointerDown?.(labelEdit),
         )}
       >
         {text.label.display}
@@ -700,6 +709,7 @@ function IncomePanel({
             fontSize={rowFs}
             index={index}
             onElementClick={onElementClick}
+            onTextPointerDown={onTextPointerDown}
             source={source}
             text={text}
             valueOffset={rowValueOffset}

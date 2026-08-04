@@ -46,6 +46,7 @@ export type MapTextEditTarget =
   | { kind: 'accountSubValue'; accountId: string; subAccountIndex: number }
   | { kind: 'incomeHeader' }
   | { kind: 'incomeAmount'; incomeIndex: number; incomeId?: string }
+  | { kind: 'incomeRowLabel'; incomeIndex: number; incomeId?: string }
   | { kind: 'afterTaxIncome' }
   | { kind: 'needLabel' }
   | { kind: 'monthlyNeed' }
@@ -130,6 +131,7 @@ export function mapTextEditTargetKey(target: MapTextEditTarget): string {
     case 'accountSubValue':
       return `${target.kind}:${target.accountId}:${target.subAccountIndex}`
     case 'incomeAmount':
+    case 'incomeRowLabel':
       return `${target.kind}:${target.incomeId ?? target.incomeIndex}`
     case 'footnoteText':
       return target.footnoteId ? `${target.kind}:${target.footnoteId}` : target.kind
@@ -215,6 +217,9 @@ const MAP_TEXT_EDITOR_STYLES: Record<
   incomeAmount: {
     color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'left',
   },
+  incomeRowLabel: {
+    color: INK, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'left',
+  },
   incomeHeader: {
     color: FLOW_GREEN, fontFamily: FONT_SANS, fontWeight: 700,
     letterSpacing: 1.7, textAlign: 'left', textTransform: 'uppercase',
@@ -251,6 +256,7 @@ const MAP_TEXT_EDITOR_FONT_SIZES: Record<MapTextEditKind, number> = {
   flowLabel: TYPE.arrowLabel,
   footnoteText: TYPE.footnote,
   incomeAmount: TYPE.incomeValue,
+  incomeRowLabel: TYPE.incomeValue * (13 / 14),
   incomeHeader: TYPE.panelHeader,
   mastheadLabel: TYPE.mastheadLabel,
   monthlyNeed: TYPE.needValue,
@@ -356,6 +362,7 @@ export function mapTextEditFsInfo(
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
     case 'incomeAmount':
+    case 'incomeRowLabel':
       return {
         key: mapTextOverrideKey('income', 'row'),
         fallback: TYPE.incomeValue,
@@ -513,6 +520,8 @@ export function mapTextEditRawValue(
       return money(
         data.incomeSources[target.incomeIndex]?.amount ?? null,
       )
+    case 'incomeRowLabel':
+      return data.incomeSources[target.incomeIndex]?.label ?? ''
     case 'afterTaxIncome':
       return money(data.afterTaxIncome)
     case 'monthlyNeed':
@@ -581,6 +590,16 @@ export function applyMapTextEdit(
                     ),
                   }
           : account,
+      ),
+    }
+  }
+  if (target.kind === 'incomeRowLabel') {
+    const label = rawValue.trim()
+    if (!label) return data
+    return {
+      ...data,
+      incomeSources: data.incomeSources.map((source, index) =>
+        index === target.incomeIndex ? { ...source, label } : source,
       ),
     }
   }
@@ -705,6 +724,7 @@ export function mapTextEditorTargetLabel(target: MapTextEditTarget): string {
   if (target.kind === 'accountSubValue') return 'nested account amount'
   if (target.kind === 'incomeHeader') return 'income heading'
   if (target.kind === 'incomeAmount') return 'income source amount'
+  if (target.kind === 'incomeRowLabel') return 'income source name'
   if (target.kind === 'afterTaxIncome') return 'after-tax income'
   if (target.kind === 'needLabel') return 'monthly amount needed heading'
   if (target.kind === 'monthlyNeed') return 'monthly amount needed'
