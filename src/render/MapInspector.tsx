@@ -39,12 +39,12 @@ import {
   hideGeneratedArrow,
   moveCustomArrowLabel,
   moveMapNote,
-  resizeMapNote,
   retargetCustomArrow,
   resetTextPosition,
   setCustomArrowColor,
   setMapNoteBackground,
   setMapNoteFont,
+  setMapNoteFontSize,
   withOverride,
 } from './mapInteraction'
 import { ARROW_COLORS, ARTBOARD, TYPE } from './tokens'
@@ -608,8 +608,8 @@ export function MapInspector({
         {note && noteId && (
           <>
             <InspectorGroup label="Size">
-              <button aria-label="Decrease note size" type="button" onClick={() => onChange(resizeMapNote(data, noteId, (layout.notes.find((candidate) => candidate.note.id === noteId)?.w ?? NOTE_WIDTH) - 24))}>−</button>
-              <button aria-label="Increase note size" type="button" onClick={() => onChange(resizeMapNote(data, noteId, (layout.notes.find((candidate) => candidate.note.id === noteId)?.w ?? NOTE_WIDTH) + 24))}>+</button>
+              <button aria-label="Decrease note size" type="button" onClick={() => onChange(setMapNoteFontSize(data, noteId, (note.fs ?? TYPE.note) - 2))}>−</button>
+              <button aria-label="Increase note size" type="button" onClick={() => onChange(setMapNoteFontSize(data, noteId, (note.fs ?? TYPE.note) + 2))}>+</button>
             </InspectorGroup>
             <InspectorGroup label="Color">
               {CUSTOM_ARROW_COLORS.map((color) => (

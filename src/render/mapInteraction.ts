@@ -9,6 +9,8 @@ import type {
 import { layoutMap, layoutOverrideRect } from '../layout/layout'
 import {
   ACCOUNT_TEXT_ROLES,
+  MAX_MAP_TEXT_FONT_SIZE,
+  MIN_MAP_TEXT_FONT_SIZE,
   accountTextOverrideKey,
   newId,
 } from '../model/types'
@@ -630,6 +632,25 @@ export function setMapNoteBackground(
     ...data,
     notes: data.notes.map((note) =>
       note.id === id ? { ...note, bg } : note,
+    ),
+  }
+}
+
+export function setMapNoteFontSize(
+  data: MoneyMapData,
+  id: string,
+  fs: number,
+): MoneyMapData {
+  if (!data.notes?.some((note) => note.id === id)) return data
+  return {
+    ...data,
+    notes: data.notes.map((note) =>
+      note.id === id
+        ? {
+            ...note,
+            fs: clamp(fs, MIN_MAP_TEXT_FONT_SIZE, MAX_MAP_TEXT_FONT_SIZE),
+          }
+        : note,
     ),
   }
 }
