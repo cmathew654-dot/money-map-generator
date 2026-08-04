@@ -2028,11 +2028,13 @@ function NoteBlock({
   onElementClick,
   onTextPointerDown,
   placed,
+  color,
 }: {
   interactive: boolean
   onElementClick?: (target: MapElementTarget) => void
   onTextPointerDown?: (event: PointerEvent<SVGElement>) => void
   placed: PlacedNote
+  color?: keyof typeof ARROW_COLORS
 }) {
   const editProps = editableLineTextProps(
     { kind: 'noteText', noteId: placed.note.id },
@@ -2047,13 +2049,16 @@ function NoteBlock({
   )
   return (
     <>
-      {placed.note.bg && (
+      {(placed.note.bg || color) && (
         <rect
           className="map-note-card"
-          fill="#ffffff"
+          data-note-color={color}
+          fill={color ? ARROW_COLORS[color] : '#ffffff'}
+          fillOpacity={color ? 0.12 : undefined}
           height={placed.h + 20}
           rx={8}
-          stroke={HAIRLINE}
+          stroke={color ? ARROW_COLORS[color] : HAIRLINE}
+          strokeWidth={color ? 1.5 : undefined}
           width={placed.w + 20}
           x={placed.x - 10}
           y={placed.y - 10}
@@ -3188,6 +3193,7 @@ export function MapSvg({
                   : undefined
               }
               placed={placed}
+              color={data.layoutOverrides?.[`note:${placed.note.id}`]?.color}
             />
             {onChange &&
               selectedTargetKey === `note:${placed.note.id}` && (

@@ -10,6 +10,7 @@ import {
 import type {
   AccountShape,
   Bucket,
+  CustomArrowColor,
   LayoutOverride,
   MoneyMapData,
 } from '../model/types'
@@ -72,6 +73,16 @@ function withoutOverride(data: MoneyMapData, key: string): MoneyMapData {
     layoutOverrides:
       Object.keys(layoutOverrides).length > 0 ? layoutOverrides : undefined,
   }
+}
+
+function setNoteColor(data: MoneyMapData, id: string, color: CustomArrowColor | undefined): MoneyMapData {
+  const key = `note:${id}`
+  if (color) return withOverride(data, key, { color })
+  const existing = data.layoutOverrides?.[key]
+  if (!existing) return data
+  const { color: _removed, ...rest } = existing
+  if (Object.keys(rest).length === 0) return withoutOverride(data, key)
+  return { ...data, layoutOverrides: { ...data.layoutOverrides, [key]: rest } }
 }
 
 function InspectorGroup({ label, children }: { label: string; children: ReactNode }) {

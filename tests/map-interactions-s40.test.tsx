@@ -25,6 +25,28 @@ function renderInteractive(
 }
 
 describe('Session 40 map interaction affordances', () => {
+  it('renders a note color override as a filled bordered box', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [{ id: 'colored-note', text: 'Review this', x: 500, y: 400 }],
+      layoutOverrides: { 'note:colored-note': { color: 'teal' as const } },
+    }
+    const markup = renderInteractive(undefined, data)
+    expect(markup).toContain('data-note-id="colored-note"')
+    expect(markup).toContain('fill="#2e8577"')
+    expect(markup).toContain('stroke="#2e8577"')
+  })
+
+  it('keeps uncolored notes free of the colored box', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      notes: [{ id: 'plain-note', text: 'Review this', x: 500, y: 400 }],
+    }
+    const markup = renderInteractive(undefined, data)
+    expect(markup).not.toContain('class="map-note-card"')
+  })
+
+
   it('identifies exact account and text targets while keeping resting accounts clean', () => {
     const markup = renderInteractive()
 

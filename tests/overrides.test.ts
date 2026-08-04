@@ -204,6 +204,16 @@ describe('map interaction helpers', () => {
     )
   })
 
+  it('round-trips a note color override', () => {
+    const book = newBook()
+    book.clients[0].notes = [{ id: 'colored-note', text: 'Keep', x: 500, y: 400 }]
+    book.clients[0].layoutOverrides = { 'note:colored-note': { color: 'teal' } }
+
+    expect(parseBook(JSON.stringify(book)).clients[0].layoutOverrides).toEqual(
+      book.clients[0].layoutOverrides,
+    )
+  })
+
   it('rejects invalid generated-arrow appearance overrides', () => {
     const book = newBook() as unknown as {
       clients: Array<{
