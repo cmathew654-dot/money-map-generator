@@ -305,8 +305,8 @@ function editableLineTextProps(
 
 function editableHitAreaProps(
   edit: MapTextEditTarget,
-  onElementClick?: (target: MapElementTarget) => void,
-  onPointerDown?: (event: PointerEvent<SVGElement>) => void,
+  onElementClick: ((target: MapElementTarget) => void) | undefined,
+  onPointerDown: ((event: PointerEvent<SVGElement>) => void) | 'swallow' | undefined,
 ): SVGProps<SVGRectElement> & MapEditDataAttributes {
   if (!onElementClick) {
     return { fill: 'transparent', pointerEvents: 'none' }
@@ -356,7 +356,7 @@ function editableHitAreaProps(
       if (event.shiftKey || event.ctrlKey || event.metaKey) {
         event.preventDefault()
       }
-      if (onPointerDown) onPointerDown(event)
+      if (onPointerDown && onPointerDown !== 'swallow') onPointerDown(event)
       else {
         event.preventDefault()
         event.stopPropagation()
@@ -1841,15 +1841,17 @@ function ArrowEditor({
 
 
 
-function AsNeededLabel({
+export function AsNeededLabel({
   arrow,
   amount,
   onElementClick,
+  onTextPointerDown,
   selected,
 }: {
   arrow: Arrow
   amount: number | null
   onElementClick?: (target: MapElementTarget) => void
+  onTextPointerDown?: (event: PointerEvent<SVGElement>) => void
   selected?: boolean
 }) {
   if (!arrow.labelAt) return null
@@ -1882,6 +1884,7 @@ function AsNeededLabel({
         {...editableHitAreaProps(
           { kind: 'asNeededAmount' },
           onElementClick,
+          onTextPointerDown,
         )}
       />
       <text
@@ -3149,7 +3152,10 @@ export function MapSvg({
             arrow={asNeeded}
             amount={displayData.asNeededAmount}
             onElementClick={onElementClick}
-              selected={selectedTargetKey === 'asNeededChip'}
+            onTextPointerDown={
+              onChange ? beginDrag('asNeededChip', 'move') : undefined
+            }
+            selected={selectedTargetKey === 'asNeededChip'}
           />
         </g>
       )}

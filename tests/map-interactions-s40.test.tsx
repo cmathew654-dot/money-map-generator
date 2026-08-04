@@ -1,9 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
+import { layoutMap } from '../src/layout/layout'
 import {
   accountKeyboardActivation,
+  AsNeededLabel,
   MapSvg,
 } from '../src/render/MapSvg'
 
@@ -25,6 +27,57 @@ function renderInteractive(
 }
 
 describe('Session 40 map interaction affordances', () => {
+  it('forwards chip pointerdown to drag ownership after the threshold', () => {
+    const arrow = layoutMap(SAMPLE_WHITFIELD).arrows.find(
+      (candidate) => candidate.kind === 'asNeeded' && candidate.labelAt,
+    )!
+    const drag = vi.fn()
+    const chip = AsNeededLabel({
+      arrow,
+      amount: SAMPLE_WHITFIELD.asNeededAmount,
+      onElementClick: vi.fn(),
+      onTextPointerDown: drag,
+    }) as any
+    const hit = (chip.props.children as any[]).find(
+      (child) => child?.type === 'rect' && child.props.className === 'map-editable-hit',
+    )
+    const event = {
+      button: 0,
+      ctrlKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+      shiftKey: false,
+      stopPropagation: vi.fn(),
+    }
+    hit.props.onPointerDown(event)
+    expect(drag).toHaveBeenCalledWith(event)
+    expect(event.stopPropagation).not.toHaveBeenCalled()
+  })
+
+  it('keeps a clean amount click wired to the amount editor', () => {
+    const arrow = layoutMap(SAMPLE_WHITFIELD).arrows.find(
+      (candidate) => candidate.kind === 'asNeeded' && candidate.labelAt,
+    )!
+    const onElementClick = vi.fn()
+    const chip = AsNeededLabel({
+      arrow,
+      amount: SAMPLE_WHITFIELD.asNeededAmount,
+      onElementClick,
+    }) as any
+    const hit = (chip.props.children as any[]).find(
+      (child) => child?.type === 'rect' && child.props.className === 'map-editable-hit',
+    )
+    const element = {
+      closest: () => null,
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 10, height: 10 }),
+      ownerSVGElement: { querySelectorAll: () => [] },
+    }
+    hit.props.onDoubleClick({ currentTarget: element, stopPropagation: vi.fn() })
+    expect(onElementClick).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'edit', edit: { kind: 'asNeededAmount' } }),
+    )
+  })
+
   it('identifies exact account and text targets while keeping resting accounts clean', () => {
     const markup = renderInteractive()
 
