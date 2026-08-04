@@ -21,6 +21,7 @@ import {
 import {
   ACCOUNT_SHAPES,
   CUSTOM_ARROW_COLORS,
+  DEFAULT_CUSTOM_ARROW_WIDTH,
   MAP_NOTE_FONTS,
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
@@ -44,6 +45,7 @@ import {
   resetTextPosition,
   setCustomArrowColor,
   setCustomArrowLabel,
+  setCustomArrowWidth,
   setMapNoteBackground,
   setMapNoteFont,
   setMapNoteFontSize,
@@ -60,6 +62,8 @@ interface MapInspectorProps {
   onDetails?: () => void
   onSelect: (key: string) => void
 }
+
+const FLOW_COLOR_POPOVER_ID = 'map-inspector-flow-colors'
 
 const SHAPE_LABELS: Record<AccountShape, string> = {
   card: 'Card',
@@ -237,12 +241,6 @@ export function MapInspector({
   ]
   const endpointLabel = (id: string) =>
     endpoints.find((endpoint) => endpoint.id === id)?.label ?? 'Map item'
-  const outlineFor = (id: string) =>
-    id === 'income'
-      ? layout.income
-      : id === 'need'
-        ? layout.need
-        : layout.accounts.find((candidate) => candidate.account.id === id)
   const tidyKey = accountId ??
     (selectedTargetKey === 'income' || selectedTargetKey === 'need'
       ? selectedTargetKey
@@ -354,38 +352,12 @@ export function MapInspector({
         ...next,
         customArrows: next.customArrows?.map((candidate) =>
           candidate.id === customArrowId
-            ? { ...candidate, style: 'dotted', color: undefined }
+            ? { ...candidate, style: 'dotted', color: undefined, sw: undefined }
             : candidate,
         ),
       }
     }
     onChange(next)
-  }
-  const nudgeArrowEndpoint = (
-    endpoint: 'start' | 'end',
-    x: number,
-    y: number,
-  ) => {
-    if (!arrow || !arrowKey) return
-    const endpointId =
-      endpoint === 'start'
-        ? customArrow?.sourceId ??
-          (generatedKind === 'income' ? 'income' : arrow.sourceId)
-        : customArrow?.targetId ?? 'need'
-    if (!endpointId) return
-    const outline = outlineFor(endpointId)
-    if (!outline) return
-    const point = endpoint === 'start' ? arrow.start : arrow.end
-    const next = clampRectToBounds(
-      { x: point.x + x, y: point.y + y, w: 0, h: 0 },
-      OVERRIDE_BOUNDS,
-    )
-    onChange(withOverride(data, arrowKey, {
-      [endpoint === 'start' ? 'startAt' : 'endAt']: {
-        dx: next.x - (outline.x + outline.w / 2),
-        dy: next.y - (outline.y + outline.h / 2),
-      },
-    }))
   }
   const nudgeArrowLabel = (x: number, y: number) => {
     if (!customArrow || !arrow?.labelAt) return
@@ -560,25 +532,49 @@ export function MapInspector({
               </select>
             </label>
             <InspectorGroup label="Color">
-              {CUSTOM_ARROW_COLORS.map((color) => (
-                <button
-                  aria-label={`${color[0].toUpperCase() + color.slice(1)} flow color`}
-                  aria-pressed={resolvedArrowColor === color}
-                  className="map-inspector-color"
-                  key={color}
-                  style={{ backgroundColor: ARROW_COLORS[color] }}
-                  title={color[0].toUpperCase() + color.slice(1)}
-                  type="button"
-                  onClick={() => setArrowAppearance({ color })}
-                />
-              ))}
+              <button
+                aria-label="Flow color"
+                className="map-inspector-color"
+                popoverTarget={FLOW_COLOR_POPOVER_ID}
+                style={{ backgroundColor: ARROW_COLORS[resolvedArrowColor] }}
+                title={`${resolvedArrowColor[0].toUpperCase() + resolvedArrowColor.slice(1)} — pick a flow color`}
+                type="button"
+              />
+              <div className="map-inspector-swatches" id={FLOW_COLOR_POPOVER_ID} popover="auto">
+                {CUSTOM_ARROW_COLORS.map((color) => (
+                  <button
+                    aria-label={`${color[0].toUpperCase() + color.slice(1)} flow color`}
+                    aria-pressed={resolvedArrowColor === color}
+                    className="map-inspector-color"
+                    key={color}
+                    style={{ backgroundColor: ARROW_COLORS[color] }}
+                    title={color[0].toUpperCase() + color.slice(1)}
+                    type="button"
+                    onClick={() => setArrowAppearance({ color })}
+                  />
+                ))}
+              </div>
             </InspectorGroup>
+            {customArrow && (
+              <InspectorGroup label="Thickness">
+                {([-1, 1] as const).map((amount) => (
+                  <button
+                    aria-label={amount < 0 ? 'Decrease flow thickness' : 'Increase flow thickness'}
+                    key={amount}
+                    type="button"
+                    onClick={() => onChange(setCustomArrowWidth(
+                      data,
+                      customArrow.id,
+                      (customArrow.sw ?? DEFAULT_CUSTOM_ARROW_WIDTH) + amount,
+                    ))}
+                  >{amount < 0 ? '−' : '+'}</button>
+                ))}
+              </InspectorGroup>
+            )}
             <InspectorGroup label="Curve">
               <button aria-label="Decrease curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow - 12 }))}>−</button>
               <button aria-label="Increase curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow + 12 }))}>+</button>
             </InspectorGroup>
-            <MoveControls label="Start point" move={(x, y) => nudgeArrowEndpoint('start', x, y)} />
-            <MoveControls label="End point" move={(x, y) => nudgeArrowEndpoint('end', x, y)} />
             {customArrow?.label && arrow.labelAt && (
               <MoveControls label="Label position" move={nudgeArrowLabel} />
             )}

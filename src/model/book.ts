@@ -23,6 +23,8 @@ import {
   ACCOUNT_SHAPES,
   ACCOUNT_TEXT_ROLES,
   CUSTOM_ARROW_COLORS,
+  MAX_CUSTOM_ARROW_WIDTH,
+  MIN_CUSTOM_ARROW_WIDTH,
   MAP_NOTE_FONTS,
   MAP_TEXT_ELEMENTS,
   accountShape,
@@ -816,7 +818,12 @@ function validateClient(value: unknown, index: number, allowMissingItemIds = fal
           (arrow.color !== undefined &&
             !CUSTOM_ARROW_COLORS.includes(
               arrow.color as (typeof CUSTOM_ARROW_COLORS)[number],
-            )),
+            )) ||
+          (arrow.sw !== undefined &&
+            (typeof arrow.sw !== 'number' ||
+              !Number.isFinite(arrow.sw) ||
+              arrow.sw < MIN_CUSTOM_ARROW_WIDTH ||
+              arrow.sw > MAX_CUSTOM_ARROW_WIDTH)),
       )
     ) {
       throw new Error(`Client ${index + 1} has invalid custom arrows.`)

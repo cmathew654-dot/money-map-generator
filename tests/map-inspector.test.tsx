@@ -95,13 +95,13 @@ describe('persistent map inspector', () => {
     })
     const generated = render('arrow:income')
 
-    for (const label of ['Style', 'Color', 'Curve', 'Start point', 'End point', 'Label position', 'From', 'To', 'Reset flow', 'Delete flow']) {
+    for (const label of ['Style', 'Color', 'Curve', 'Label position', 'From', 'To', 'Reset flow', 'Delete flow']) {
       expect(custom).toContain(label)
     }
     expect(custom).toContain('aria-label="Blue flow color"')
     expect(custom).toContain('aria-pressed="false"')
     expect(custom).not.toContain('<select aria-label="Color"')
-    for (const label of ['Style', 'Color', 'Curve', 'Start point', 'End point', 'Reset flow', 'Hide flow']) {
+    for (const label of ['Style', 'Color', 'Curve', 'Reset flow', 'Hide flow']) {
       expect(generated).toContain(label)
     }
     expect(generated).not.toContain('From</label>')
