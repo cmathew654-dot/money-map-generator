@@ -111,6 +111,15 @@ function MoveControls({
   )
 }
 
+function RotateControls({ rot, apply }: { rot: number; apply: (rot: number) => void }) {
+  return (
+    <InspectorGroup label="Rotate">
+      <button aria-label="Rotate counterclockwise" type="button" onClick={() => apply(rot - 15)}>↺</button>
+      <button aria-label="Rotate clockwise" type="button" onClick={() => apply(rot + 15)}>↻</button>
+    </InspectorGroup>
+  )
+}
+
 function textDefaultSize(key: string): number {
   const role = key.split(':')[2]
   if (key === 'text:need:supporting') return TYPE.mathNote
@@ -213,6 +222,12 @@ export function MapInspector({
     (selectedTargetKey === 'income' || selectedTargetKey === 'need' || selectedTargetKey === 'asNeededChip' || isText
       ? selectedTargetKey
       : null)
+  const rotKey =
+    selectedTargetKey === 'asNeededChip' ||
+    noteId ||
+    selectedTargetKey.startsWith('text:footnotes:')
+      ? selectedTargetKey
+      : null
   const endpoints = [
     { id: 'income', label: 'Income sources' },
     { id: 'need', label: 'Monthly need' },
@@ -504,10 +519,10 @@ export function MapInspector({
               <button aria-label="Decrease size" type="button" onClick={() => resize(account.id, -12)}>−</button>
               <button aria-label="Increase size" type="button" onClick={() => resize(account.id, 12)}>+</button>
             </InspectorGroup>
-            <InspectorGroup label="Rotate">
-              <button aria-label="Rotate counterclockwise" type="button" onClick={() => onChange(withOverride(data, account.id, { rot: (layout.accounts.find((candidate) => candidate.account.id === account.id)?.rot ?? 0) - 15 }))}>↺</button>
-              <button aria-label="Rotate clockwise" type="button" onClick={() => onChange(withOverride(data, account.id, { rot: (layout.accounts.find((candidate) => candidate.account.id === account.id)?.rot ?? 0) + 15 }))}>↻</button>
-            </InspectorGroup>
+            <RotateControls
+              rot={layout.accounts.find((candidate) => candidate.account.id === account.id)?.rot ?? 0}
+              apply={(rot) => onChange(withOverride(data, account.id, { rot }))}
+            />
           </>
         )}
 
@@ -637,11 +652,18 @@ export function MapInspector({
           </InspectorGroup>
         )}
 
+        {rotKey && (
+          <RotateControls
+            rot={data.layoutOverrides?.[rotKey]?.rot ?? 0}
+            apply={(rot) => onChange(withOverride(data, rotKey, { rot }))}
+          />
+        )}
+
         <InspectorGroup label={arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text position' : 'Reset item'}>
           <button type="button" onClick={() => {
             if (arrowKey) resetArrow()
             else if (noteId) onChange({
-              ...moveMapNote(data, noteId, (ARTBOARD.width - NOTE_WIDTH) / 2, ARTBOARD.height / 2),
+              ...moveMapNote(withOverride(data, `note:${noteId}`, { rot: 0 }), noteId, (ARTBOARD.width - NOTE_WIDTH) / 2, ARTBOARD.height / 2),
               notes: data.notes?.map((candidate) => candidate.id === noteId ? { ...candidate, x: (ARTBOARD.width - NOTE_WIDTH) / 2, y: ARTBOARD.height / 2, w: undefined, bg: undefined, fs: undefined, font: undefined } : candidate),
             })
             else if (layoutKey) onChange(isText ? resetTextPosition(data, layoutKey) : withoutOverride(data, layoutKey))
