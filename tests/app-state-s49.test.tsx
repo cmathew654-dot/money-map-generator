@@ -85,6 +85,12 @@ describe('Session 49 App wiring', () => {
     expect(appSource).toMatch(/presentZoomRef\.current = mapZoom/)
   })
 
+  it('reads the zoom stash before clearing it, since the setMapZoom updater runs later', () => {
+    expect(appSource).toMatch(
+      /const stashed = presentZoomRef\.current\s*\n\s*presentZoomRef\.current = null\s*\n\s*setMapZoom\(\(current\) => presentExitZoom\(stashed, current\)\)/,
+    )
+  })
+
   it('cancels a pending text note placement before any other Escape action', () => {
     const chain = appSource.slice(
       appSource.indexOf('const handleEditorEscape'),

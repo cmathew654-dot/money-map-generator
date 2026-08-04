@@ -863,8 +863,11 @@ export default function App() {
 
   const exitPresentMode = useCallback(() => {
     setPresentMode(false)
-    setMapZoom((current) => presentExitZoom(presentZoomRef.current, current))
+    // Read the stash before clearing: the functional updater runs after this
+    // line, so reading the ref inside it would always see null.
+    const stashed = presentZoomRef.current
     presentZoomRef.current = null
+    setMapZoom((current) => presentExitZoom(stashed, current))
     if (document.fullscreenElement) {
       void document.exitFullscreen().catch(() => undefined)
     }
