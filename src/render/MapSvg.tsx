@@ -1841,6 +1841,15 @@ function ArrowEditor({
 
 
 
+/** Same shape as the account rotate transform: absent/zero rot renders nothing. */
+function rotateTransform(
+  rot: number | undefined,
+  cx: number,
+  cy: number,
+): string | undefined {
+  return rot ? `rotate(${rot} ${cx} ${cy})` : undefined
+}
+
 export function AsNeededLabel({
   arrow,
   amount,
@@ -1951,8 +1960,17 @@ function FootnoteLine({
     block,
     footnote.id,
   )
+  const rot = rotateTransform(
+    data.layoutOverrides?.[
+      mapItemTextOverrideKey('footnotes', 'line', footnote.id)
+    ]?.rot,
+    block.x + block.w / 2,
+    block.y + block.h / 2,
+  )
   return (
-    <g transform={`translate(${offset.dx} ${offset.dy})`}>
+    <g
+      transform={`translate(${offset.dx} ${offset.dy})${rot ? ` ${rot}` : ''}`}
+    >
       <rect
         x={block.x}
         y={block.y}
@@ -3147,6 +3165,15 @@ export function MapSvg({
         <g
           data-map-target={onChange ? 'asNeededChip' : undefined}
           className={onChange ? 'map-draggable' : undefined}
+          transform={
+            asNeeded.labelAt
+              ? rotateTransform(
+                  displayData.layoutOverrides?.asNeededChip?.rot,
+                  asNeeded.labelAt.x,
+                  asNeeded.labelAt.y,
+                )
+              : undefined
+          }
           onPointerDown={
             onChange
               ? beginDrag('asNeededChip', 'move')
@@ -3189,6 +3216,11 @@ export function MapSvg({
             }
             role={onChange ? 'group' : undefined}
             tabIndex={onChange ? 0 : undefined}
+            transform={rotateTransform(
+              data.layoutOverrides?.[`note:${placed.note.id}`]?.rot,
+              placed.x + placed.w / 2,
+              placed.y + placed.h / 2,
+            )}
           >
             <NoteBlock
               interactive={Boolean(onChange)}
