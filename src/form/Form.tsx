@@ -911,6 +911,16 @@ function AccountCard({
   )
 }
 
+/** row-level twin of the section filter: same case-insensitive substring test */
+export function accountMatchesQuery(account: Account, query: string) {
+  return (
+    !query ||
+    (account.label + ' ' + JSON.stringify(account))
+      .toLocaleLowerCase()
+      .includes(query)
+  )
+}
+
 interface AccountFocusRefs {
   details: HTMLDetailsElement
   labelInput: HTMLInputElement
@@ -927,10 +937,13 @@ export function AccountsSection({
   active = false,
   presetLabel = 'Add:',
   vocabulary = [],
+  query = '',
 }: FormProps & {
   sectionRef?: Ref<HTMLElement>
   active?: boolean
   presetLabel?: string
+  /** already lower-cased filter query; empty renders every row */
+  query?: string
 }) {
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
   const focusRefs = useRef(new Map<string, AccountFocusRefs>())
@@ -963,30 +976,32 @@ export function AccountsSection({
   return (
     <section className={active ? 'form-section accounts-section is-active' : 'form-section accounts-section'} data-form-section="accounts" ref={sectionRef}>
       <h2>Accounts</h2>
-      {data.accounts.map((account, index) => (
-        <AccountCard
-          account={account}
-          initiallyOpen={account.id === newAccountId}
-          selected={account.id === selectedAccountId}
-          key={account.id}
-          onHoverAccount={onHoverAccount}
-          onSelectAccount={onSelectAccount}
-          registerFocusRefs={registerFocusRefs}
-          vocabulary={vocabulary}
-          onChange={(next) =>
-            setAccounts(
-              data.accounts.map((item, itemIndex) =>
-                itemIndex === index ? next : item,
-              ),
-            )
-          }
-          onRemove={() =>
-            setAccounts(
-              data.accounts.filter((_, itemIndex) => itemIndex !== index),
-            )
-          }
-        />
-      ))}
+      {data.accounts.map((account, index) =>
+        accountMatchesQuery(account, query) ? (
+          <AccountCard
+            account={account}
+            initiallyOpen={account.id === newAccountId}
+            selected={account.id === selectedAccountId}
+            key={account.id}
+            onHoverAccount={onHoverAccount}
+            onSelectAccount={onSelectAccount}
+            registerFocusRefs={registerFocusRefs}
+            vocabulary={vocabulary}
+            onChange={(next) =>
+              setAccounts(
+                data.accounts.map((item, itemIndex) =>
+                  itemIndex === index ? next : item,
+                ),
+              )
+            }
+            onRemove={() =>
+              setAccounts(
+                data.accounts.filter((_, itemIndex) => itemIndex !== index),
+              )
+            }
+          />
+        ) : null,
+      )}
       <div className="account-preset-row" aria-label="Add account">
         <span className="account-preset-label">{presetLabel}</span>
         {ACCOUNT_PRESETS.map((preset) => (
@@ -1455,6 +1470,7 @@ export function Form({
           onSelectAccount={onSelectAccount}
           sectionRef={registerSection('accounts')}
           vocabulary={vocabulary}
+          query={query}
         />
       )}
       {sectionMatches('need') && (
