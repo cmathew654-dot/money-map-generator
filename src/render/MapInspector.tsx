@@ -120,8 +120,8 @@ function MoveControls({
 function RotateControls({ rot, apply }: { rot: number; apply: (rot: number) => void }) {
   return (
     <InspectorGroup label="Rotate">
-      <button aria-label="Rotate counterclockwise" type="button" onClick={() => apply(rot - 15)}>↺</button>
-      <button aria-label="Rotate clockwise" type="button" onClick={() => apply(rot + 15)}>↻</button>
+      <button aria-label="Rotate counterclockwise" type="button" onClick={() => apply(rot - 5)}>↺</button>
+      <button aria-label="Rotate clockwise" type="button" onClick={() => apply(rot + 5)}>↻</button>
     </InspectorGroup>
   )
 }
