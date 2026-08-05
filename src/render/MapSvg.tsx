@@ -3,6 +3,7 @@ import {
   useId,
   useRef,
   useState,
+  type FocusEvent,
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
@@ -807,7 +808,7 @@ function NeedCard({
   mathLine: string | null
   onElementClick?: (target: MapElementTarget) => void
   onTextPointerDown?: TextPointerDown
-  onSupportingFocus?: () => void
+  onSupportingFocus?: (event: FocusEvent<SVGTextElement>) => void
   onSupportingPointerDown?: (event: PointerEvent<SVGElement>) => void
   supportingSelected?: boolean
   value: number | null
@@ -3171,9 +3172,11 @@ export function MapSvg({
             displayData.showMath !== false,
           )}
           onElementClick={onElementClick}
-          onSupportingFocus={() =>
-            setSelectedTarget(mapTextOverrideKey('need', 'supporting'))
-          }
+          onSupportingFocus={(event) => {
+            if (shouldFocusSelect(event.currentTarget)) {
+              setSelectedTarget(mapTextOverrideKey('need', 'supporting'))
+            }
+          }}
           onSupportingPointerDown={
             onChange
               ? (event) => event.stopPropagation()
@@ -3522,7 +3525,10 @@ export function nextSelectedTargetKeys(
   targetKey: string | null,
   modified: boolean,
 ): string[] | null {
-  if (!targetKey || !modified) return targetKey ? [targetKey] : []
+  // A modifier-click that lands on nothing is a miss, not a "clear"; a plain
+  // click on nothing still deselects.
+  if (!targetKey) return modified ? null : []
+  if (!modified) return [targetKey]
   if (!isCompatibleMapItemKey(targetKey)) {
     return selectedTargetKeys.length > 0 ? null : [targetKey]
   }

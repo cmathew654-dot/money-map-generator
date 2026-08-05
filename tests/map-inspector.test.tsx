@@ -234,9 +234,9 @@ describe('persistent map inspector', () => {
       /min-height:\s*(\d+)px/.exec(controlBlock)?.[1],
     )
 
-    // Compact, but never below the 28px hit target the advisor needs.
-    expect(minHeight).toBeGreaterThanOrEqual(28)
-    expect(minHeight).toBeLessThan(32)
+    // Compact, but never below the 32px hit target the advisor needs.
+    expect(minHeight).toBeGreaterThanOrEqual(32)
+    expect(minHeight).toBeLessThan(40)
     expect(css).toMatch(
       /\.map-inspector button[^{]*\{[^}]*font-size:\s*1[12]px/s,
     )

@@ -846,8 +846,8 @@ summary:focus-visible {
 
 .map-inspector button,
 .map-inspector select {
-  min-width: 28px;
-  min-height: 28px;
+  min-width: 32px;
+  min-height: 32px;
   font-size: 11px;
 }
 
@@ -986,7 +986,10 @@ summary:focus-visible {
     position: fixed;
     right: 16px;
     bottom: 16px;
-    left: 16px;
+    /* Clear the 72px editor rail: fixed positioning takes the chrome out of
+       the workspace grid, and a wrapped bench would otherwise sit on top of
+       the rail's lower buttons. */
+    left: 88px;
     max-width: none;
     align-items: flex-start;
     justify-content: flex-start;

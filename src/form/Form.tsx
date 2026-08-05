@@ -167,7 +167,8 @@ export function synchronizeMoneyDraft(
 ): string | null {
   if (!isFocused) return null
   if (parseMoneyInput(draft ?? '') === value) return draft
-  return value === null ? '' : String(value)
+  // A value that changed under the caret still has to arrive formatted.
+  return value === null ? '' : formatMoneyDraft(String(value), 0).text
 }
 /** Plain dollar drafts only — k/m shorthand and junk pass through untouched. */
 const PLAIN_MONEY_DRAFT = /^([+-]?)(\$?)(\d*)(\.\d*)?$/
@@ -303,8 +304,9 @@ function MoneyField({
         value,
       )
       if (isFocused.current && next !== current) {
-        const snapshot = value === null ? '' : String(value)
-        focusSnapshot.current = snapshot
+        // The adopted draft *is* the snapshot; anything else would read as
+        // dirty typing on blur now that the draft arrives formatted.
+        focusSnapshot.current = next ?? ''
         originalValue.current = value
       }
       return next

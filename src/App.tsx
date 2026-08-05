@@ -1507,6 +1507,9 @@ export default function App() {
   }
 
   const copySelectedMapItems = () => {
+    // Nothing copyable selected: keep whatever was copied last rather than
+    // wiping the clipboard with an empty selection.
+    if (!selectedMapTargetKeys.some(isCompatibleMapItemKey)) return
     mapClipboardRef.current = selectedMapTargetKeys
       .filter(isCompatibleMapItemKey)
       .map((key) => ({

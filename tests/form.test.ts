@@ -171,7 +171,8 @@ describe('rapid-entry keyboard helpers', () => {
   })
 
   it('adopts focused external history values so blur and Escape cannot replay stale typing', () => {
-    const externalSnapshot = '85000'
+    // Adopted external values arrive grouped, exactly as typing would format them.
+    const externalSnapshot = '85,000'
     const synchronized = synchronizeMoneyDraft('92k', true, 85_000)
 
     expect(synchronized).toBe(externalSnapshot)
