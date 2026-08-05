@@ -57,3 +57,15 @@ Cross-check note: F3's mouse-path dispute (refuter A: shift-click appends 'need'
 | RESET ITEM clip (s46) | CLOSED MOOT - Cyril ruling 2026-08-05, inspector redesigned twice since |
 | multi-writer selection defect (4 symptoms) | FIXED e6b885b+8c69a1d - selectionReducer single owner, property test, s52 contract green |
 | mid-edit money format | OPEN - Cyril ruled formatted, live behavior is raw-on-focus (Form.tsx:351) -> needs behavior call |
+
+## s55 ledger delta (2026-08-05, 950051e + dfff3be)
+
+| item | verdict |
+|-|-|
+| mid-edit money format (Form focus path) | CLOSED AS-IS - Cyril ruling, raw-on-focus stays; multitab spec expectation aligned to formatted (dfff3be) |
+| undo after multi-item align not one step | FIXED 950051e - gesture-start chip-freeze wrote outside history; historyBaselineRef makes pre-freeze the undo target |
+| income amount hit-rect swallows label pointers | FIXED 950051e - hit rect now amount-line only (3 specs green) |
+| keyboard note spawns off visible centre | FIXED 950051e - spawn at visible centre (deliberate change, s49 unit expectation updated) |
+| 5 stale specs (wizard entry, heading copy, ClientCombobox drift, money expectation, banner copy) | REALIGNED dfff3be - tests only |
+| full-sweep baseline | 15 failed -> 6 failed / 132 passed (3 a11y-parked, 2 multitab-unclear, interaction-regression:852) |
+| extended-certification:850-853 selectOption combobox drift | LEDGERED - inside a11y-parked test, fix when unparked |
