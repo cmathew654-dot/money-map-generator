@@ -89,6 +89,7 @@ import {
   applyMapTextFontSize,
   adjustMapTextFontSize,
   consumeMapTextDiscard,
+  mapTextEditAggregateTarget,
   mapTextEditFsInfo,
   mapTextEditRawValue,
   MapTextEditor,
@@ -2222,10 +2223,17 @@ export default function App() {
             </div>
             {mapTextEdit && !presentMode && canMutate && (
               <MapTextEditor
+                aggregate={mapTextEditAggregateTarget(
+                  activeClient,
+                  mapTextEdit.target,
+                )}
                 containerRef={previewPaneRef}
                 edit={mapTextEdit}
                 key={JSON.stringify(mapTextEdit.target)}
                 onCancel={() => closeMapTextEditor(true)}
+                onOpenAggregate={(target) =>
+                  focusDataTarget(target.section, target.id)
+                }
                 onCommit={(rawValue) => {
                   if (consumeMapTextDiscard(discardMapTextCommitRef)) {
                     setMapTextEdit(null)

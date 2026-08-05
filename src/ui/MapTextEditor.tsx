@@ -56,6 +56,9 @@ export type MapTextEditTarget =
   | { kind: 'flowLabel'; arrowId: string }
   | { kind: 'noteText'; noteId: string; x?: number; y?: number }
 
+/** Where the Data panel should open when an aggregate edit is refused. */
+export type MapTextEditAggregateTarget = { section: 'accounts'; id: string }
+
 export interface MapTextEditRect {
   left: number
   top: number
@@ -164,6 +167,11 @@ export function mapTextEditorPillPosition(
 
 /** Rendered width of the "Text size" pill label, for pill centring. */
 const SIZE_LABEL_WIDTH = 62
+export const MAP_TEXT_AGGREGATE_NOTICE =
+  'Total is the sum of its rows — Edit the rows'
+/** Measured width of the notice pill at MAP_TEXT_AGGREGATE_NOTICE's length. */
+const NOTICE_PILL_WIDTH = 255
+const NOTICE_TIMEOUT_MS = 6_000
 
 type MapTextEditKind = MapTextEditTarget['kind']
 type MapTextEditorStyleBase = Omit<MapTextEditorTextStyle, 'fontSize'>
@@ -546,6 +554,32 @@ export function mapTextEditRawValue(
   }
 }
 
+/**
+ * An account total that its positions already add up to exactly is a display of
+ * those rows, not a number of its own — retyping it would leave the rows on the
+ * map contradicting the total above them. Those edits are refused; the caller
+ * points the advisor at the rows instead.
+ *
+ * Deliberately narrow. Sub-accounts are earmarked carve-outs and positions are
+ * only "holdings of note" (see Account in model/types), so a breakdown that
+ * does not add up is a partial highlight and the total stays directly editable.
+ */
+export function mapTextEditAggregateTarget(
+  data: MoneyMapData,
+  target: MapTextEditTarget,
+): MapTextEditAggregateTarget | null {
+  if (target.kind !== 'accountValue') return null
+  const account = data.accounts.find((item) => item.id === target.accountId)
+  const positions = account?.positions
+  if (!account || !positions?.length) return null
+  if (positions.some((position) => position.value === null)) return null
+  const rowTotal = positions.reduce(
+    (sum, position) => sum + (position.value ?? 0),
+    0,
+  )
+  return rowTotal === account.value ? { section: 'accounts', id: account.id } : null
+}
+
 export function applyMapTextEdit(
   data: MoneyMapData,
   target: MapTextEditTarget,
@@ -553,6 +587,7 @@ export function applyMapTextEdit(
 ): MoneyMapData {
   if (rawValue === null) return data
   if (isSizeOnlyTarget(target)) return data
+  if (mapTextEditAggregateTarget(data, target)) return data
   if (
     target.kind === 'accountLabel' ||
     target.kind === 'accountCaption' ||
@@ -737,21 +772,31 @@ export function mapTextEditorTargetLabel(target: MapTextEditTarget): string {
 
 export function MapTextEditor({
   edit,
+  aggregate,
   containerRef,
   onCancel,
   onCommit,
+  onOpenAggregate,
   onFontSizeChange,
 }: {
   edit: ActiveMapTextEdit
+  /** Set when this number only restates rows; committing shows the notice. */
+  aggregate?: MapTextEditAggregateTarget | null
   containerRef: RefObject<HTMLElement | null>
   onCancel(): void
   onCommit(rawValue: string): void
+  onOpenAggregate?(target: MapTextEditAggregateTarget): void
   onFontSizeChange?(fontSize: number): void
 }) {
   const targetKey = mapTextEditTargetKey(edit.target)
   const activeElement =
     typeof document === 'undefined' ? null : document.activeElement
   const [rawValue, setRawValue] = useState(edit.rawValue)
+  // Set with the state so the unmounting input's blur can tell that the notice,
+  // not a stray focus change, now owns dismissal.
+  const [noticeShown, setNoticeShown] = useState(false)
+  const noticeRef = useRef(false)
+  const noticeButtonRef = useRef<HTMLButtonElement>(null)
   const editorRef = useRef<HTMLDivElement>(null)
   const finished = useRef(false)
   const originRef = useRef<SVGElement | null>(
@@ -805,6 +850,11 @@ export function MapTextEditor({
     ),
   }
   const pillButtonCount = edit.fontSize === undefined ? 1 : 3
+  // The notice pill is sized by its text (.is-size-only drops the fixed width);
+  // this estimate only centres it over the number it is talking about.
+  const pillWidth = noticeShown
+    ? NOTICE_PILL_WIDTH
+    : pillButtonCount * 36 + (sizeOnly ? SIZE_LABEL_WIDTH : 0)
   const pillAnchor = edit.anchorRect
     ? {
         left: edit.rect.left,
@@ -820,7 +870,7 @@ export function MapTextEditor({
   const pillScreenPosition = mapTextEditorPillPosition(
     pillAnchor,
     mapRect?.top ?? pillAnchor.top,
-    pillButtonCount * 36 + (sizeOnly ? SIZE_LABEL_WIDTH : 0),
+    pillWidth,
   )
   const pillStyle: CSSProperties = {
     left:
@@ -840,15 +890,33 @@ export function MapTextEditor({
   }
   const finish = (reason: MapTextEditorDismissReason) => {
     if (finished.current) return
-    finished.current = true
-    if (mapTextEditorDismissAction(reason) === 'cancel') onCancel()
-    else onCommit(rawValue)
+    if (mapTextEditorDismissAction(reason) === 'cancel' || noticeShown) {
+      finished.current = true
+      onCancel()
+    } else if (aggregate) {
+      // The rows own this number, so nothing is committed — swap the editor for
+      // the notice and let Escape, a click away, or the timer close it.
+      noticeRef.current = true
+      setNoticeShown(true)
+      return
+    } else {
+      finished.current = true
+      onCommit(rawValue)
+    }
     if (mapTextEditorShouldRestoreFocus(reason)) restoreOriginFocus()
   }
 
   useEffect(() => {
     if (sizeOnly) sizeControlsRef.current?.focus()
   }, [sizeOnly])
+
+  useEffect(() => {
+    if (!noticeShown) return
+    noticeButtonRef.current?.focus()
+    // 'outside' leaves focus wherever the advisor moved it on the way out.
+    const timer = window.setTimeout(() => finish('outside'), NOTICE_TIMEOUT_MS)
+    return () => window.clearTimeout(timer)
+  }, [noticeShown])
 
   useEffect(() => {
     const handlePointerDown = (event: globalThis.PointerEvent) => {
@@ -886,7 +954,9 @@ export function MapTextEditor({
       targetKey,
       [...focusedElements, ...tabStops, ...editedElements],
     )
-    if (!sizeOnly) {
+    // The class hides the map text behind the input. Once the notice replaces
+    // the input there is nothing covering the number, so it has to come back.
+    if (!sizeOnly && !noticeShown) {
       editedElements.forEach((element) =>
         element.classList.add('map-editing-text'),
       )
@@ -896,7 +966,7 @@ export function MapTextEditor({
         element.classList.remove('map-editing-text'),
       )
     }
-  }, [containerRef, sizeOnly, targetKey])
+  }, [containerRef, noticeShown, sizeOnly, targetKey])
 
   const inputMode: 'decimal' | 'text' =
     edit.target.kind === 'accountLabel' ||
@@ -915,6 +985,9 @@ export function MapTextEditor({
     className: 'map-text-editor-input',
     inputMode,
     onBlur: (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      // Showing the notice unmounts this input; the browsers that fire blur on
+      // removal must not read that as the advisor clicking away.
+      if (noticeRef.current) return
       const nextTarget = event.relatedTarget as Node | null
       if (nextTarget && sizeControlsRef.current?.contains(nextTarget)) return
       finish('outside')
@@ -946,7 +1019,7 @@ export function MapTextEditor({
 
   return (
     <>
-      {!sizeOnly && (
+      {!sizeOnly && !noticeShown && (
         <div ref={editorRef} className="map-text-editor" style={inputStyle}>
           {multiline ? (
             <textarea {...controlProps} />
@@ -959,7 +1032,7 @@ export function MapTextEditor({
         ref={sizeControlsRef}
         aria-label={sizeOnly ? `Adjust ${mapTextEditorTargetLabel(edit.target)}` : undefined}
         className={`map-text-size-controls is-${pillScreenPosition.placement}${
-          sizeOnly ? ' is-size-only' : ''
+          sizeOnly || noticeShown ? ' is-size-only' : ''
         }`}
         role={sizeOnly ? 'group' : undefined}
         style={pillStyle}
@@ -990,10 +1063,23 @@ export function MapTextEditor({
           }
         }}
       >
+        {noticeShown && aggregate && (
+          <button
+            ref={noticeButtonRef}
+            type="button"
+            onClick={() => {
+              onOpenAggregate?.(aggregate)
+              // 'outside' skips the focus restore — the Data panel now owns it.
+              finish('outside')
+            }}
+          >
+            {MAP_TEXT_AGGREGATE_NOTICE}
+          </button>
+        )}
         {sizeOnly && (
           <span className="map-text-size-label">Text size</span>
         )}
-        {edit.fontSize !== undefined && (
+        {!noticeShown && edit.fontSize !== undefined && (
           <>
             <button
               aria-label="Decrease font size"
@@ -1023,14 +1109,16 @@ export function MapTextEditor({
             </button>
           </>
         )}
-        <button
-          aria-label="Close text editor"
-          type="button"
-          onClick={() => finish('close')}
-          onPointerDown={(event) => event.preventDefault()}
-        >
-          ×
-        </button>
+        {!noticeShown && (
+          <button
+            aria-label="Close text editor"
+            type="button"
+            onClick={() => finish('close')}
+            onPointerDown={(event) => event.preventDefault()}
+          >
+            ×
+          </button>
+        )}
       </div>
     </>
   )
