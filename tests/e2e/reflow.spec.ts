@@ -97,7 +97,8 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
     statusObstructions: [],
   })
 
-  const regions = { header, workspace, editor }
+  // The editor pane only exists in guided setup; it is measured after the "Guide me" click below.
+  const regions = { header, workspace }
   for (const [name, region] of Object.entries(regions)) {
     await expect.poll(async () => {
       const { clientWidth, scrollWidth } = await region.evaluate(metrics)
@@ -140,22 +141,34 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
     const labels = [...element.querySelectorAll<HTMLElement>('button, .book-connection-name, .wordmark span')]
       .filter((node) => getComputedStyle(node).display !== 'none')
       .map(paint)
-    const select = element.querySelector<HTMLSelectElement>('.client-select')!
+    // .client-select is the ClientCombobox text input (src/ui/ClientCombobox.tsx), not a <select>.
+    const select = element.querySelector<HTMLInputElement>('.client-select')!
     const style = getComputedStyle(select)
     const probe = document.createElement('span')
-    probe.textContent = select.selectedOptions[0]?.textContent || ''
+    probe.textContent = select.value
     Object.assign(probe.style, { position: 'fixed', visibility: 'hidden', whiteSpace: 'nowrap', font: style.font })
     document.body.append(probe)
     const selectedTextWidth = probe.getBoundingClientRect().width
     probe.remove()
-    const horizontalChrome = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth) + 18
-    return { labels, select: { text: select.selectedOptions[0]?.textContent, clientWidth: select.clientWidth, requiredWidth: selectedTextWidth + horizontalChrome, clipped: selectedTextWidth + horizontalChrome > select.clientWidth + 1 } }
+    const horizontalChrome = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+    return { labels, select: { text: select.value, clientWidth: select.clientWidth, requiredWidth: selectedTextWidth + horizontalChrome, clipped: selectedTextWidth + horizontalChrome > select.clientWidth + 1 } }
   })
   console.log(`HEADER_LABEL_DIAGNOSTICS ${JSON.stringify(headerLabelDiagnostics)}`)
   const clippedHeaderLabels = headerLabelDiagnostics.labels.filter(({ clipped }) => clipped)
 
-  await page.getByRole('button', { name: 'Data', exact: true }).click()
-  const shownAs = page.getByLabel('Amount note').first()
+  // The wizard only renders in guided setup, which New client enters.
+  await page.getByRole('button', { name: 'More actions' }).click({ timeout: 5_000 })
+  await page.getByRole('menuitem', { name: 'New client' }).click({ timeout: 5_000 })
+  await expect(page.locator('.form-pane .wizard')).toBeVisible({ timeout: 5_000 })
+
+  await expect.poll(async () => {
+    const { clientWidth, scrollWidth } = await editor.evaluate(metrics)
+    return { name: 'editor', horizontalOverflow: scrollWidth - clientWidth }
+  }).toEqual({ name: 'editor', horizontalOverflow: 0 })
+
+  // Long value in a narrow field must stay reachable at 200%; the wizard's text field stands in
+  // for the removed "Amount note" input.
+  const shownAs = editor.locator('input[type="text"]').first()
   await shownAs.fill('Gross, After-Tax')
   const shownAsMetrics = await shownAs.evaluate((element: HTMLInputElement) => {
     const style = getComputedStyle(element)
@@ -174,8 +187,6 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
   const endScrollLeft = await shownAs.evaluate((element: HTMLInputElement) => element.scrollLeft)
   console.log(`SHOWN_AS_DIAGNOSTICS ${JSON.stringify({ ...shownAsMetrics, homeScrollLeft, endScrollLeft })}`)
   const shownAsReachable = await shownAs.inputValue() === 'Gross, After-Tax' && (!shownAsMetrics.clipped || (homeScrollLeft === 0 && endScrollLeft > homeScrollLeft))
-  await page.getByRole('button', { name: 'Guide me' }).click()
-
   const layout = await page.evaluate(() => {
     const editorBox = document.querySelector('.form-pane')!.getBoundingClientRect()
     const previewBox = document.querySelector('.preview-pane')!.getBoundingClientRect()
