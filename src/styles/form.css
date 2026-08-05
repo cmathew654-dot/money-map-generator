@@ -125,7 +125,9 @@
 .editor-panel .form-section-head {
   position: sticky;
   z-index: 1;
-  top: 126px;
+  /* .data-form-tools sticks at 41px and is 83px tall, so its bottom edge is
+   * 124px. Anything larger leaves a strip where scrolled rows show through. */
+  top: 124px;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
