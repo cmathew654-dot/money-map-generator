@@ -445,9 +445,6 @@ export function MapInspector({
           </>
         )}
         {!multiSelection && <>
-        {(layoutKey || note) && <MoveControls move={move} />}
-        {(account || note) && <button type="button" onClick={duplicate}>Duplicate</button>}
-
         {account && (
           <>
             <label className="map-inspector-field">Shape
@@ -500,6 +497,13 @@ export function MapInspector({
           </>
         )}
 
+        {(selectedTargetKey === 'income' || selectedTargetKey === 'need') && (
+          <InspectorGroup label="Size">
+            <button aria-label="Decrease size" type="button" onClick={() => resize(selectedTargetKey, -12)}>−</button>
+            <button aria-label="Increase size" type="button" onClick={() => resize(selectedTargetKey, 12)}>+</button>
+          </InspectorGroup>
+        )}
+
         {(account || selectedTargetKey === 'income' || selectedTargetKey === 'need') && (
           <label className="map-inspector-field">Add flow to
             <select
@@ -515,13 +519,6 @@ export function MapInspector({
               {endpoints.filter((endpoint) => endpoint.id !== (accountId ?? selectedTargetKey)).map((endpoint) => <option key={endpoint.id} value={endpoint.id}>{endpoint.label}</option>)}
             </select>
           </label>
-        )}
-
-        {(selectedTargetKey === 'income' || selectedTargetKey === 'need') && (
-          <InspectorGroup label="Size">
-            <button aria-label="Decrease size" type="button" onClick={() => resize(selectedTargetKey, -12)}>−</button>
-            <button aria-label="Increase size" type="button" onClick={() => resize(selectedTargetKey, 12)}>+</button>
-          </InspectorGroup>
         )}
 
         {arrow && arrowKey && (
@@ -575,9 +572,6 @@ export function MapInspector({
               <button aria-label="Decrease curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow - 12 }))}>−</button>
               <button aria-label="Increase curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow + 12 }))}>+</button>
             </InspectorGroup>
-            {customArrow?.label && arrow.labelAt && (
-              <MoveControls label="Label position" move={nudgeArrowLabel} />
-            )}
             {customArrow && (
               <>
                 <label className="map-inspector-field">Label
@@ -610,6 +604,9 @@ export function MapInspector({
                   </label>
                 ))}
               </>
+            )}
+            {customArrow?.label && arrow.labelAt && (
+              <MoveControls label="Label position" move={nudgeArrowLabel} />
             )}
           </>
         )}
@@ -667,6 +664,11 @@ export function MapInspector({
             apply={(rot) => onChange(withOverride(data, rotKey, { rot }))}
           />
         )}
+
+        {(layoutKey || note) && <MoveControls move={move} />}
+        {(account || note) && <button type="button" onClick={duplicate}>Duplicate</button>}
+
+        <span aria-hidden="true" className="map-inspector-divider" />
 
         <InspectorGroup label={arrowKey ? 'Reset flow' : noteId ? 'Reset note' : isText ? 'Reset text position' : 'Reset item'}>
           <button type="button" onClick={() => {

@@ -879,6 +879,13 @@ summary:focus-visible {
   outline-offset: 2px;
 }
 
+.map-inspector-divider {
+  align-self: stretch;
+  width: 1px;
+  flex-shrink: 0;
+  background: #dde1dc;
+}
+
 .map-inspector-danger {
   align-self: flex-end;
   border-color: #e1b6af;
