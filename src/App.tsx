@@ -2274,65 +2274,77 @@ export default function App() {
           </div>
           {!presentMode && (
             <div className="map-chrome">
-              <button
-                disabled={!canMutate || !canTidyMap}
-                title={canTidyMap ? 'Align movable items to the grid' : 'Already aligned'}
-                type="button"
-                onClick={handleTidyMap}
-              >
-                Tidy map
-              </button>
-              <button
-                aria-label="Add text note"
-                aria-pressed={placingTextNote}
-                type="button"
-                onClick={(event) => beginTextNotePlacement(event.detail === 0)}
-              >
-                + Text note
-              </button>
-              <button
-                disabled={!canMutate || !selectedFlowPair}
-                title={
-                  selectedFlowPair
-                    ? 'Connect the two selected items'
-                    : 'Select two map items to connect them'
-                }
-                type="button"
-                onClick={() => {
-                  const pair = selectedFlowPair
-                  if (pair) handlePanelAddFlow(pair.source, pair.target)
-                }}
-              >
-                + Flow
-              </button>
-              <div ref={shapePopoverRef} className="shape-quick-add">
+              <div className="action-bench" role="group" aria-label="Map actions">
                 <button
-                  ref={shapePopoverButtonRef}
-                  aria-expanded={shapePopoverOpen}
+                  disabled={!canMutate || !canTidyMap}
+                  title={canTidyMap ? 'Align movable items to the grid' : 'Already aligned'}
+                  type="button"
+                  onClick={handleTidyMap}
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="bench-glyph"
+                    focusable="false"
+                    viewBox="0 0 12 12"
+                  >
+                    <path d="M8.6 1.4 5.8 4.2M5.1 4.9 2.6 7.4h6.8L6.9 4.9zM3.6 8.4v2.1M6 8.4v2.1M8.4 8.4v2.1" />
+                  </svg>
+                  Tidy map
+                </button>
+                <span aria-hidden="true" className="bench-divider" />
+                <button
+                  aria-label="Add text note"
+                  aria-pressed={placingTextNote}
+                  type="button"
+                  onClick={(event) => beginTextNotePlacement(event.detail === 0)}
+                >
+                  + Text note
+                </button>
+                <button
+                  disabled={!canMutate || !selectedFlowPair}
+                  title={
+                    selectedFlowPair
+                      ? 'Connect the two selected items'
+                      : 'Select two map items to connect them'
+                  }
                   type="button"
                   onClick={() => {
-                    if (!shapePopoverOpen) dismissPanZoomHint()
-                    setShapePopoverOpen((open) => !open)
+                    const pair = selectedFlowPair
+                    if (pair) handlePanelAddFlow(pair.source, pair.target)
                   }}
                 >
-                  + Account
+                  + Flow
                 </button>
-                {shapePopoverOpen && (
-                  <div className="shape-popover" aria-label="Add account">
-                    {ACCOUNT_PRESETS.map((preset, index) => (
-                      <button
-                        ref={index === 0 ? firstShapePresetRef : undefined}
-                        className={`account-preset-button bucket-${preset.bucket}`}
-                        key={preset.bucket}
-                        type="button"
-                        onClick={() => handleQuickAdd(preset.bucket)}
-                      >
-                        <span aria-hidden="true" className="account-swatch" />
-                        {preset.chipLabel}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <span aria-hidden="true" className="bench-divider" />
+                <div ref={shapePopoverRef} className="shape-quick-add">
+                  <button
+                    ref={shapePopoverButtonRef}
+                    aria-expanded={shapePopoverOpen}
+                    type="button"
+                    onClick={() => {
+                      if (!shapePopoverOpen) dismissPanZoomHint()
+                      setShapePopoverOpen((open) => !open)
+                    }}
+                  >
+                    + Account
+                  </button>
+                  {shapePopoverOpen && (
+                    <div className="shape-popover" aria-label="Add account">
+                      {ACCOUNT_PRESETS.map((preset, index) => (
+                        <button
+                          ref={index === 0 ? firstShapePresetRef : undefined}
+                          className={`account-preset-button bucket-${preset.bucket}`}
+                          key={preset.bucket}
+                          type="button"
+                          onClick={() => handleQuickAdd(preset.bucket)}
+                        >
+                          <span aria-hidden="true" className="account-swatch" />
+                          {preset.chipLabel}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               {placingTextNote && (
                 <span className="text-placement-hint" role="status">

@@ -38,7 +38,7 @@ test.describe('s51 docked action bench', () => {
     await editor.press('Enter')
     await expect(editor).toHaveCount(0, { timeout: 5_000 })
     await expect(
-      page.locator('[data-map-edit-hit^="noteText:"]').filter({ hasText: 'Bench note' }),
+      page.getByRole('group', { name: 'Adjust note: Bench note' }),
     ).toHaveCount(1, { timeout: 5_000 })
   })
 
