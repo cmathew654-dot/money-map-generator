@@ -80,8 +80,8 @@ describe('Session 49 add flow from the map chrome', () => {
 describe('Session 49 note spawn position', () => {
   const visible = { left: 100, right: 900, top: 0, bottom: 600 }
 
-  it('drops the first note at the bottom centre of the visible map', () => {
-    expect(noteSpawnPoint(visible, 0)).toEqual({ x: 500, y: 528 })
+  it('drops the first note at the centre of the visible map', () => {
+    expect(noteSpawnPoint(visible, 0)).toEqual({ x: 500, y: 300 })
   })
 
   it('cascades successive notes so they do not stack', () => {

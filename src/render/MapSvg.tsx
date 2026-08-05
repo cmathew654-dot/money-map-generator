@@ -690,6 +690,16 @@ function IncomePanel({
             textWidth(text.amount.display, rowFs),
           ) + 16,
         )
+        // The amount sits on its own line under the row label, so its hit area
+        // is that line only — a row-sized rect would swallow label pointers.
+        const amountBaseline =
+          placed.y + firstRowY + index * rowPitch + rowValueOffset
+        const amountHit = {
+          x: placed.x + 12,
+          y: amountBaseline - rowFs,
+          w: Math.min(placed.w - 24, textWidth(text.amount.display, rowFs) + 16),
+          h: rowFs + 6,
+        }
         const rowBlock = {
           x: placed.x + 12,
           y:
@@ -714,10 +724,10 @@ function IncomePanel({
           transform={`translate(${offset.dx} ${offset.dy})`}
         >
           <rect
-            x={rowBlock.x}
-            y={rowBlock.y}
-            width={rowBlock.w}
-            height={rowBlock.h}
+            x={amountHit.x}
+            y={amountHit.y}
+            width={amountHit.w}
+            height={amountHit.h}
             {...editableHitAreaProps(
               edit,
               onElementClick,

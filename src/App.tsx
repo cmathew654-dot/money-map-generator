@@ -164,7 +164,7 @@ export function flowEndpointsFromSelection(keys: readonly string[]) {
   return { source, target }
 }
 
-/** New notes land bottom-centre of the visible map, cascading so they don't stack. */
+/** New notes land at the centre of the visible map, cascading so they don't stack. */
 export function noteSpawnPoint(
   visible: { left: number; right: number; top: number; bottom: number },
   index: number,
@@ -172,7 +172,7 @@ export function noteSpawnPoint(
   const step = 18 * (index % 6)
   return {
     x: (visible.left + visible.right) / 2 + step,
-    y: Math.max(visible.top + 24, visible.bottom - 72 - step),
+    y: Math.max(visible.top + 24, (visible.top + visible.bottom) / 2 - step),
   }
 }
 
@@ -459,6 +459,10 @@ export default function App() {
   const discardMapTextCommitRef = useRef(false)
   const snapshotRef = useRef(snapshot)
   const historyRef = useRef(history)
+  // Invisible, position-preserving state written outside history (the gesture-
+  // start chip freeze) must not become the undo target: it is the pre-write
+  // snapshot the next commit records as its `before`.
+  const historyBaselineRef = useRef<BookSnapshot | null>(null)
   const appShellRef = useRef<HTMLElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewPaneRef = useRef<HTMLDivElement>(null)
@@ -634,11 +638,12 @@ export default function App() {
       if (!canMutate) return
       const nextHistory = pushHistory(
         historyRef.current,
-        snapshotRef.current,
+        historyBaselineRef.current ?? snapshotRef.current,
         next,
         targetClientId,
         Date.now(),
       )
+      historyBaselineRef.current = null
       showHistory(nextHistory)
       showSnapshot(next)
     },
@@ -654,6 +659,7 @@ export default function App() {
     (next: BookSnapshot) => {
       bumpFormRevision()
       closeMapTextEditor(true)
+      historyBaselineRef.current = null
       showSnapshot(next)
       const restoredClient = next.book.clients.find(
         (client) => client.id === next.activeClientId,
@@ -1381,7 +1387,8 @@ export default function App() {
   /**
    * Pointer-down on the map, before the first preview frame: materialize the
    * chip's scored anchor so it stops re-picking per frame mid-drag. Position-
-   * preserving and invisible, so it goes through showSnapshot — no undo step.
+   * preserving and invisible, so it goes through showSnapshot — no undo step
+   * of its own; the pre-freeze snapshot becomes the next commit's undo target.
    */
   const handleMapGestureStart = () => {
     const current = snapshotRef.current
@@ -1390,6 +1397,7 @@ export default function App() {
       activeClient
     const next = freezeAsNeededChip(before, before)
     if (next === before) return
+    historyBaselineRef.current = current
     showSnapshot({
       book: updateClient(current.book, next.id, next),
       activeClientId: current.activeClientId,
