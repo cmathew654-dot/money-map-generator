@@ -340,9 +340,14 @@ describe('seamless map text editor geometry and typography', () => {
 
     expect(textTags.length).toBeGreaterThan(30)
     for (const tag of textTags) {
+      // S51: a wrapped line may also inherit, taking its owning <text>'s
+      // semantics — click-through under a visual label, clickable under a
+      // role="button" one. Hard-coding `none` here left self-interactive text
+      // unhittable; tests/s51-dblclick-hitrect.test.tsx asserts the owner.
       expect(
         tag.includes('role="button"') ||
-          tag.includes('pointer-events="none"'),
+          tag.includes('pointer-events="none"') ||
+          tag.includes('pointer-events="inherit"'),
       ).toBe(true)
     }
     expect(interactive).toContain(

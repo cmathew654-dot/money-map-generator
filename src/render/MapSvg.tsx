@@ -306,7 +306,13 @@ function editableLineTextProps(
     ...(editorTarget
       ? { 'data-map-edit-key': mapTextEditTargetKey(edit) }
       : {}),
-    pointerEvents: 'none',
+    // Wrapped labels paint every glyph in a <tspan>, so the owning <text> has
+    // no painted area of its own. Hard-coding `none` here made self-interactive
+    // text (position rows, sub-account labels) unhittable and handed the
+    // double-click to the size-only block rect underneath it. Inheriting keeps
+    // the visual-only labels transparent — their parent <text> is already
+    // `none`, and a dedicated hit rect owns the gesture.
+    pointerEvents: 'inherit',
   }
 }
 
