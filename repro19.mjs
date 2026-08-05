@@ -1,0 +1,55 @@
+// repro #19 — account click then shift-click SECOND account: center (text hit rect) vs edge
+import { chromium } from '@playwright/test'
+
+const browser = await chromium.launch()
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+page.setDefaultTimeout(4000)
+await page.goto('http://127.0.0.1:4280/')
+await page.getByText('Money Map', { exact: true }).first().waitFor()
+await page.waitForTimeout(800)
+const gotIt = page.getByRole('button', { name: 'Got it' })
+if (await gotIt.count()) await gotIt.click()
+
+const accts = page.locator('g[aria-label="Accounts"]').first().locator('> g')
+const n = await accts.count()
+console.log('accounts:', n)
+const flowEnabled = async () => !(await page.getByRole('button', { name: '+ Flow' }).isDisabled())
+
+async function run(label, fx, fy) {
+  await page.keyboard.press('Escape')
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
+  const a = await accts.nth(0).boundingBox()
+  const b = await accts.nth(1).boundingBox()
+  await page.mouse.click(a.x + a.width * fx, a.y + a.height * fy)
+  await page.waitForTimeout(300)
+  const selOne = await page.locator('.map-inspector').isVisible().catch(() => false)
+  await page.keyboard.down('Shift')
+  await page.mouse.click(b.x + b.width * fx, b.y + b.height * fy)
+  await page.keyboard.up('Shift')
+  await page.waitForTimeout(300)
+  console.log(`${label}: firstSelect=${selOne} flowEnabled=${await flowEnabled()}`)
+}
+
+await run('EDGE (12%,75%)', 0.12, 0.75)
+await run('CENTER (50%,50%)', 0.5, 0.5)
+await run('CENTER-TITLE (50%,35%)', 0.5, 0.35)
+
+// exact accountValue text runs
+await page.keyboard.press('Escape')
+await page.keyboard.press('Escape')
+await page.waitForTimeout(300)
+const vals = page.locator('[data-map-edit-key^="accountValue:"]')
+console.log('value runs:', await vals.count())
+const va = await vals.nth(0).boundingBox()
+const vb = await vals.nth(1).boundingBox()
+await page.mouse.click(va.x + va.width / 2, va.y + va.height / 2)
+await page.waitForTimeout(300)
+await page.keyboard.down('Shift')
+await page.mouse.click(vb.x + vb.width / 2, vb.y + vb.height / 2)
+await page.keyboard.up('Shift')
+await page.waitForTimeout(300)
+const it = await page.locator('.map-inspector').textContent().catch(() => 'NONE')
+console.log(`TEXT-RUN: flowEnabled=${await flowEnabled()} inspector=${it.slice(0, 60)}`)
+await page.screenshot({ path: 'C:/Users/Cyril/AppData/Local/Temp/claude/C--Users-Cyril/762307f4-c05a-435c-8220-82dc9ea5a536/scratchpad/repro19-textrun.png' })
+await browser.close()
