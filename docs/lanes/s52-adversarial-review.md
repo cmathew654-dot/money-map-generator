@@ -44,3 +44,16 @@ Cross-check note: F3's mouse-path dispute (refuter A: shift-click appends 'need'
 | multitab money format (universal trio a) | PARTIAL - render path fixed; spec still red on focused-draft snapshot semantics (UX decision: should a focused draft carry $-format?) -> s54 |
 | NEW: editor rail overflows 360px-tall viewport (Help off-screen) | LEDGERED -> s54 |
 | NEW: onSupportingFocus is dead UI in shipped data (coverage note never fits 257px card) | LEDGERED -> s54 |
+
+## s54 ledger delta (2026-08-05, 62c9a09 + e6b885b + 8c69a1d)
+
+| item | verdict |
+|-|-|
+| editor rail overflows 360px viewport | FIXED 62c9a09 (flex collapse under 480px height) |
+| onSupportingFocus dead at 257px default | KEEP 62c9a09 ruling - need card is user-resizable, path live on widened cards |
+| arrow onFocus clobber (s54 fix 1) | WITHDRAWN - premise wrong, arrow g never takes pointer focus; new spec locks survival 62c9a09 |
+| footnote edit-hit intercepts shift-click (s54 fix 2) | WITHDRAWN - spec green at HEAD |
+| ellipse-cap intercepts canvas clicks (s54 fix 3) | WITHDRAWN - spec green at HEAD |
+| RESET ITEM clip (s46) | CLOSED MOOT - Cyril ruling 2026-08-05, inspector redesigned twice since |
+| multi-writer selection defect (4 symptoms) | FIXED e6b885b+8c69a1d - selectionReducer single owner, property test, s52 contract green |
+| mid-edit money format | OPEN - Cyril ruled formatted, live behavior is raw-on-focus (Form.tsx:351) -> needs behavior call |
