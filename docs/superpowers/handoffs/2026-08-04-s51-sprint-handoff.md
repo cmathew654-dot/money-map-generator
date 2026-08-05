@@ -35,7 +35,7 @@
 
 ## Sign-off ledger for Cyril (present in the gallery message)
 
-1. **O-ROT behavior change**: clicking an account's label/caption/value now selects that TEXT (rotatable); the account selects via its body. Deliberate — needed for text rotation. Sign off or revert b1a0303.
+1. **O-ROT behavior change — DECIDED (Cyril, 2026-08-05, s52): click-again model, shipped as O-ROT2 (50c2ddd).** First click on account text selects the ACCOUNT; text promotes only when the selection is already inside that account (sole account, the text itself, or a sibling text — drill-in). Modifier-clicks always resolve to the account (+ Flow via labels works again); Details renders for text selections; the Data row auto-expands; the panel focus echo no longer demotes a promotion. Revert = `git revert 50c2ddd`.
 2. T-FORM judgment: field labels dropped to sentence case (one caps level: section headers only). Mockup showed Tax treatment/Owner; real model fields are Account type/Supporting note.
 3. T-PILLS: added zoom-cluster-matching shadow (not in spec — hairline vanished on near-white).
 4. T-RETYPE: after-tax income and sub-account carve-outs are NOT treated as aggregates (advisor-entered values; codex's broader rule would have broken real editing). Evidence in docs/lanes/s51-retype.md.

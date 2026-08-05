@@ -21,6 +21,7 @@ Cloud: `backup/s51` branch + `s51-*` tags on origin (push lines given per milest
 | T-HL (ring + badge) | 0f8fa04 | `git revert -m 1 0f8fa04` |
 | T-RETYPE (aggregate pill) | b57b737 | `git revert -m 1 b57b737` |
 | T-FORM / T-PILLS | (pending m3) | |
+| O-ROT2 (click-again amendment, s52 — plain commit, not a merge) | 50c2ddd | `git revert 50c2ddd` |
 
 Milestone tags: s51-m2 = b57b737 (all fix lanes, 764/764). Zip: s51-m2-b57b737.zip.
 
