@@ -29,3 +29,18 @@
 13 filed → 11 confirmed in some form, 2 materially refuted/downgraded (F1's scary write, F8 as filed), every severity reduced or bounded, zero data-integrity findings survived. s52-caused: F5 (fixed) + F12's announcement aspect (low). s51-sprint-caused: F6 (fixed), F3 guard omission, F13 onset. All else pre-s51.
 
 Cross-check note: F3's mouse-path dispute (refuter A: shift-click appends 'need', unrecoverable; refuter B: same-click batching restores) is unresolved from code alone — settle empirically when the clobber class is fixed.
+
+## s54a ledger delta (2026-08-05, 5b3df85)
+
+| item | verdict |
+|-|-|
+| F2 clipboard wipe | FIXED 5b3df85 |
+| F3 note onFocus clobber | FIXED 5b3df85 |
+| F15 shift-click order-sensitivity | RECLASSIFIED test-artifact (panel sidebar [data-account-id] dup); real residue fixed below |
+| blank-canvas modifier-click wipes selection | FIXED 5b3df85 (new, F15 residue) |
+| 28px inspector targets (universal trio b) | FIXED 5b3df85 (32px) |
+| bench covers rail 640w (reflow-640 real bug) | FIXED 5b3df85 |
+| lease-banner timeout (universal trio c) | WITHDRAWN - premise wrong, app-guidance-s40 already green; 250ms deferral is load-bearing for the takeover affordance |
+| multitab money format (universal trio a) | PARTIAL - render path fixed; spec still red on focused-draft snapshot semantics (UX decision: should a focused draft carry $-format?) -> s54 |
+| NEW: editor rail overflows 360px-tall viewport (Help off-screen) | LEDGERED -> s54 |
+| NEW: onSupportingFocus is dead UI in shipped data (coverage note never fits 257px card) | LEDGERED -> s54 |
