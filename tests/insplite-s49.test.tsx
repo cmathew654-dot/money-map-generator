@@ -125,12 +125,13 @@ describe('lighter map inspector bar (s49)', () => {
     expect(savedArrow(changes.at(-1))?.color).toBe('red')
   })
 
-  it('steps a per-arrow thickness override for custom flows only', () => {
+  it('steps a per-arrow thickness override for custom flows', () => {
     const custom = renderInspector(arrowKey)
 
     expect(custom).toContain('Thickness')
     expect(custom).toContain('aria-label="Increase flow thickness"')
-    expect(renderInspector('arrow:income')).not.toContain('Thickness')
+    // s50: generated flows gained the same control; non-flow selections have none.
+    expect(renderInspector('income')).not.toContain('Thickness')
   })
 
   it('round-trips the thickness override through model and persistence', () => {

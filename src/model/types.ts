@@ -181,6 +181,8 @@ export interface LayoutOverride {
   endAt?: { dx: number; dy: number }
   style?: CustomArrow['style']
   color?: CustomArrowColor
+  /** Generated-arrow stroke width override, in artboard units. */
+  sw?: number
 }
 
 export interface MoneyMapData {

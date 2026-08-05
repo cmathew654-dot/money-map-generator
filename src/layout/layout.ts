@@ -1707,6 +1707,7 @@ function routedArrow({
       : undefined,
     style: override?.style,
     color: override?.color,
+    sw: override?.sw,
     d: [
       `M ${coordinate(start.x)} ${coordinate(start.y)}`,
       `Q ${coordinate(control.x)} ${coordinate(control.y)}`,

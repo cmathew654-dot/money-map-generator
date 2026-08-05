@@ -23,7 +23,9 @@ import {
   CUSTOM_ARROW_COLORS,
   DEFAULT_CUSTOM_ARROW_WIDTH,
   MAP_NOTE_FONTS,
+  MAX_CUSTOM_ARROW_WIDTH,
   MAX_MAP_TEXT_FONT_SIZE,
+  MIN_CUSTOM_ARROW_WIDTH,
   MIN_MAP_TEXT_FONT_SIZE,
   accountShape,
 } from '../model/types'
@@ -552,22 +554,23 @@ export function MapInspector({
                 ))}
               </div>
             </InspectorGroup>
-            {customArrow && (
-              <InspectorGroup label="Thickness">
-                {([-1, 1] as const).map((amount) => (
-                  <button
-                    aria-label={amount < 0 ? 'Decrease flow thickness' : 'Increase flow thickness'}
-                    key={amount}
-                    type="button"
-                    onClick={() => onChange(setCustomArrowWidth(
-                      data,
-                      customArrow.id,
-                      (customArrow.sw ?? DEFAULT_CUSTOM_ARROW_WIDTH) + amount,
-                    ))}
-                  >{amount < 0 ? '−' : '+'}</button>
-                ))}
-              </InspectorGroup>
-            )}
+            <InspectorGroup label="Thickness">
+              {([-1, 1] as const).map((amount) => (
+                <button
+                  aria-label={amount < 0 ? 'Decrease flow thickness' : 'Increase flow thickness'}
+                  key={amount}
+                  type="button"
+                  onClick={() => {
+                    const next = (arrow.sw ?? DEFAULT_CUSTOM_ARROW_WIDTH) + amount
+                    onChange(customArrow
+                      ? setCustomArrowWidth(data, customArrow.id, next)
+                      : withOverride(data, arrowKey, {
+                          sw: clamp(next, MIN_CUSTOM_ARROW_WIDTH, MAX_CUSTOM_ARROW_WIDTH),
+                        }))
+                  }}
+                >{amount < 0 ? '−' : '+'}</button>
+              ))}
+            </InspectorGroup>
             <InspectorGroup label="Curve">
               <button aria-label="Decrease curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow - 12 }))}>−</button>
               <button aria-label="Increase curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow + 12 }))}>+</button>

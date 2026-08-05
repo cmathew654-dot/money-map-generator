@@ -680,7 +680,13 @@ function validateLayoutOverrides(
           !['dotted', 'dashed', 'solid'].includes(String(override.style)))) ||
       (override.color !== undefined &&
         ((!generatedArrow && !noteOverride) ||
-          !CUSTOM_ARROW_COLORS.includes(override.color as never)))
+          !CUSTOM_ARROW_COLORS.includes(override.color as never))) ||
+      (override.sw !== undefined &&
+        (!generatedArrow ||
+          typeof override.sw !== 'number' ||
+          !Number.isFinite(override.sw) ||
+          override.sw < MIN_CUSTOM_ARROW_WIDTH ||
+          override.sw > MAX_CUSTOM_ARROW_WIDTH))
     ) {
       throw new Error(
         `Client ${clientIndex + 1} has invalid layout overrides.`,
