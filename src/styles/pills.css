@@ -1,1 +1,84 @@
 /* s51 T-PILLS lane: map-chrome pill controls. Owned by T-PILLS — no other lane edits this file. */
+
+/* One docked bench replaces four floating pills. Selectors are deliberately
+   more specific than the app.css pill rules (.map-chrome > button,
+   .shape-quick-add > button) so the old chrome loses without app.css edits. */
+
+.map-chrome .action-bench {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-sizing: border-box;
+  border: 1px solid #dde1dc;
+  border-radius: 10px;
+  padding: 4px;
+  background: #ffffff;
+  /* Matches the adjacent .zoom-cluster shadow — a hairline alone disappears
+     against the near-white map page. */
+  box-shadow: 0 2px 9px rgb(28 36 34 / 14%);
+}
+
+.map-chrome .action-bench > button,
+.map-chrome .action-bench .shape-quick-add > button {
+  display: inline-flex;
+  height: 30px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: transparent;
+  box-shadow: none;
+  color: #1c2422;
+  font-family: 'Public Sans', 'Segoe UI', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.map-chrome .action-bench > button:hover:not(:disabled),
+.map-chrome .action-bench .shape-quick-add > button:hover:not(:disabled) {
+  background: #f4f6f2;
+}
+
+.map-chrome .action-bench > button:disabled:hover {
+  background: transparent;
+}
+
+/* + Account is the one primary action on the bench. */
+.map-chrome .action-bench .shape-quick-add > button {
+  border-color: #1e7a4a;
+  background: #1e7a4a;
+  color: #ffffff;
+}
+
+.map-chrome .action-bench .shape-quick-add > button:hover:not(:disabled) {
+  background: #1e7a4a;
+  filter: brightness(0.92);
+}
+
+.map-chrome .action-bench .bench-divider {
+  width: 1px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin: 0 4px;
+  background: #dde1dc;
+}
+
+.map-chrome .action-bench .bench-glyph {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.1;
+}
+
+@media (max-width: 700px) {
+  .map-chrome .action-bench {
+    flex-wrap: wrap;
+  }
+}
