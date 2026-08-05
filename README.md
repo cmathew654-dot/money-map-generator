@@ -66,8 +66,7 @@ hand a meeting-grade page to an advisor every time.
 ## How it was built
 
 The tool grew through a series of small passes: the form first, then layout,
-editing, local file handling, and export. The notes in `docs/codex/` show the
-decisions and fixes along the way.
+editing, local file handling, and export.
 
 ## Run it
 

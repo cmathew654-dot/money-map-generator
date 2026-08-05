@@ -8,7 +8,7 @@ product
 
 Primary users are financial advisors and financial planners. They build and refine client money maps before meetings, then use the existing Present mode during meetings on large televisions, conference-room displays, or screen sharing.
 
-Windows laptops with Chrome or Edge are the primary operating environment. macOS with Safari or Chrome is a secondary certification target for wealth-technology recruiting and external review.
+Windows laptops with Chrome or Edge are the primary operating environment. macOS with Safari or Chrome is a secondary certification target.
 
 ## Product Purpose
 

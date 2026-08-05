@@ -4,8 +4,6 @@
 - **Product:** Money Map Generator
 - **Primary automated scope:** Windows Chrome and Edge
 - **Secondary target scope:** macOS Safari and Chrome (no physical run receipt yet)
-**Historical baseline:** [UI Certification Audit](./UI_CERTIFICATION_AUDIT.md)
-
 ## Decision
 
 **RELEASE READY for the primary Windows Chrome/Edge automated scope.**
@@ -128,7 +126,6 @@ Run from:
 ## Stable evidence and artifact paths
 
 - Final report: `C:\Users\Cyril\Projects\.worktrees\money-map-generator-s40\docs\UI_CERTIFICATION_REPORT.md`
-- Historical audit: `C:\Users\Cyril\Projects\.worktrees\money-map-generator-s40\docs\UI_CERTIFICATION_AUDIT.md`
 - Design record: `C:\Users\Cyril\Projects\.worktrees\money-map-generator-s40\DESIGN.md`
 - Design-system evidence: `C:\Users\Cyril\Projects\.worktrees\money-map-generator-s40\.impeccable\design.json`
 - Visual baselines: `C:\Users\Cyril\Projects\.worktrees\money-map-generator-s40\tests\e2e\visual.spec.ts-snapshots`
