@@ -95,6 +95,34 @@ test.describe('toolbar reachable at 200 percent zoom (slice 11)', () => {
     await contents.click({ timeout: 4000 })
     await expect(contents).toHaveAttribute('aria-expanded', 'true')
   })
+
+  test('every editor rail button, Help included, fits inside the short viewport', async ({ page }) => {
+    const measured = await page.evaluate(() => {
+      const rail = document.querySelector<HTMLElement>('.editor-rail')
+      if (!rail) throw new Error('No editor rail')
+      const railBox = rail.getBoundingClientRect()
+      return {
+        viewportHeight: window.innerHeight,
+        rail: { top: railBox.top, bottom: railBox.bottom, scrollHeight: rail.scrollHeight, clientHeight: rail.clientHeight },
+        buttons: [...rail.querySelectorAll<HTMLElement>('button')].map((button) => {
+          const box = button.getBoundingClientRect()
+          return { label: button.textContent?.trim() || null, top: box.top, bottom: box.bottom }
+        }),
+      }
+    })
+    const detail = JSON.stringify(measured)
+    // The rail box itself still spans the stacked workspace; only its buttons
+    // have to stay above the fold, and stretching them is what pushed Help off.
+    for (const button of measured.buttons) {
+      expect(button.bottom, `rail button "${button.label}" hangs past the fold: ${detail}`)
+        .toBeLessThanOrEqual(measured.viewportHeight + 1)
+    }
+
+    // Reachable means clickable, not merely rendered.
+    const help = page.getByRole('button', { name: 'Help', exact: true })
+    await help.click({ timeout: 4000 })
+    await expect(help).toHaveAttribute('aria-expanded', 'true')
+  })
 })
 
 test.describe('toasts never cover the toolbar (slice 8)', () => {

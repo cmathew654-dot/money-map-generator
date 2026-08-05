@@ -113,6 +113,44 @@ test('shift-click on the as-needed chip preserves the account selection', async 
   )
 })
 
+test('shift-click on an arrow leaves the account selection intact', async ({ page }) => {
+  await openApp(page)
+
+  const arrow = page.locator('svg.map-interactive .map-arrow-editor').first()
+  const point = await arrow.evaluate((group) => {
+    const path = group.querySelector<SVGPathElement>('path.map-arrow-hit')
+    if (!path) throw new Error('Arrow has no hit path')
+    const at = path.getPointAtLength(path.getTotalLength() / 2)
+    const screen = new DOMPoint(at.x, at.y).matrixTransform(
+      path.getScreenCTM() ?? undefined,
+    )
+    return { x: screen.x, y: screen.y }
+  })
+
+  // Prove the point actually hits the arrow, or the modifier assertion below
+  // would pass on a miss (a modifier-click on nothing is a no-op by design).
+  await page.mouse.click(point.x, point.y)
+  await expect(arrow).toHaveAttribute('data-map-selected', 'true', T)
+
+  await clickAccountBody(account(page, 'cash-at-bank'))
+  await clickAccountBody(account(page, 'roth-ira-dana'), ['Shift'])
+  await expect(selected(page)).toHaveCount(2, T)
+
+  // Arrow keys cannot join a MapItemKey multi-selection, so the accounts must
+  // survive the modifier-click. Pointer focus on the arrow group fires before
+  // the click and must not collapse the selection behind the click's back.
+  await page.keyboard.down('Shift')
+  await page.mouse.click(point.x, point.y)
+  await page.keyboard.up('Shift')
+
+  await expect(selected(page)).toHaveCount(2, T)
+  await expect(account(page, 'cash-at-bank')).toHaveAttribute(
+    'data-map-selected',
+    'true',
+    T,
+  )
+})
+
 test('shift-click on a note extends into a mixed selection', async ({ page }) => {
   await openApp(page)
   await addNote(page, 'Review beneficiary update')

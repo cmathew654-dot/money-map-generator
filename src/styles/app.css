@@ -606,6 +606,15 @@ summary:focus-visible {
   color: #155f4a;
 }
 
+/* Short viewports (200% zoom, or a laptop with the header wrapped): the rail
+   box still spans the whole workspace, so stretching four buttons across it
+   pushes Help past the fold. Let them collapse to their own height instead. */
+@media (max-height: 480px) {
+  .editor-rail button {
+    flex: 0 0 auto;
+  }
+}
+
 .editor-panel {
   position: relative;
   display: flex;

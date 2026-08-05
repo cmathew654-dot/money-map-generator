@@ -2065,7 +2065,7 @@ export default function App() {
       </header>
       <div className="visually-hidden" role="status">{leaseAnnouncement(DATA_MODE, canMutate, writerTakeoverPending)}</div>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
-        {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information.</span></section>}
+        {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information. Best in Chrome or Edge.</span></section>}
         {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
         {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Changes are not being saved</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Try again</button></section>}
       </div>}
