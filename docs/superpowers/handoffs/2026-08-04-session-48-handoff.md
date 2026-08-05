@@ -1,5 +1,17 @@
 # Session 48 → 49 Handoff — Dogfood Triage Execution (2026-08-04)
 
+## S49 OUTCOME (added end of session 49 — supersedes the plan below)
+
+Waves 1 AND 2 are DONE, gated, and LIVE. `repair/session-42` @ `451db96`, vitest **706/706** (46 files), tsc clean, gate11 **22/22 interactive PASS**, demo-dist rebuilt and serving on 4280.
+
+- Wave 1 (merged, gated): undo keeps panel + selection survival, present zoom stash/restore (incl. fullscreenchange), Esc order, honest "Text size" pill, growing editor input, consume-once discard, incomeHeader + asNeededAmount font pills, inspector unclip + Delete account + Close title, flow-labels layer painted above accounts, chip fs end-to-end.
+- Gate-found real bug (fixed `77eb483`): exitPresentMode nulled the zoom stash ref BEFORE React ran the setMapZoom functional updater → restore always kept 'fit'. 660 unit tests missed it; interactive gate caught it. Pinned by source assertion in tests/app-state-s49.test.tsx.
+- Wave 2 (merged, gated): dblclick body→Data (text runs keep their gesture), + Flow chrome button, note spawn bottom-center cascade, zoom floor 25, live thousands separators (caret-safe), Contents grouping headers, PDF /Producer /CreationDate /ID, income row RENAME on map (dblclick name — W2-E, was "tabled", turned out ~130 lines), inspector-lite trio (START/END nudges deleted, colors → native-popover dropdown, custom-arrow thickness sw 1–6).
+- Accepted deviations: pdf.test.ts one assertion loosened (/ID must live in trailer), map-inspector.test.tsx four Start/End-point strings removed (deleted with the feature).
+- Gate driver: `gate11.mjs` at worktree root (untracked). Traps learned: chip = textarea (multiline, width doesn't grow by design); note `g.map-note` renders only AFTER text commit (2nd match = hidden print copy, null box); panel "Add text note" = direct spawn (keyboard=true), chrome/rail button = arm placement; account-body dblclick must avoid text runs (they own the gesture); A+/A− = aria "Increase/Decrease font size"; stale 4281 listeners from dead sessions shadow new previews — check `Get-NetTCPConnection` first.
+- Still tabled: toolbar reorg (next step: Fable mocks 2–3 real-inventory arrangements in an artifact, Cyril picks, then one mechanical lane), account inline mini-popover (dblclick→Data covers it).
+- Remaining: dogfooder re-tests everything on 4280; verdicts A–H + C–E push ceremony; s49 lane cleanup (9 worktrees mm-lane-s49-*).
+
 ## Context
 
 Session 48 shipped 5 gated fixes (note text color cf6a0d9, note font-size buttons c6e4392, data-filter rows 765764f, flow labels ed3e22b/d602eff, ctrl+wheel leak 6baed99/c4ee8c4). The novice dogfooder then filed ~30 findings (on the PRE-fix build — 4 items already fixed). All unknowns were root-caused by an Explore dig; three Wave-1 lanes ran RESEARCH-ONLY (plan mode blocked edits) and corrected three wrong premises. The S49 plan (`C:\Users\Cyril\.claude\plans\handoff-doc-committed-6d3fb03-fizzy-locket.md`) is final and research-complete. Nothing implemented for Wave 1/2 at handoff time.
