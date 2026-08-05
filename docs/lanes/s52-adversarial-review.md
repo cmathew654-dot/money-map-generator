@@ -69,3 +69,8 @@ Cross-check note: F3's mouse-path dispute (refuter A: shift-click appends 'need'
 | 5 stale specs (wizard entry, heading copy, ClientCombobox drift, money expectation, banner copy) | REALIGNED dfff3be - tests only |
 | full-sweep baseline | 15 failed -> 6 failed / 132 passed (3 a11y-parked, 2 multitab-unclear, interaction-regression:852) |
 | extended-certification:850-853 selectOption combobox drift | LEDGERED - inside a11y-parked test, fix when unparked |
+| tab-choreography specs (app-resilience:82, certification:87) | RETIRED 833ca83 - beyond product intent per Cyril (one-user tool); lease protection stays |
+| undo + open Data dialog | RULED stays-open, spec realigned 833ca83 |
+| reflow 200% zoom overflow | PHANTOM 2e65429 - layout was already correct; spec measured pre-canvas-first UI (.form-pane pre-guided, Guide me button, Amount note field, .client-select) - realigned, fully green |
+| reflow long-value reachability check | TRIVIAL-PASS - wizard field 609px never scrolls; needs a genuinely narrow field to bite, none exists today |
+| final sweep baseline | 134 passed / 2 failed (axe harness broken, WCAG text-spacing) / 5 skipped - every red is knowingly-parked a11y |
