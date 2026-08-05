@@ -2088,7 +2088,9 @@ export default function App() {
                 onHoverAccount={setHighlightId}
                 selectedAccountId={selectedMapAccountId}
                 onSelectAccount={(id) =>
-                  setSelectedMapTargetKey(`account:${id}`)
+                  setSelectedMapTargetKeys((keys) =>
+                    panelSelectionKeys(keys, id),
+                  )
                 }
                 onPrint={handlePrint}
                 vocabulary={vocabulary}
