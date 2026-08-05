@@ -74,11 +74,7 @@ import type {
   MapTextEditTarget,
 } from '../ui/MapTextEditor'
 import { mapTextEditTargetKey, mapTextEditorTargetLabel } from '../ui/MapTextEditor'
-import {
-  accountTextClickKey,
-  nextSelectedTargetKeys,
-  shouldFocusSelect,
-} from './selection'
+import { shouldFocusSelect, type SelectionEvent } from './selection'
 import {
   accountTextPointerAction,
   clampRectToBounds,
@@ -153,10 +149,16 @@ export type MapElementTarget =
     }
 
 interface MapSvgProps {
-  selectedTargetKey?: string | null
-  selectedTargetKeys?: readonly string[]
-  onSelectedTargetChange?: (targetKey: string | null) => void
-  onSelectedTargetKeysChange?: (targetKeys: string[]) => void
+  /** The item the user last positively acted on — drives the inspector, the
+   * rotate handle and the connector source. */
+  anchor?: string | null
+  /** The whole selection set. Defaults to the anchor alone. */
+  keys?: readonly string[]
+  /**
+   * MapSvg resolves what is under the pointer; the reducer behind this callback
+   * decides what that means for the selection.
+   */
+  onSelectionEvent?: (event: SelectionEvent) => void
   data: MoneyMapData
   onElementClick?: (target: MapElementTarget) => void
   onChange?: (data: MoneyMapData) => void
@@ -1891,7 +1893,7 @@ function ArrowEditor({
     mode: DragMode,
     outline?: OutlineElement,
   ) => (event: PointerEvent<SVGElement>) => void
-  onSelect: () => void
+  onSelect: (event: FocusEvent<SVGGElement>) => void
   selected: boolean
   targetKey: string
 }) {
@@ -2266,10 +2268,9 @@ export function accountKeyboardActivation(
 }
 
 export function MapSvg({
-  selectedTargetKey: controlledSelectedTargetKey,
-  selectedTargetKeys: controlledSelectedTargetKeys,
-  onSelectedTargetChange,
-  onSelectedTargetKeysChange,
+  anchor,
+  keys,
+  onSelectionEvent,
   data,
   onElementClick,
   onChange,
@@ -2296,43 +2297,12 @@ export function MapSvg({
   const [snapping, setSnapping] = useState<AlignmentSnap | null>(null)
   const [connectorPreview, setConnectorPreview] = useState<Point | null>(null)
   const [connectorTargetId, setConnectorTargetId] = useState<string | null>(null)
-  const [localSelectedTargetKeys, setLocalSelectedTargetKeys] = useState<string[]>([])
+  // Selection is read-only here: the host owns it. Rendering reads the whole
+  // set, the single-item affordances read the anchor.
   const selectedTargetKeys = onChange
-    ? controlledSelectedTargetKeys ??
-      (controlledSelectedTargetKey === undefined
-        ? localSelectedTargetKeys
-        : controlledSelectedTargetKey
-          ? [controlledSelectedTargetKey]
-          : [])
+    ? (keys ?? (anchor ? [anchor] : []))
     : []
-  const selectedTargetKey = selectedTargetKeys.at(-1) ?? null
-
-  const setSelectedTargets = (targetKeys: string[]) => {
-    if (
-      controlledSelectedTargetKeys === undefined &&
-      controlledSelectedTargetKey === undefined
-    ) {
-      setLocalSelectedTargetKeys(targetKeys)
-    }
-    onSelectedTargetKeysChange?.(targetKeys)
-    onSelectedTargetChange?.(targetKeys.at(-1) ?? null)
-  }
-
-  const setSelectedTarget = (targetKey: string | null) => {
-    setSelectedTargets(targetKey ? [targetKey] : [])
-  }
-
-  const toggleSelectedTarget = (
-    targetKey: string | null,
-    event: MouseEvent<SVGSVGElement>,
-  ) => {
-    const next = nextSelectedTargetKeys(
-      selectedTargetKeys,
-      targetKey,
-      event.shiftKey || event.ctrlKey || event.metaKey,
-    )
-    if (next) setSelectedTargets(next)
-  }
+  const selectedTargetKey = onChange ? (anchor ?? null) : null
   const displayData = previewData ?? data
   const layout = layoutMap(displayData)
   const asNeeded = layout.arrows.find((arrow) => arrow.kind === 'asNeeded')
@@ -2819,31 +2789,32 @@ export function MapSvg({
     const account = element.closest<SVGElement>('[data-account-id]')
     const container = element.closest<SVGElement>('[data-connect-id]')
     const target = element.closest<SVGElement>('[data-map-target]')
-    // Account text sits inside [data-account-id], so the account would always
-    // win the click; `accountTextClickKey` decides when the text takes it
-    // instead. `selectedTargetKeys` is the same render-scope value
-    // `toggleSelectedTarget` feeds to `nextSelectedTargetKeys` below, so the
-    // decision and the selection it produces can never disagree.
-    const accountTextKey = accountTextClickKey(
-      displayData,
-      element.closest<SVGElement>('[data-layout-key]')?.dataset.layoutKey,
-      selectedTargetKeys,
-      event.shiftKey || event.ctrlKey || event.metaKey,
-    )
+    // Account text sits inside [data-account-id], so the account always wins the
+    // click here; the reducer decides when the text may claim it instead. This
+    // handler only reports what the pointer is over.
+    const layoutKey = element.closest<SVGElement>('[data-layout-key]')?.dataset
+      .layoutKey
     const targetKey =
       note?.dataset.noteId
         ? `note:${note.dataset.noteId}`
         : chip
           ? 'asNeededChip'
           : arrow?.dataset.mapTarget ??
-            accountTextKey ??
             (account?.dataset.accountId
               ? `account:${account.dataset.accountId}`
               : container?.dataset.connectId ??
                 target?.dataset.layoutKey ??
                 target?.dataset.mapTarget ??
                 null)
-    toggleSelectedTarget(targetKey, event)
+    onSelectionEvent?.({
+      type: 'canvas/click',
+      key: targetKey,
+      textKey:
+        layoutKey && isRotatableTextKey(displayData, layoutKey)
+          ? layoutKey
+          : null,
+      modified: event.shiftKey || event.ctrlKey || event.metaKey,
+    })
   }
 
   const rotateTarget = onChange
@@ -2883,7 +2854,7 @@ export function MapSvg({
             return
           }
           if (dragRef.current) cancelDrag()
-          setSelectedTarget(null)
+          onSelectionEvent?.({ type: 'clear', reason: 'escape' })
           return
         }
         if (!onChange || !(event.target instanceof Element)) return
@@ -2896,7 +2867,10 @@ export function MapSvg({
           if (activation) {
             event.preventDefault()
             event.stopPropagation()
-            setSelectedTarget(activation.selectedTargetKey)
+            onSelectionEvent?.({
+              type: 'key/activate',
+              key: activation.selectedTargetKey,
+            })
             return
           }
         }
@@ -3089,7 +3063,11 @@ export function MapSvg({
               arrow={arrow}
               customMarkerIds={customMarkerIds}
               markerId={markerId}
-              onSelect={() => setSelectedTarget(key)}
+              onSelect={(event) => {
+                if (shouldFocusSelect(event.currentTarget)) {
+                  onSelectionEvent?.({ type: 'focus/reveal', key })
+                }
+              }}
               onBeginDrag={(mode) =>
                 beginDrag(
                   key,
@@ -3178,7 +3156,10 @@ export function MapSvg({
           onElementClick={onElementClick}
           onSupportingFocus={(event) => {
             if (shouldFocusSelect(event.currentTarget)) {
-              setSelectedTarget(mapTextOverrideKey('need', 'supporting'))
+              onSelectionEvent?.({
+                type: 'focus/reveal',
+                key: mapTextOverrideKey('need', 'supporting'),
+              })
             }
           }}
           onSupportingPointerDown={
@@ -3379,7 +3360,10 @@ export function MapSvg({
               onChange
                 ? (event) => {
                     if (shouldFocusSelect(event.currentTarget)) {
-                      setSelectedTarget(`note:${placed.note.id}`)
+                      onSelectionEvent?.({
+                        type: 'focus/reveal',
+                        key: `note:${placed.note.id}`,
+                      })
                     }
                   }
                 : undefined
@@ -3517,4 +3501,3 @@ export function MapSvg({
 
 // These three moved to ./selection with the reducer that will absorb them.
 // Re-exported here for one chunk so existing test imports keep working.
-export { accountTextClickKey, nextSelectedTargetKeys, shouldFocusSelect }

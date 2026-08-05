@@ -42,11 +42,15 @@ const PRIMARY: SelectionEvent[] = [
   { type: 'clear', reason: 'escape' },
   { type: 'select', keys: ['account:a', 'asNeededChip'] },
   { type: 'select', keys: [] },
+  // Keyboard-only (every sender is shouldFocusSelect-gated), so it is a
+  // positive user act: primary, not an echo. Ruled 2026-08-05 — an existing
+  // green spec pins Tab-to-select (s51-selection-context "keyboard focus
+  // still reaches and selects a note").
+  ...KEYS.map((key): SelectionEvent => ({ type: 'focus/reveal', key })),
 ]
 
 /** SUBORDINATE + housekeeping: must be unobservable on a non-empty selection. */
 const SUBORDINATE: SelectionEvent[] = [
-  ...KEYS.map((key): SelectionEvent => ({ type: 'focus/reveal', key })),
   ...['a', 'b'].map(
     (accountId): SelectionEvent => ({ type: 'panel/rowFocus', accountId }),
   ),

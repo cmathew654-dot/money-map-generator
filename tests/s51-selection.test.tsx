@@ -1,59 +1,85 @@
 import { describe, expect, it } from 'vitest'
 
-import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import {
-  accountTextClickKey,
-  nextSelectedTargetKeys,
+  selectionReducer,
   shouldFocusSelect,
-} from '../src/render/MapSvg'
+  type SelectionState,
+} from '../src/render/selection'
 
 const CASH = 'account:cash-at-bank'
 const ROTH = 'account:roth-ira-dana'
 const NOTE = 'note:note-1'
 
+const stateOf = (keys: string[]): SelectionState => ({
+  keys,
+  anchor: keys.at(-1) ?? null,
+})
+
 /**
- * `nextSelectedTargetKeys` is the whole selection decision for a map click.
- * It returns `null` to mean "leave the selection exactly as it is".
+ * `canvas/click` carries the whole selection decision for a map click. What was
+ * once `nextSelectedTargetKeys` returning `null` for "leave the selection
+ * exactly as it is" is now the reducer returning `state` by identity.
  */
+const click = (
+  keys: string[],
+  key: string | null,
+  modified: boolean,
+  textKey: string | null = null,
+) => {
+  const state = stateOf(keys)
+  const next = selectionReducer(state, {
+    type: 'canvas/click',
+    key,
+    textKey,
+    modified,
+  })
+  return { state, next, keys: next.keys }
+}
+
 describe('s51 selection: modifier-click never clobbers', () => {
   it('replaces the selection on a plain click', () => {
-    expect(nextSelectedTargetKeys([CASH], ROTH, false)).toEqual([ROTH])
+    expect(click([CASH], ROTH, false).keys).toEqual([ROTH])
   })
 
   it('clears the selection on a plain click of empty canvas', () => {
-    expect(nextSelectedTargetKeys([CASH], null, false)).toEqual([])
+    expect(click([CASH], null, false).keys).toEqual([])
   })
 
   it('adds a second account on modifier-click', () => {
-    expect(nextSelectedTargetKeys([CASH], ROTH, true)).toEqual([CASH, ROTH])
+    expect(click([CASH], ROTH, true).keys).toEqual([CASH, ROTH])
   })
 
   it('removes an already-selected account on modifier-click', () => {
-    expect(nextSelectedTargetKeys([CASH, ROTH], CASH, true)).toEqual([ROTH])
+    expect(click([CASH, ROTH], CASH, true).keys).toEqual([ROTH])
   })
 
   it('adds a note to an account selection (mixed selection is supported)', () => {
-    expect(nextSelectedTargetKeys([CASH], NOTE, true)).toEqual([CASH, NOTE])
+    expect(click([CASH], NOTE, true).keys).toEqual([CASH, NOTE])
   })
 
   it('preserves the selection when modifier-clicking the as-needed chip', () => {
     // MapItemKey holds only `account:` / `note:` keys, so the chip cannot join a
     // multi-selection. It must be a no-op, never a silent drop of the accounts.
-    expect(nextSelectedTargetKeys([CASH, ROTH], 'asNeededChip', true)).toBeNull()
+    const { state, next } = click([CASH, ROTH], 'asNeededChip', true)
+    expect(next).toBe(state)
   })
 
   it('preserves the selection when modifier-clicking an arrow', () => {
-    expect(nextSelectedTargetKeys([CASH], 'arrow:custom:a1', true)).toBeNull()
+    const { state, next } = click([CASH], 'arrow:custom:a1', true)
+    expect(next).toBe(state)
   })
 
   it('selects an incompatible target outright when nothing is selected', () => {
-    expect(nextSelectedTargetKeys([], 'asNeededChip', true)).toEqual([
-      'asNeededChip',
-    ])
+    expect(click([], 'asNeededChip', true).keys).toEqual(['asNeededChip'])
   })
 
   it('drops incompatible keys already in the selection when extending', () => {
-    expect(nextSelectedTargetKeys(['asNeededChip'], CASH, true)).toEqual([CASH])
+    expect(click(['asNeededChip'], CASH, true).keys).toEqual([CASH])
+  })
+
+  it('anchors on the item the click acted on', () => {
+    expect(click([CASH], ROTH, true).next.anchor).toBe(ROTH)
+    expect(click([CASH, ROTH], ROTH, true).next.anchor).toBe(CASH)
   })
 })
 
@@ -70,21 +96,16 @@ describe('s52 click-again: account text resolves to its account first', () => {
   const ROTH_LABEL = 'text:roth-ira-dana:label'
 
   /**
-   * Mirrors `handleMapClickCapture`: `accountTextClickKey` decides whether the
-   * text claims the click; otherwise the click falls through to the account
-   * the text sits inside, and either way the key feeds the selection rules.
+   * Mirrors `handleMapClickCapture`: the account under the pointer is the key,
+   * the rotatable text on top of it is `textKey`, and the reducer decides which
+   * one claims the click.
    */
   const clickAccountText = (
     selection: string[],
     textKey: string,
     modified: boolean,
   ) =>
-    nextSelectedTargetKeys(
-      selection,
-      accountTextClickKey(SAMPLE_WHITFIELD, textKey, selection, modified) ??
-        `account:${textKey.split(':')[1]}`,
-      modified,
-    )
+    click(selection, `account:${textKey.split(':')[1]}`, modified, textKey).keys
 
   it('selects the account when nothing is selected', () => {
     expect(clickAccountText([], CASH_LABEL, false)).toEqual([CASH])
@@ -149,5 +170,28 @@ describe('s51 selection: focus only selects when focus came from the keyboard', 
 
   it('fails open without an element', () => {
     expect(shouldFocusSelect(null)).toBe(true)
+  })
+
+  it('keyboard focus selects, and tabbing within a selection keeps it', () => {
+    // focus/reveal is keyboard-only (every sender is shouldFocusSelect-gated),
+    // so it is a positive act: it selects even over an existing selection.
+    // Ruled 2026-08-05 — s51-selection-context pins Tab-to-select on a note.
+    expect(selectionReducer(stateOf([]), { type: 'focus/reveal', key: NOTE })).toEqual(
+      { keys: [NOTE], anchor: NOTE },
+    )
+    expect(selectionReducer(stateOf([CASH]), { type: 'focus/reveal', key: NOTE })).toEqual(
+      { keys: [NOTE], anchor: NOTE },
+    )
+    const held = stateOf([CASH, NOTE])
+    expect(selectionReducer(held, { type: 'focus/reveal', key: NOTE })).toBe(held)
+  })
+
+  it('keeps the panel focus echo subordinate', () => {
+    // The Form/Wizard onFocusCapture echo carries no modality and no intent —
+    // it may speak only into an empty selection.
+    const held = stateOf([NOTE])
+    expect(
+      selectionReducer(held, { type: 'panel/rowFocus', accountId: 'cash-at-bank' }),
+    ).toBe(held)
   })
 })

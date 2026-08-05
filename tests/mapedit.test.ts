@@ -776,7 +776,7 @@ describe('client combobox and direct connector handles', () => {
           data: SAMPLE_WHITFIELD,
           onChange: () => undefined,
           onElementClick: () => undefined,
-          selectedTargetKey,
+          anchor: selectedTargetKey,
         }),
       )
 
@@ -952,7 +952,7 @@ describe('direct resize handles', () => {
           data,
           onChange: () => undefined,
           onElementClick: () => undefined,
-          selectedTargetKey,
+          anchor: selectedTargetKey,
         }),
       ),
     )
@@ -1582,7 +1582,7 @@ describe('noninteractive map rendering', () => {
         data,
         onChange: () => undefined,
         onElementClick: () => undefined,
-        selectedTargetKey: 'account:' + data.accounts[0].id,
+        anchor: 'account:' + data.accounts[0].id,
       }),
     )
     const selectedArrow = renderToStaticMarkup(
@@ -1590,7 +1590,7 @@ describe('noninteractive map rendering', () => {
         data,
         onChange: () => undefined,
         onElementClick: () => undefined,
-        selectedTargetKey: 'arrow:custom:test-arrow',
+        anchor: 'arrow:custom:test-arrow',
       }),
     )
 

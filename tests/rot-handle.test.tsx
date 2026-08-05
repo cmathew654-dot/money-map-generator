@@ -13,13 +13,13 @@ const data = {
   notes: [{ id: 'rot-note', text: 'Rotate me', x: 520, y: 420 }],
 }
 
-function render(selectedTargetKey?: string | null) {
+function render(anchor?: string | null) {
   return renderToStaticMarkup(
     <MapSvg
+      anchor={anchor}
       data={data}
       onChange={() => undefined}
       onElementClick={() => undefined}
-      selectedTargetKey={selectedTargetKey}
     />,
   )
 }
@@ -31,7 +31,7 @@ describe('free-rotate drag handle', () => {
 
   it('renders no rotate handle in the read-only map', () => {
     const markup = renderToStaticMarkup(
-      <MapSvg data={data} selectedTargetKey={NOTE_KEY} />,
+      <MapSvg anchor={NOTE_KEY} data={data} />,
     )
     expect(markup).not.toContain('data-pointer-action="rotate"')
   })

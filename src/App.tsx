@@ -1364,16 +1364,6 @@ export default function App() {
     }
   }
 
-  // Pure translators: no selection path may write focus state. That coupling
-  // is what let a map click steal focus out of the Data panel.
-  const handleMapSelectionChange = (targetKey: string | null) => {
-    if (targetKey) selectMapTarget(targetKey)
-    else dispatchSelection({ type: 'clear', reason: 'inspectorClose' })
-  }
-
-  const handleMapSelectionKeysChange = (targetKeys: string[]) =>
-    dispatchSelection({ type: 'select', keys: targetKeys })
-
   const handleClientChange = (rawNext: typeof activeClient) => {
     const current = snapshotRef.current
     const before =
@@ -2145,7 +2135,7 @@ export default function App() {
                 }}
                 onRestoreGeneratedFlows={handleRestoreGeneratedArrows}
                 onOpenTarget={openDetailsForTargetKey}
-                onSelectTarget={handleMapSelectionChange}
+                onSelectTarget={selectMapTarget}
                 onSetNeed={() => focusDataTarget('need', 'need')}
                 selectedTargetKey={selectedMapTargetKey}
               />
@@ -2210,9 +2200,11 @@ export default function App() {
               selectedTargetKey={selectedMapTargetKey}
               selectedTargetKeys={selectedMapTargetKeys}
               onChange={handleMapChange}
-              onClose={() => handleMapSelectionChange(null)}
+              onClose={() =>
+                dispatchSelection({ type: 'clear', reason: 'inspectorClose' })
+              }
               onDetails={selectedMapDataTarget ? handleMapDetails : undefined}
-              onSelect={handleMapSelectionChange}
+              onSelect={selectMapTarget}
             />
           )}
           <SelectionBadge count={presentMode ? 0 : selectedMapTargetKeys.length} />
@@ -2261,9 +2253,9 @@ export default function App() {
                     presentMode || !canMutate ? undefined : handleMapElementClick
                   }
                   onGestureStart={presentMode || !canMutate ? undefined : handleMapGestureStart}
-                  onSelectedTargetKeysChange={handleMapSelectionKeysChange}
-                  selectedTargetKey={selectedMapTargetKey}
-                  selectedTargetKeys={selectedMapTargetKeys}
+                  onSelectionEvent={dispatchSelection}
+                  anchor={selectedMapTargetKey}
+                  keys={selectedMapTargetKeys}
                 />
               </div>
             </div>

@@ -13,15 +13,15 @@ const firstAccount = SAMPLE_WHITFIELD.accounts[0]
 const selectedKey = `account:${firstAccount.id}`
 
 function renderInteractive(
-  selectedTargetKey?: string | null,
+  anchor?: string | null,
   data = SAMPLE_WHITFIELD,
 ) {
   return renderToStaticMarkup(
     <MapSvg
+      anchor={anchor}
       data={data}
       onChange={() => undefined}
       onElementClick={() => undefined}
-      selectedTargetKey={selectedTargetKey}
     />,
   )
 }
