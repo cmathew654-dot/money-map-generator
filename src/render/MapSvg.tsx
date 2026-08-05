@@ -9,6 +9,7 @@ import {
   type SVGProps,
 } from 'react'
 import {
+  accountTextBlock,
   asNeededChipFontSize,
   hexagonInset,
   incomePanelMetrics,
@@ -18,6 +19,7 @@ import {
   incomeSourceTextLayout,
   incomeTotalTextLayout,
   incomeTextSizes,
+  isRotatableTextKey,
   layoutMap,
   layoutOverrideRect,
   mapTextOffset,
@@ -1223,18 +1225,27 @@ export function rotateHandleTarget(
       : null
   }
   const footnote = selectedTargetKey.startsWith('text:footnotes:')
-  if (selectedTargetKey !== 'asNeededChip' && !footnote) return null
+  const accountText = isRotatableTextKey(data, selectedTargetKey)
+  if (selectedTargetKey !== 'asNeededChip' && !footnote && !accountText) {
+    return null
+  }
   const rect = layoutOverrideRect(data, selectedTargetKey)
   if (!rect) return null
+  const [, element, role] = selectedTargetKey.split(':')
   const footnoteId = selectedTargetKey.split(':').pop()
   return {
     key: selectedTargetKey,
-    label: footnote
-      ? `footnote: ${
-          data.footnotes.find((candidate) => candidate.id === footnoteId)
-            ?.label ?? 'line'
-        }`
-      : 'as needed chip',
+    label: accountText
+      ? `text: ${
+          data.accounts.find((candidate) => candidate.id === element)?.label ??
+          'account'
+        } ${role}`
+      : footnote
+        ? `footnote: ${
+            data.footnotes.find((candidate) => candidate.id === footnoteId)
+              ?.label ?? 'line'
+          }`
+        : 'as needed chip',
     rect,
   }
 }
@@ -1365,6 +1376,12 @@ function AccountContent({
     text.valueFontSize,
     [valueText],
   )
+  /** Pivot on the same block the rotate handle uses, so handle and text agree. */
+  const textRotation = (role: AccountTextRole, rot: number | undefined) => {
+    if (!rot) return undefined
+    const block = accountTextBlock(placed, role)
+    return rotateTransform(rot, block.x + block.w / 2, block.y + block.h / 2)
+  }
   return (
     <>
       <text
@@ -1380,6 +1397,7 @@ function AccountContent({
       >
         {style.tag.toUpperCase()}
       </text>
+      <g transform={textRotation('label', text.titleRot)}>
       <text
         x={x + w / 2 + text.titleX}
         y={y + text.titleY}
@@ -1419,8 +1437,9 @@ function AccountContent({
           pointerEvents="all"
         />
       )}
+      </g>
       {text.captionY !== undefined && (
-        <>
+        <g transform={textRotation('caption', text.captionRot)}>
         <text
           x={x + w / 2 + text.captionX}
           y={y + text.captionY}
@@ -1459,7 +1478,7 @@ function AccountContent({
             pointerEvents="all"
           />
         )}
-        </>
+        </g>
       )}
       {placed.positionRows.map((row, index) => {
         return (
@@ -1529,6 +1548,7 @@ function AccountContent({
           </g>
         )
       })}
+      <g transform={textRotation('value', text.valueRot)}>
       <text
         x={x + w / 2 + text.valueX}
         y={y + text.valueY}
@@ -1565,6 +1585,7 @@ function AccountContent({
           pointerEvents="all"
         />
       )}
+      </g>
       {fittedRunway?.display ? (
         <text
           aria-label={fittedRunway.exact}
@@ -2784,12 +2805,21 @@ export function MapSvg({
     const account = element.closest<SVGElement>('[data-account-id]')
     const container = element.closest<SVGElement>('[data-connect-id]')
     const target = element.closest<SVGElement>('[data-map-target]')
+    // Account text sits inside [data-account-id], so the account would always win
+    // the click. Let a rotatable text sub-element claim its own selection first.
+    const textHit = element.closest<SVGElement>('[data-layout-key]')
+    const accountTextKey =
+      textHit?.dataset.layoutKey &&
+      isRotatableTextKey(displayData, textHit.dataset.layoutKey)
+        ? textHit.dataset.layoutKey
+        : null
     const targetKey =
       note?.dataset.noteId
         ? `note:${note.dataset.noteId}`
         : chip
           ? 'asNeededChip'
           : arrow?.dataset.mapTarget ??
+            accountTextKey ??
             (account?.dataset.accountId
               ? `account:${account.dataset.accountId}`
               : container?.dataset.connectId ??
@@ -2871,6 +2901,20 @@ export function MapSvg({
           commitNudge(textKey)
           return
         }
+        if (
+          textKey &&
+          (event.key === '[' || event.key === ']') &&
+          !event.altKey && !event.ctrlKey && !event.metaKey &&
+          isRotatableTextKey(data, textKey)
+        ) {
+          commit(textKey, {
+            rot: snapRotation(
+              (data.layoutOverrides?.[textKey]?.rot ?? 0) +
+                (event.key === ']' ? 5 : -5),
+            ),
+          })
+          return
+        }
         const arrowNode = target.closest('.map-arrow-editor')
         if (arrowNode && event.ctrlKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
           const index = Array.from(event.currentTarget.querySelectorAll('.map-arrow-editor')).indexOf(arrowNode)
@@ -2895,7 +2939,7 @@ export function MapSvg({
         const value = data.layoutOverrides?.[key] ?? {}
         if (event.altKey && arrowKeys.includes(event.key) && key !== 'need') commit(key, { w: placed.w + (event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0), h: placed.h + (event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0) })
         else if (!event.altKey && !event.ctrlKey && !event.metaKey && arrowKeys.includes(event.key)) commitNudge(key)
-        else if (!event.altKey && !event.ctrlKey && !event.metaKey && key !== 'income' && key !== 'need') commit(key, { rot: snapRotation((value.rot ?? placedRotation(placed)) + (event.key === ']' ? 15 : -15)) })
+        else if (!event.altKey && !event.ctrlKey && !event.metaKey && key !== 'income' && key !== 'need') commit(key, { rot: snapRotation((value.rot ?? placedRotation(placed)) + (event.key === ']' ? 5 : -5)) })
       }}
       aria-label={`Money Map for ${displayData.client.title}`}
       className={[

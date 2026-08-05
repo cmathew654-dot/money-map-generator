@@ -68,7 +68,7 @@ test('keyboard arrangement persists move, resize, rotate, text offset, and conne
   }, BOOK_KEY)).toEqual({
     moved: true,
     resized: true,
-    rotation: 15,
+    rotation: 5,
     textOffset: 10,
     reconnected: true,
   })
