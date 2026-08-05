@@ -1,0 +1,31 @@
+# s52 adversarial review — adjudicated verdicts (2026-08-05)
+
+3 finder lenses (correctness / regression / a11y-keyboard) → 13 deduped findings → 2 independent refuters each (mechanism + severity/provenance). Verdicts below are refuter-adjudicated, not finder claims.
+
+## Fixed during s52 (before m4)
+
+| F | Finding | Verdict | Fix |
+|-|-|-|-|
+| F5 | Wizard onSelectAccount hard-replace demoted fresh text promotion (guided setup + Details flow) | CONFIRMED, s52-caused (the 50c2ddd asymmetry) | 6fdf8fa routes it through panelSelectionKeys |
+| F6 | Aggregate notice discards staged font-size (A± preview reverts on every notice exit; only onCommit persisted size) | CONFIRMED all links; **s51 T-RETYPE regression** (ad7f6b4/b57b737, one day old); moderate-cosmetic, alternate path exists (inspector ±) | s52 fix lane (in flight at write time) |
+
+## Ledger — confirmed, pre-existing, NOT s52 (severity is post-refutation)
+
+| F | Finding | Post-refutation severity | Provenance | Note |
+|-|-|-|-|-|
+| F1 | Ghost text selection survives account deletion (mapTargetKeyStillExists passes text: keys) | Cosmetic, self-heals on next click/reload. Finder's "phantom Move write" REFUTED (nudge bails on missing rect, layout.ts:3182); real residue = inert Text-size± override via withOverride (MapInspector.tsx:657-663) | s49 predicate + s51 b1a0303 | Fix = existence-check text: keys in mapTargetKeyStillExists |
+| F2 | Ctrl+C/Ctrl+D with text/empty selection wipes clipboard (App.tsx:1509 unconditional assign) | Annoyance; 2s recovery; nothing persisted | pre-s51 (19e6533) | 1-line guard candidate |
+| F3 | Need supporting-note onFocus selects without shouldFocusSelect guard (MapSvg.tsx:3174) | Keyboard-Tab collapse of multi-selection confirmed; mouse-path outcome DISPUTED between refuters (batching may restore) | s51 omission (guard exists only for notes, 3374) | Same class as known arrow-editor clobber — fix the class together |
+| F4 | connect-id outranks layout-key: income/need text not click-selectable | Cosmetic — unwired feature (rotate was never account-external); only font-size unreachable | pre-s51 (355779c) | text:need:supporting ironically reachable via F3's bug |
+| F7 | Account total/title/caption aria-hidden in EDIT mode (value aria-label dead, MapSvg.tsx:1570) | Minor; edit-mode only — present/view/export keep money labels (client-facing surface clean); Data panel is full equivalent; positions/sub-accounts/income/need keep labels | pre-s51 (4155ea7) | a11y workstream |
+| F8 | Identical accessible names ("Edit account value" ×N) | REFUTED as filed (account group label disambiguates serial traversal). Residual: position ROWS within one account are identical (unnamed row g, MapSvg.tsx:1492) + generic label masks visible position name | pre-s51 (1b942ce) | a11y workstream, downgraded |
+| F9 | Focus steal to Data heading on selection change (App.tsx:950-954 truthiness guard) | Med for keyboard (Tab onto arrow → Ctrl+Arrow retarget unreachable w/ panel open); low for mouse (scroll snap, no preventScroll). Account clicks DON'T steal (same-event batching) — finder's main trigger narrowed | pre-s51 (206aa46 + b40e2a6) | |
+| F10 | Escape double-fires: SVG capture preventDefaults w/o stopPropagation; App window ladder has no defaultPrevented check (App.tsx:957) | Low-med; one press clears selection AND closes panel; 2-action recovery | pre-s51 (964e89b) | 1-line candidate: defaultPrevented check in the ladder |
+| F11 | No keyboard path to text: selection (no onFocus-select on hit rects; Enter/Space opens editor) | Low — actual exclusive losses: inspector Font size ± and Reset text position only. Rotation [ ] , nudge, Details all keyboard-reachable | pre-s51 gap (s52 only changed which CLICK promotes) | a11y workstream + promotion design |
+| F12 | Promotion is silent for AT (badge count-only; account→text keeps count=1 → no live-region mutation) | Low; requires AT-user-by-mouse (keyboard can't promote at all) | Silent-swap aspect s52 (accountTextClickKey); badge s51 | Candidate: badge announces selection KIND — UX copy = Cyril sign-off |
+| F13 | aria-keyshortcuts wrong: text nodes omit brackets (which work); account groups say BracketLeft/Right (code names, not key values) | Very low — discovery only | attrs pre-s51; became inaccurate at s51 O-ROT (c338fa0) | Two attribute strings |
+
+## Refuter scorecard
+13 filed → 11 confirmed in some form, 2 materially refuted/downgraded (F1's scary write, F8 as filed), every severity reduced or bounded, zero data-integrity findings survived. s52-caused: F5 (fixed) + F12's announcement aspect (low). s51-sprint-caused: F6 (fixed), F3 guard omission, F13 onset. All else pre-s51.
+
+Cross-check note: F3's mouse-path dispute (refuter A: shift-click appends 'need', unrecoverable; refuter B: same-click batching restores) is unresolved from code alone — settle empirically when the clobber class is fixed.

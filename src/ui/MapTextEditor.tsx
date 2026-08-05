@@ -98,7 +98,13 @@ export type MapTextEditorDismissAction = 'cancel' | 'commit'
 
 export function mapTextEditorDismissAction(
   reason: MapTextEditorDismissReason,
+  /** True once the aggregate notice owns dismissal. */
+  noticeShown = false,
 ): MapTextEditorDismissAction {
+  // The notice is only ever shown for an edit `applyMapTextEdit` already
+  // refuses, so every exit from it commits: the typed number is dropped there
+  // and a staged text size still reaches the map.
+  if (noticeShown) return 'commit'
   return reason === 'escape' ? 'cancel' : 'commit'
 }
 export function mapTextEditorShouldRestoreFocus(
@@ -890,10 +896,10 @@ export function MapTextEditor({
   }
   const finish = (reason: MapTextEditorDismissReason) => {
     if (finished.current) return
-    if (mapTextEditorDismissAction(reason) === 'cancel' || noticeShown) {
+    if (mapTextEditorDismissAction(reason, noticeShown) === 'cancel') {
       finished.current = true
       onCancel()
-    } else if (aggregate) {
+    } else if (aggregate && !noticeShown) {
       // The rows own this number, so nothing is committed — swap the editor for
       // the notice and let Escape, a click away, or the timer close it.
       noticeRef.current = true

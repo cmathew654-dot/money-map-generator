@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   applyMapTextEdit,
   mapTextEditAggregateTarget,
+  mapTextEditorDismissAction,
 } from '../src/ui/MapTextEditor'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 
@@ -65,6 +66,18 @@ describe('s51 aggregate map edits', () => {
         .value,
     ).toBe(999_000)
   })
+
+  it.each(['close', 'escape', 'outside'] as const)(
+    'commits the %s exit from the aggregate notice so a staged text size is kept',
+    (reason) => {
+      // The value is already refused by applyMapTextEdit, so committing the
+      // notice's exits costs nothing and carries the size change out with it.
+      expect(mapTextEditorDismissAction(reason, true)).toBe('commit')
+      expect(mapTextEditorDismissAction(reason)).toBe(
+        reason === 'escape' ? 'cancel' : 'commit',
+      )
+    },
+  )
 
   it('never treats after-tax income as a sum of the income rows', () => {
     // The map's gross rows total 4,300 against a 5,900 after-tax figure — it is
