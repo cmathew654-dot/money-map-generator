@@ -587,27 +587,51 @@ try {
   }
 } catch (e) { check('B2-n-selected-badge', false, e.message) }
 
-// B3. note/chip shift-click ADDS to (or at minimum preserves) the selection.
+// B3. note/chip modifier-click never clobbers the selection.
+// DESIGN (s51): `MapItemKey` holds `account:` / `note:` keys only, so a NOTE can
+// join a multi-selection but the as-needed CHIP cannot — modifier-clicking the
+// chip while something is selected is a deliberate NO-OP
+// (`nextSelectedTargetKeys` returns null; tests/s51-selection.test.tsx:39-43),
+// never a silent drop of the accounts. With nothing selected the chip takes the
+// selection outright (ibid. :49-53), and a plain click always replaces.
+// The sample seeds no notes, so the chip branch is the one that runs here; the
+// note branch stays for seeded data.
 try {
   await reset()
-  await clickAccountBody(ACCT[0])
   const useNote = await probe('[data-note-id]', 1000)
-  const target = useNote ? page.locator('[data-note-id]').first() : page.locator('g[data-map-target="asNeededChip"]').first()
-  const has = useNote || await probe('g[data-map-target="asNeededChip"]')
-  if (!has) pending('B3-note-chip-shift-adds', 'neither a note nor the as-needed chip is on the map')
-  else {
-    const box = await target.boundingBox()
+  const hasChip = await probe('g[data-map-target="asNeededChip"]')
+  const chipSelected = () =>
+    page.locator('g[data-map-target="asNeededChip"][data-map-selected="true"]').count()
+  if (!useNote && !hasChip) pending('B3-note-chip-shift-adds', 'neither a note nor the as-needed chip is on the map')
+  else if (useNote) {
+    await clickAccountBody(ACCT[0])
+    const box = await page.locator('[data-note-id]').first().boundingBox()
     await page.keyboard.down('Shift')
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
     await page.keyboard.up('Shift')
     await page.waitForTimeout(300)
-    const accountsStillSelected = await selectedAccounts()
     const total = await page.evaluate(() => document.querySelectorAll('[data-map-selected="true"]').length)
-    // s51 signature: shift-click ADDS the note/chip (>=2 selected).
-    // pre-s51 baseline: the note/chip REPLACES the selection (exactly 1 selected).
-    // Nothing selected at all is a FAIL under either behaviour.
-    tri('B3-note-chip-shift-adds', total >= 2, total === 1,
-      `${useNote ? 'note' : 'chip'} accounts=${accountsStillSelected} total=${total}`)
+    tri('B3-note-chip-shift-adds', total >= 2, total === 1, `note total=${total}`)
+  } else {
+    const box = await page.locator('g[data-map-target="asNeededChip"]').first().boundingBox()
+    const clickChip = async (modifier) => {
+      if (modifier) await page.keyboard.down('Shift')
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      if (modifier) await page.keyboard.up('Shift')
+      await page.waitForTimeout(300)
+    }
+    // A plain click replaces whatever was selected, so this needs no precondition.
+    await clickChip(false)
+    const chipAlone = (await chipSelected()) > 0 && (await selectedAccounts()) === 0
+    // Now the designed no-op: accounts selected, modifier-click the chip.
+    await clickAccountBody(ACCT[0])
+    const before = await selectedAccounts()
+    await clickChip(true)
+    const after = await selectedAccounts()
+    const joined = await chipSelected()
+    check('B3-note-chip-shift-adds',
+      chipAlone && before === 1 && after === before && joined === 0,
+      `chipAlone=${chipAlone} accounts ${before}->${after} chipJoined=${joined}`)
   }
 } catch (e) { check('B3-note-chip-shift-adds', false, e.message) }
 
@@ -671,17 +695,36 @@ try {
   await page.waitForTimeout(200)
 } catch (e) { check('B6-bracket-rotate-5deg', false, e.message) }
 
-// B7. aggregate retype pill appears and jumps to the Data panel.
+// B7. aggregate value edit refuses the commit and offers the row-edit notice.
+// SHIPPED SIGNATURE (src/ui/MapTextEditor.tsx:1066-1078, MAP_TEXT_AGGREGATE_NOTICE
+// = 'Total is the sum of its rows — Edit the rows'), not /retype|change type/.
+// Two preconditions the old probe missed: the account must be an AGGREGATE
+// (positions sum exactly to value — managed-after-tax-trust, 380k+330k=710k, is
+// the only one in the sample), and the notice replaces the editor only after a
+// COMMIT ATTEMPT, so type and press Enter first. NOTICE_TIMEOUT_MS (6s) closes it.
 try {
   await reset()
-  await clickAccountBody(ACCT[0])
-  const pill = page.getByRole('button', { name: /retype|change type/i })
-  if (!(await pill.count())) pending('B7-aggregate-retype-pill', 'no retype pill on a selected aggregate yet')
+  const value = page.locator('[data-map-edit-key="accountValue:managed-after-tax-trust"]').first()
+  if (!(await value.count())) pending('B7-aggregate-retype-pill', 'no aggregate account in the sample')
   else {
-    await pill.first().click()
-    await page.waitForTimeout(400)
-    check('B7-aggregate-retype-pill', await page.locator('.client-form').isVisible(), 'pill -> Data panel')
-    await page.keyboard.press('Escape')
+    const box = await value.boundingBox()
+    // The glyph run is pointer-transparent; the sibling hit rect owns the gesture.
+    await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2)
+    await page.locator('.map-text-editor input, .map-text-editor textarea').first()
+      .waitFor({ state: 'visible', timeout: 4000 })
+    await page.keyboard.press('Control+a')
+    await page.keyboard.type('864200')
+    await page.keyboard.press('Enter')
+    const notice = page.locator('.map-text-size-controls').getByRole('button', { name: /Edit the rows/ })
+    let shown = true
+    try { await notice.waitFor({ state: 'visible', timeout: 6000 }) } catch { shown = false }
+    if (!shown) check('B7-aggregate-retype-pill', false, 'no "Edit the rows" notice after an aggregate commit attempt')
+    else {
+      await notice.click()
+      await page.waitForTimeout(500)
+      check('B7-aggregate-retype-pill', await page.locator('.client-form').isVisible(), 'notice -> Data row')
+      await page.keyboard.press('Escape')
+    }
   }
 } catch (e) { check('B7-aggregate-retype-pill', false, e.message) }
 
@@ -736,17 +779,24 @@ try {
 } catch (e) { check('B8-B11-data-panel-suite', false, e.message) }
 
 // B12. docked bench: four buttons resolvable by accessible name.
+// SHIPPED SIGNATURE: `.map-chrome .action-bench` = role="group" aria-label="Map
+// actions" (src/App.tsx:2318). The old probe sniffed .map-bench /
+// [data-docked] / [data-bench], none of which ever shipped.
 try {
   await reset()
-  const docked = await probe('.map-chrome[data-docked="true"], .map-bench, .map-chrome[data-bench]')
-  if (!docked) pending('B12-docked-bench', 'bench is not docked yet (.map-chrome present but undocked)')
-  else {
+  const bench = page.locator('.map-chrome .action-bench')
+  if (!(await probe('.map-chrome .action-bench'))) {
+    pending('B12-docked-bench', 'no .action-bench inside .map-chrome yet')
+  } else {
+    // '+ Text note' is the visible label; 'Add text note' is its accessible name.
     const names = ['Tidy map', 'Add text note', '+ Flow', '+ Account']
     const found = []
     for (const name of names) {
-      found.push(await page.locator('.map-chrome, .map-bench').getByRole('button', { name, exact: true }).count() > 0)
+      found.push(await bench.getByRole('button', { name, exact: true }).count() > 0)
     }
-    check('B12-docked-bench', found.every(Boolean), names.map((n, i) => `${n}=${found[i]}`).join(' '))
+    const grouped = await page.getByRole('group', { name: 'Map actions' }).count() > 0
+    check('B12-docked-bench', grouped && found.every(Boolean),
+      `group=${grouped} ` + names.map((n, i) => `${n}=${found[i]}`).join(' '))
   }
 } catch (e) { check('B12-docked-bench', false, e.message) }
 

@@ -24,8 +24,16 @@ const textNodes = (markup: string) => [
 
 describe('s51 double-click reaches wrapped labels', () => {
   it('keeps tspans hit-testable inside self-interactive text nodes', () => {
+    // S52: "self-interactive" is the <text> that owns a dblclick handler, i.e.
+    // the one editableTextProps stamps role="button" on. Matching
+    // `data-map-edit-key=` anywhere in the node also caught visual-only labels
+    // (income amounts, monthly need, the as-needed chip) whose editor key sits
+    // on a child <tspan> and whose gesture belongs to a sibling hit rect —
+    // those glyphs must stay pointer-transparent or they swallow the
+    // double-click. Match the opening tag's role instead.
     const selfInteractive = textNodes(editMarkup()).filter(
-      (node) => node.includes('data-map-edit-key=') && node.includes('<tspan'),
+      (node) =>
+        /^<text\b[^>]*role="button"/.test(node) && node.includes('<tspan'),
     )
     expect(selfInteractive.length).toBeGreaterThan(0)
 
