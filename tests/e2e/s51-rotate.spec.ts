@@ -1,8 +1,26 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { BOOK_KEY, openApp } from './helpers'
 
 const ACCOUNT_ID = 'cash-at-bank'
 const TEXT_KEY = `text:${ACCOUNT_ID}:label`
+
+/**
+ * s52 click-again: the first plain click on account text selects the ACCOUNT.
+ * Text selection is reached by selecting the account (its body hit, so the two
+ * clicks are never read as a dblclick) and then clicking the text.
+ */
+async function selectAccountText(page: Page, label: Locator) {
+  const hit = page
+    .locator(`[data-account-id="${ACCOUNT_ID}"] .map-account-body-hit:not(ellipse)`)
+    .first()
+  const box = await hit.boundingBox()
+  if (!box) throw new Error(`Account ${ACCOUNT_ID} has no measurable body hit`)
+  await hit.click({
+    position: { x: Math.min(32, box.width / 4), y: Math.max(16, box.height - 24) },
+    timeout: 5_000,
+  })
+  await label.click({ timeout: 5_000 })
+}
 
 async function storedRotation(page: Page): Promise<number | null> {
   return page.evaluate(
@@ -38,7 +56,14 @@ test.describe('s51: account text rotates like a note', () => {
       .locator(`[data-map-edit-key="accountLabel:${ACCOUNT_ID}"]`)
       .first()
     await expect(label).toBeVisible({ timeout: 5_000 })
+
+    // The first plain click on the label selects the ACCOUNT, not its text.
     await label.click({ timeout: 5_000 })
+    await expect(page.getByRole('button', { name: /^Rotate text: / })).toHaveCount(0, {
+      timeout: 5_000,
+    })
+
+    await selectAccountText(page, label)
 
     const inspector = page.locator('.map-inspector')
     await expect(inspector).toBeVisible({ timeout: 5_000 })
@@ -77,7 +102,7 @@ test.describe('s51: account text rotates like a note', () => {
     const label = page
       .locator(`[data-map-edit-key="accountLabel:${ACCOUNT_ID}"]`)
       .first()
-    await label.click({ timeout: 5_000 })
+    await selectAccountText(page, label)
     await expect(
       page.getByRole('button', { name: /^Rotate text: / }),
     ).toBeVisible({ timeout: 5_000 })

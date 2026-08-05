@@ -417,10 +417,9 @@ export function MapInspector({
     (generatedKind === 'asNeeded' ? `Flow from ${endpointLabel(arrow?.sourceId ?? '')} to Monthly need` : undefined) ??
     (note ? note.text : undefined) ??
     (isText ? textTargetTitle(data, selectedTargetKey) : 'Map item')
-  const canOpenDetails =
-    !multiSelection &&
-    Boolean(onDetails) &&
-    Boolean(account || note || selectedTargetKey === 'income' || selectedTargetKey === 'need')
+  // The App only passes `onDetails` when the selection maps to a Data row
+  // (accounts and their text, notes, income, need), so its presence IS the gate.
+  const canOpenDetails = !multiSelection && Boolean(onDetails)
 
   if (!multiSelection && !account && !layoutKey && !arrow && !note) return null
 

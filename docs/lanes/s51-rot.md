@@ -32,10 +32,31 @@ stays 3 — so drag rotation now always lands on a 5° step.
 Retuned to the new contract: `tests/overrides.test.ts:112` (`snaps rotation to 5-degree
 steps`), `tests/e2e/map-keyboard.spec.ts:71`. Suite 744/744.
 
+## s52 amendment — click-again, not click-once
+Text stealing the first click cost the account its own label as a selection target.
+Now `MapSvg.accountTextClickKey` (exported beside `nextSelectedTargetKeys`) gates the
+promotion: text claims a plain click only when the selection is already *inside* its
+account and nothing else — the account sole-selected, this text, or a sibling text
+(drill-in: rotating label then value costs no extra click). First click, click into a
+multi-selection, and every modifier-click fall through to `account:<id>` — modifier-clicks
+build item selections, which text keys cannot join. It reads the same render-scope
+`selectedTargetKeys` that `toggleSelectedTarget` feeds `nextSelectedTargetKeys`, so
+decision and result cannot diverge. Dblclick is untouched — the hit rect owns it and
+stops propagation.
+
+Downstream, text stands in for its account everywhere the Data side cares:
+- `App.dataTargetForMapKey` maps `text:<acct>:label|caption|value` to the account row;
+  `flowEndpointId` derives from it (+ Flow arms, Details resolves).
+- `App.selectedMapAccountId` (derived from the mapping) feeds Form/Wizard
+  `selectedAccountId`, so the parent row auto-expands for a text selection.
+- `MapInspector.canOpenDetails` is now just `!multiSelection && Boolean(onDetails)`;
+  the App passes `onDetails` only when the selection maps to a Data row.
+- `App.panelSelectionKeys` treats any key mapping to the account's row as "already
+  holds the account" — the panel's focus echo used to demote a fresh text promotion
+  back to the account whenever the Data panel was open (gate catch, e2e C5b).
+
 ## Residual risk
 - `rows` / `sub` roles still cannot rotate — not requested, and excluded from
   `isRotatableTextKey`, so no unreachable control ships.
-- Clicking an account's label/caption/value now selects that text, not the account. The
-  account is still selected by clicking its body.
 - Lane `node_modules` lost `.bin/` and `@axe-core/playwright` mid-session; e2e was verified
   against byte-identical sources before that.

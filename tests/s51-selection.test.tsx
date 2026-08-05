@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import {
+  accountTextClickKey,
   nextSelectedTargetKeys,
   shouldFocusSelect,
 } from '../src/render/MapSvg'
@@ -52,6 +54,73 @@ describe('s51 selection: modifier-click never clobbers', () => {
 
   it('drops incompatible keys already in the selection when extending', () => {
     expect(nextSelectedTargetKeys(['asNeededChip'], CASH, true)).toEqual([CASH])
+  })
+})
+
+/**
+ * s52 click-again. Account text carries its own hit rect (`text:<acct>:<role>`),
+ * but a single plain click on it must resolve to the parent ACCOUNT. The text
+ * is only reachable by clicking it again while its account is SOLE-selected,
+ * and never by a modifier-click — otherwise shift-clicking two labels can never
+ * build the two-account selection that arms + Flow.
+ */
+describe('s52 click-again: account text resolves to its account first', () => {
+  const CASH_LABEL = 'text:cash-at-bank:label'
+  const CASH_VALUE = 'text:cash-at-bank:value'
+  const ROTH_LABEL = 'text:roth-ira-dana:label'
+
+  /**
+   * Mirrors `handleMapClickCapture`: `accountTextClickKey` decides whether the
+   * text claims the click; otherwise the click falls through to the account
+   * the text sits inside, and either way the key feeds the selection rules.
+   */
+  const clickAccountText = (
+    selection: string[],
+    textKey: string,
+    modified: boolean,
+  ) =>
+    nextSelectedTargetKeys(
+      selection,
+      accountTextClickKey(SAMPLE_WHITFIELD, textKey, selection, modified) ??
+        `account:${textKey.split(':')[1]}`,
+      modified,
+    )
+
+  it('selects the account when nothing is selected', () => {
+    expect(clickAccountText([], CASH_LABEL, false)).toEqual([CASH])
+  })
+
+  it('selects the account when a different account is selected', () => {
+    expect(clickAccountText([ROTH], CASH_LABEL, false)).toEqual([CASH])
+  })
+
+  it('collapses a multi-selection to the clicked account', () => {
+    expect(clickAccountText([CASH, ROTH], CASH_LABEL, false)).toEqual([CASH])
+    expect(clickAccountText([NOTE, ROTH], CASH_LABEL, false)).toEqual([CASH])
+  })
+
+  it('promotes to the text when its account is already sole-selected', () => {
+    expect(clickAccountText([CASH], CASH_LABEL, false)).toEqual([CASH_LABEL])
+    expect(clickAccountText([CASH], CASH_VALUE, false)).toEqual([CASH_VALUE])
+  })
+
+  it('keeps the text selected on a repeat click', () => {
+    expect(clickAccountText([CASH_LABEL], CASH_LABEL, false)).toEqual([CASH_LABEL])
+  })
+
+  it('selects the sibling text when a sibling role is clicked', () => {
+    // Drill-in: the selection is already inside this account, so the sibling
+    // text claims the click directly instead of demoting to the account.
+    expect(clickAccountText([CASH_LABEL], CASH_VALUE, false)).toEqual([CASH_VALUE])
+  })
+
+  it('extends by ACCOUNT on a modifier-click of account text', () => {
+    expect(clickAccountText([CASH], ROTH_LABEL, true)).toEqual([CASH, ROTH])
+    expect(clickAccountText([], CASH_LABEL, true)).toEqual([CASH])
+  })
+
+  it('removes an already-selected account on a modifier-click of its text', () => {
+    expect(clickAccountText([CASH, ROTH], CASH_LABEL, true)).toEqual([ROTH])
   })
 })
 

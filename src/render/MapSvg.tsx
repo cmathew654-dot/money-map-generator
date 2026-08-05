@@ -2805,14 +2805,17 @@ export function MapSvg({
     const account = element.closest<SVGElement>('[data-account-id]')
     const container = element.closest<SVGElement>('[data-connect-id]')
     const target = element.closest<SVGElement>('[data-map-target]')
-    // Account text sits inside [data-account-id], so the account would always win
-    // the click. Let a rotatable text sub-element claim its own selection first.
-    const textHit = element.closest<SVGElement>('[data-layout-key]')
-    const accountTextKey =
-      textHit?.dataset.layoutKey &&
-      isRotatableTextKey(displayData, textHit.dataset.layoutKey)
-        ? textHit.dataset.layoutKey
-        : null
+    // Account text sits inside [data-account-id], so the account would always
+    // win the click; `accountTextClickKey` decides when the text takes it
+    // instead. `selectedTargetKeys` is the same render-scope value
+    // `toggleSelectedTarget` feeds to `nextSelectedTargetKeys` below, so the
+    // decision and the selection it produces can never disagree.
+    const accountTextKey = accountTextClickKey(
+      displayData,
+      element.closest<SVGElement>('[data-layout-key]')?.dataset.layoutKey,
+      selectedTargetKeys,
+      event.shiftKey || event.ctrlKey || event.metaKey,
+    )
     const targetKey =
       note?.dataset.noteId
         ? `note:${note.dataset.noteId}`
@@ -3519,6 +3522,32 @@ export function nextSelectedTargetKeys(
   return index < 0
     ? [...compatible, targetKey]
     : compatible.filter((key) => key !== targetKey)
+}
+
+/**
+ * Click-again promotion for account text (`text:<accountId>:label|caption|value`).
+ * The text only claims a click once the selection is already "inside" its
+ * account and nothing else: the account itself, this text, or a sibling text of
+ * the same account (drill-in — rotating label then value must not cost an extra
+ * click). A first click, a click landing in a multi-selection, and every
+ * modifier-click all fall through to the account underneath — modifier-clicks
+ * build item selections, which text keys cannot join. Returns the key to
+ * select, or `null` to let the account win.
+ */
+export function accountTextClickKey(
+  data: MoneyMapData,
+  textKey: string | undefined,
+  selectedTargetKeys: readonly string[],
+  modified: boolean,
+): string | null {
+  if (!textKey || modified || !isRotatableTextKey(data, textKey)) return null
+  if (selectedTargetKeys.includes(textKey)) return textKey
+  if (selectedTargetKeys.length !== 1) return null
+  const [sole] = selectedTargetKeys
+  const owner = textKey.split(':')[1]
+  return sole === `account:${owner}` || sole.startsWith(`text:${owner}:`)
+    ? textKey
+    : null
 }
 
 /**

@@ -130,13 +130,27 @@ export function dataTargetForMapKey(
   if (key.startsWith('note:')) {
     return { section: 'notes', id: key.slice('note:'.length) }
   }
-  return null
+  // Selected account text (`text:<accountId>:label|caption|value`) stands in for
+  // its account, so Details and + Flow keep working while the text is selected.
+  // The map's singleton text owners keep their own target.
+  const [prefix, owner, role, ...rest] = key.split(':')
+  if (
+    prefix !== 'text' ||
+    rest.length > 0 ||
+    (role !== 'label' && role !== 'caption' && role !== 'value')
+  ) {
+    return null
+  }
+  return owner === 'masthead'
+    ? null
+    : dataTargetForMapKey(
+        owner === 'income' || owner === 'need' ? owner : `account:${owner}`,
+      )
 }
 
 function flowEndpointId(key: string) {
-  if (key === 'income' || key === 'need') return key
-  if (key.startsWith('account:')) return key.slice('account:'.length)
-  return null
+  const target = dataTargetForMapKey(key)
+  return !target || target.section === 'notes' ? null : target.id
 }
 
 /** Two selected map items make a flow; anything else leaves the button dead. */
@@ -152,12 +166,16 @@ export function flowEndpointsFromSelection(keys: readonly string[]) {
  * The Data panel reports the account it focused back as a selection, and with
  * the panel open every map click focuses one — so a modifier-click that just
  * extended the selection would immediately narrow it back to the clicked
- * account. Keep any selection that already holds the account; otherwise select
- * it alone, which is what a plain row click has always meant.
+ * account. Keep any selection that already holds the account — including its
+ * own text, which maps to the same row and must not be demoted by the echo —
+ * otherwise select it alone, which is what a plain row click has always meant.
  */
 export function panelSelectionKeys(keys: string[], accountId: string) {
-  const key = `account:${accountId}`
-  return keys.includes(key) ? keys : [key]
+  const holdsAccount = keys.some((key) => {
+    const target = dataTargetForMapKey(key)
+    return target?.section === 'accounts' && target.id === accountId
+  })
+  return holdsAccount ? keys : [`account:${accountId}`]
 }
 
 /** New notes land bottom-centre of the visible map, cascading so they don't stack. */
@@ -396,6 +414,12 @@ export default function App() {
     useState<ActiveMapTextEdit | null>(null)
   const [selectedMapTargetKeys, setSelectedMapTargetKeys] = useState<string[]>([])
   const selectedMapTargetKey = selectedMapTargetKeys.at(-1) ?? null
+  // Selected account text stands in for its account everywhere the Data panel
+  // and Details care, so derive the account id from the shared mapping instead
+  // of re-parsing the key at each consumer.
+  const selectedMapDataTarget = dataTargetForMapKey(selectedMapTargetKey)
+  const selectedMapAccountId =
+    selectedMapDataTarget?.section === 'accounts' ? selectedMapDataTarget.id : null
   const [dialog, setDialog] = useState<AppDialog | null>(null)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [connectedFile, setConnectedFile] =
@@ -2062,11 +2086,7 @@ export default function App() {
                   setEditorPanel('data')
                 }}
                 onHoverAccount={setHighlightId}
-                selectedAccountId={
-                  selectedMapTargetKey?.startsWith('account:')
-                    ? selectedMapTargetKey.slice('account:'.length)
-                    : null
-                }
+                selectedAccountId={selectedMapAccountId}
                 onSelectAccount={(id) =>
                   setSelectedMapTargetKey(`account:${id}`)
                 }
@@ -2144,11 +2164,7 @@ export default function App() {
                     onHoverAccount={setHighlightId}
                     activeSection={dataSection}
                     onSectionFocus={setDataSection}
-                    selectedAccountId={
-                      selectedMapTargetKey?.startsWith('account:')
-                        ? selectedMapTargetKey.slice('account:'.length)
-                        : null
-                    }
+                    selectedAccountId={selectedMapAccountId}
                     onSelectAccount={(id) =>
                       setSelectedMapTargetKeys((keys) =>
                         panelSelectionKeys(keys, id),
@@ -2182,7 +2198,7 @@ export default function App() {
               selectedTargetKeys={selectedMapTargetKeys}
               onChange={handleMapChange}
               onClose={() => handleMapSelectionChange(null)}
-              onDetails={handleMapDetails}
+              onDetails={selectedMapDataTarget ? handleMapDetails : undefined}
               onSelect={handleMapSelectionChange}
             />
           )}
