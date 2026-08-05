@@ -148,6 +148,18 @@ export function flowEndpointsFromSelection(keys: readonly string[]) {
   return { source, target }
 }
 
+/**
+ * The Data panel reports the account it focused back as a selection, and with
+ * the panel open every map click focuses one — so a modifier-click that just
+ * extended the selection would immediately narrow it back to the clicked
+ * account. Keep any selection that already holds the account; otherwise select
+ * it alone, which is what a plain row click has always meant.
+ */
+export function panelSelectionKeys(keys: string[], accountId: string) {
+  const key = `account:${accountId}`
+  return keys.includes(key) ? keys : [key]
+}
+
 /** New notes land bottom-centre of the visible map, cascading so they don't stack. */
 export function noteSpawnPoint(
   visible: { left: number; right: number; top: number; bottom: number },
@@ -2138,7 +2150,9 @@ export default function App() {
                         : null
                     }
                     onSelectAccount={(id) =>
-                      setSelectedMapTargetKey(`account:${id}`)
+                      setSelectedMapTargetKeys((keys) =>
+                        panelSelectionKeys(keys, id),
+                      )
                     }
                     vocabulary={vocabulary}
                   />
