@@ -46,7 +46,7 @@ test('retyping an aggregate account total leaves the rows alone and points at th
   const panel = page.getByRole('dialog', { name: 'Data' })
   await expect(panel).toBeVisible({ timeout: 5_000 })
   const positions = panel
-    .locator('details[data-account-id="managed-after-tax-trust"] .nested-list')
+    .locator('.account-card[data-account-id="managed-after-tax-trust"] .nested-list')
     .first()
   await expect(positions.getByLabel('Value').nth(0)).toHaveValue('$380,000', {
     timeout: 5_000,

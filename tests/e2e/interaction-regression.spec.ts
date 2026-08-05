@@ -418,6 +418,7 @@ test.describe('approved desktop interaction regression', () => {
     await expect(editor).toBeVisible()
     await editor.fill('Edited Short-Term Shape')
     await page
+      .locator('.map-text-size-controls')
       .getByRole('button', { name: 'Increase font size', exact: true })
       .click()
     await page
@@ -745,7 +746,10 @@ test.describe('approved desktop interaction regression', () => {
     await page.keyboard.press('ArrowRight')
     const label = account.locator('[data-map-edit-key="accountLabel:cash-at-bank"]').first()
     await label.dblclick()
-    await page.getByRole('button', { name: 'Increase font size' }).click()
+    await page
+      .locator('.map-text-size-controls')
+      .getByRole('button', { name: 'Increase font size' })
+      .click()
     await page.getByRole('button', { name: 'Close text editor' }).click()
     await label.focus()
     await page.keyboard.press('Shift+ArrowRight')

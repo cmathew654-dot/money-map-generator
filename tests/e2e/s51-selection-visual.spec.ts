@@ -5,6 +5,11 @@ test('selected account has a visible selection ring', async ({ page }, info) => 
     info.project.name !== 'chromium-1440x900',
     'The selection-ring baseline uses the canonical editor viewport.',
   )
+  // The pan/zoom hint toast is transient chrome, not part of the selection-ring
+  // baseline. Seed its dismissal flag so it never renders into the screenshot.
+  await page.addInitScript(() => {
+    localStorage.setItem('money-map-generator:pan-zoom-hint:v1', 'dismissed')
+  })
   await page.goto('/', { timeout: 5_000 })
   await expect(page.getByText('Money Map', { exact: true }).first()).toBeVisible({ timeout: 5_000 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
