@@ -95,8 +95,8 @@ describe('inspector rotation control coverage', () => {
     ['note', 'note:audit-note', NOTE_DATA],
     ['footnote line', FOOTNOTE_KEY, SAMPLE_WHITFIELD],
   ])('writes rot on the %s override key', (_name, key, data) => {
-    expect(rotate(key, 'Rotate clockwise', data)?.layoutOverrides?.[key]?.rot).toBe(15)
-    expect(rotate(key, 'Rotate counterclockwise', data)?.layoutOverrides?.[key]?.rot).toBe(345)
+    expect(rotate(key, 'Rotate clockwise', data)?.layoutOverrides?.[key]?.rot).toBe(5)
+    expect(rotate(key, 'Rotate counterclockwise', data)?.layoutOverrides?.[key]?.rot).toBe(355)
   })
 
   it('increments from the existing rot on the override key', () => {
@@ -105,7 +105,7 @@ describe('inspector rotation control coverage', () => {
       layoutOverrides: { 'note:audit-note': { color: 'blue' as const, rot: 30 } },
     }
     const next = rotate('note:audit-note', 'Rotate clockwise', data)
-    expect(next?.layoutOverrides?.['note:audit-note']).toEqual({ color: 'blue', rot: 45 })
+    expect(next?.layoutOverrides?.['note:audit-note']).toEqual({ color: 'blue', rot: 35 })
   })
 
   it('resets note rotation with the Reset note action', () => {
@@ -123,6 +123,6 @@ describe('inspector rotation control coverage', () => {
     const markup = markupFor('account:cash-at-bank')
     expect(markup).toContain('aria-label="Rotate clockwise"')
     expect(rotate('account:cash-at-bank', 'Rotate clockwise', SAMPLE_WHITFIELD)
-      ?.layoutOverrides?.['cash-at-bank']?.rot).toBe(15)
+      ?.layoutOverrides?.['cash-at-bank']?.rot).toBe(5)
   })
 })
