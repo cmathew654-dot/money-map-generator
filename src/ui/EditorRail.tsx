@@ -13,6 +13,12 @@ const panelLabels: Record<EditorPanel, string> = {
   contents: 'Contents',
   help: 'Help',
 }
+const panelTitles: Record<EditorPanel, string> = {
+  add: 'Add income, accounts, flows, or notes',
+  data: 'The numbers behind the map',
+  contents: 'Everything on the map, as a list',
+  help: 'Shortcuts and tips',
+}
 const panelIcons: Record<EditorPanel, string> = {
   add: '+',
   data: '▤',
@@ -40,6 +46,7 @@ export function EditorRail({ activePanel, onToggle }: EditorRailProps) {
           ref={(button) => {
             buttons.current[panel] = button ?? undefined
           }}
+          title={panelTitles[panel]}
           type="button"
           onClick={() => onToggle(panel)}
         >
