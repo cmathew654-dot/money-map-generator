@@ -1439,8 +1439,10 @@ export function Form({
         : focusRequest.id === 'need'
           ? needSectionRef.current
           : null
+    // 'start' + scroll-margin-top: these sections are taller than the panel,
+    // so centring them puts their heading off the top of the scroller.
     section?.scrollIntoView({
-      block: 'center',
+      block: 'start',
       behavior: 'smooth',
     })
   }, [focusRequest])
