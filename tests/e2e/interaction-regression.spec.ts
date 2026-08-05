@@ -947,9 +947,10 @@ test.describe('approved desktop interaction regression', () => {
     await expect(salaryAmount).toHaveValue('$5,000')
 
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
-    await expect(page.getByRole('dialog', { name: 'Data' })).toHaveCount(0)
-    await page.getByRole('button', { name: 'Data', exact: true }).click()
-    await expect(page.getByRole('dialog', { name: 'Data' })).toBeVisible()
+    // Ruling per Cyril 2026-08-05: Undo reverts the data but leaves the open Data dialog in place.
+    await expect(page.getByRole('dialog', { name: 'Data' })).toHaveCount(1, {
+      timeout: 5000,
+    })
     const salaryAfterUndo = page
       .locator(".income-row:has(input[value='Salary / Wages'])")
       .getByLabel('Amount', { exact: true })

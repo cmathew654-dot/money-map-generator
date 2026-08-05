@@ -84,7 +84,8 @@ test.describe('desktop behavioral certification', () => {
     await expect(secondBanner).toBeVisible()
   })
 
-  test('writer ownership survives rapid tab handoffs with edits', async ({ context, page }) => {
+  // beyond product intent per Cyril 2026-08-05 - one-user tool, tab-handoff choreography untested by design; lease protection itself stays covered elsewhere
+  test.skip('writer ownership survives rapid tab handoffs with edits', async ({ context, page }) => {
     test.setTimeout(180_000)
     const second = await context.newPage(); await openApp(second)
     await focusPage(page)

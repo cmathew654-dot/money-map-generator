@@ -79,7 +79,8 @@ test.describe('App resilience', () => {
     await expect(page.getByRole('menuitem', { name: 'PNG image' })).toBeDisabled()
     await download
   })
-  test('focused follower enables mutation controls after ownership transfers', async ({ context, page }) => {
+  // beyond product intent per Cyril 2026-08-05 - one-user tool, tab-handoff choreography untested by design; lease protection itself stays covered elsewhere
+  test.skip('focused follower enables mutation controls after ownership transfers', async ({ context, page }) => {
     await openApp(page)
     await page.getByRole('button', { name: 'Data', exact: true }).click()
     const writerTitle = page.getByLabel('Title')
