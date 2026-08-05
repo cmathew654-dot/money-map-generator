@@ -2285,21 +2285,12 @@ export function MapSvg({
     targetKey: string | null,
     event: MouseEvent<SVGSVGElement>,
   ) => {
-    if (
-      !targetKey ||
-      !(event.shiftKey || event.ctrlKey || event.metaKey) ||
-      !isCompatibleMapItemKey(targetKey)
-    ) {
-      setSelectedTarget(targetKey)
-      return
-    }
-    const compatible = selectedTargetKeys.filter(isCompatibleMapItemKey)
-    const index = compatible.indexOf(targetKey)
-    setSelectedTargets(
-      index < 0
-        ? [...compatible, targetKey]
-        : compatible.filter((key) => key !== targetKey),
+    const next = nextSelectedTargetKeys(
+      selectedTargetKeys,
+      targetKey,
+      event.shiftKey || event.ctrlKey || event.metaKey,
     )
+    if (next) setSelectedTargets(next)
   }
   const displayData = previewData ?? data
   const layout = layoutMap(displayData)
@@ -3315,7 +3306,15 @@ export function MapSvg({
             data-map-target={onChange ? `note:${placed.note.id}` : undefined}
             data-note-id={placed.note.id}
             key={placed.note.id}
-            onFocus={onChange ? () => setSelectedTarget(`note:${placed.note.id}`) : undefined}
+            onFocus={
+              onChange
+                ? (event) => {
+                    if (shouldFocusSelect(event.currentTarget)) {
+                      setSelectedTarget(`note:${placed.note.id}`)
+                    }
+                  }
+                : undefined
+            }
             onPointerDown={
               onChange
                 ? beginDrag(
@@ -3445,4 +3444,46 @@ export function MapSvg({
       )}
     </svg>
   )
+}
+
+/**
+ * The whole selection decision for one map click. Returns `null` to mean
+ * "leave the selection exactly as it is".
+ *
+ * A modifier-click must never replace a non-empty selection. Accounts and
+ * notes toggle in and out of it; everything else (the as-needed chip, arrows,
+ * income, need) cannot be held by `MapItemKey`, so it is preserved rather than
+ * silently dropped.
+ */
+export function nextSelectedTargetKeys(
+  selectedTargetKeys: readonly string[],
+  targetKey: string | null,
+  modified: boolean,
+): string[] | null {
+  if (!targetKey || !modified) return targetKey ? [targetKey] : []
+  if (!isCompatibleMapItemKey(targetKey)) {
+    return selectedTargetKeys.length > 0 ? null : [targetKey]
+  }
+  const compatible = selectedTargetKeys.filter(isCompatibleMapItemKey)
+  const index = compatible.indexOf(targetKey)
+  return index < 0
+    ? [...compatible, targetKey]
+    : compatible.filter((key) => key !== targetKey)
+}
+
+/**
+ * Focus alone still selects, but only when the focus came from the keyboard.
+ * Pointer focus fires before the click and would clobber a modifier-click that
+ * is meant to extend the selection; the click handler selects on a plain click
+ * anyway. `:focus-visible` is the platform's own keyboard-modality signal — the
+ * stylesheet already leans on it for map focus rings. Fails open so keyboard
+ * selection can never go missing.
+ */
+export function shouldFocusSelect(element: Element | null | undefined): boolean {
+  if (!element) return true
+  try {
+    return element.matches(':focus-visible')
+  } catch {
+    return true
+  }
 }

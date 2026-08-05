@@ -42,8 +42,7 @@ async function addNote(page: Page, text: string) {
   await editor.fill(text, T)
   await editor.press('Enter', T)
   await expect(editor).toHaveCount(0, T)
-  await page.keyboard.press('Escape')
-  await expect(selected(page)).toHaveCount(0, T)
+  await expect(notes(page)).toHaveCount(1, T)
 }
 
 test('shift-click extends an account selection', async ({ page }) => {
@@ -138,6 +137,7 @@ test('shift-click on a note extends into a mixed selection', async ({ page }) =>
 test('keyboard focus still reaches and selects a note', async ({ page }) => {
   await openApp(page)
   await addNote(page, 'Keyboard reachable note')
+  await clickAccountBody(account(page, 'cash-at-bank'))
 
   const note = notes(page).first()
   let reached = false
