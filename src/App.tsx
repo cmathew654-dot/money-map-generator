@@ -209,6 +209,13 @@ export function browserPersistenceLabel(dataMode: 'demo' | 'real', isWriter: boo
   return 'Saved in this browser'
 }
 
+export function leaseAnnouncement(dataMode: 'demo' | 'real', canMutate: boolean, switching: boolean) {
+  if (dataMode === 'demo') return ''
+  if (switching) return 'Getting this tab ready to edit…'
+  if (!canMutate) return 'View only — editing is active in another Money Map tab.'
+  return 'Editing is active in this tab.'
+}
+
 export function appMapFileName(
   title: string,
   year: string,
@@ -1990,6 +1997,7 @@ export default function App() {
           }}
         />
       </header>
+      <div className="visually-hidden" role="status">{leaseAnnouncement(DATA_MODE, canMutate, writerTakeoverPending)}</div>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
         {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information.</span></section>}
         {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
