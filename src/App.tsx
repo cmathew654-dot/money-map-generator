@@ -200,6 +200,16 @@ export function presentExitZoom(stashed: MapZoom | null, current: MapZoom) {
   return stashed ?? current
 }
 
+export function applyPresentScroll(
+  scroller: { scrollLeft: number; scrollTop: number } | null,
+  stash: { left: number; top: number } | null,
+) {
+  if (!scroller || !stash) return false
+  scroller.scrollLeft = stash.left
+  scroller.scrollTop = stash.top
+  return true
+}
+
 export function browserPersistenceLabel(dataMode: 'demo' | 'real', isWriter: boolean, status: BrowserSaveStatus, switching = false) {
   if (dataMode === 'demo') return 'Public demo — changes are temporary'
   if (switching) return 'Getting this tab ready to edit…'
@@ -385,6 +395,7 @@ export default function App() {
   const [presentMode, setPresentMode] = useState(false)
   const [mapZoom, setMapZoom] = useState<MapZoom>('fit')
   const presentZoomRef = useRef<MapZoom | null>(null)
+  const presentScrollRef = useRef<{ left: number; top: number } | null>(null)
   const [panZoomHintVisible, setPanZoomHintVisible] = useState(
     initialPanZoomHintVisible,
   )
@@ -535,6 +546,16 @@ export default function App() {
   }, [mapZoom])
 
   useLayoutEffect(() => {
+    // Present exit restores the zoom, which resizes the scroll content; the
+    // stashed scroll can only land once that relayout has happened.
+    // ponytail: fullscreen shrinks back after this commit, so a scroll near
+    // the far edge can clamp short — re-apply on fullscreenchange if that bites.
+    if (
+      !presentMode &&
+      applyPresentScroll(previewPaneRef.current, presentScrollRef.current)
+    ) {
+      presentScrollRef.current = null
+    }
     const pending = pendingZoomAnchorRef.current
     const page = mapPageRef.current
     if (!pending || !page) return
@@ -548,7 +569,7 @@ export default function App() {
       nextRect.top +
       pending.anchor.y * nextRect.height -
       pending.pointer.y
-  }, [mapZoom])
+  }, [mapZoom, presentMode])
 
   const showSnapshot = useCallback((next: BookSnapshot) => {
     snapshotRef.current = next
@@ -1031,6 +1052,10 @@ export default function App() {
     closeMapTextEditor(true)
     setShapePopoverOpen(false)
     presentZoomRef.current = mapZoom
+    const scroller = previewPaneRef.current
+    presentScrollRef.current = scroller
+      ? { left: scroller.scrollLeft, top: scroller.scrollTop }
+      : null
     setMapZoom('fit')
     setPresentMode(true)
     const shell = appShellRef.current
