@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Money Map test drive - s54</title>
+<style>
+  :root {
+    --paper: #fcfcfa; --surface: #ffffff; --section: #f4f6f2;
+    --ink: #1c2422; --muted: #47504d; --hairline: #dde1dc;
+    --flow: #1e7a4a; --fail: #a03028; --cond: #7a5a12;
+    --fail-bg: #faf1f0; --cond-bg: #faf6ea; --pass-bg: #eff6f1;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); }
+  body {
+    margin: 0; color: var(--ink); background: var(--paper);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px; line-height: 1.55;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px 20px 80px; }
+  header h1 {
+    font-size: 26px; margin: 8px 0 4px; font-weight: 700;
+    text-wrap: balance;
+  }
+  header p { color: var(--muted); margin: 6px 0; max-width: 65ch; }
+  .setup {
+    background: var(--section); border: 1px solid var(--hairline);
+    border-radius: 6px; padding: 14px 16px; margin: 18px 0;
+  }
+  .setup strong { display: block; margin-bottom: 6px; }
+  .setup code {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 4px; padding: 1px 6px; font-size: 15px;
+  }
+  #progress {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--paper); border-bottom: 1px solid var(--hairline);
+    padding: 10px 0; margin-bottom: 8px;
+    font-variant-numeric: tabular-nums; font-weight: 600;
+  }
+  #progress .bar {
+    height: 6px; background: var(--section); border-radius: 4px;
+    overflow: hidden; margin-top: 6px;
+  }
+  #progress .bar > div {
+    height: 100%; width: 100%; background: var(--flow);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 200ms ease-out;
+  }
+  section.station {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 6px; padding: 18px 20px; margin: 16px 0;
+  }
+  section.station.done-pass { border-color: var(--flow); background: var(--pass-bg); }
+  section.station.done-fail { border-color: var(--fail); background: var(--fail-bg); }
+  section.station.done-cond { border-color: var(--cond); background: var(--cond-bg); }
+  .station h2 { font-size: 18px; margin: 0 0 2px; }
+  .station .num { color: var(--muted); font-weight: 600; font-size: 14px; }
+  .known {
+    display: inline-block; font-size: 13px; color: var(--cond);
+    background: var(--cond-bg); border: 1px solid var(--cond);
+    border-radius: 4px; padding: 0 8px; margin-left: 6px; font-weight: 600;
+  }
+  .station ol { margin: 10px 0; padding-left: 22px; }
+  .station ol li { margin: 4px 0; }
+  .expect {
+    background: var(--section); border-radius: 4px; padding: 10px 12px;
+    margin: 10px 0; color: var(--ink);
+  }
+  .expect strong { color: var(--flow); }
+  .verdict { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .verdict button {
+    font: inherit; font-weight: 600; font-size: 15px;
+    padding: 9px 18px; border-radius: 6px; cursor: pointer;
+    border: 1.5px solid var(--hairline); background: var(--surface);
+    color: var(--ink); min-height: 40px;
+  }
+  .verdict button:hover { border-color: var(--muted); }
+  .verdict button:focus-visible { outline: 2px solid var(--flow); outline-offset: 2px; }
+  .verdict button.on-pass { background: var(--flow); border-color: var(--flow); color: #fff; }
+  .verdict button.on-fail { background: var(--fail); border-color: var(--fail); color: #fff; }
+  .verdict button.on-cond { background: var(--cond); border-color: var(--cond); color: #fff; }
+  .notes { margin-top: 10px; }
+  .notes textarea {
+    width: 100%; min-height: 70px; font: inherit; font-size: 15px;
+    border: 1.5px solid var(--hairline); border-radius: 6px;
+    padding: 8px 10px; background: var(--surface); color: var(--ink);
+    resize: vertical;
+  }
+  .notes textarea:focus-visible { outline: 2px solid var(--flow); outline-offset: 1px; }
+  .notes label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+  .addnote {
+    background: none; border: none; color: var(--muted); font: inherit;
+    font-size: 14px; cursor: pointer; text-decoration: underline;
+    padding: 0; margin-top: 10px;
+  }
+  #finish {
+    background: var(--surface); border: 2px solid var(--flow);
+    border-radius: 6px; padding: 18px 20px; margin: 24px 0;
+  }
+  #finish h2 { margin: 0 0 8px; font-size: 18px; }
+  #finish button {
+    font: inherit; font-weight: 600; padding: 10px 20px; margin-right: 8px;
+    border-radius: 6px; border: none; background: var(--flow); color: #fff;
+    cursor: pointer; min-height: 44px;
+  }
+  #finish button.quiet { background: var(--surface); color: var(--ink); border: 1.5px solid var(--hairline); }
+  #finish textarea {
+    width: 100%; min-height: 90px; font: inherit; font-size: 15px;
+    border: 1.5px solid var(--hairline); border-radius: 6px;
+    padding: 8px 10px; margin: 10px 0; resize: vertical;
+  }
+  #copied { color: var(--flow); font-weight: 600; margin-left: 8px; display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    #progress .bar > div { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Money Map test drive</h1>
+  <p>Hi Myr. This is a guided run through the map tool, about 40 minutes. You can stop
+  anywhere and come back; your answers save themselves on this page.</p>
+  <p>For each numbered step: do what it says, then hit one of the three buttons.
+  <b>Accept</b> means it did what the card said it would. <b>Fail</b> means it didn't,
+  or something looked broken. <b>Conditional</b> means it technically worked but felt
+  wrong, slow, or confusing. Fail and Conditional open a notes box; a note in your own
+  words is the most useful thing you can give us. "The box jumped when I let go of it"
+  is a perfect note.</p>
+  <p>You can't break anything. This copy throws away its data. Be rough with it.</p>
+  <div class="setup">
+    <strong>Before you start</strong>
+    On your laptop (same wifi as the office PC): open <code>http://192.168.1.69:4280/</code><br>
+    On the office PC itself: open <code>http://localhost:4280/</code><br>
+    Use Chrome or Edge. You should see a map called Jordan &amp; Dana Whitfield.
+    If neither address loads, the server is down; tell Cyril and stop here.
+  </div>
+</header>
+
+<div id="progress"><span id="ptext">0 of 17 answered</span><div class="bar"><div id="pbar"></div></div></div>
+
+<div id="stations"></div>
+
+<div id="finish">
+  <h2>Done - send it back</h2>
+  <label for="general">Anything else? Stuff that bugged you, stuff you liked, stuff you expected to find and didn't:</label>
+  <textarea id="general" placeholder="Type anything. Blank is fine too."></textarea>
+  <button id="copyBtn" type="button">Copy results</button>
+  <button id="dlBtn" type="button" class="quiet">Download results file</button>
+  <span id="copied">Copied.</span>
+  <p style="color:var(--muted);font-size:14px">Copy results, then paste into a text to Cyril. Or download the file and send that.</p>
+</div>
+</div>
+
+<script>
+const STATIONS = [
+  {
+    id: 'open', title: 'Open it',
+    steps: ['Open the address from the box above.', 'Wait for it to load. Look at the whole screen for a few seconds.'],
+    expect: 'A map with labeled cylinders (accounts), an income panel on the left side of the map, and buttons along the bottom. Nothing overlapping, nothing cut off, no weird placeholder text.'
+  },
+  {
+    id: 'present', title: 'Present mode',
+    steps: ['Click Present (top right).', 'Look at it like a client would.', 'Press Escape to come back.', 'Click Fit (bottom right) and scroll with Ctrl held down to zoom in and out.'],
+    expect: 'Present hides all the editing controls and shows just the map. Escape brings everything back exactly as it was. Zoom feels smooth and Fit brings the whole map into view.'
+  },
+  {
+    id: 'build', title: 'Add things',
+    steps: ['Click + Account at the bottom and place it somewhere.', 'Give it a name and a dollar amount.', 'Click one account, then click + Flow, then the other account, to draw a line between them.', 'Add an income source in the left Data panel (open it by double-clicking any account, then the Income section).'],
+    expect: 'Each add works on the first try and it is obvious what to do next at every point. If you ever sat there thinking "okay, now what?" - that is a Conditional with a note.'
+  },
+  {
+    id: 'rename', title: 'Rename things',
+    steps: ['Double-click an account title on the map and type a new name.', 'Rename an income row from the Data panel too.'],
+    expect: 'Double-click opens a text editor right there on the map. Typing shows up as you type. Clicking away keeps the new name.'
+  },
+  {
+    id: 'money', title: 'Enter ugly numbers',
+    steps: ['Click into an account value and type 1250000000 (no commas).', 'Try typing 1.5m in another value.', 'Delete a value completely and click away, leaving it blank.'],
+    expect: 'Big numbers get commas and stay readable on the map. Shorthand like 1.5m turns into the real number. A blank value shows a blank placeholder, not an error or a crash.'
+  },
+  {
+    id: 'copy', title: 'Copy and paste',
+    steps: ['Click an account, press Ctrl+C.', 'Press Escape so nothing is selected.', 'Press Ctrl+C again (yes, with nothing selected).', 'Press Ctrl+V.'],
+    expect: 'The account you copied in step 1 still pastes. The empty copy in step 3 should not have erased it. We fixed this tonight - you are checking our work.'
+  },
+  {
+    id: 'multi', title: 'Select more than one',
+    steps: ['Click one account. Hold Shift and click a second one.', 'Press Escape. Now do it in the other order (second account first).', 'With two selected, hold Shift and click an empty patch of canvas.', 'With two selected, try the Align buttons in the toolbar that appears.'],
+    expect: 'Both orders end with two accounts selected. The shift-click on empty space keeps your two selected (also fixed tonight). Align moves them into line without anything else jumping.'
+  },
+  {
+    id: 'notes', title: 'Text notes and color',
+    steps: ['Click + Text note and place it.', 'Type something in it.', 'With it selected, pick a different color from the swatches.', 'Drag it somewhere else.'],
+    expect: 'The note lands where you put it, takes your text and color, and drags smoothly. Nothing else on the map moves while you drag it.'
+  },
+  {
+    id: 'drag', title: 'Drag things around', known: true,
+    steps: ['Drag accounts around one at a time, including into crowded spots.', 'Watch the rest of the map like a hawk while you drag.', 'Click Tidy map once and compare before and after.'],
+    expect: 'Only the thing you are dragging moves. Tidy makes the layout better, not worse, and its message matches what actually happened. This area has burned us before - anything that moves on its own is a Fail with a note about what moved.'
+  },
+  {
+    id: 'undo', title: 'Undo torture',
+    steps: ['Make five quick changes: move something, rename something, change a value, add a note, change a color.', 'Press Ctrl+Z five times, slowly. Watch each step.', 'Press Ctrl+Y (or Ctrl+Shift+Z) a few times to redo.'],
+    expect: 'Each undo walks back exactly one change, in order, and redo replays them. If an undo skips a step, undoes two things at once, or brings back something wrong - Fail, and note which change it fumbled.'
+  },
+  {
+    id: 'inspector', title: 'The bottom toolbar',
+    steps: ['Click an account and look at the toolbar that appears at the bottom.', 'Try a few buttons: shape, thickness, Reset item.', 'Are the buttons big enough to hit without concentrating?'],
+    expect: 'Every button is easy to hit (we made them bigger tonight), the labels make sense, and Reset item only resets the thing you have selected.'
+  },
+  {
+    id: 'narrow', title: 'Small window',
+    steps: ['Make the browser window narrow - snap it to half the screen, then thinner, as narrow as it will go.', 'Look at the left edge: Add, Data, Contents, Help.', 'Click Contents and Help down there.'],
+    expect: 'The bottom row of map buttons moves out of the way of the left-edge buttons (fixed tonight). Contents and Help still open. If the Help button is pushed off the bottom of the screen, that is a known one - Conditional it and note how bad it looks.'
+  },
+  {
+    id: 'twotabs', title: 'Two tabs at once', known: true,
+    steps: ['Keep your current tab. Open the same address in a second tab.', 'Read what the second tab tells you.', 'If it offers a take-over button, click it, then look back at the first tab.', 'Change a number in the tab that can edit and check the other tab.'],
+    expect: 'One tab edits at a time and each tab is honest about which one it is. The number change shows up formatted (with commas and $) in the read-only tab. We know this area is rough - notes about anything confusing help a lot.'
+  },
+  {
+    id: 'export', title: 'Print and export',
+    steps: ['Click Export and save a PNG.', 'Open the saved image and put it next to the app window.', 'Play spot-the-difference for a minute.', 'Also click Print and look at the preview, then cancel.'],
+    expect: 'The exported image matches the screen: same accounts, same labels, same colors, nothing missing or doubled. Nobody has automated this check - your eyes are the only test this has.'
+  },
+  {
+    id: 'persist', title: 'Refresh and come back',
+    steps: ['Press F5.', 'Close the tab entirely, then open the address again.'],
+    expect: 'Everything you built this session is still there both times. Anything missing after a refresh is an automatic Fail with a note about what vanished.'
+  },
+  {
+    id: 'keyboard', title: 'Keyboard only', known: true,
+    steps: ['Put the mouse down.', 'Press Tab a bunch of times and watch where the focus outline goes.', 'Try to select an account and nudge it with the arrow keys.', 'Try to select two accounts with just the keyboard.'],
+    expect: 'You can reach and move an account without the mouse. We already know you cannot multi-select by keyboard - confirm it and rate how much that would bother a keyboard user. Note anywhere the focus outline disappears or jumps somewhere weird.'
+  },
+  {
+    id: 'freeplay', title: 'Free play',
+    steps: ['Five minutes, no script.', 'Pretend a client is coming in tomorrow: rough out their money picture from scratch.', 'Note every single moment the tool annoys you, no matter how small.'],
+    expect: 'Nothing crashes, nothing loses data, and the annoyance list is short. Every item on that list is gold - put it all in the notes.'
+  }
+];
+
+const KEY = 'mm-s54-dogfood';
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { state = {}; }
+
+const container = document.getElementById('stations');
+STATIONS.forEach((st, i) => {
+  const sec = document.createElement('section');
+  sec.className = 'station';
+  sec.id = 'st-' + st.id;
+  sec.innerHTML = `
+    <div class="num">Step ${i + 1} of ${STATIONS.length}${st.known ? '<span class="known">known rough spot</span>' : ''}</div>
+    <h2>${st.title}</h2>
+    <ol>${st.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+    <div class="expect"><strong>It passed if:</strong> ${st.expect}</div>
+    <div class="verdict">
+      <button type="button" data-v="pass">Accept</button>
+      <button type="button" data-v="fail">Fail</button>
+      <button type="button" data-v="cond">Conditional</button>
+    </div>
+    <button type="button" class="addnote">add a note anyway</button>
+    <div class="notes" hidden>
+      <label for="note-${st.id}">What happened, in your words:</label>
+      <textarea id="note-${st.id}"></textarea>
+    </div>`;
+  container.appendChild(sec);
+
+  const notesDiv = sec.querySelector('.notes');
+  const ta = sec.querySelector('textarea');
+  const addBtn = sec.querySelector('.addnote');
+
+  sec.querySelectorAll('.verdict button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.dataset.v;
+      state[st.id] = state[st.id] || {};
+      state[st.id].verdict = v;
+      sec.querySelectorAll('.verdict button').forEach(b => b.className = '');
+      btn.className = 'on-' + v;
+      sec.className = 'station done-' + v;
+      if (v === 'fail' || v === 'cond') {
+        notesDiv.hidden = false;
+        ta.focus();
+      }
+      save();
+    });
+  });
+  addBtn.addEventListener('click', () => { notesDiv.hidden = false; ta.focus(); });
+  ta.addEventListener('input', () => {
+    state[st.id] = state[st.id] || {};
+    state[st.id].note = ta.value;
+    save();
+  });
+
+  const saved = state[st.id];
+  if (saved) {
+    if (saved.verdict) {
+      const b = sec.querySelector(`[data-v="${saved.verdict}"]`);
+      if (b) { b.className = 'on-' + saved.verdict; sec.className = 'station done-' + saved.verdict; }
+    }
+    if (saved.note) { ta.value = saved.note; notesDiv.hidden = false; }
+  }
+});
+
+const general = document.getElementById('general');
+general.value = state.__general || '';
+general.addEventListener('input', () => { state.__general = general.value; save(); });
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(state));
+  const n = STATIONS.filter(s => state[s.id] && state[s.id].verdict).length;
+  document.getElementById('ptext').textContent = `${n} of ${STATIONS.length} answered`;
+  document.getElementById('pbar').style.transform = 'scaleX(' + (n / STATIONS.length) + ')';
+}
+save();
+
+function report() {
+  const label = { pass: 'ACCEPT', fail: 'FAIL', cond: 'CONDITIONAL' };
+  const lines = ['Money Map test drive - s54 route', 'Run date: ' + new Date().toLocaleString(), ''];
+  STATIONS.forEach((st, i) => {
+    const s = state[st.id] || {};
+    lines.push(`${i + 1}. ${st.title}: ${s.verdict ? label[s.verdict] : 'not answered'}`);
+    if (s.note) lines.push('   note: ' + s.note.replace(/\n/g, '\n   '));
+  });
+  if (state.__general) lines.push('', 'General notes:', state.__general);
+  return lines.join('\n');
+}
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(report());
+    document.getElementById('copied').style.display = 'inline';
+  } catch (e) {
+    prompt('Copy this:', report());
+  }
+});
+document.getElementById('dlBtn').addEventListener('click', () => {
+  const blob = new Blob([report()], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 's54-dogfood-results.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+</script>
+</body>
+</html>
