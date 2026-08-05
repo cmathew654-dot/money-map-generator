@@ -48,7 +48,8 @@ test.describe('desktop behavioral certification', () => {
     await page.getByRole('menuitem', { name: 'New client' }).click()
     for (let i = 0; i < 4; i += 1) await page.getByRole('button', { name: 'Next' }).click()
     await page.getByRole('button', { name: 'Finish' }).click()
-    await expect(page.getByRole('heading', { name: 'Review the map before sharing.' })).toBeVisible()
+    // A warning-free wizard finishes on 'The map is ready.'; the review copy is the hasWarnings branch.
+    await expect(page.getByRole('heading', { name: 'The map is ready.' })).toBeVisible({ timeout: 5_000 })
     await evidence(page, info, 'wizard-complete')
   })
 

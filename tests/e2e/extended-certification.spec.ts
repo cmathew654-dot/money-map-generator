@@ -86,9 +86,21 @@ async function installTwoHundredClientBook(page: Page) {
     { ...envelope, clients },
     'two-hundred-clients',
   )
-  await expect(page.getByLabel('Active client').locator('option')).toHaveCount(
-    200,
-  )
+  // The active client control is a combobox: its options only exist while open.
+  const combo = page.getByRole('combobox', { name: 'Active client' })
+  // An empty query lists every client; focusing alone filters to the active one.
+  await combo.fill('', { timeout: 5_000 })
+  await expect(page.getByRole('option')).toHaveCount(200, { timeout: 5_000 })
+  await combo.press('Escape', { timeout: 5_000 })
+  await expect(page.getByRole('listbox')).toHaveCount(0, { timeout: 5_000 })
+}
+
+async function selectClient(page: Page, label: string) {
+  const combo = page.getByRole('combobox', { name: 'Active client' })
+  await combo.fill(label, { timeout: 5_000 })
+  await expect(page.getByRole('option', { name: label })).toBeVisible({ timeout: 5_000 })
+  await combo.press('Enter', { timeout: 5_000 })
+  await expect(combo).toHaveValue(label, { timeout: 5_000 })
 }
 
 async function writeJsonArtifact(
@@ -545,12 +557,10 @@ test.describe('extended desktop certification', () => {
     page,
   }, testInfo) => {
     await installTwoHundredClientBook(page)
-    const clientSelect = page.getByLabel('Active client')
+    const clientSelect = page.getByRole('combobox', { name: 'Active client' })
     const client200 = 'certification-client-200'
-    const client199 = 'certification-client-199'
-    const client198 = 'certification-client-198'
 
-    await clientSelect.selectOption(client200)
+    await selectClient(page, 'Certification Client 200')
     await fullForm(page)
     const title = page.getByLabel('Title')
     await expect(title).toHaveValue('Certification Client 200')
@@ -576,7 +586,7 @@ test.describe('extended desktop certification', () => {
 
     const pendingEditTitle = 'Client 200 pending-switch edit'
     await title.fill(pendingEditTitle)
-    await clientSelect.selectOption(client199)
+    await selectClient(page, 'Certification Client 199')
     await expect(title).toHaveValue('Certification Client 199')
     await expect
       .poll(() =>
@@ -626,8 +636,7 @@ test.describe('extended desktop certification', () => {
       }
     })
     await page.keyboard.press('Escape')
-    await clientSelect.selectOption(client198)
-    await expect(clientSelect).toHaveValue(client198)
+    await selectClient(page, 'Certification Client 198')
     releaseFonts()
 
     await expect.poll(() => downloads.length).toBe(1)
@@ -689,7 +698,7 @@ test.describe('extended desktop certification', () => {
 
     await page.reload()
     await expect(page.getByText('Money Map', { exact: true }).first()).toBeVisible()
-    await clientSelect.selectOption(client200)
+    await selectClient(page, pendingEditTitle)
     await fullForm(page)
     await expect(page.getByLabel('Title')).toHaveValue(pendingEditTitle)
     await evidence(page, testInfo, 'two-hundred-client-races')

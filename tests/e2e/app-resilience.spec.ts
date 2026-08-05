@@ -113,6 +113,10 @@ test.describe('App resilience', () => {
   })
   test('wizard footer stays bottom-anchored through the mutation fieldset', async ({ page }) => {
     await openApp(page)
+    // The wizard only renders in guided setup, which New client enters.
+    await page.getByRole('button', { name: 'More actions' }).click({ timeout: 5_000 })
+    await page.getByRole('menuitem', { name: 'New client' }).click({ timeout: 5_000 })
+    await expect(page.locator('.form-pane .wizard')).toBeVisible({ timeout: 5_000 })
 
     const pane = page.locator('.form-pane')
     const fieldset = pane.locator('.mutation-fieldset')

@@ -52,7 +52,7 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
 
   const statusStack = page.locator('.app-status-stack')
   await statusStack.evaluate((element) => {
-    element.innerHTML = '<section class="app-status-banner is-demo"><strong>Public demo</strong><span>Changes are temporary. Do not enter real client data. Real use requires a private separate-origin deployment with <code>VITE_DATA_MODE=real</code>.</span></section>'
+    element.innerHTML = '<section class="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information. Best in Chrome or Edge.</span></section>'
   })
   await expect(statusStack).toBeVisible()
   const statusState = await page.evaluate(() => {
