@@ -44,7 +44,7 @@ test.describe('desktop visual baselines', () => {
   test('editor', async ({ page }, info) => {
     await openApp(page)
     await openData(page)
-    const firstAccountSummary = page.locator('.account-card').first().locator('summary')
+    const firstAccountSummary = page.locator('.account-card').first().locator('button.account-summary')
     await firstAccountSummary.evaluate((element) => {
       const pane = element.closest<HTMLElement>('.editor-panel, .form-pane')
       if (!pane) throw new Error('Account summary is outside the data panel')

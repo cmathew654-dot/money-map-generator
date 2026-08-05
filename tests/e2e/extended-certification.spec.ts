@@ -735,7 +735,7 @@ test.describe('extended desktop certification', () => {
 
     await fullForm(page)
     const firstAccount = page.locator('.account-card').first()
-    await firstAccount.locator('summary').click()
+    await firstAccount.locator('button.account-summary').click()
     const shapeGroup = page.getByRole('group', {
       name: 'Shape for Cash at Bank',
       exact: true,
@@ -1067,15 +1067,14 @@ test.describe('extended desktop certification', () => {
       name: 'Shape for Cash at Bank',
       exact: true,
     })
-    const accountShell = page
-      .locator('.account-card-shell')
-      .filter({ has: shapeGroup })
+    const accountShell = page.locator('.account-card-shell').first()
     const account = accountShell.locator('.account-card')
+    // s51: expand the ledger row before reaching the shape control inside it.
+    await account.locator('button.account-summary').click()
     const nextShape = shapeGroup.getByRole('button', { name: 'Card shape' })
     await expect(shapeGroup).toBeVisible()
     await nextShape.click()
     await expect(nextShape).toHaveAttribute('aria-pressed', 'true')
-    await account.locator('summary').click()
     await account
       .getByRole('button', { name: '+ Add position', exact: true })
       .click()

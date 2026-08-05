@@ -2127,6 +2127,7 @@ export default function App() {
                     filter={dataFilter}
                     focusRequest={focusRequest}
                     onChange={handleClientChange}
+                    onClose={closeDataPanel}
                     onFilterChange={setDataFilter}
                     onHoverAccount={setHighlightId}
                     activeSection={dataSection}

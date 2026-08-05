@@ -47,6 +47,8 @@ export type FormSection = 'client' | 'income' | 'accounts' | 'need' | 'notes'
 export interface FormProps {
   data: MoneyMapData
   onChange(next: MoneyMapData): void
+  /** Same close path as the editor rail toggle; omitted outside the panel. */
+  onClose?: () => void
   filter?: string
   onFilterChange?: (filter: string) => void
   activeSection?: FormSection
@@ -434,6 +436,23 @@ function TextField({
   )
 }
 
+function SectionHead({
+  count,
+  title,
+}: {
+  count?: number
+  title: string
+}) {
+  return (
+    <header className="form-section-head">
+      <h2>{title}</h2>
+      {count !== undefined && (
+        <span className="form-section-count">{count}</span>
+      )}
+    </header>
+  )
+}
+
 function RemoveButton({
   label,
   onClick,
@@ -492,7 +511,7 @@ export function NeedSection({
 
   return (
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="need" ref={sectionRef}>
-      <h2>Need</h2>
+      <SectionHead title="Need" />
       {fields}
       <FinePrintSection data={data} onChange={onChange} />
     </section>
@@ -526,7 +545,7 @@ export function IncomeSection({
 
   return (
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="income" ref={sectionRef}>
-      <h2>Income</h2>
+      <SectionHead count={data.incomeSources.length} title="Income" />
       <div className="row-list">
         {data.incomeSources.map((source, index) => (
           <div className="stacked-row income-row" key={index}>
@@ -789,48 +808,29 @@ function SubAccountRows({
 
 function AccountCard({
   account,
-  initiallyOpen,
+  expanded,
   selected,
   onHoverAccount,
   onSelectAccount,
-  registerFocusRefs,
+  onToggle,
+  registerRow,
   onChange,
   onRemove,
   vocabulary,
 }: {
   account: Account
-  initiallyOpen: boolean
+  expanded: boolean
   selected: boolean
   onHoverAccount?: (id: string | null) => void
   onSelectAccount?: (id: string) => void
-  registerFocusRefs(
-    id: string,
-    refs: AccountFocusRefs | null,
-  ): void
+  onToggle(): void
+  registerRow(id: string, row: HTMLDivElement | null): void
   onChange(account: Account): void
   onRemove(): void
   vocabulary: readonly VocabularyTerm[]
 }) {
-  const detailsRef = useRef<HTMLDetailsElement>(null)
-  const labelInputRef = useRef<HTMLInputElement>(null)
-  const didSetInitialOpen = useRef(false)
-
-  useEffect(() => {
-    if (didSetInitialOpen.current) return
-    didSetInitialOpen.current = true
-    if (initiallyOpen && detailsRef.current) {
-      detailsRef.current.open = true
-    }
-  }, [initiallyOpen])
-
-  useEffect(() => {
-    if (!detailsRef.current || !labelInputRef.current) return
-    registerFocusRefs(account.id, {
-      details: detailsRef.current,
-      labelInput: labelInputRef.current,
-    })
-    return () => registerFocusRefs(account.id, null)
-  }, [account.id, registerFocusRefs])
+  const rowId = `account-row-${account.id}`
+  const bodyId = `account-body-${account.id}`
 
   return (
     <div
@@ -838,115 +838,132 @@ function AccountCard({
       onMouseEnter={() => onHoverAccount?.(account.id)}
       onMouseLeave={() => onHoverAccount?.(null)}
     >
-      <details
+      <div
         className={`account-card bucket-${account.bucket}${selected ? ' is-selected' : ''}`}
         data-account-id={account.id}
         data-selected={selected ? 'true' : undefined}
-        ref={detailsRef}
-        onFocusCapture={() => onSelectAccount?.(account.id)}
+        ref={(node) => registerRow(account.id, node)}
       >
-      <summary
-        className="account-summary"
-        onClick={() => onSelectAccount?.(account.id)}
-        onFocus={() => onSelectAccount?.(account.id)}
-      >
-        <span aria-hidden="true" className="account-swatch" />
-        <span
-          className={`account-summary-label${
-            account.label.trim() ? '' : ' is-unnamed'
-          }`}
+        <button
+          aria-controls={bodyId}
+          aria-expanded={expanded}
+          className="account-summary"
+          id={rowId}
+          type="button"
+          onClick={() => {
+            onSelectAccount?.(account.id)
+            onToggle()
+          }}
         >
-          {accountDisplayName(account)}
-        </span>
-        <span className="account-summary-value">{money(account.value)}</span>
-        <span aria-hidden="true" style={{ width: 136 }} />
-      </summary>
-
-      <div className="account-body">
-        <button className="text-button" type="button" onClick={onRemove}>
-          Remove account
-        </button>
-        <div className="account-fields">
-          <label className="form-field">
-            <span>Account type</span>
-            <select
-              value={account.bucket}
-              onChange={(event) =>
-                onChange(changeAccountBucket(
-                  account,
-                  event.target.value as Account['bucket'],
-                ))
-              }
-            >
-              {ACCOUNT_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <TextField
-            autocomplete={{
-              bookTerms: vocabulary,
-              seeds: accountNameSeeds,
-            }}
-            inputRef={labelInputRef}
-            label="Account name"
-            value={account.label}
-            onChange={(label) => onChange({ ...account, label })}
-          />
-          <div className="value-tag-fields">
-            <MoneyField
-              label="Value"
-              value={account.value}
-              onChange={(value) => onChange({ ...account, value })}
-            />
-          </div>
-          <TextField
-            autocomplete={{
-              bookTerms: vocabulary,
-              seeds: noSeeds,
-            }}
-            label="Supporting note"
-            value={account.caption ?? ''}
-            onChange={(caption) => onChange({ ...account, caption })}
-          />
-        </div>
-        <PositionRows
-          positions={account.positions ?? []}
-          vocabulary={vocabulary}
-          onChange={(positions) => onChange({ ...account, positions })}
-        />
-        <SubAccountRows
-          subAccounts={account.subAccounts ?? []}
-          vocabulary={vocabulary}
-          onChange={(subAccounts) => onChange({ ...account, subAccounts })}
-        />
-      </div>
-      </details>
-      <span
-        aria-label={`Shape for ${accountDisplayName(account)}`}
-        className="shape-segmented-control account-shape-control"
-        role="group"
-      >
-        {ACCOUNT_SHAPES.map((shape) => (
-          <button
-            aria-label={`${shapeLabels[shape]} shape`}
-            aria-pressed={accountShape(account) === shape}
-            className="shape-option"
-            key={shape}
-            type="button"
-            onClick={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              onChange({ ...account, shape })
-            }}
-            onPointerDown={(event) => event.stopPropagation()}
+          <span aria-hidden="true" className="account-swatch" />
+          <span
+            className={`account-summary-label${
+              account.label.trim() ? '' : ' is-unnamed'
+            }`}
           >
-            <ShapeGlyph shape={shape} />
-          </button>
-        ))}
-      </span>
+            {accountDisplayName(account)}
+          </span>
+          <span className="account-summary-value">{money(account.value)}</span>
+          <span aria-hidden="true" className="account-row-chevron">
+            ›
+          </span>
+        </button>
+
+        {expanded && (
+          <div
+            aria-labelledby={rowId}
+            className="account-body"
+            id={bodyId}
+            role="region"
+            // Selection follows focus into the fields, but not onto the row
+            // button itself — that would expand the row before its own click
+            // toggled it straight back shut.
+            onFocusCapture={() => onSelectAccount?.(account.id)}
+          >
+            <div className="account-fields">
+              <TextField
+                autocomplete={{
+                  bookTerms: vocabulary,
+                  seeds: accountNameSeeds,
+                }}
+                label="Account name"
+                value={account.label}
+                onChange={(label) => onChange({ ...account, label })}
+              />
+              <MoneyField
+                label="Value"
+                value={account.value}
+                onChange={(value) => onChange({ ...account, value })}
+              />
+              <label className="form-field">
+                <span>Account type</span>
+                <select
+                  value={account.bucket}
+                  onChange={(event) =>
+                    onChange(changeAccountBucket(
+                      account,
+                      event.target.value as Account['bucket'],
+                    ))
+                  }
+                >
+                  {ACCOUNT_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <TextField
+                autocomplete={{
+                  bookTerms: vocabulary,
+                  seeds: noSeeds,
+                }}
+                label="Supporting note"
+                value={account.caption ?? ''}
+                onChange={(caption) => onChange({ ...account, caption })}
+              />
+            </div>
+            <PositionRows
+              positions={account.positions ?? []}
+              vocabulary={vocabulary}
+              onChange={(positions) => onChange({ ...account, positions })}
+            />
+            <SubAccountRows
+              subAccounts={account.subAccounts ?? []}
+              vocabulary={vocabulary}
+              onChange={(subAccounts) => onChange({ ...account, subAccounts })}
+            />
+            <div className="account-body-footer">
+              <span
+                aria-label={`Shape for ${accountDisplayName(account)}`}
+                className="shape-segmented-control account-shape-control"
+                role="group"
+              >
+                {ACCOUNT_SHAPES.map((shape) => (
+                  <button
+                    aria-label={`${shapeLabels[shape]} shape`}
+                    aria-pressed={accountShape(account) === shape}
+                    className="shape-option"
+                    key={shape}
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      onChange({ ...account, shape })
+                    }}
+                    onPointerDown={(event) => event.stopPropagation()}
+                  >
+                    <ShapeGlyph shape={shape} />
+                  </button>
+                ))}
+              </span>
+              <button className="text-button" type="button" onClick={onRemove}>
+                Remove account
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -961,9 +978,17 @@ export function accountMatchesQuery(account: Account, query: string) {
   )
 }
 
-interface AccountFocusRefs {
-  details: HTMLDetailsElement
-  labelInput: HTMLInputElement
+/**
+ * A row is open when the user says so; otherwise it follows the map selection.
+ * Manual expands therefore survive a selection change, and the auto-expanded
+ * row moves with the selection.
+ */
+export function isAccountExpanded(
+  manualOpen: Record<string, boolean>,
+  id: string,
+  selectedAccountId?: string | null,
+): boolean {
+  return manualOpen[id] ?? id === selectedAccountId
 }
 
 export function AccountsSection({
@@ -985,63 +1010,89 @@ export function AccountsSection({
   /** already lower-cased filter query; empty renders every row */
   query?: string
 }) {
-  const [newAccountId, setNewAccountId] = useState<string | null>(null)
-  const focusRefs = useRef(new Map<string, AccountFocusRefs>())
+  const [manualOpen, setManualOpen] = useState<Record<string, boolean>>({})
+  const [lastSelected, setLastSelected] = useState(selectedAccountId ?? null)
+  const rowRefs = useRef(new Map<string, HTMLDivElement>())
   const requestFocus = usePendingFocus(data.accounts.length)
-  const registerFocusRefs = useCallback(
-    (id: string, refs: AccountFocusRefs | null) => {
-      if (refs) {
-        focusRefs.current.set(id, refs)
-      } else {
-        focusRefs.current.delete(id)
-      }
+  const registerRow = useCallback(
+    (id: string, row: HTMLDivElement | null) => {
+      if (row) rowRefs.current.set(id, row)
+      else rowRefs.current.delete(id)
     },
     [],
   )
   const setAccounts = (accounts: Account[]) =>
     onChange({ ...data, accounts })
 
+  // A fresh selection always wins over a stale manual collapse, so clicking the
+  // account on the map reopens it. Adjusting during render keeps this on the
+  // one selection-driven path instead of adding a second effect.
+  if ((selectedAccountId ?? null) !== lastSelected) {
+    setLastSelected(selectedAccountId ?? null)
+    if (selectedAccountId && selectedAccountId in manualOpen) {
+      setManualOpen(({ [selectedAccountId]: _dropped, ...rest }) => rest)
+    }
+  }
+
   useEffect(() => {
     if (!focusRequest) return
-    const refs = focusRefs.current.get(focusRequest.id)
-    if (!refs) return
-    refs.details.open = true
-    refs.details.scrollIntoView({
+    const row = rowRefs.current.get(focusRequest.id)
+    if (!row) return
+    row.scrollIntoView({
       block: 'center',
       behavior: 'smooth',
     })
-    refs.labelInput.focus()
+    // ponytail: the rAF retry covers the selection and the focus request
+    // landing in separate commits, when the body is not mounted yet.
+    const focusFirstField = () => {
+      const input = row.querySelector<HTMLInputElement>('.account-body input')
+      input?.focus()
+      return Boolean(input)
+    }
+    if (!focusFirstField()) requestAnimationFrame(focusFirstField)
   }, [focusRequest])
+
+  const visible = data.accounts.filter((account) =>
+    accountMatchesQuery(account, query),
+  )
 
   return (
     <section className={active ? 'form-section accounts-section is-active' : 'form-section accounts-section'} data-form-section="accounts" ref={sectionRef}>
-      <h2>Accounts</h2>
-      {data.accounts.map((account, index) =>
-        accountMatchesQuery(account, query) ? (
-          <AccountCard
-            account={account}
-            initiallyOpen={account.id === newAccountId}
-            selected={account.id === selectedAccountId}
-            key={account.id}
-            onHoverAccount={onHoverAccount}
-            onSelectAccount={onSelectAccount}
-            registerFocusRefs={registerFocusRefs}
-            vocabulary={vocabulary}
-            onChange={(next) =>
-              setAccounts(
-                data.accounts.map((item, itemIndex) =>
-                  itemIndex === index ? next : item,
-                ),
-              )
-            }
-            onRemove={() =>
-              setAccounts(
-                data.accounts.filter((_, itemIndex) => itemIndex !== index),
-              )
-            }
-          />
-        ) : null,
-      )}
+      <SectionHead count={visible.length} title="Accounts" />
+      {visible.map((account) => (
+        <AccountCard
+          account={account}
+          expanded={isAccountExpanded(manualOpen, account.id, selectedAccountId)}
+          selected={account.id === selectedAccountId}
+          key={account.id}
+          onHoverAccount={onHoverAccount}
+          onSelectAccount={onSelectAccount}
+          onToggle={() =>
+            setManualOpen((open) => ({
+              ...open,
+              [account.id]: !isAccountExpanded(
+                open,
+                account.id,
+                selectedAccountId,
+              ),
+            }))
+          }
+          registerRow={registerRow}
+          vocabulary={vocabulary}
+          onChange={(next) =>
+            setAccounts(
+              data.accounts.map((item) =>
+                item.id === account.id ? next : item,
+              ),
+            )
+          }
+          onRemove={() =>
+            setAccounts(
+              data.accounts.filter((item) => item.id !== account.id),
+            )
+          }
+        />
+      ))}
       <div className="account-preset-row" aria-label="Add account">
         <span className="account-preset-label">{presetLabel}</span>
         {ACCOUNT_PRESETS.map((preset) => (
@@ -1052,8 +1103,12 @@ export function AccountsSection({
             onClick={() => {
               const { chipLabel: _chipLabel, ...account } = preset
               const id = newId('account')
-              setNewAccountId(id)
-              requestFocus(() => focusRefs.current.get(id)?.labelInput)
+              setManualOpen((open) => ({ ...open, [id]: true }))
+              requestFocus(() =>
+                rowRefs.current
+                  .get(id)
+                  ?.querySelector<HTMLInputElement>('.account-body input'),
+              )
               setAccounts([
                 ...data.accounts,
                 {
@@ -1189,7 +1244,7 @@ export function NotesSection({
 
   return (
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="notes" ref={sectionRef}>
-      <h2>Notes</h2>
+      <SectionHead count={notes.length} title="Notes" />
       <div className="row-list">
         {notes.map((note, index) => (
           <div className="stacked-row note-row" key={note.id}>
@@ -1249,7 +1304,7 @@ export function ClientSection({
 
   return (
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="client" ref={sectionRef}>
-      <h2>Client</h2>
+      <SectionHead title="Client" />
       <div className="client-fields">
         <div className="client-title-row">
           <TextField
@@ -1367,6 +1422,7 @@ export function Form({
   onSectionFocus,
   focusRequest,
   onChange,
+  onClose,
   onHoverAccount,
   selectedAccountId,
   onSelectAccount,
@@ -1456,8 +1512,17 @@ export function Form({
       <div className="data-form-tools">
         <label className="data-form-filter">
           <span>Filter</span>
+          <svg
+            aria-hidden="true"
+            className="data-filter-glyph"
+            viewBox="0 0 16 16"
+          >
+            <circle cx="7" cy="7" r="4.25" />
+            <path d="m10.25 10.25 3.25 3.25" />
+          </svg>
           <input
             aria-label="Filter data"
+            placeholder="Filter data"
             type="search"
             value={filterValue}
             onChange={(event) => {
@@ -1465,10 +1530,20 @@ export function Form({
               onFilterChange?.(event.target.value)
             }}
           />
-          {filterValue.trim() && (
-            <span className="data-filter-query">{filterValue.trim()}</span>
-          )}
         </label>
+        {filterValue.trim() && (
+          <span className="data-filter-query">{filterValue.trim()}</span>
+        )}
+        {onClose && (
+          <button
+            aria-label="Close Data panel"
+            className="data-form-close"
+            type="button"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        )}
         <nav aria-label="Data sections" className="data-form-sections">
           {(Object.keys(sectionLabels) as FormSection[]).map((section) => (
             <button
