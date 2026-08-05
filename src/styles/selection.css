@@ -1,1 +1,51 @@
 /* s51 T-HL lane: selection highlight + selected-count badge. Owned by T-HL — no other lane edits this file. */
+
+/*
+ * Selection ring. app.css is frozen, so these rules out-specify its faint
+ * drop-shadow by qualifying with the .map-page ancestor. Four zero-blur
+ * shadows chain into a solid ~2.5px outline around the item's silhouette
+ * (blurred shadows only ever smudge, they never draw an edge); the fifth is
+ * the soft halo that separates the item from a tinted neighbour.
+ */
+.map-page .map-interactive [data-account-id][data-map-selected='true'],
+.map-page .map-interactive .map-note[data-map-selected='true'] {
+  filter: brightness(1.03) drop-shadow(2.5px 0 0 #1e7a4a)
+    drop-shadow(-2.5px 0 0 #1e7a4a) drop-shadow(0 2.5px 0 #1e7a4a)
+    drop-shadow(0 -2.5px 0 #1e7a4a) drop-shadow(0 0 10px rgb(30 122 74 / 55%));
+  transition: filter 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-page .map-interactive [data-account-id][data-map-selected='true'],
+  .map-page .map-interactive .map-note[data-map-selected='true'] {
+    transition: none;
+  }
+}
+
+/* Selected-count chip, bottom-left over the canvas. */
+.selection-badge {
+  position: absolute;
+  z-index: 6;
+  bottom: 14px;
+  left: 14px;
+  margin: 0;
+  border: 1px solid #dde1dc;
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgb(28 36 34 / 16%);
+  color: #1c2422;
+  font: 600 12px/1.25 'Public Sans', 'Segoe UI', sans-serif;
+  pointer-events: none;
+}
+
+.selection-badge-hint {
+  color: #47504d;
+  font-weight: 400;
+}
+
+@media print {
+  .selection-badge {
+    display: none;
+  }
+}

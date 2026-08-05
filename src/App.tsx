@@ -97,6 +97,7 @@ import {
 } from './ui/MapTextEditor'
 import { Mark } from './ui/Mark'
 import { Menu, MenuItem, MenuSeparator } from './ui/Menu'
+import { SelectionBadge } from './ui/SelectionBadge'
 import { Toast, type ToastMessage } from './ui/Toast'
 import './styles/print.css'
 
@@ -2169,6 +2170,7 @@ export default function App() {
               onSelect={handleMapSelectionChange}
             />
           )}
+          <SelectionBadge count={presentMode ? 0 : selectedMapTargetKeys.length} />
           <div
             ref={previewPaneRef}
             className={`map-scroller${
