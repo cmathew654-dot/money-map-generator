@@ -15,7 +15,7 @@ test.describe('desktop behavioral certification', () => {
     const title = page.getByLabel('Title')
     await title.fill('Whitfield Compound Certification')
     const account = page.locator('.account-card').first()
-    await account.locator('summary').click()
+    await account.locator('button.account-summary').click()
     const shape = account.locator('.shape-option').first()
     if (await shape.count()) await shape.click()
     for (const name of ['+ Add position', '+ Add subaccount', '+ Add fine print line', '+ Add note']) {

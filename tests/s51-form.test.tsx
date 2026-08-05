@@ -99,9 +99,14 @@ describe('s51 auto-expand follows the map selection', () => {
     const first = renderAccounts('roth-ira')
     const second = renderAccounts('cash-bank')
 
-    expect(first).toMatch(/id="account-row-roth-ira"[^>]*aria-expanded="true"/)
-    expect(second).toMatch(/id="account-row-cash-bank"[^>]*aria-expanded="true"/)
-    expect(second).toMatch(/id="account-row-roth-ira"[^>]*aria-expanded="false"/)
+    const rowState = (markup: string, id: string) =>
+      new RegExp(`aria-controls="account-body-${id}"[^>]*aria-expanded="(\\w+)"`)
+        .exec(markup)?.[1]
+
+    expect(rowState(first, 'roth-ira')).toBe('true')
+    expect(rowState(first, 'cash-bank')).toBe('false')
+    expect(rowState(second, 'cash-bank')).toBe('true')
+    expect(rowState(second, 'roth-ira')).toBe('false')
   })
 
   it('scrolls the focused row into view through the existing focusRequest path', () => {
