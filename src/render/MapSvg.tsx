@@ -75,10 +75,14 @@ import type {
 } from '../ui/MapTextEditor'
 import { mapTextEditTargetKey, mapTextEditorTargetLabel } from '../ui/MapTextEditor'
 import {
+  accountTextClickKey,
+  nextSelectedTargetKeys,
+  shouldFocusSelect,
+} from './selection'
+import {
   accountTextPointerAction,
   clampRectToBounds,
   crossedDragThreshold,
-  isCompatibleMapItemKey,
   moveCustomArrowLabel,
   moveMapNote,
   resizeMapNote,
@@ -3511,73 +3515,6 @@ export function MapSvg({
   )
 }
 
-/**
- * The whole selection decision for one map click. Returns `null` to mean
- * "leave the selection exactly as it is".
- *
- * A modifier-click must never replace a non-empty selection. Accounts and
- * notes toggle in and out of it; everything else (the as-needed chip, arrows,
- * income, need) cannot be held by `MapItemKey`, so it is preserved rather than
- * silently dropped.
- */
-export function nextSelectedTargetKeys(
-  selectedTargetKeys: readonly string[],
-  targetKey: string | null,
-  modified: boolean,
-): string[] | null {
-  // A modifier-click that lands on nothing is a miss, not a "clear"; a plain
-  // click on nothing still deselects.
-  if (!targetKey) return modified ? null : []
-  if (!modified) return [targetKey]
-  if (!isCompatibleMapItemKey(targetKey)) {
-    return selectedTargetKeys.length > 0 ? null : [targetKey]
-  }
-  const compatible = selectedTargetKeys.filter(isCompatibleMapItemKey)
-  const index = compatible.indexOf(targetKey)
-  return index < 0
-    ? [...compatible, targetKey]
-    : compatible.filter((key) => key !== targetKey)
-}
-
-/**
- * Click-again promotion for account text (`text:<accountId>:label|caption|value`).
- * The text only claims a click once the selection is already "inside" its
- * account and nothing else: the account itself, this text, or a sibling text of
- * the same account (drill-in — rotating label then value must not cost an extra
- * click). A first click, a click landing in a multi-selection, and every
- * modifier-click all fall through to the account underneath — modifier-clicks
- * build item selections, which text keys cannot join. Returns the key to
- * select, or `null` to let the account win.
- */
-export function accountTextClickKey(
-  data: MoneyMapData,
-  textKey: string | undefined,
-  selectedTargetKeys: readonly string[],
-  modified: boolean,
-): string | null {
-  if (!textKey || modified || !isRotatableTextKey(data, textKey)) return null
-  if (selectedTargetKeys.includes(textKey)) return textKey
-  if (selectedTargetKeys.length !== 1) return null
-  const [sole] = selectedTargetKeys
-  const owner = textKey.split(':')[1]
-  return sole === `account:${owner}` || sole.startsWith(`text:${owner}:`)
-    ? textKey
-    : null
-}
-
-/**
- * Focus alone still selects, but only when the focus came from the keyboard.
- * Pointer focus fires before the click and would clobber a modifier-click that
- * is meant to extend the selection; the click handler selects on a plain click
- * anyway. `:focus-visible` is the platform's own keyboard-modality signal — the
- * stylesheet already leans on it for map focus rings. Fails open so keyboard
- * selection can never go missing.
- */
-export function shouldFocusSelect(element: Element | null | undefined): boolean {
-  if (!element) return true
-  try {
-    return element.matches(':focus-visible')
-  } catch {
-    return true
-  }
-}
+// These three moved to ./selection with the reducer that will absorb them.
+// Re-exported here for one chunk so existing test imports keep working.
+export { accountTextClickKey, nextSelectedTargetKeys, shouldFocusSelect }

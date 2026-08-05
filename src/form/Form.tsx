@@ -56,7 +56,12 @@ export interface FormProps {
   focusRequest?: { id: string; at: number }
   onHoverAccount?: (id: string | null) => void
   selectedAccountId?: string | null
-  onSelectAccount?: (id: string) => void
+  /**
+   * `modifiers` present = a row CLICK (a primary act, so it may replace or
+   * toggle the selection). Absent = a focus echo, which must never disturb a
+   * selection the map already built.
+   */
+  onSelectAccount?: (id: string, modifiers?: { modified: boolean }) => void
   vocabulary?: readonly VocabularyTerm[]
 }
 
@@ -824,7 +829,12 @@ function AccountCard({
   expanded: boolean
   selected: boolean
   onHoverAccount?: (id: string | null) => void
-  onSelectAccount?: (id: string) => void
+  /**
+   * `modifiers` present = a row CLICK (a primary act, so it may replace or
+   * toggle the selection). Absent = a focus echo, which must never disturb a
+   * selection the map already built.
+   */
+  onSelectAccount?: (id: string, modifiers?: { modified: boolean }) => void
   onToggle(): void
   registerRow(id: string, row: HTMLDivElement | null): void
   onChange(account: Account): void
@@ -852,8 +862,12 @@ function AccountCard({
           className="account-summary"
           id={rowId}
           type="button"
-          onClick={() => {
-            onSelectAccount?.(account.id)
+          onClick={(event) => {
+            // Same modifier rule as a map click, so the sidebar and the canvas
+            // cannot disagree about what shift-click means.
+            onSelectAccount?.(account.id, {
+              modified: event.shiftKey || event.ctrlKey || event.metaKey,
+            })
             onToggle()
           }}
         >

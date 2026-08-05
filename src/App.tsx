@@ -3,6 +3,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -65,6 +66,7 @@ import {
   MapSvg,
   type MapElementTarget,
 } from './render/MapSvg'
+import { EMPTY_SELECTION, selectionReducer } from './render/selection'
 import { MapInspector } from './render/MapInspector'
 import {
   addCustomArrow,
@@ -160,22 +162,6 @@ export function flowEndpointsFromSelection(keys: readonly string[]) {
   const target = flowEndpointId(keys[1])
   if (!source || !target || source === target) return null
   return { source, target }
-}
-
-/**
- * The Data panel reports the account it focused back as a selection, and with
- * the panel open every map click focuses one — so a modifier-click that just
- * extended the selection would immediately narrow it back to the clicked
- * account. Keep any selection that already holds the account — including its
- * own text, which maps to the same row and must not be demoted by the echo —
- * otherwise select it alone, which is what a plain row click has always meant.
- */
-export function panelSelectionKeys(keys: string[], accountId: string) {
-  const holdsAccount = keys.some((key) => {
-    const target = dataTargetForMapKey(key)
-    return target?.section === 'accounts' && target.id === accountId
-  })
-  return holdsAccount ? keys : [`account:${accountId}`]
 }
 
 /** New notes land bottom-centre of the visible map, cascading so they don't stack. */
@@ -412,8 +398,15 @@ export default function App() {
   const [highlightId, setHighlightId] = useState<string | null>(null)
   const [mapTextEdit, setMapTextEdit] =
     useState<ActiveMapTextEdit | null>(null)
-  const [selectedMapTargetKeys, setSelectedMapTargetKeys] = useState<string[]>([])
-  const selectedMapTargetKey = selectedMapTargetKeys.at(-1) ?? null
+  const [selection, dispatchSelection] = useReducer(
+    selectionReducer,
+    EMPTY_SELECTION,
+  )
+  const selectedMapTargetKeys = selection.keys
+  // The anchor, not `keys.at(-1)`: array position used to stand in for "the
+  // item the user last acted on", so any appending writer (a focus echo, a
+  // prune) could repoint the inspector and the rotate handle.
+  const selectedMapTargetKey = selection.anchor
   // Selected account text stands in for its account everywhere the Data panel
   // and Details care, so derive the account id from the shared mapping instead
   // of re-parsing the key at each consumer.
@@ -493,8 +486,8 @@ export default function App() {
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
     book.clients[0]
-  const setSelectedMapTargetKey = (key: string | null) =>
-    setSelectedMapTargetKeys(key ? [key] : [])
+  const selectMapTarget = (key: string) =>
+    dispatchSelection({ type: 'select', keys: [key] })
   const closeMapTextEditor = useCallback((discard = false) => {
     if (armMapTextDiscard(discard, mapTextEdit !== null))
       discardMapTextCommitRef.current = true
@@ -540,7 +533,7 @@ export default function App() {
     setMapZoom('fit')
     setShapePopoverOpen(false)
     setPlacingTextNote(false)
-    setSelectedMapTargetKey(null)
+    dispatchSelection({ type: 'clear', reason: 'clientChange' })
   }, [activeClient.id])
 
   useEffect(() => {
@@ -551,12 +544,12 @@ export default function App() {
   }, [mapTextEdit])
 
   useEffect(() => {
-    const nextKeys = selectedMapTargetKeys.filter((key) =>
-      mapTargetKeyStillExists(key, activeClient),
-    )
-    if (nextKeys.length !== selectedMapTargetKeys.length) {
-      setSelectedMapTargetKeys(nextKeys)
-    }
+    // The reducer returns the same state by identity when nothing was pruned,
+    // which is what stops this effect from looping.
+    dispatchSelection({
+      type: 'prune',
+      exists: (key) => mapTargetKeyStillExists(key, activeClient),
+    })
   }, [activeClient, selectedMapTargetKeys])
 
   useEffect(() => {
@@ -665,11 +658,9 @@ export default function App() {
       const restoredClient = next.book.clients.find(
         (client) => client.id === next.activeClientId,
       )
-      setSelectedMapTargetKeys((keys) => {
-        const kept = keys.filter((key) =>
-          mapTargetKeyStillExists(key, restoredClient),
-        )
-        return kept.length === keys.length ? keys : kept
+      dispatchSelection({
+        type: 'prune',
+        exists: (key) => mapTargetKeyStillExists(key, restoredClient),
       })
       setDialog(null)
       setGuidedSetup(false)
@@ -949,9 +940,14 @@ export default function App() {
 
   useEffect(() => {
     if (!editorPanel || guidedSetup || presentMode) return
+    // `focusRequest` is read, never depended on: it re-runs only when a panel
+    // opens. With it in the deps, anything that cleared the focus request —
+    // a map selection, most of all — re-fired this and stole focus back to the
+    // heading mid-edit.
     if (focusRequest) return
     window.requestAnimationFrame(() => editorPanelHeadingRef.current?.focus())
-  }, [editorPanel, focusRequest, guidedSetup, presentMode])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorPanel, guidedSetup, presentMode])
 
   useEffect(() => {
     const handleEditorEscape = (event: globalThis.KeyboardEvent) => {
@@ -966,7 +962,7 @@ export default function App() {
       } else if (editorPanel) {
         closeDataPanel()
       } else if (selectedMapTargetKey) {
-        setSelectedMapTargetKey(null)
+        dispatchSelection({ type: 'clear', reason: 'escape' })
       } else {
         return
       }
@@ -1368,15 +1364,15 @@ export default function App() {
     }
   }
 
+  // Pure translators: no selection path may write focus state. That coupling
+  // is what let a map click steal focus out of the Data panel.
   const handleMapSelectionChange = (targetKey: string | null) => {
-    setSelectedMapTargetKey(targetKey)
-    setFocusRequest(undefined)
+    if (targetKey) selectMapTarget(targetKey)
+    else dispatchSelection({ type: 'clear', reason: 'inspectorClose' })
   }
 
-  const handleMapSelectionKeysChange = (targetKeys: string[]) => {
-    setSelectedMapTargetKeys(targetKeys)
-    setFocusRequest(undefined)
-  }
+  const handleMapSelectionKeysChange = (targetKeys: string[]) =>
+    dispatchSelection({ type: 'select', keys: targetKeys })
 
   const handleClientChange = (rawNext: typeof activeClient) => {
     const current = snapshotRef.current
@@ -1530,7 +1526,7 @@ export default function App() {
     }
     if (next === activeClient || pastedKeys.length === 0) return false
     handleMapChange(next)
-    setSelectedMapTargetKeys(pastedKeys)
+    dispatchSelection({ type: 'select', keys: pastedKeys })
     addToast(pastedKeys.length === 1
       ? pastedKeys[0].startsWith('note:') ? 'Note duplicated' : 'Account duplicated'
       : 'Map items duplicated')
@@ -1550,7 +1546,7 @@ export default function App() {
     }
     if (next === activeClient) return false
     handleMapChange(next)
-    setSelectedMapTargetKeys([])
+    dispatchSelection({ type: 'clear', reason: 'deleted' })
     addToast(deletable.length === 1
       ? deletable[0].startsWith('note:') ? 'Note deleted' : 'Account deleted'
       : 'Map items deleted')
@@ -1740,7 +1736,7 @@ export default function App() {
       null,
     )
     setShapePopoverOpen(false)
-    setSelectedMapTargetKey(`account:${account.id}`)
+    selectMapTarget(`account:${account.id}`)
     addToast('Account added')
     if (select) return account.id
     window.requestAnimationFrame(() => {
@@ -1798,7 +1794,7 @@ export default function App() {
     }
     suppressNextTextPlacementRef.current = false
     dismissPanZoomHint()
-    setSelectedMapTargetKey(null)
+    dispatchSelection({ type: 'clear', reason: 'placementArmed' })
     setMapTextEdit(null)
     if (!keyboard) {
       setPlacingTextNote(true)
@@ -1825,7 +1821,7 @@ export default function App() {
     }
     handleClientChange(nextClient)
     addToast('Income source added')
-    setSelectedMapTargetKey('income')
+    selectMapTarget('income')
     focusDataTarget('income', 'income')
   }
 
@@ -1841,7 +1837,7 @@ export default function App() {
     if (nextClient === activeClient) return
     const arrow = nextClient.customArrows?.at(-1)
     handleMapChange(nextClient, 'Flow added')
-    if (arrow) setSelectedMapTargetKey(`arrow:custom:${arrow.id}`)
+    if (arrow) selectMapTarget(`arrow:custom:${arrow.id}`)
   }
 
   const handleConnectorDrop = (sourceId: string, targetId: string) => {
@@ -1850,7 +1846,7 @@ export default function App() {
     if (nextClient === activeClient) return
     const arrow = nextClient.customArrows?.at(-1)
     handleMapChange(nextClient, 'Flow added')
-    if (arrow) setSelectedMapTargetKey(`arrow:custom:${arrow.id}`)
+    if (arrow) selectMapTarget(`arrow:custom:${arrow.id}`)
   }
 
   const handlePanelAddFinePrint = () => {
@@ -2090,9 +2086,15 @@ export default function App() {
                 }}
                 onHoverAccount={setHighlightId}
                 selectedAccountId={selectedMapAccountId}
-                onSelectAccount={(id) =>
-                  setSelectedMapTargetKeys((keys) =>
-                    panelSelectionKeys(keys, id),
+                onSelectAccount={(id, modifiers) =>
+                  dispatchSelection(
+                    modifiers
+                      ? {
+                          type: 'panel/rowClick',
+                          accountId: id,
+                          modified: modifiers.modified,
+                        }
+                      : { type: 'panel/rowFocus', accountId: id },
                   )
                 }
                 onPrint={handlePrint}
@@ -2170,9 +2172,15 @@ export default function App() {
                     activeSection={dataSection}
                     onSectionFocus={setDataSection}
                     selectedAccountId={selectedMapAccountId}
-                    onSelectAccount={(id) =>
-                      setSelectedMapTargetKeys((keys) =>
-                        panelSelectionKeys(keys, id),
+                    onSelectAccount={(id, modifiers) =>
+                      dispatchSelection(
+                        modifiers
+                          ? {
+                              type: 'panel/rowClick',
+                              accountId: id,
+                              modified: modifiers.modified,
+                            }
+                          : { type: 'panel/rowFocus', accountId: id },
                       )
                     }
                     vocabulary={vocabulary}
@@ -2300,9 +2308,7 @@ export default function App() {
                   if (nextClient !== activeClient) {
                     handleClientChange(nextClient)
                     if (mapTextEdit.target.kind === 'noteText') {
-                      setSelectedMapTargetKey(
-                        `note:${mapTextEdit.target.noteId}`,
-                      )
+                      selectMapTarget(`note:${mapTextEdit.target.noteId}`)
                       addToast('Text note added')
                     }
                   }
