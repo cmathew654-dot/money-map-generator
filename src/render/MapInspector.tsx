@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import {
+  isRotatableTextKey,
   layoutMap,
   layoutOverrideRect,
   nudgeLayoutOverride,
@@ -233,7 +234,8 @@ export function MapInspector({
   const rotKey =
     selectedTargetKey === 'asNeededChip' ||
     noteId ||
-    selectedTargetKey.startsWith('text:footnotes:')
+    selectedTargetKey.startsWith('text:footnotes:') ||
+    isRotatableTextKey(data, selectedTargetKey)
       ? selectedTargetKey
       : null
   const endpoints = [

@@ -776,7 +776,7 @@ export function normalizeRotation(angle: number): number {
 
 export function snapRotation(
   angle: number,
-  increment = 15,
+  increment = 5,
   threshold = 3,
 ): number {
   const normalized = normalizeRotation(angle)

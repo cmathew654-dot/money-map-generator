@@ -107,12 +107,14 @@ describe('map interaction helpers', () => {
     ).toBe(25)
   })
 
-  it('soft-snaps rotation within three degrees of 15-degree steps', () => {
+  // s51: every rotate step unified at 5 degrees. With a 3-degree tolerance no
+  // angle is further than 2.5 from a 5-degree step, so drag rotation always snaps.
+  it('snaps rotation to 5-degree steps', () => {
     expect(snapRotation(32)).toBe(30)
-    expect(snapRotation(33)).toBe(30)
-    expect(snapRotation(33.1)).toBeCloseTo(33.1)
+    expect(snapRotation(33)).toBe(35)
+    expect(snapRotation(33.1)).toBe(35)
     expect(snapRotation(-2)).toBe(0)
-    expect(snapRotation(-4)).toBe(356)
+    expect(snapRotation(-4)).toBe(355)
   })
 
   it('stores rotation modulo 360 while preserving other overrides', () => {

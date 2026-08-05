@@ -113,6 +113,7 @@ export interface PositionRowLayout {
 export interface AccountTextLayout {
   captionFontSize: number
   captionLeading: number
+  captionRot?: number
   captionX: number
   captionY?: number
   rowFontSize: number
@@ -124,9 +125,11 @@ export interface AccountTextLayout {
   tagY: number
   titleFontSize: number
   titleLeading: number
+  titleRot?: number
   titleX: number
   titleY: number
   valueFontSize: number
+  valueRot?: number
   valueX: number
   valueY: number
 }
@@ -2356,7 +2359,7 @@ function applyAccountOverride(
   }
 }
 
-function accountTextBlock(
+export function accountTextBlock(
   placed: PlacedAccount,
   role: AccountTextRole,
 ): Placed {
@@ -2441,6 +2444,11 @@ function applyAccountTextOverrides(
 
   for (const role of ACCOUNT_TEXT_ROLES) {
     const override = overrides[role]
+    if (override?.rot) {
+      if (role === 'label') text = { ...text, titleRot: override.rot }
+      else if (role === 'caption') text = { ...text, captionRot: override.rot }
+      else if (role === 'value') text = { ...text, valueRot: override.rot }
+    }
     if (
       (override?.dx === undefined && override?.dy === undefined) ||
       (role === 'caption' && text.captionY === undefined)
@@ -3020,6 +3028,18 @@ export function asNeededChipCenter(
   return (
     layoutMap(data).arrows.find((arrow) => arrow.kind === 'asNeeded')?.labelAt ??
     null
+  )
+}
+
+const ROTATABLE_ACCOUNT_TEXT_ROLES: string[] = ['label', 'caption', 'value']
+
+/** Account text sub-elements rotate like notes do: text:<accountId>:<role>. */
+export function isRotatableTextKey(data: MoneyMapData, key: string): boolean {
+  const [prefix, accountId, role] = key.split(':')
+  return (
+    prefix === 'text' &&
+    ROTATABLE_ACCOUNT_TEXT_ROLES.includes(role) &&
+    data.accounts.some((account) => account.id === accountId)
   )
 }
 
