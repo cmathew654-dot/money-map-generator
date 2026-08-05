@@ -15,7 +15,14 @@ Cloud: `backup/s51` branch + `s51-*` tags on origin (push lines given per milest
 
 | Lane | Merge commit | Revert command |
 |-|-|-|
-| (pending) | | `git revert -m 1 <merge-sha>` |
+| O-SEL (selection clobber) | e85183d | `git revert -m 1 e85183d` |
+| O-DBL (dblclick titles) | 533e4c1 | `git revert -m 1 533e4c1` |
+| O-ROT (text rotation, 5°) | b1a0303 | `git revert -m 1 b1a0303` |
+| T-HL (ring + badge) | 0f8fa04 | `git revert -m 1 0f8fa04` |
+| T-RETYPE (aggregate pill) | b57b737 | `git revert -m 1 b57b737` |
+| T-FORM / T-PILLS | (pending m3) | |
+
+Milestone tags: s51-m2 = b57b737 (all fix lanes, 764/764). Zip: s51-m2-b57b737.zip.
 
 ## Fallback pass recipe
 
