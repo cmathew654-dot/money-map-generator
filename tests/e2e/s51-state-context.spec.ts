@@ -72,15 +72,14 @@ test('A1a: shift-click extends the selection to both accounts', async ({ page })
   await expect(page.getByRole('button', { name: '+ Flow' })).toBeEnabled()
 })
 
-// KNOWN RED at lane/s51-gate @ 92e39be — this is the phantom selection bug.
-// With the Data panel open, clicking an account also runs App's
-// `editorPanel === 'data'` branch -> focusDataTarget() -> the Data panel focuses
-// that account's row -> Form's onSelectAccount fires setSelectedMapTargetKey(),
-// the SINGLE-key setter, which collapses the shift-extended selection to one.
-// DELETE THE test.fail() ANNOTATION (not the test) when the fix lands — a green
-// run here reports as "expected to fail but passed", which is the reminder.
+// WAS RED at lane/s51-gate @ 92e39be — the phantom selection bug. With the Data
+// panel open, clicking an account also runs App's `editorPanel === 'data'`
+// branch -> focusDataTarget() -> the Data panel focuses that account's row ->
+// Form's onSelectAccount fired setSelectedMapTargetKey(), the SINGLE-key setter,
+// which collapsed the shift-extended selection to one. Fixed in s51-a1b:
+// App routes the panel's selection through `panelSelectionKeys`, which keeps a
+// selection that already holds the account instead of narrowing to it.
 test('A1b: shift-click still extends with the Details panel open', async ({ page }) => {
-  test.fail()
   await clearSelection(page)
   await clickAccount(page, FIRST)
   await page.locator('.map-inspector').getByRole('button', { name: 'Details', exact: true }).click()
