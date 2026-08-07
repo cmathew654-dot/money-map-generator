@@ -1,5 +1,12 @@
 # Money Map Generator
 
+[![Live demo](https://img.shields.io/badge/live_demo-GitHub_Pages-0B7285?style=flat-square)](https://cmathew654-dot.github.io/money-map-generator/)
+[![React](https://img.shields.io/badge/React_19-TypeScript-2D3748?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/build-Vite-1A5FB4?style=flat-square)](https://vite.dev/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-6C757D?style=flat-square)](LICENSE)
+
+<!-- walkthrough-gif -->
+
 Financial advisors walk clients through a one-page "money map": income
 sources on the left, accounts drawn as cylinders color-coded by tax bucket,
 a monthly income need, and dotted arrows showing how the buckets refill.
@@ -42,6 +49,16 @@ card.
 
 Small on purpose: two runtime dependencies (`react`, `react-dom`), one state
 owner, and pure functions for everything that can be pure.
+
+```mermaid
+flowchart LR
+  Form["src/form<br/>form + wizard"] --> App["src/App.tsx<br/>client book, one state owner"]
+  App <--> Store["src/model/filestore.ts<br/>local file / browser storage"]
+  App --> Layout["src/layout/layout.ts<br/>slot template, pure"]
+  Layout --> Svg["src/render/MapSvg.tsx<br/>the map as one SVG tree"]
+  Svg -->|click a cylinder| Form
+  Svg --> Export["src/export<br/>PNG / PDF / SVG / print"]
+```
 
 | File | Responsibility |
 |---|---|
