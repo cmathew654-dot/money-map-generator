@@ -5,7 +5,7 @@
 [![Vite](https://img.shields.io/badge/build-Vite-1A5FB4?style=flat-square)](https://vite.dev/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-6C757D?style=flat-square)](LICENSE)
 
-<!-- walkthrough-gif -->
+![Walkthrough: editing a client's money map — account values, monthly need, and the data rail](docs/media/walkthrough.gif)
 
 Financial advisors walk clients through a one-page "money map": income
 sources on the left, accounts drawn as cylinders color-coded by tax bucket,
