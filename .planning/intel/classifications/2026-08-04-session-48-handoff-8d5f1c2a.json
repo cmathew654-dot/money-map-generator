@@ -1,0 +1,13 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-04-session-48-handoff.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Session 48 → 49 Handoff — Dogfood Triage Execution (2026-08-04)",
+  "summary": "Handoff document for session 49 execution: dogfood triage completion, wave orchestration, lane worktrees, and interactive gate procedures.",
+  "scope": ["dogfood triage", "Wave 1", "Wave 2", "lane worktrees", "interactive gates", "App.tsx", "MapTextEditor.tsx", "MapInspector.tsx", "demo-dist"],
+  "cross_refs": ["C:/Users/Cyril/.claude/plans/handoff-doc-committed-6d3fb03-fizzy-locket.md"],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

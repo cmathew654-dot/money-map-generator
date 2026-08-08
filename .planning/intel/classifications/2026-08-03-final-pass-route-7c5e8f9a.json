@@ -1,0 +1,12 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/dogfood/2026-08-03-final-pass-route.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Money Map — Final Acceptance Pass (Dogfood Route)",
+  "summary": "Manual acceptance testing checklist for Money Map product covering canvas editing, UI interactions, persistence, export, and multi-tab behavior.",
+  "scope": ["Money Map", "acceptance testing", "manual testing", "canvas editing", "UI interactions", "persistence", "export", "keyboard navigation"],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

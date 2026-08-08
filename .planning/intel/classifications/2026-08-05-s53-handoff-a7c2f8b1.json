@@ -1,0 +1,12 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-05-s53-handoff.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "S53 Handoff — triage/fixes/bless/P5-draft COMPLETE, deploy/gate/gallery/sign-off remain (2026-08-05 ~01:30)",
+  "summary": "Handoff: s53 complete (triage/bless), remaining deployment/gallery/sign-off tasks documented with decisions pending.",
+  "scope": ["Money Map", "s53 sprint", "triage", "deployment", "gallery", "sign-off", "worktrees", "orchestration"],
+  "cross_refs": ["docs/lanes/s53-triage.md", "docs/lanes/s53-audit-program-plan.md", "s52-adversarial-review.md"],
+  "locked": false,
+  "precedence": null
+}
