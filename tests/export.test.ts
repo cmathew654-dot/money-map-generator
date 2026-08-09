@@ -113,4 +113,19 @@ describe('moneyMapAlternativeText', () => {
     expect(description).toContain('gross $96,500; net $74,300')
     expect(description).not.toContain('mo..')
   })
+
+  it('prints a set account value tag beside the value', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      accounts: SAMPLE_WHITFIELD.accounts.map((account) =>
+        account.id === 'managed-ira-jordan'
+          ? { ...account, valueTag: 'est.' }
+          : account,
+      ),
+    }
+
+    const description = moneyMapAlternativeText(data)
+
+    expect(description).toContain('Managed IRA — Jordan: $2,450,000 (est.).')
+  })
 })

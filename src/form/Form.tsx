@@ -911,6 +911,15 @@ function AccountCard({
                 value={account.value}
                 onChange={(value) => onChange({ ...account, value })}
               />
+              <TextField
+                label="Value tag"
+                value={account.valueTag ?? ''}
+                onChange={(valueTag) => onChange({ ...account, valueTag })}
+              />
+              <p className="help-text">
+                Short qualifier printed beside the value on the map — e.g.
+                est.
+              </p>
               <label className="form-field">
                 <span>Account type</span>
                 <select

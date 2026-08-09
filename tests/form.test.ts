@@ -270,6 +270,32 @@ describe('client date selects', () => {
   })
 })
 
+describe('account value tag', () => {
+  it('renders a value tag control bound to the account', () => {
+    const data = blankClient()
+    data.accounts = [
+      {
+        id: 'account-test',
+        bucket: 'cash',
+        label: 'Cash at Bank',
+        value: 25_000,
+        valueTag: 'est.',
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      createElement(AccountsSection, {
+        data,
+        selectedAccountId: 'account-test',
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('Value tag')
+    expect(markup).toContain('value="est."')
+  })
+})
+
 describe('need fine print', () => {
   it('nests the renamed fine print controls in Need', () => {
     const data = blankClient()
