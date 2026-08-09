@@ -296,6 +296,26 @@ describe('account value tag', () => {
   })
 })
 
+describe('income source qualifier', () => {
+  it('renders an editable control scoped to that row', () => {
+    const data = blankClient()
+    data.incomeSources = [
+      { id: 'income-a', label: 'Pension', amount: 2_000, period: 'mo', qualifier: 'Gross' },
+      { id: 'income-b', label: 'Rental', amount: 900, period: 'mo' },
+    ]
+
+    const markup = renderToStaticMarkup(
+      createElement(IncomeSection, {
+        data,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('Qualifier')
+    expect(markup).toContain('value="Gross"')
+  })
+})
+
 describe('need tag', () => {
   it('renders an editable control bound to the stored need tag', () => {
     const data = blankClient()

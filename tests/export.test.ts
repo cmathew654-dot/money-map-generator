@@ -114,6 +114,12 @@ describe('moneyMapAlternativeText', () => {
     expect(description).not.toContain('mo..')
   })
 
+  it('prints a set income source qualifier beside the amount', () => {
+    const description = moneyMapAlternativeText(SAMPLE_WHITFIELD)
+
+    expect(description).toContain('Rental Income: ~$ ______ (Gross).')
+  })
+
   it('prints a set account value tag beside the value', () => {
     const data = {
       ...SAMPLE_WHITFIELD,

@@ -616,7 +616,21 @@ export function IncomeSection({
                   <option value="yr">yr</option>
                 </select>
               </label>
+              <TextField
+                autocomplete={{
+                  bookTerms: vocabulary,
+                  seeds: noSeeds,
+                }}
+                label="Qualifier"
+                value={source.qualifier ?? ''}
+                onChange={(qualifier) =>
+                  updateSource(index, { ...source, qualifier })
+                }
+              />
             </div>
+            <p className="help-text">
+              Printed beside the amount on the map — e.g. Gross.
+            </p>
           </div>
         ))}
       </div>
