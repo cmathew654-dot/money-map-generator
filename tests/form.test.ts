@@ -296,6 +296,24 @@ describe('account value tag', () => {
   })
 })
 
+describe('need tag', () => {
+  it('renders an editable control bound to the stored need tag', () => {
+    const data = blankClient()
+    data.monthlyNeed = 4_000
+    data.needTag = 'net'
+
+    const markup = renderToStaticMarkup(
+      createElement(NeedSection, {
+        data,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('Need tag')
+    expect(markup).toContain('value="net"')
+  })
+})
+
 describe('need fine print', () => {
   it('nests the renamed fine print controls in Need', () => {
     const data = blankClient()

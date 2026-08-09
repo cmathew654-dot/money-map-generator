@@ -500,6 +500,14 @@ export function NeedSection({
       <p className="help-text">
         The red number — what the household must cover each month.
       </p>
+      <TextField
+        label="Need tag"
+        value={data.needTag ?? ''}
+        onChange={(needTag) => onChange({ ...data, needTag })}
+      />
+      <p className="help-text">
+        Short qualifier printed beside the monthly need — e.g. net.
+      </p>
       <MoneyField
         label="Monthly account withdrawal"
         value={data.asNeededAmount}
