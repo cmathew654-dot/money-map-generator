@@ -27,7 +27,7 @@ test.describe('App resilience', () => {
     await expect(accountRow).toHaveAttribute('aria-expanded', 'false')
     await accountRow.click()
     await expect(shapeGroup).toBeVisible()
-    const result = await new AxeBuilder({ page }).include('.form-pane').withRules(['nested-interactive', 'label']).analyze()
+    const result = await new AxeBuilder({ page }).include('.editor-panel').withRules(['nested-interactive', 'label']).analyze()
     expect(result.violations).toEqual([])
   })
 

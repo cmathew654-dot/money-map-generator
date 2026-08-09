@@ -41,6 +41,7 @@ export function EditorRail({ activePanel, onToggle }: EditorRailProps) {
     <aside className="editor-rail" aria-label="Editor tools">
       {panels.map((panel) => (
         <button
+          aria-label={panelLabels[panel]}
           aria-expanded={activePanel === panel}
           key={panel}
           ref={(button) => {

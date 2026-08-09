@@ -83,7 +83,7 @@ import {
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
-import { EditorPanels } from './ui/EditorPanels'
+import { AutoFocusHeading, EditorPanels } from './ui/EditorPanels'
 import { EditorRail } from './ui/EditorRail'
 import { ClientCombobox } from './ui/ClientCombobox'
 import {
@@ -483,7 +483,6 @@ export default function App() {
   const shapePopoverButtonRef = useRef<HTMLButtonElement>(null)
   const firstShapePresetRef = useRef<HTMLButtonElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
-  const editorPanelHeadingRef = useRef<HTMLHeadingElement>(null)
   const { book, activeClientId } = snapshot
   const canMutate = canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
   const vocabulary = useMemo(() => buildVocabulary(book), [book])
@@ -943,17 +942,6 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [canMutate, handleRedo, handleUndo])
-
-  useEffect(() => {
-    if (!editorPanel || guidedSetup || presentMode) return
-    // `focusRequest` is read, never depended on: it re-runs only when a panel
-    // opens. With it in the deps, anything that cleared the focus request —
-    // a map selection, most of all — re-fired this and stole focus back to the
-    // heading mid-edit.
-    if (focusRequest) return
-    window.requestAnimationFrame(() => editorPanelHeadingRef.current?.focus())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorPanel, guidedSetup, presentMode])
 
   useEffect(() => {
     const handleEditorEscape = (event: globalThis.KeyboardEvent) => {
@@ -2117,7 +2105,6 @@ export default function App() {
                 activePanel={editorPanel}
                 canMutate={canMutate}
                 data={activeClient}
-                headingRef={editorPanelHeadingRef}
                 onAddAccount={handlePanelAddAccount}
                 onAddFinePrint={handlePanelAddFinePrint}
                 onAddFlow={handlePanelAddFlow}
@@ -2154,9 +2141,7 @@ export default function App() {
                 className="editor-panel"
                 role="dialog"
               >
-                <h2 id="editor-panel-title" ref={editorPanelHeadingRef} tabIndex={-1}>
-                  Data
-                </h2>
+                <AutoFocusHeading id="editor-panel-title">Data</AutoFocusHeading>
                 <fieldset className="mutation-fieldset" disabled={!canMutate}>
                   <Form
                     data={activeClient}

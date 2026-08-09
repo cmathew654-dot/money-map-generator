@@ -313,6 +313,12 @@ type PaintedTargetState = {
 }
 
 async function applyRequiredTextSpacing(page: Page) {
+  await page.evaluate(() => {
+    const probe = document.createElement('p')
+    probe.dataset.textSpacingProbe = ''
+    probe.textContent = 'Text spacing probe'
+    document.body.append(probe)
+  })
   await page.addStyleTag({
     content: [
       'html, body, body * {',
@@ -328,7 +334,7 @@ async function applyRequiredTextSpacing(page: Page) {
       page.evaluate(() => {
         const bodyStyle = getComputedStyle(document.body)
         const fontSize = Number.parseFloat(bodyStyle.fontSize)
-        const paragraph = document.querySelector('p')
+        const paragraph = document.querySelector('[data-text-spacing-probe]')
         const paragraphStyle = paragraph ? getComputedStyle(paragraph) : null
         const paragraphFontSize = paragraphStyle
           ? Number.parseFloat(paragraphStyle.fontSize)
@@ -354,6 +360,7 @@ async function applyRequiredTextSpacing(page: Page) {
       paragraphSpacing: true,
       wordSpacing: true,
     })
+  await page.locator('[data-text-spacing-probe]').evaluate((node) => node.remove())
 }
 
 async function paintedTargetState(
@@ -749,23 +756,23 @@ test.describe('extended desktop certification', () => {
       name: 'Shape for Cash at Bank',
       exact: true,
     })
-    await capture('Title input', page.getByLabel('Title'), '.form-pane')
+    await capture('Title input', page.getByLabel('Title'), '.editor-panel')
     await capture(
       'Year select',
       page.getByRole('combobox', { name: /^Year\b/ }),
-      '.form-pane',
+      '.editor-panel',
     )
-    await capture('Income amount', page.getByLabel('Amount').first(), '.form-pane')
+    await capture('Income amount', page.getByLabel('Amount').first(), '.editor-panel')
     await capture(
       'Account name input',
       firstAccount.getByLabel('Account name'),
-      '.form-pane',
+      '.editor-panel',
     )
-    await capture('Cash account shape group', shapeGroup, '.form-pane')
+    await capture('Cash account shape group', shapeGroup, '.editor-panel')
     await capture(
       'Card shape control',
       shapeGroup.getByRole('button', { name: 'Card shape' }),
-      '.form-pane',
+      '.editor-panel',
     )
 
     await page.getByRole('button', { name: 'More actions' }).click()

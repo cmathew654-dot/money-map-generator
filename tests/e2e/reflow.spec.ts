@@ -151,7 +151,8 @@ test('200 percent desktop reflow stacks controls while preserving map overflow a
     const selectedTextWidth = probe.getBoundingClientRect().width
     probe.remove()
     const horizontalChrome = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
-    return { labels, select: { text: select.value, clientWidth: select.clientWidth, requiredWidth: selectedTextWidth + horizontalChrome, clipped: selectedTextWidth + horizontalChrome > select.clientWidth + 1 } }
+    const renderedWidth = select.getBoundingClientRect().width
+    return { labels, select: { text: select.value, renderedWidth, requiredWidth: selectedTextWidth + horizontalChrome, clipped: selectedTextWidth + horizontalChrome > renderedWidth + 1 } }
   })
   console.log(`HEADER_LABEL_DIAGNOSTICS ${JSON.stringify(headerLabelDiagnostics)}`)
   const clippedHeaderLabels = headerLabelDiagnostics.labels.filter(({ clipped }) => clipped)

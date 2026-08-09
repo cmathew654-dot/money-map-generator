@@ -38,7 +38,7 @@ const PRIMARY: SelectionEvent[] = [
       }),
     ),
   ),
-  { type: 'key/activate', key: 'account:a' },
+  { type: 'key/activate', key: 'account:a', modified: false },
   { type: 'clear', reason: 'escape' },
   { type: 'select', keys: ['account:a', 'asNeededChip'] },
   { type: 'select', keys: [] },
@@ -165,6 +165,17 @@ describe('s54 selection reducer', () => {
     // where `keys.at(-1)` used to slide it onto whatever remained last.
     const removeA = selectionReducer(state, { ...clickA, modified: true })
     expect(removeA).toEqual({ keys: ['account:b'], anchor: 'account:b' })
+  })
+
+  it('adds a modified keyboard activation while plain activation replaces', () => {
+    const plain = selectionReducer(EMPTY_SELECTION, {
+      type: 'key/activate', key: 'account:a', modified: false,
+    })
+    expect(plain).toEqual({ keys: ['account:a'], anchor: 'account:a' })
+    const modified = selectionReducer(plain, {
+      type: 'key/activate', key: 'account:b', modified: true,
+    })
+    expect(modified).toEqual({ keys: ['account:a', 'account:b'], anchor: 'account:b' })
   })
 
   it('promotes account text only on a repeat plain click of its sole account', () => {

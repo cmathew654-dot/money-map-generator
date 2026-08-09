@@ -2880,6 +2880,7 @@ export function MapSvg({
             onSelectionEvent?.({
               type: 'key/activate',
               key: activation.selectedTargetKey,
+              modified: event.shiftKey || event.ctrlKey || event.metaKey,
             })
             return
           }

@@ -69,7 +69,7 @@ class WebDriverClient {
       options.body = JSON.stringify(body)
     }
 
-    const response = await fetch(`${this.endpoint}${path}`, options)
+    const response = await fetch(`${this.endpoint}${path}`, { ...options, signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS) })
     const raw = await response.text()
     let payload = {}
     if (raw) {

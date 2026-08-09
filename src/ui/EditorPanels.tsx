@@ -1,4 +1,4 @@
-import { useState, type ReactNode, type RefObject } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import { ACCOUNT_PRESETS } from '../model/book'
 import type { Bucket, MoneyMapData } from '../model/types'
 import { footnoteHasContent, layoutMap } from '../layout/layout'
@@ -11,7 +11,6 @@ interface EditorPanelsProps {
   data: MoneyMapData
   selectedTargetKey: string | null
   canMutate: boolean
-  headingRef: RefObject<HTMLHeadingElement | null>
   onClose(): void
   onOpenData(focusId?: string): void
   onSelectTarget(key: string): void
@@ -23,6 +22,13 @@ interface EditorPanelsProps {
   onAddTextNote(): void
   onAddFinePrint(): void
   onRestoreGeneratedFlows(): void
+}
+
+export function AutoFocusHeading({ id, children }: { id: string; children: ReactNode }) {
+  const focusRef = useCallback((heading: HTMLHeadingElement | null) => {
+    if (heading) heading.focus()
+  }, [])
+  return <h2 autoFocus id={id} ref={focusRef} tabIndex={-1}>{children}</h2>
 }
 
 interface ContentItem {
@@ -126,12 +132,10 @@ export function contentItems(data: MoneyMapData): ContentItem[] {
 
 function PanelShell({
   panel,
-  headingRef,
   onClose,
   children,
 }: {
   panel: ToolPanel
-  headingRef: RefObject<HTMLHeadingElement | null>
   onClose(): void
   children: ReactNode
 }) {
@@ -143,7 +147,7 @@ function PanelShell({
       className="editor-panel"
       role="dialog"
     >
-      <h2 id={headingId} ref={headingRef} tabIndex={-1}>{title}</h2>
+      <AutoFocusHeading key={headingId} id={headingId}>{title}</AutoFocusHeading>
       <button
         aria-label={`Close ${title} panel`}
         className="editor-panel-close"
@@ -370,7 +374,6 @@ export function EditorPanels({
   data,
   selectedTargetKey,
   canMutate,
-  headingRef,
   onClose,
   onOpenData,
   onSelectTarget,
@@ -384,7 +387,7 @@ export function EditorPanels({
   onRestoreGeneratedFlows,
 }: EditorPanelsProps) {
   return (
-    <PanelShell panel={activePanel} headingRef={headingRef} onClose={onClose}>
+    <PanelShell panel={activePanel} onClose={onClose}>
       {activePanel === 'add' && (
         <AddPanel
           canMutate={canMutate}

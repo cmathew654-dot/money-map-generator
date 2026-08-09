@@ -1,4 +1,4 @@
-import { createElement, createRef } from 'react'
+import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { buildPdf } from '../src/export/pdf'
@@ -20,7 +20,6 @@ function contentsMarkup(): string {
       data: DATA,
       selectedTargetKey: null,
       canMutate: true,
-      headingRef: createRef<HTMLHeadingElement>(),
       onClose: () => {},
       onOpenData: () => {},
       onSelectTarget: () => {},

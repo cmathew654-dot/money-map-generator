@@ -112,20 +112,22 @@ test('a multi-item alignment command is one undo step', async ({ page }) => {
 
   const first = page.locator('[data-account-id=cash-at-bank][role=group]')
   const second = page.locator('[data-account-id=managed-after-tax-trust][role=group]')
-  await clickBlankAccountBody(first)
-  await clickBlankAccountBody(second, ['Shift'])
+  await first.focus()
+  await page.keyboard.press('Enter')
+  await second.focus()
+  await page.keyboard.press('Shift+Enter')
   const inspector = page.getByRole('region', { name: /2 map items selected/ })
   await expect(inspector).toBeVisible()
 
-  const readLayoutOverrides = () => page.evaluate((key) => {
-    const raw = localStorage.getItem(key)
-    if (!raw) return null
-    const book = JSON.parse(raw)
-    return book.clients.find((client: { id: string }) => client.id === 'sample-whitfield')?.layoutOverrides ?? null
-  }, BOOK_KEY)
-  const before = await readLayoutOverrides()
+  const readSelectedGeometry = () => page.locator('[data-account-id][data-map-selected=true]').evaluateAll((nodes) =>
+    Object.fromEntries(nodes.map((node) => {
+      const box = (node as SVGGraphicsElement).getBBox()
+      return [node.getAttribute('data-account-id'), { x: Math.round(box.x), y: Math.round(box.y), width: Math.round(box.width), height: Math.round(box.height) }]
+    }))
+  )
+  const before = await readSelectedGeometry()
   await inspector.getByRole('button', { name: 'Align left' }).click()
-  await expect.poll(readLayoutOverrides).not.toEqual(before)
+  await expect.poll(readSelectedGeometry).not.toEqual(before)
   await page.keyboard.press('Control+Z')
-  await expect.poll(readLayoutOverrides).toEqual(before)
+  await expect.poll(readSelectedGeometry).toEqual(before)
 })
