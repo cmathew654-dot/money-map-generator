@@ -28,7 +28,13 @@ Four phases resolve the parked "field form nightmare" call from session 43: firs
   4. Nothing prints on the exported map that cannot be edited in the UI. `valueTag`, `needTag`, and `qualifier` have controls.
   5. "After-tax" names one concept, not three.
   6. Every panel label matches the phrase that field prints on the map.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 01-01-PLAN.md — IA-04: controls for `valueTag`, `needTag`, `qualifier` (wave 1, leads the phase)
+- [ ] 01-02-PLAN.md — IA-01: prove the shipped taxonomy, supersede the stale editor spec (wave 1, docs-only, parallel)
+- [ ] 01-03-PLAN.md — IA-02/IA-03: fine print moves to Income; nested-group help text; missing empty states (wave 2)
+- [ ] 01-04-PLAN.md — IA-05/IA-06: rename blast-radius inventory, after-tax ruling, label alignment (wave 3, has decision checkpoint)
+- [ ] 01-05-PLAN.md — Phase gate: suite dispositions + human verification (wave 4, has verify checkpoint)
 **UI hint**: yes
 **UI-SPEC**: `.planning/phases/01-information-architecture/01-UI-SPEC.md` — APPROVED 2026-08-08, 6/6 dimensions. Carries 6 findings; criteria 4-6 come from the 2026-08-08 ambiguity sweep commissioned after Cyril's "make sure there's no other confusing crap like this."
 
@@ -75,7 +81,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-|-|-|-|
-| 1. Information Architecture | 0/TBD | Not started | - |
+| 1. Information Architecture | 0/5 | Planned | - |
 | 2. Guided vs. Freeform Flow | 0/TBD | Not started | - |
 | 3. Visual Craft | 0/TBD | Not started | - |
 | 4. Verification | 0/TBD | Not started | - |
