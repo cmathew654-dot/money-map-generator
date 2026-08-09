@@ -16,4 +16,6 @@ The app's own existing visual language: `--fm-ink #1c2422`, `--fm-muted #47504d`
 
 | # | Name | Design Question | Winner | Tags |
 |-|-|-|-|-|
-| 001 | panel-retrieval | What replaces Add + Data + Contents, so a control is reachable from an intent rather than a section name? | *pending review* | ia, navigation, retrieval, shell |
+| 001 | panel-retrieval | What replaces Add + Data + Contents, so a control is reachable from an intent rather than a section name? | Superseded — resolved into stacked master-detail by `DESIGN-DIRECTION.md` Move 1, approved via 002 | ia, navigation, retrieval, shell |
+| 002 | panel-overhaul | Does the frozen contract hold when built — shell and fields together? | **Flow approved.** Pills rejected (→ Amendment 1). Forms rejected (→ Amendment 3, and the question 003 asks). | shell, fields, contract |
+| 003 | field-treatment | Should the fields finish the job the list started, and how far? | *awaiting ruling* — A boxed / B ledger / C inline, plus the money-axis addendum | fields, ledger, money, typography |
