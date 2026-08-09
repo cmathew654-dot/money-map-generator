@@ -59,8 +59,7 @@ A slot template handles layout because a money map has a fixed reading order. Co
 
 ## Build history
 
-The tool grew through a series of small passes: the form first, then layout,
-editing, local file handling, and export.
+I built the form first. I added layout and editing next, then finished local file handling and export.
 
 ## Run it
 
