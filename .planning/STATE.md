@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: information-architecture
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-08-09T03:55:25.644Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-08-09T05:11:41.752Z"
 last_activity: 2026-08-09
 last_activity_desc: Phase 01 Plan 01 executed — valueTag/needTag/qualifier controls added (IA-04)
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-08-08)
 ## Current Position
 
 Phase: 01 (information-architecture) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-08-09 — Plan 01 (valueTag/needTag/qualifier controls) complete
 
-Progress: [██████░░░░] 60%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [██████░░░░] 60%
 |------|----------|-------|-------|
 | Phase 01 P02 | 3min | 3 tasks | 4 files |
 | Phase 01 P03 | 20min | 3 tasks | 3 files |
+| Phase 01 P04 | 25min | 1 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,7 @@ Recent decisions affecting current work:
 - Plan 01-01: no model/validator/export-path changes needed for valueTag/needTag/qualifier — src/model/types.ts, book.ts, export.ts were already correct; only Form.tsx needed controls.
 - [Phase ?]: Ground-truth decision confirmed: s51's shipped Ledger accordion supersedes stale canvas-first-editor-design.md description (evidenced by 01-02 Task 1 code check + Task 2 banner)
 - [Phase ?]: Fine print moved from Need to Income (IA-02); UI-SPEC's zero-results 'blank panel' prediction was proven wrong (task 1) and existing baseline copy was updated per plan.
+- [Phase ?]: IA-05 ruling: household total keeps 'After-Tax Income'; account-type bucket renamed to 'Taxable'; fine-print help line reworded to 'net'
 
 ### Pending Todos
 
@@ -94,6 +96,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-09T03:55:25.636Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-08-09T05:11:41.744Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None

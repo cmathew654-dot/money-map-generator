@@ -13,8 +13,8 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 - [x] **IA-02**: Every field has exactly one section it belongs to — no two sections (client / income / accounts / need / notes) compete for the same kind of input.
 - [x] **IA-03**: Nested structures inside Accounts (Positions, Sub-accounts) have a clear, stated relationship to their parent account and to sibling sections, resolving the "unclear what lives where" complaint.
 - [x] **IA-04**: Every value that prints on the exported map is editable somewhere in the UI. Specifically `Account.valueTag`, `MoneyMapData.needTag`, and `IncomeSource.qualifier` — verified 2026-08-08 to render via `src/export/export.ts:37,41,48` with zero editing controls in `Form.tsx` or `Wizard.tsx` — gain controls in their owning sections. *(Added after the 2026-08-08 ambiguity sweep; highest-value item in Phase 1.)*
-- [ ] **IA-05**: The term "after-tax" names exactly one concept in the UI. It currently names three unrelated things — the household income total (`Form.tsx:640`), an account-type option (`book.ts:58`), and one Fine-print row's withholding figure (`Form.tsx:1206`, help text at 1229). At least two are renamed. *(Added 2026-08-08.)*
-- [ ] **IA-06**: A field's panel label matches the phrase it prints on the map. Specifically "Monthly account withdrawal" (`Form.tsx:503`) vs. the map's "As needed" chip (`render/MapSvg.tsx:2045`). *(Added 2026-08-08.)*
+- [x] **IA-05**: The term "after-tax" names exactly one concept in the UI. It currently names three unrelated things — the household income total (`Form.tsx:640`), an account-type option (`book.ts:58`), and one Fine-print row's withholding figure (`Form.tsx:1206`, help text at 1229). At least two are renamed. *(Added 2026-08-08.)*
+- [x] **IA-06**: A field's panel label matches the phrase it prints on the map. Specifically "Monthly account withdrawal" (`Form.tsx:503`) vs. the map's "As needed" chip (`render/MapSvg.tsx:2045`). *(Added 2026-08-08.)*
 
 ### Flow (FLOW)
 
@@ -62,8 +62,8 @@ Which phases cover which requirements.
 | IA-02 | Phase 1 | Complete |
 | IA-03 | Phase 1 | Complete |
 | IA-04 | Phase 1 | Pending |
-| IA-05 | Phase 1 | Pending |
-| IA-06 | Phase 1 | Pending |
+| IA-05 | Phase 1 | Complete |
+| IA-06 | Phase 1 | Complete |
 | FLOW-01 | Phase 2 | Pending |
 | FLOW-02 | Phase 2 | Pending |
 | FLOW-03 | Phase 2 | Pending |
