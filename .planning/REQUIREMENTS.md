@@ -61,7 +61,7 @@ Which phases cover which requirements.
 | IA-01 | Phase 1 | Complete |
 | IA-02 | Phase 1 | Complete |
 | IA-03 | Phase 1 | Complete |
-| IA-04 | Phase 1 | Pending |
+| IA-04 | Phase 1 | Complete |
 | IA-05 | Phase 1 | Complete |
 | IA-06 | Phase 1 | Complete |
 | FLOW-01 | Phase 2 | Pending |
