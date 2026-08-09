@@ -74,7 +74,7 @@ test('keyboard arrangement persists move, resize, rotate, text offset, and conne
   })
 })
 
-test('Shift, Ctrl, and Cmd click toggle compatible account and note selection', async ({ page }) => {
+test('Shift and the platform selection modifier toggle compatible account and note selection', async ({ page }) => {
   await openApp(page)
 
   await page.getByRole('button', { name: 'Add', exact: true }).click()
@@ -94,7 +94,10 @@ test('Shift, Ctrl, and Cmd click toggle compatible account and note selection', 
   await clickBlankAccountBody(first)
   await expect(page.locator('[data-map-selected=true]')).toHaveCount(1)
 
-  for (const modifier of ['Shift', 'Control', 'Meta'] as const) {
+  const isMac = await page.evaluate(() => navigator.platform.startsWith('Mac'))
+  const modifiers: ('Shift' | 'Control' | 'Meta')[] =
+    isMac ? ['Shift', 'Meta'] : ['Shift', 'Control']
+  for (const modifier of modifiers) {
     await clickBlankAccountBody(second, [modifier])
     const selectedAfterAdd = page.locator('[data-map-selected=true]')
     await expect(selectedAfterAdd).toHaveCount(2)

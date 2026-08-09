@@ -742,14 +742,13 @@ test.describe('extended desktop certification', () => {
     await capture('Present', page.getByRole('button', { name: 'Present' }), '.app-header')
     await capture('Print', page.getByRole('button', { name: 'Print', exact: true }), '.app-header')
     await capture('Export map', page.getByRole('button', { name: 'Export map' }), '.app-header')
-    await capture('Guide me', page.getByRole('button', { name: 'Guide me' }), '.form-pane')
-    await capture('Data panel', page.getByRole('button', { name: 'Data', exact: true }), '.editor-panel')
-    await capture('Wizard Client step', page.getByRole('button', { name: 'Client', exact: true }), '.form-pane')
-    await capture('Wizard Next', page.getByRole('button', { name: 'Next' }), '.form-pane')
-    await capture('Wizard footer', page.locator('.wizard-footer'), '.form-pane')
-    await assertWcag22AA(page, testInfo, 'text-spacing-wizard')
-
+    await capture('Add rail action', page.getByRole('button', { name: 'Add', exact: true }), '.editor-rail')
+    await capture('Data rail action', page.getByRole('button', { name: 'Data', exact: true }), '.editor-rail')
+    await capture('Contents rail action', page.getByRole('button', { name: 'Contents', exact: true }), '.editor-rail')
+    await capture('Help rail action', page.getByRole('button', { name: 'Help', exact: true }), '.editor-rail')
     await fullForm(page)
+    await capture('Data panel', page.getByRole('dialog', { name: 'Data' }), 'viewport')
+    await assertWcag22AA(page, testInfo, 'text-spacing-editor')
     const firstAccount = page.locator('.account-card').first()
     await firstAccount.locator('button.account-summary').click()
     const shapeGroup = page.getByRole('group', {
@@ -854,17 +853,22 @@ test.describe('extended desktop certification', () => {
     const clientSelect = page.getByLabel('Active client')
     const initialClient = await clientSelect.inputValue()
     boundaries.push(await focusBoundaryState('Active client', clientSelect))
-    await clientSelect.selectOption({ index: 1 })
+    await selectClient(page, 'The Calloway Family')
     await expect(clientSelect).not.toHaveValue(initialClient)
-    await clientSelect.selectOption(initialClient)
+    await selectClient(page, initialClient)
     await expect(clientSelect).toHaveValue(initialClient)
-    await page.keyboard.press('Tab')
 
     const bookMenu = page.getByRole('button', { name: 'More actions' })
     boundaries.push(await focusBoundaryState('Book menu', bookMenu))
     await page.keyboard.press('Enter')
     await expect(page.getByRole('menu')).toBeVisible()
     await page.keyboard.press('Escape')
+    await fullForm(page)
+    const accountSummary = firstAccount.locator('button.account-summary')
+    if ((await accountSummary.getAttribute('aria-expanded')) !== 'true') {
+      await accountSummary.click()
+    }
+    await page.keyboard.press('Tab')
 
     const cardShape = page
       .getByRole('group', {

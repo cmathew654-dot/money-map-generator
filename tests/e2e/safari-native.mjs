@@ -343,6 +343,19 @@ async function openFullForm(driver) {
       )`,
     ),
   )
+  const accountSummary = await waitFor('Cash at Bank account summary', () =>
+    driver.execute(`return document.getElementById('account-row-cash-at-bank')`),
+  )
+  const expanded = await driver.execute(
+    `return arguments[0].getAttribute('aria-expanded') === 'true'`,
+    [accountSummary],
+  )
+  if (!expanded) await driver.click(accountSummary)
+  await waitFor('Cash at Bank shape group', () =>
+    driver.execute(`return document.querySelector(
+      '[role="group"][aria-label="Shape for Cash at Bank"]'
+    )`),
+  )
 }
 
 async function readState(driver, selectedShapeName) {
@@ -558,20 +571,23 @@ async function run() {
       [accountShell],
     )
     assert(accountCard, 'Cash at Bank account card is missing')
-    const accountOpen = await driver.execute(
-      'return Boolean(arguments[0].open)',
+    const summary = await driver.execute(
+      `return arguments[0].querySelector('button.account-summary')`,
       [accountCard],
     )
+    assert(summary, 'Cash at Bank account summary is missing')
+    const accountOpen = await driver.execute(
+      `return arguments[0].getAttribute('aria-expanded') === 'true'`,
+      [summary],
+    )
     if (!accountOpen) {
-      const summary = await driver.execute(
-        `return arguments[0].querySelector('summary')`,
-        [accountCard],
-      )
-      assert(summary, 'Cash at Bank account summary is missing')
       await driver.click(summary)
     }
     await waitFor('expanded Cash at Bank account', () =>
-      driver.execute('return Boolean(arguments[0].open)', [accountCard]),
+      driver.execute(
+        `return arguments[0].getAttribute('aria-expanded') === 'true'`,
+        [summary],
+      ),
     )
     await clickButton(driver, '+ Add position', accountCard)
     const positionLabel = await findControl(
