@@ -24,7 +24,7 @@ The demo uses fictional data. Imported books stay in the browser.
 | Advisor conventions | The map uses familiar tax-bucket colors and refill arrows. It also supports RMD notes and account detail. |
 | Blank values | An empty dollar value appears as `~$ ______` for use during a meeting. |
 | Exports | Advisors can save an image or PDF, or print a landscape page. |
-| Local processing | The browser parses imported books. Users should load only data they are authorized to handle. |
+| Local processing | The browser parses imported books. Users should load only data they have authority to handle. |
 
 ## Architecture
 
