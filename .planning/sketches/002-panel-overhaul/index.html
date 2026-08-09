@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 002: Panel overhaul</title>
+<style>
+  :root {
+    --fm-ink: #1c2422;
+    --fm-muted: #47504d;
+    --fm-hairline: #dde1dc;
+    --fm-section: #f4f6f2;
+    --fm-surface: #ffffff;
+    --fm-flow: #1e7a4a;
+    --step-lg: 22px;
+    --step-md: 13.5px;
+    --step-sm: 10.5px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: 'Public Sans', 'Segoe UI', system-ui, sans-serif;
+    font-size: var(--step-md);
+    color: var(--fm-ink);
+    background: var(--fm-section);
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: var(--fm-surface);
+    border-bottom: 1px solid var(--fm-hairline);
+    padding: 16px 20px 0;
+    flex: 0 0 auto;
+  }
+  h1 {
+    font-family: 'Literata', Georgia, serif;
+    font-size: var(--step-lg);
+    line-height: 1.2;
+    margin: 0 0 6px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .sub {
+    font-size: var(--step-md);
+    color: var(--fm-muted);
+    margin: 0 0 16px;
+    max-width: 94ch;
+    line-height: 1.55;
+  }
+  .sub strong { color: var(--fm-ink); font-weight: 600; }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    font: inherit;
+    font-size: var(--step-md);
+    font-weight: 600;
+    border: 1px solid var(--fm-hairline);
+    border-bottom: none;
+    background: var(--fm-section);
+    color: var(--fm-muted);
+    padding: 10px 18px;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    position: relative;
+    top: 1px;
+    text-align: left;
+  }
+  .tab[aria-selected="true"] {
+    background: var(--fm-surface);
+    color: var(--fm-ink);
+    box-shadow: inset 0 3px 0 var(--fm-flow);
+  }
+  .tab small {
+    display: block;
+    font-weight: 400;
+    font-size: var(--step-sm);
+    color: var(--fm-muted);
+    margin-top: 3px;
+    letter-spacing: 0.01em;
+  }
+  .stage { flex: 1 1 auto; position: relative; background: var(--fm-surface); }
+  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: none; }
+  iframe.on { display: block; }
+  footer {
+    flex: 0 0 auto;
+    background: var(--fm-surface);
+    border-top: 1px solid var(--fm-hairline);
+    padding: 10px 20px;
+    font-size: var(--step-sm);
+    letter-spacing: 0.01em;
+    color: var(--fm-muted);
+  }
+  kbd {
+    font: inherit;
+    font-size: var(--step-sm);
+    border: 1px solid var(--fm-hairline);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 5px;
+    background: var(--fm-section);
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sketch 002: the panel overhaul</h1>
+  <p class="sub">
+    Built against the frozen contract in <strong>.planning/DESIGN-DIRECTION.md</strong>, not freehand.
+    Two views of the same design: the <strong>shell</strong> answers where things live and why nothing scrolls away,
+    the <strong>fields</strong> answer why the forms looked second rate.
+    To see the point of the shell, select several rows in a row: the list never moves.
+  </p>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-target="a">
+      Shell
+      <small>Stacked master detail, bucket chips, typography</small>
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-target="b">
+      Fields
+      <small>Captions that name their owner, holdings vs carve-outs</small>
+    </button>
+  </div>
+</header>
+
+<div class="stage">
+  <iframe id="frame-a" class="on" src="shell.html" title="Shell: stacked master detail"></iframe>
+  <iframe id="frame-b" src="fields.html" title="Fields: field level treatment"></iframe>
+</div>
+
+<footer>
+  Switch with <kbd>1</kbd> / <kbd>2</kbd> or the tabs. Verified against contract: list height is a clamped range not a fixed px, chips read <strong>tagColor</strong> never stroke, no caret, no row stripe, notes and flows carry no colour.
+</footer>
+
+<script>
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  function show(key) {
+    tabs.forEach(function (t) { t.setAttribute('aria-selected', String(t.dataset.target === key)); });
+    document.getElementById('frame-a').classList.toggle('on', key === 'a');
+    document.getElementById('frame-b').classList.toggle('on', key === 'b');
+  }
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () { show(t.dataset.target); });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '1') show('a');
+    if (e.key === '2') show('b');
+  });
+</script>
+</body>
+</html>
