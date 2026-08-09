@@ -368,6 +368,63 @@ describe('income fine print', () => {
   })
 })
 
+describe('nested-group help text', () => {
+  it('gives Positions and Sub-accounts distinct help lines', () => {
+    const data = blankClient()
+    data.accounts = [
+      {
+        id: 'account-nested',
+        bucket: 'cash',
+        label: 'Cash at Bank',
+        value: 25_000,
+        positions: [],
+        subAccounts: [],
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      createElement(AccountsSection, {
+        data,
+        selectedAccountId: 'account-nested',
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain(
+      "Break this account&#x27;s total into holdings — e.g. by fund or carrier.",
+    )
+    expect(markup).toContain(
+      'Carve out a named pool inside this account — e.g. RMD short-term funds. It gets its own shape on the map.',
+    )
+  })
+})
+
+describe('notes empty state', () => {
+  it('states emptiness with zero notes and hides it with one or more', () => {
+    const empty = blankClient()
+
+    const emptyMarkup = renderToStaticMarkup(
+      createElement(NotesSection, {
+        data: empty,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(emptyMarkup).toContain('No notes yet.')
+
+    const withNote = appendBlankNote(empty)
+
+    const filledMarkup = renderToStaticMarkup(
+      createElement(NotesSection, {
+        data: withNote,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(filledMarkup).not.toContain('No notes yet.')
+  })
+})
+
 describe('map note form helpers', () => {
   it('appends centered blank notes with unique ids', () => {
     const data = blankClient()

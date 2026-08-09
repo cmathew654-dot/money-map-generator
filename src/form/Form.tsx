@@ -686,6 +686,9 @@ function PositionRows({
   return (
     <div className="nested-list">
       <h4>Positions</h4>
+      <p className="help-text">
+        Break this account's total into holdings — e.g. by fund or carrier.
+      </p>
       {positions.map((position, index) => (
         <div className="stacked-row nested-row" key={index}>
           <div className="stacked-row-heading">
@@ -761,6 +764,10 @@ function SubAccountRows({
   return (
     <div className="nested-list">
       <h4>Sub-accounts</h4>
+      <p className="help-text">
+        Carve out a named pool inside this account — e.g. RMD short-term
+        funds. It gets its own shape on the map.
+      </p>
       {subAccounts.map((subAccount, index) => (
         <div className="stacked-row subaccount-row" key={index}>
           <div className="stacked-row-heading">
@@ -1319,6 +1326,9 @@ export function NotesSection({
           </div>
         ))}
       </div>
+      {notes.length === 0 && (
+        <p className="empty-state">No notes yet.</p>
+      )}
       <button
         className="add-button"
         type="button"
@@ -1515,6 +1525,9 @@ export function Form({
         .toLocaleLowerCase()
         .includes(query)
   }
+  const visibleSections = (Object.keys(sectionLabels) as FormSection[]).filter(
+    sectionMatches,
+  )
   const registerSection = (section: FormSection) => (node: HTMLElement | null) => {
     sectionRefs.current[section] = node
   }
@@ -1604,7 +1617,7 @@ export function Form({
           ))}
         </nav>
       </div>
-      {sectionMatches('client') && (
+      {visibleSections.includes('client') && (
         <ClientSection
           active={activeSection === 'client'}
           data={data}
@@ -1612,7 +1625,7 @@ export function Form({
           sectionRef={registerSection('client')}
         />
       )}
-      {sectionMatches('income') && (
+      {visibleSections.includes('income') && (
         <IncomeSection
           active={activeSection === 'income'}
           data={data}
@@ -1622,7 +1635,7 @@ export function Form({
           vocabulary={vocabulary}
         />
       )}
-      {sectionMatches('accounts') && (
+      {visibleSections.includes('accounts') && (
         <AccountsSection
           active={activeSection === 'accounts'}
           data={data}
@@ -1636,7 +1649,7 @@ export function Form({
           query={query}
         />
       )}
-      {sectionMatches('need') && (
+      {visibleSections.includes('need') && (
         <NeedSection
           active={activeSection === 'need'}
           data={data}
@@ -1644,7 +1657,7 @@ export function Form({
           sectionRef={needSectionRef}
         />
       )}
-      {sectionMatches('notes') && (
+      {visibleSections.includes('notes') && (
         <NotesSection
           active={activeSection === 'notes'}
           data={data}
@@ -1653,8 +1666,8 @@ export function Form({
           sectionRef={registerSection('notes')}
         />
       )}
-      {!(Object.keys(sectionLabels) as FormSection[]).some(sectionMatches) && (
-        <p className="empty-state">No matching data sections.</p>
+      {query && visibleSections.length === 0 && (
+        <p className="empty-state">No fields match that filter.</p>
       )}
     </form>
   )

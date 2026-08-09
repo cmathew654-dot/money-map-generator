@@ -67,10 +67,17 @@ describe('Data panel filter with zero matches (task 1: baseline, then final stat
 
     expect(sectionCount).toBe(0)
     // Baseline finding (task 1): contrary to the UI-SPEC's prediction that
-    // the panel "goes blank," the shipped code already renders a message
-    // here — it has since commit c44cae0 (2026-08-02), pre-dating this
-    // phase. Task 3 will change this exact copy to "No fields match that
-    // filter." per the plan; this assertion is updated in that task.
-    expect(markup).toContain('No matching data sections.')
+    // the panel "goes blank," the shipped code already rendered a message
+    // here before this plan touched it — "No matching data sections.",
+    // shipped since commit c44cae0 (2026-08-02), pre-dating this phase.
+    // Task 3 (this final assertion) updates the copy per the plan.
+    expect(markup).toContain('No fields match that filter.')
+    expect(markup).not.toContain('No matching data sections.')
+  })
+
+  it('renders no zero-results message when the filter is blank', () => {
+    const markup = render(withAccounts(), '')
+
+    expect(markup).not.toContain('No fields match that filter.')
   })
 })
