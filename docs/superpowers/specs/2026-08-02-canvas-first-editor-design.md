@@ -1,5 +1,7 @@
 # Canvas-First Editor Design
 
+> **Superseded (2026-08-08): the Data panel description below is stale.** This document describes the Data panel as a plain sectioned form. The panel shipped in s51 (2026-08-04/05) as a "Ledger" accordion — a different interaction model. Current ground truth for the Data panel's section taxonomy is `.planning/phases/01-information-architecture/01-UI-SPEC.md`. Everything else in this document (the canvas-first shell, the 72px rail, on-demand panels, and the "inspector stays quick-actions only" constraint) remains in effect — only the Data panel description below is superseded.
+
 ## Status
 
 Approved direction. This specification supersedes the left-editor and inspector-alignment portions of `2026-08-02-editor-tidy-design.md`. The existing map-level **Tidy map** behavior remains in scope as described below.
