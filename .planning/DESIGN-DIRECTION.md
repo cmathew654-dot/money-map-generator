@@ -6,8 +6,10 @@ Amended 2026-08-09 after Cyril's review of sketch 002 (flow approved; pills and 
 | # | Amendment | Where | State |
 |-|-|-|-|
 | 1 | The bucket tag is text, never a capsule. `border-radius` on a tag is forbidden. | Move 3 | **Binding** — user-directed |
-| 2 | The Move 5 "sentence case vs `DESIGN.md:94`" conflict is not a conflict; two tiers. | Move 5 | **Binding** — evidence confirms the original spec |
-| 3 | The forms read generic because they contradict the already-shipped ledger list. | Move 5 | **Binding** — evidence, `form.css:171-183` |
+| 2 | ~~The case conflict is not a conflict; two tiers.~~ **Withdrawn — the justification was false.** `DESIGN.md:114` does specify uppercase labels above fields. This is a real spec-vs-code divergence. | Move 5 | **Open — needs Cyril's ruling** |
+| 3 | The forms read generic because they contradict the already-shipped ledger list. | Move 5 | **Binding, narrowed** — see Amendment 5 |
+| 4 | Object names are **Literata**, not Public Sans. Move 4's clause was wrong; the sketches were right. | Move 4 | **Binding** — evidence, `MapSvg.tsx:1429` |
+| 5 | Boxed + inline with a fixed value column **already ships** in the Need section. The money axis is not a new invention, and Amendment 3 is weaker than stated. | Move 5 | **Binding** — evidence, `form.css:402-431` |
 **Owner:** design direction set by lead; attacked and refined by co-orchestrator; every load-bearing claim verified against source before acceptance.
 **Applies to:** the editor panel and rail. Not the map.
 
@@ -110,7 +112,7 @@ Three steps with real contrast, not five that blur.
 | Element | Treatment |
 |-|-|
 | Group headers (Income, Needs, Accounts, Flows, Notes) | **Literata** — landmarks, not form labels |
-| Object names | Public Sans semibold |
+| Object names | **Literata semibold** — Amendment 4. The map draws account titles in `FONT_SERIF` at `TYPE.accountTitle` 19, weight 600 (`MapSvg.tsx:1429`, `tokens.ts:97`). The thesis says the panel speaks the map's language, so the panel follows. |
 | **Display money** (read-only row totals, e.g. `.account-summary-value`) | **Literata, tabular** — `DESIGN.md:80` gives Literata financial values, and it matches the map |
 | **Editable money inputs** | **Public Sans**, tabular, right-aligned — `DESIGN.md:114` |
 | Field labels | Small, muted Public Sans, clearly subordinate |
@@ -128,9 +130,16 @@ This is the answer to "the fields/forms look second rate." The shell was never t
 
 **Contract:** every caption names its owner — "Account value", "Position value", "Sub-account value", "Position label", "Sub-account label", "Fine print label". Small muted Public Sans above the input, sentence case, current position retained.
 
-### The case question was not a conflict (Amendment 2, 2026-08-09 — BINDING)
+### The case question IS a conflict — Amendment 2 withdrawn (corrected 2026-08-09)
 
-The handoff flagged "sentence case" here as conflicting with `DESIGN.md:94`:
+> **Correction.** The first version of this amendment claimed there was no conflict and that no
+> ruling was needed from Cyril. That was wrong, and it was wrong in the direction that avoided
+> asking him. `DESIGN.md:114` — a line the original analysis never quoted — says plainly:
+> *"Labels sit above fields in small uppercase text."* That is the field-caption tier, specified
+> as uppercase. The two-tier reading below accurately describes the **shipped CSS**; it does not
+> describe the **spec**.
+
+The original flag was "sentence case" here conflicting with `DESIGN.md:94`:
 
 > "Interface labels are 12px, semibold, uppercase, and tracked at `0.08em`; section headings
 > increase tracking to `0.14em`."
@@ -152,10 +161,15 @@ deliberately** in `9ab66cf feat(form): rebuild the Data panel as an account ledg
 `DESIGN.md:94` describes the **tracked-caps** tier. Move 5's captions are the **quiet** tier.
 Both hold at once, and the shipped panel already implements both.
 
-**Ruling: Move 5's sentence case stands, unchanged.** This needed no decision from Cyril, because
-the evidence confirms the spec he already wrote rather than opposing it. Sentence case is not the generic
-thing about these forms — it is a deliberate, shipped, reasoned decision, and reversing it would
-put a second level of uppercase in a 380px panel that already spends caps on section headers.
+**What actually happened: the shipped code deliberately overrode the spec.** `form.css:157-158` is
+an explicit override of `DESIGN.md:94,114`, not an implementation of it. Both are internally
+coherent. They disagree, and the code won without the doc being updated.
+
+**Open ruling — Cyril's:** does `DESIGN.md` get amended to match the shipped sentence-case
+decision, or does the panel revert to uppercase captions? The recommendation is amend the doc: the
+override is deliberate, shipped, and carries the width evidence below, and reversing it would put a
+second level of uppercase in a 380px panel that already spends caps on section headers. But that is
+a spec change, not a reading of one, and it is not mine to declare settled.
 
 **Cost of the alternative, stated so the ruling is informed.** Uppercase plus `0.08em` on
 "SUB-ACCOUNT VALUE" runs roughly 18–20% wider than sentence case at the same size. In a 380px
@@ -199,6 +213,24 @@ inconsistent by construction and does not need a taste argument to reject.
 > This shifts the burden of proof onto boxes; it does not decide the question. The comparison
 > still gets built and Cyril still rules. But "ledger" is the direction the app already shipped,
 > not a new idea being proposed to it.
+
+### The fourth treatment already ships (Amendment 5, 2026-08-09 — BINDING)
+
+Amendment 3 says the panel speaks two vocabularies and the fields should join the list's. That is
+half true, and the missing half changes the ruling.
+
+**The Need section already ships boxed + inline with a fixed value column** — `form.css:402-431`:
+`grid-template-columns: minmax(0, 1fr) 132px`, captions inline on the left, a hairline rule under
+each row, and a `1px` bordered, `4px` radiused input inside it.
+
+1. **There is a fourth quadrant — boxed + inline — and it is not hypothetical.** It is shipped, in
+   this panel, today. A three-way A/B/C comparison is judging three options out of four.
+2. **The money axis is not an invention.** A fixed value column is what the Need section already
+   does. Generalising it to Positions extends a shipped decision rather than importing a new one.
+3. **Amendment 3 narrows.** The app does not speak one vocabulary the fields betray; it already
+   mixes ledger rules with boxed inputs deliberately, inside one 380px column. Boxes still carry a
+   burden of proof against the *account list*, but "inconsistent by construction" was too strong
+   and is withdrawn.
 
 **Positions and sub-accounts stop being near-copies.** `Form.tsx:703-823` renders them as nearly identical two-field cards. They are different things:
 
