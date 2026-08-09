@@ -55,7 +55,7 @@ export const ACCOUNT_TYPE_OPTIONS: readonly {
   label: string
 }[] = [
   { value: 'shortTerm', label: 'Short-term' },
-  { value: 'afterTax', label: 'After-tax' },
+  { value: 'afterTax', label: 'Taxable' },
   { value: 'taxDeferred', label: 'Tax-deferred' },
   { value: 'taxPreferred', label: 'Tax-preferred' },
   { value: 'charitable', label: 'Charitable' },

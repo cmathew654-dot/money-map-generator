@@ -6,7 +6,7 @@ export const BLANK = '~$ ______'
 
 const BUCKET_DISPLAY_NAMES: Record<Bucket, string> = {
   shortTerm: 'Short-Term Bucket',
-  afterTax: 'After-Tax',
+  afterTax: 'Taxable',
   taxDeferred: 'Tax-Deferred',
   taxPreferred: 'Tax-Preferred',
   charitable: 'Charitable',

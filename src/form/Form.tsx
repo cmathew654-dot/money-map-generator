@@ -1265,7 +1265,7 @@ export function FinePrintSection({
         + Add fine print line
       </button>
       <p className="help-text">
-        The after-tax amount appears in green.
+        The net amount appears in green.
       </p>
     </div>
   )

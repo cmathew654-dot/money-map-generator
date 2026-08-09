@@ -15,7 +15,7 @@ import {
 describe('account display names', () => {
   it.each([
     ['shortTerm', 'Short-Term Bucket'],
-    ['afterTax', 'After-Tax'],
+    ['afterTax', 'Taxable'],
     ['taxDeferred', 'Tax-Deferred'],
     ['taxPreferred', 'Tax-Preferred'],
     ['charitable', 'Charitable'],
