@@ -66,7 +66,7 @@ This milestone, in delivery order:
 
 | Decision | Rationale | Outcome |
 |-|-|-|
-| Treat s51's shipped Ledger accordion Data panel as ground truth over canvas-first-editor-design.md's stale description | Handoff prose confirms the rebuild happened in code; no SPEC was ever updated to match | Pending — confirmed at Phase 1 kickoff |
+| Treat s51's shipped Ledger accordion Data panel as ground truth over canvas-first-editor-design.md's stale description | Handoff prose confirms the rebuild happened in code; no SPEC was ever updated to match | Confirmed 2026-08-08 — evidence: 01-02 Task 1 re-verified the five `data-form-section` values against `Form.tsx` and matched them to the UI-SPEC taxonomy table; Task 2 added a superseded banner to `canvas-first-editor-design.md` pointing at the UI-SPEC as ground truth |
 | Milestone scoped to exactly 4 phases (IA, Flow, Visual craft, Verification) | User-specified scope for this milestone | — Pending |
 | Money-format and inspector-clipping rulings carried into roadmap as explicit phase decision points, not pre-resolved | Both are open per the ingest conflict report; resolving them silently would contradict the record | — Pending |
 

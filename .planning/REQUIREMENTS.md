@@ -61,20 +61,26 @@ Which phases cover which requirements.
 | IA-01 | Phase 1 | Pending |
 | IA-02 | Phase 1 | Pending |
 | IA-03 | Phase 1 | Pending |
+| IA-04 | Phase 1 | Pending |
+| IA-05 | Phase 1 | Pending |
+| IA-06 | Phase 1 | Pending |
 | FLOW-01 | Phase 2 | Pending |
 | FLOW-02 | Phase 2 | Pending |
 | FLOW-03 | Phase 2 | Pending |
+| FLOW-04 | Phase 2 | Pending |
+| FLOW-05 | Phase 2 | Pending |
 | CRAFT-01 | Phase 3 | Pending |
 | CRAFT-02 | Phase 3 | Pending |
 | CRAFT-03 | Phase 3 | Pending |
 | CRAFT-04 | Phase 3 | Pending |
+| CRAFT-05 | Phase 3 | Pending |
 | VERIFY-01 | Phase 4 | Pending |
 | VERIFY-02 | Phase 4 | Pending |
 | VERIFY-03 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 13 total
-- Mapped to phases: 13
+- v1 requirements: 19 total
+- Mapped to phases: 19
 - Unmapped: 0
 
 ---
