@@ -17,12 +17,14 @@ The demo uses fictional data. Imported books stay in the browser.
 
 ## What it does
 
-- **Client book.** One local book holds the client maps and saves changes in the browser. Users can connect it to a file on disk or OneDrive.
-- **Live editing.** The form updates the map after each keystroke.
-- **Advisor conventions.** The map uses familiar tax-bucket colors and refill arrows. It also supports RMD notes and account detail.
-- **Blank values.** An empty dollar value appears as `~$ ______` for use during a meeting.
-- **Exports.** Advisors can save an image or PDF, or print a landscape page.
-- **Local processing.** The browser parses imported books. Users should load only data they are authorized to handle.
+| Area | Behavior |
+| --- | --- |
+| Client book | One local book holds the client maps and saves changes in the browser. Users can connect it to a file on disk or OneDrive. |
+| Live editing | The form updates the map after each keystroke. |
+| Advisor conventions | The map uses familiar tax-bucket colors and refill arrows. It also supports RMD notes and account detail. |
+| Blank values | An empty dollar value appears as `~$ ______` for use during a meeting. |
+| Exports | Advisors can save an image or PDF, or print a landscape page. |
+| Local processing | The browser parses imported books. Users should load only data they are authorized to handle. |
 
 ## Architecture
 
@@ -55,7 +57,7 @@ flowchart LR
 
 A slot template handles layout because a money map has a fixed reading order. Content-aware sizing keeps labels and account contents inside their assigned areas.
 
-## How it was built
+## Build history
 
 The tool grew through a series of small passes: the form first, then layout,
 editing, local file handling, and export.
