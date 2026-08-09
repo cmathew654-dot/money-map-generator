@@ -56,3 +56,21 @@ describe('Data panel filter narrows account rows', () => {
     expect(markup).toContain('Cash at Bank')
   })
 })
+
+describe('Data panel filter with zero matches (task 1: baseline, then final state)', () => {
+  it('renders no sections and a stated message for a query nothing matches', () => {
+    // 'zzznomatch' has no substring collision against any section key or
+    // label ('client'/'income'/'accounts'/'need'/'notes'), so this proves
+    // the true zero-match case rather than an accidental partial match.
+    const markup = render(withAccounts(), 'zzznomatch')
+    const sectionCount = (markup.match(/data-form-section="/g) ?? []).length
+
+    expect(sectionCount).toBe(0)
+    // Baseline finding (task 1): contrary to the UI-SPEC's prediction that
+    // the panel "goes blank," the shipped code already renders a message
+    // here — it has since commit c44cae0 (2026-08-02), pre-dating this
+    // phase. Task 3 will change this exact copy to "No fields match that
+    // filter." per the plan; this assertion is updated in that task.
+    expect(markup).toContain('No matching data sections.')
+  })
+})
