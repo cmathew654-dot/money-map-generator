@@ -1,6 +1,13 @@
 # Design Direction — Editor Panel Overhaul
 
 **Status:** FROZEN CONTRACT. Accepted 2026-08-09 after two adversarial review rounds.
+Amended 2026-08-09 after Cyril's review of sketch 002 (flow approved; pills and forms rejected).
+
+| # | Amendment | Where | State |
+|-|-|-|-|
+| 1 | The bucket tag is text, never a capsule. `border-radius` on a tag is forbidden. | Move 3 | **Binding** — user-directed |
+| 2 | The Move 5 "sentence case vs `DESIGN.md:94`" conflict is not a conflict; two tiers. | Move 5 | **Binding** — evidence confirms the original spec |
+| 3 | The forms read generic because they contradict the already-shipped ledger list. | Move 5 | **Binding** — evidence, `form.css:171-183` |
 **Owner:** design direction set by lead; attacked and refined by co-orchestrator; every load-bearing claim verified against source before acceptance.
 **Applies to:** the editor panel and rail. Not the map.
 
@@ -57,13 +64,42 @@ Colour differentiates the five groups and the account buckets. It never carries 
 |-|-|
 | Income rows | `--fm-flow` `#1e7a4a` accent |
 | The need | `--fm-need` `#c03a2d` accent |
-| Account rows | Bucket chip: the bucket's **tag word** rendered in its **`tagColor`** |
+| Account rows | Bucket tag: the bucket's **tag word** rendered in its **`tagColor`**, as bare text |
 | Notes, footnotes | **Ink only. No colour.** The map draws them as plain ink. |
 | Flows | **Ink only. No colour.** Auto-generated arrows carry no bucket. |
 
 > **Read `tagColor`, never `stroke`, from `BUCKETS` in `src/render/tokens.ts`.** `stroke` fails text contrast for `afterTax` (`#b98a1e`) and `taxPreferred` (`#2e8577`); `tagColor` exists as the separately-darkened value (`#836313`, `#23695e`) for exactly this reason.
 
-**Never a bare dot. Never a stripe.** The chip carries the word.
+**Never a bare dot. Never a stripe.** The tag carries the word.
+
+### The tag is text. It is never a capsule. (Amendment 1, 2026-08-09)
+
+**`border-radius` on a bucket tag is forbidden. So is a border, a background fill, and padding
+that implies a container.** No pill, no capsule, no badge, no chip. The tag is *set*, not
+*contained*.
+
+The map settles this, and the map is the authority the thesis points to. `MapSvg.tsx:1411-1423`
+draws the tag as bare `<text>`:
+
+| Property | Map value |
+|-|-|
+| Family | `FONT_SANS` — Public Sans (`tokens.ts:86`) |
+| Size | `TYPE.accountTag` = 12.5 (`tokens.ts:98`) |
+| Weight | 700 |
+| Tracking | `letterSpacing={1.2}` — 1.2 user units at 12.5px ≈ **0.096em** |
+| Case | `{style.tag.toUpperCase()}` — forced in JS; the source string is Title Case |
+| Fill | `style.tagColor` |
+| Container | **None. Zero `<rect>`.** Verified across the whole `AccountContent` render. |
+
+The panel reproduces that treatment scaled to panel context. It does not add a container the
+map does not have.
+
+> **Why this had to be written down.** The word *chip* is a container word, and the first
+> worker built the container the word implied: `.tag{padding:3px 6px;border:1px solid
+> currentColor;border-radius:999px;font-size:10px}` (`sketches/002-panel-overhaul/shell.html:2`).
+> The vocabulary caused the defect. This contract now says **tag**, never *chip*, everywhere.
+> `pills.css` is unrelated — it styles the map-chrome action bench, not bucket tags. There is
+> no bucket pill anywhere in the shipped app. The capsule was invented by the sketch.
 
 Colour tags groups, not rows within a group: four IRAs are all `taxDeferred` blue. Row identity is the label's job, always.
 
@@ -92,6 +128,78 @@ This is the answer to "the fields/forms look second rate." The shell was never t
 
 **Contract:** every caption names its owner — "Account value", "Position value", "Sub-account value", "Position label", "Sub-account label", "Fine print label". Small muted Public Sans above the input, sentence case, current position retained.
 
+### The case question was not a conflict (Amendment 2, 2026-08-09 — BINDING)
+
+The handoff flagged "sentence case" here as conflicting with `DESIGN.md:94`:
+
+> "Interface labels are 12px, semibold, uppercase, and tracked at `0.08em`; section headings
+> increase tracking to `0.14em`."
+
+**It is not a conflict. They describe two different tiers, and the codebase already ruled on it
+deliberately** in `9ab66cf feat(form): rebuild the Data panel as an account ledger`:
+
+```
+/* One level of uppercase only. Tracked caps mark section headers; every field
+   label inside the panel drops to quiet sentence case. */
+```
+— `form.css:157-158`
+
+| Tier | Who is in it | Shipped treatment |
+|-|-|-|
+| **Tracked caps** | Section headers; bucket tags | `form.css:141-148` — 12px / 700 / `0.12em` / uppercase |
+| **Quiet** | Field captions | `form.css:159-169` — 12px / 600 / `0.02em` / `text-transform: none` |
+
+`DESIGN.md:94` describes the **tracked-caps** tier. Move 5's captions are the **quiet** tier.
+Both hold at once, and the shipped panel already implements both.
+
+**Ruling: Move 5's sentence case stands, unchanged.** This needed no decision from Cyril, because
+the evidence confirms the spec he already wrote rather than opposing it. Sentence case is not the generic
+thing about these forms — it is a deliberate, shipped, reasoned decision, and reversing it would
+put a second level of uppercase in a 380px panel that already spends caps on section headers.
+
+**Cost of the alternative, stated so the ruling is informed.** Uppercase plus `0.08em` on
+"SUB-ACCOUNT VALUE" runs roughly 18–20% wider than sentence case at the same size. In a 380px
+panel it is the difference between a caption that fits its column and one that wraps.
+
+> **Doc drift, noted not fixed:** `DESIGN.md:94` says section headings track `0.14em`; `form.css:146`
+> ships `0.12em`. Real, small, and not this contract's job.
+
+### The forms are generic because they contradict the list above them (Amendment 3, 2026-08-09)
+
+This is the root cause of "the actual FORMs are so GENERIC", and it is a **consistency** defect,
+not a taste defect.
+
+**The shipped account list is already a ledger.** `form.css:171` opens a section literally headed
+`/* ---- ledger rows */`, from commit `9ab66cf feat(form): rebuild the Data panel as an account
+ledger`. The list rows abolished container chrome on purpose:
+
+```css
+.editor-panel .account-card {
+  border: 0;
+  border-bottom: 1px solid var(--fm-hairline);
+  border-radius: 0;
+}
+```
+— `form.css:177-183`
+
+**The fields never got that pass, and sketch 002 put the chrome back.** `fields.html` reintroduces
+exactly what the list removed: `border-radius: 10px` on `.comparison` and `.detail`, `8px` on
+`.legacy-card` / `.subaccount-card` / `.fine-print-card`, and `border: 1px solid + border-radius:
+4px` on every `input`.
+
+So in one 380px column the list speaks ledger and the fields speak web form. That is what reads
+as generic. It also explains the earlier verdict on the accordion — *"nothing stands out or is
+different than anything else"* (`01-05-SUMMARY.md:161-167`). Both complaints are the same
+complaint: **insufficient differentiation between record types.**
+
+**Contract:** field treatment must be evaluated against the shipped list's vocabulary, not
+freehand. A field treatment that reintroduces radii and boxes the list already abolished is
+inconsistent by construction and does not need a taste argument to reject.
+
+> This shifts the burden of proof onto boxes; it does not decide the question. The comparison
+> still gets built and Cyril still rules. But "ledger" is the direction the app already shipped,
+> not a new idea being proposed to it.
+
 **Positions and sub-accounts stop being near-copies.** `Form.tsx:703-823` renders them as nearly identical two-field cards. They are different things:
 
 - **A position is a holding.** Dense single row, label + value, no card chrome.
@@ -106,13 +214,21 @@ Make the structural difference visible instead of typographically identical.
 1. **Detail pane empty state.** Required on first load and after deleting the selected item. The accordion never needed one ("nothing expanded" was already legible); master-detail does.
 2. **Deleting the selected item** reverts detail to the empty state. It does **not** auto-advance to a neighbour — silent selection movement after a destructive action is its own defect.
 3. **Flows get no colour** (see Move 3). Stated explicitly so a worker does not invent one.
-4. **Bucket chip reads `tagColor`** (see Move 3). Stated explicitly because `stroke` is the obvious wrong choice.
+4. **Bucket tag reads `tagColor`** (see Move 3). Stated explicitly because `stroke` is the obvious wrong choice.
+5. **The bucket tag has no container** (see Move 3, Amendment 1). Stated explicitly because a worker already invented one.
 
 ## Out of scope
 
 - Anything on the map. Editing behaviour is frozen.
 - Screenshot baseline regeneration — deferred to the verification phase, since visual craft invalidates the same PNGs again.
-- The Add panel's `chipLabel: 'Trust'` vs Data's `'Taxable'` collision (`book.ts:88`). Real, tracked, not this contract's job.
+- ~~The Add panel's `chipLabel: 'Trust'` vs Data's `'Taxable'` collision (`book.ts:88`). Real, tracked, not this contract's job.~~
+  **Moved in scope 2026-08-09 (user direction: "fold in, do not give their own passes").** Confirmed
+  live: `tokens.ts:47-52` gives `afterTax` the tag word **`Taxable`**, which is what the map and the
+  Data panel render; `book.ts:88` `ACCOUNT_PRESETS` still says **`Trust`**. One object, two names.
+  Folds into Phase 2 as a fix, not as its own pass.
+- `Account.valueTag` has no canvas edit target. **Also folded into Phase 2** by the same direction.
+  Not a licence to touch double-click-to-edit, which stays frozen — this is about the target
+  existing at all.
 
 ## Rejected, with reasons
 
