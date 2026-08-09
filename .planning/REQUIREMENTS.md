@@ -9,7 +9,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Information Architecture (IA)
 
-- [ ] **IA-01**: The Data panel's actual shipped structure (s51 Ledger accordion — sections, accordion rows, nested Positions/Sub-accounts) is documented as ground truth, explicitly superseding the stale canvas-first-editor-design.md description.
+- [x] **IA-01**: The Data panel's actual shipped structure (s51 Ledger accordion — sections, accordion rows, nested Positions/Sub-accounts) is documented as ground truth, explicitly superseding the stale canvas-first-editor-design.md description.
 - [ ] **IA-02**: Every field has exactly one section it belongs to — no two sections (client / income / accounts / need / notes) compete for the same kind of input.
 - [ ] **IA-03**: Nested structures inside Accounts (Positions, Sub-accounts) have a clear, stated relationship to their parent account and to sibling sections, resolving the "unclear what lives where" complaint.
 - [x] **IA-04**: Every value that prints on the exported map is editable somewhere in the UI. Specifically `Account.valueTag`, `MoneyMapData.needTag`, and `IncomeSource.qualifier` — verified 2026-08-08 to render via `src/export/export.ts:37,41,48` with zero editing controls in `Form.tsx` or `Wizard.tsx` — gain controls in their owning sections. *(Added after the 2026-08-08 ambiguity sweep; highest-value item in Phase 1.)*
@@ -58,7 +58,7 @@ Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-|-|-|
-| IA-01 | Phase 1 | Pending |
+| IA-01 | Phase 1 | Complete |
 | IA-02 | Phase 1 | Pending |
 | IA-03 | Phase 1 | Pending |
 | IA-04 | Phase 1 | Pending |
@@ -79,6 +79,7 @@ Which phases cover which requirements.
 | VERIFY-03 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 19 total
 - Mapped to phases: 19
 - Unmapped: 0

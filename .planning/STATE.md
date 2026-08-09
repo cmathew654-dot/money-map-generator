@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: information-architecture
 status: executing
-stopped_at: Phase 1 planned and verified - ready to execute
-last_updated: "2026-08-09T04:10:00.000Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-08-09T03:49:04.547Z"
 last_activity: 2026-08-09
 last_activity_desc: Phase 01 Plan 01 executed — valueTag/needTag/qualifier controls added (IA-04)
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-08-08)
 ## Current Position
 
 Phase: 01 (information-architecture) — EXECUTING
-Plan: 2 of 5
-Status: Executing Phase 01
+Plan: 3 of 5
+Status: Ready to execute
 Last activity: 2026-08-09 — Plan 01 (valueTag/needTag/qualifier controls) complete
 
-Progress: [██░░░░░░░░] 20%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
@@ -54,6 +54,11 @@ Progress: [██░░░░░░░░] 20%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P02 | 3min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -65,6 +70,7 @@ Recent decisions affecting current work:
 - Phase 1: s51's shipped Ledger accordion Data panel is treated as ground truth over the stale canvas-first-editor-design.md description — confirm at Phase 1 kickoff.
 - Milestone: scoped to exactly 4 phases (IA → Flow → Visual craft → Verification) per user mandate, not derived independently.
 - Plan 01-01: no model/validator/export-path changes needed for valueTag/needTag/qualifier — src/model/types.ts, book.ts, export.ts were already correct; only Form.tsx needed controls.
+- [Phase ?]: Ground-truth decision confirmed: s51's shipped Ledger accordion supersedes stale canvas-first-editor-design.md description (evidenced by 01-02 Task 1 code check + Task 2 banner)
 
 ### Pending Todos
 
@@ -86,6 +92,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-09T04:10:00.000Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-08-09T03:49:04.540Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
