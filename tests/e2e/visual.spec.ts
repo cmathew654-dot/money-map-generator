@@ -173,9 +173,9 @@ test.describe('desktop visual baselines', () => {
     await stabilize(page)
     await expect(preview).toHaveScreenshot('selected-note.png', elementScreenshotOptions)
 
-    const asNeeded = page.getByLabel('Monthly account withdrawal', { exact: true })
-    await asNeeded.fill('9100')
-    await asNeeded.press('Tab')
+    const asNeeded = page.getByLabel('As needed', { exact: true })
+    await asNeeded.fill('9100', { timeout: 5000 })
+    await asNeeded.press('Tab', { timeout: 5000 })
     await expect(
       page.getByRole('button', { name: /^Adjust coverage note:/ }),
     ).toHaveCount(0)

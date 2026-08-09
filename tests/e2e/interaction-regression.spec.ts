@@ -990,10 +990,10 @@ test.describe('approved desktop interaction regression', () => {
   }) => {
     await page.getByRole('button', { name: 'Data', exact: true }).click()
     await expect(page.getByRole('dialog', { name: 'Data' })).toBeVisible()
-    const asNeeded = page.getByLabel('Monthly account withdrawal', { exact: true })
+    const asNeeded = page.getByLabel('As needed', { exact: true })
     const noisyValue = '$999,999,999,999.49'
-    await asNeeded.fill(noisyValue)
-    await asNeeded.press('Tab')
+    await asNeeded.fill(noisyValue, { timeout: 5000 })
+    await asNeeded.press('Tab', { timeout: 5000 })
     await expect
       .poll(async () => (await currentClient(page)).asNeededAmount)
       .toBe(999_999_999_999.49)
