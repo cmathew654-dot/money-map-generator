@@ -528,7 +528,6 @@ export function NeedSection({
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="need" ref={sectionRef}>
       <SectionHead title="Need" />
       {fields}
-      <FinePrintSection data={data} onChange={onChange} />
     </section>
   )
 }
@@ -667,6 +666,7 @@ export function IncomeSection({
           <NeedSection data={data} embedded onChange={onChange} />
         )}
       </div>
+      <FinePrintSection data={data} onChange={onChange} />
     </section>
   )
 }
@@ -1500,7 +1500,7 @@ export function Form({
       section === 'client'
         ? data.client
         : section === 'income'
-          ? data.incomeSources
+          ? { incomeSources: data.incomeSources, footnotes: data.footnotes }
           : section === 'accounts'
             ? data.accounts
             : section === 'need'
@@ -1508,7 +1508,6 @@ export function Form({
                   monthlyNeed: data.monthlyNeed,
                   needTag: data.needTag,
                   asNeededAmount: data.asNeededAmount,
-                  footnotes: data.footnotes,
                 }
               : data.notes
     return !query ||

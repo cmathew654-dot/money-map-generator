@@ -334,23 +334,37 @@ describe('need tag', () => {
   })
 })
 
-describe('need fine print', () => {
-  it('nests the renamed fine print controls in Need', () => {
+describe('income fine print', () => {
+  // Realigned 2026-08-09 (IA-02, plan 01-03): fine print's fields (Gross/Net)
+  // are an income breakdown, not a Need figure — Phase 1 deliberately moved
+  // its editor and filter index from Need into Income. This test previously
+  // pinned fine print to Need; it now asserts the new home and the vacated one.
+  it('nests the renamed fine print controls in Income, not Need', () => {
     const data = blankClient()
     data.footnotes = [{ id: 'footnote-test', label: '', gross: null, net: null }]
 
-    const markup = renderToStaticMarkup(
+    const incomeMarkup = renderToStaticMarkup(
+      createElement(IncomeSection, {
+        data,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(incomeMarkup).toContain('Fine print')
+    expect(incomeMarkup).toContain('+ Add fine print line')
+    expect(incomeMarkup).toContain('Remove fine print line 1')
+    expect(incomeMarkup).not.toContain('Footnotes')
+    expect(incomeMarkup).not.toContain('+ Add footnote')
+
+    const needMarkup = renderToStaticMarkup(
       createElement(NeedSection, {
         data,
         onChange: () => undefined,
       }),
     )
 
-    expect(markup).toContain('Fine print')
-    expect(markup).toContain('+ Add fine print line')
-    expect(markup).toContain('Remove fine print line 1')
-    expect(markup).not.toContain('Footnotes')
-    expect(markup).not.toContain('+ Add footnote')
+    expect(needMarkup).not.toContain('Fine print')
+    expect(needMarkup).not.toContain('+ Add fine print line')
   })
 })
 
