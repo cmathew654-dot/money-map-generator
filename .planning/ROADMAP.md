@@ -32,12 +32,12 @@ Four phases resolve the parked "field form nightmare" call from session 43: firs
   5. "After-tax" names one concept, not three.
   6. Every panel label matches the phrase that field prints on the map.
 
-**Plans**: 2/5 plans executed
+**Plans**: 3/5 plans executed
 Plans:
 
 - [x] 01-01-PLAN.md — IA-04: controls for `valueTag`, `needTag`, `qualifier` (wave 1, leads the phase)
 - [x] 01-02-PLAN.md — IA-01: prove the shipped taxonomy, supersede the stale editor spec (wave 1, docs-only, parallel)
-- [ ] 01-03-PLAN.md — IA-02/IA-03: fine print moves to Income; nested-group help text; missing empty states (wave 2)
+- [x] 01-03-PLAN.md — IA-02/IA-03: fine print moves to Income; nested-group help text; missing empty states (wave 2)
 - [ ] 01-04-PLAN.md — IA-05/IA-06: rename blast-radius inventory, after-tax ruling, label alignment (wave 3, has decision checkpoint)
 - [ ] 01-05-PLAN.md — Phase gate: suite dispositions + human verification (wave 4, has verify checkpoint)
 
@@ -96,7 +96,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-|-|-|-|
-| 1. Information Architecture | 2/5 | In Progress|  |
+| 1. Information Architecture | 3/5 | In Progress|  |
 | 2. Guided vs. Freeform Flow | 0/TBD | Not started | - |
 | 3. Visual Craft | 0/TBD | Not started | - |
 | 4. Verification | 0/TBD | Not started | - |
