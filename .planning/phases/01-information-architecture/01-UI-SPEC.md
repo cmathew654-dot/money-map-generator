@@ -41,6 +41,8 @@ Ground truth is the shipped s51 "Ledger" accordion (`src/form/Form.tsx`), not th
 | Need | `need` | The red number the household must cover each month. | Monthly account withdrawal (as-needed amount), monthly need total. | See Fine print finding below — currently misplaced here. |
 | Notes | `notes` | Free-text context that isn't a number. | Freeform textarea notes. | Anything with a dollar value. |
 
+**Verified against shipped code (2026-08-09, re-run for 01-02):** `grep -o 'data-form-section="[a-z]*"' src/form/Form.tsx | sort -u` returns exactly 5 values — `accounts`, `client`, `income`, `need`, `notes` — matching this table, and `sectionLabels` (`Form.tsx:1490-1496`) maps the same five keys to `Client`/`Income`/`Accounts`/`Need`/`Notes`.
+
 This taxonomy is already correct and unambiguous for 4 of 5 sections. The exceptions are the two concrete overlaps below — these are the actual content of IA-02/IA-03 for this phase, not the section list itself.
 
 ### Finding 1 (IA-02) — Fine print is filed under the wrong section
