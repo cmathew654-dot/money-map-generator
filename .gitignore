@@ -8,3 +8,5 @@ tsconfig.tsbuildinfo
 dist-real
 .impeccable/hook.cache.json
 .env
+.planning/config.json
+docs/codex/
