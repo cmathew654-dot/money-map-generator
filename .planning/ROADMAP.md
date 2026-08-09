@@ -81,7 +81,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-|-|-|-|
-| 1. Information Architecture | 0/5 | Planned | - |
+| 1. Information Architecture | 1/5 | Executing | - |
 | 2. Guided vs. Freeform Flow | 0/TBD | Not started | - |
 | 3. Visual Craft | 0/TBD | Not started | - |
 | 4. Verification | 0/TBD | Not started | - |
