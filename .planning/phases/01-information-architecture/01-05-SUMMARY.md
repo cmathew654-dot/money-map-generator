@@ -158,6 +158,30 @@ None.
 - Task 2's checkpoint (Cyril walking the panel and confirming section-nameability) is the only remaining gate before Phase 1 can be marked fully complete in ROADMAP.md.
 - Two stale visual baselines (`editor`, `editor-inspector`) and the accessibility-harness/text-spacing failures are confirmed pre-existing/expected and carried forward to Phase 4 (VERIFY-01/VERIFY-02) exactly as the plan directs — not fixed here.
 
+## Task 2 Checkpoint Outcome — NOT APPROVED (criterion defect, not field defect)
+
+Resolved 2026-08-09. Cyril dogfooded the panel and did not approve.
+
+**The finding, in his words:** "the fact that this dogfooding is difficult / it's hard to find the fields even with instructions IS the issue" — and, on the shell: "the accordion shit SUCKS. there has to be a better way everything is hidden, so many fields and forms and so confusing, nothing stands out or is different than anything else. the actual strip add+data+contents+help is just weird and unintuitive, there is no way this is best practice or the most logical way to do it."
+
+**Disposition: the six requirements stand; the phase success criterion does not.**
+
+Roadmap Phase 1 criterion 2 — "can look at any field and know exactly which section it lives in" — tests *recognition* (given a field, name its section). The advisor's actual task is *retrieval* (given an intent, find the control). Recognition is the easy direction and was never the failure mode. IA-01..IA-06 were real defects, are really fixed, and are verified against evidence — but satisfying them does not deliver PROJECT.md's core value, which is building a client map with less hesitation. Taxonomy was necessary and insufficient.
+
+Contributing failure on the orchestrator's side: the verification walkthrough handed to Cyril was written from `Form.tsx`'s structure ("expand an account, there is a Value tag field under Value") rather than from advisor intent. Instructions authored from the inside cannot detect a retrieval problem.
+
+**Findings that outlived the checkpoint:**
+
+1. **A third naming site for the `afterTax` bucket.** The Add panel renders `ACCOUNT_PRESETS[].chipLabel` (`src/model/book.ts:88`) showing **Trust**, while Data and the map tag now show **Taxable** after IA-05. The task-1 inventory missed it because it grepped the strings `After-tax`/`After-Tax` and `'Trust'` contains neither. Same defect class as IA-05; carried forward, not fixed here.
+2. **Money Map has two complete editing systems.** `src/form/Form.tsx` (1,674 lines) and a canvas system — **21 edit-key kinds wired across 15 render sites** in `MapSvg.tsx` / `MapTextEditor.tsx` / `MapInspector.tsx`, covering `accountValue`, `accountPositionValue`, `incomeAmount`, `monthlyNeed`, `asNeededAmount`, `footnoteText`, `flowLabel`, `afterTaxIncome` and more. Double-click-to-edit works today (`tests/e2e/s51-dblclick-title.spec.ts`). Cyril confirmed it works and **ruled that editing behavior is not to be changed**.
+3. **Two filter boxes.** `Filter data` in the Data panel and `Filter contents` in Contents (`src/ui/EditorPanels.tsx:293`) search overlapping projections of the same objects, so "where do I search" is itself ambiguous.
+4. **`contentItems()` (`src/ui/EditorPanels.tsx:65`)** already builds a flat, grouped, per-item searchable index of every map object. Three independent design agents working from incompatible lenses each converged on it as the spine of any fix.
+5. **`Account.valueTag`, shipped in plan 01-01, has no canvas edit target** — one of the few fields that genuinely requires the panel.
+
+**Carried into Phase 2 rescoping:** Phase 2's goal changes from flow-polish to *retrieval*, measured by a cold task stated in advisor language ("mark the Roth's value as an estimate") with no DOM narration. Primary direction is collapsing duplication — Data and Contents are the redundant pair — not adding capability, and explicitly not touching the double-click editing contract.
+
+**Frozen before any Phase 2 work:** `C:\Users\Cyril\Backups\money-map-generator\2026-08-09-phase1-complete\` — full-history bundle (61 refs) + working tree with untracked files, restore-tested. Tag `frozen/2026-08-09-phase1`.
+
 ---
 *Phase: 01-information-architecture*
 *Completed: 2026-08-09*
