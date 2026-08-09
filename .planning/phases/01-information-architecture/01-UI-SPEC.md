@@ -196,9 +196,79 @@ Non-blocking FLAGs recorded by the checker:
 
 ---
 
-## Open Decisions Requiring Cyril (do not silently resolve)
+## Open Decisions — resolved 2026-08-08
 
-1. **Fine print placement (Finding 1):** move from Need section to Income section? Default = yes, pending one-word confirmation.
-2. **Positions/Sub-accounts help text (Finding 2):** approve the two proposed help-text strings, or supply advisor-vocabulary alternatives? Default = use as drafted, pending confirmation.
-3. **Notes and Fine print empty-state copy:** add matching empty-state lines (parallel to Income/Accounts), or explicitly rule the omission acceptable?
-4. **Filter zero-results behavior:** confirm whether an all-sections-filtered-empty state needs its own copy, or current blank-panel behavior is acceptable.
+1. **Fine print placement (Finding 1):** RESOLVED — move to Income. Cyril: "yeah that's fine." He separately questioned whether Fine print should exist at all; investigated and answered below (Finding 6).
+2. **Positions/Sub-accounts help text (Finding 2):** RESOLVED — use as drafted. Cyril: "absolutely phenomenal in terms of things I couldn't quite put my finger on." He may still revise the exact wording; the intent (distinguish breakdown-of-total from carved-out-pool) is locked.
+3. **Notes empty-state copy:** RESOLVED — yes, add it. Fine print empty state folded into Finding 6.
+4. **Filter zero-results copy:** RESOLVED — yes, add it. Current behavior must be confirmed first (the spec flagged it unverified).
+
+---
+
+## Addendum — ambiguity sweep, 2026-08-08
+
+Commissioned by Cyril after Finding 2: *"make sure there's no other confusing crap like this."* A dedicated read-only sweep of `Form.tsx`, `types.ts`, `book.ts`, `Wizard.tsx`, `EditorPanels.tsx`, `EditorRail.tsx` hunted for the same problem class — UI that under-communicates a distinction that is real in the model or in behavior. Three found. `Wizard.tsx`, `EditorPanels.tsx`, `EditorRail.tsx` are clean; they only re-host Form's sections.
+
+### Finding 3 (HIGH) — Three fields print on the exported map but cannot be edited anywhere
+
+**Verified 2026-08-08 by direct grep, not inferred.**
+
+| Field | Defined | Prints via | Occurrences in `Form.tsx` | In `Wizard.tsx` |
+|-|-|-|-|-|
+| `Account.valueTag` | `src/model/types.ts:39` | `src/export/export.ts:37` | **0** | 0 |
+| `MoneyMapData.needTag` | `src/model/types.ts:203` | `src/export/export.ts:41` | 1 — search index only (`Form.tsx:1478`) | 0 |
+| `IncomeSource.qualifier` | `src/model/types.ts:56` | `src/export/export.ts:48` | **0** | 0 |
+
+Sample data ships `qualifier: "Gross"`, so these render in practice. The tell: `src/form/Form.tsx:494` opens `<div className="value-tag-fields need-fields">` — a wrapper named for the tag field — containing only two `MoneyField`s and no tag control.
+
+**Why it matters more than a naming nit:** text appears on the finished client-facing artifact that the advisor has no way to change. `needTag` is searchable but not editable — the filter will surface a field the user then cannot find. The only route to change these today is hand-editing the JSON book file.
+
+**Recommendation:** expose all three as editable fields in their owning sections (valueTag on the account card, needTag in Need, qualifier on the income source row). This is the highest-value item in Phase 1 — it converts an invisible constraint into a visible control.
+
+**Alternative if editing is not wanted:** remove them from export so nothing prints that cannot be controlled. Not recommended — sample data suggests they carry real meaning.
+
+### Finding 4 (MEDIUM) — "After-tax" names three unrelated things
+
+- Household income total: `label="After-Tax Income"` (`Form.tsx:640`, `types.ts:200`)
+- Account-type option: `{ value: afterTax, label: "After-tax" }` (`book.ts:58`, select at `Form.tsx:914-931`)
+- One Fine-print row's withholding figure: help text "The after-tax amount appears in green" (`Form.tsx:1229`) describing the per-row `Net` field (`Form.tsx:1206`, `types.ts:63` "after withholding")
+
+A household total, an account category, and one row's withholding figure share a word by accident. An advisor reasonably assumes they reconcile; they do not. **Recommendation:** rename two of the three. Cyril's advisor vocabulary should pick which keeps the term.
+
+### Finding 5 (LOW) — Panel name and printed name disagree
+
+`label="Monthly account withdrawal"` (`Form.tsx:503-504`, bound to `asNeededAmount`) prints on the map as a chip reading **"As needed"** (`render/MapSvg.tsx:2045`; accessible label at 2002-2003 reads "Monthly income drawn as needed"). The field name describes the mechanism; the map shows the client-facing phrase. Someone hunting Data for "As needed" will not find it. **Recommendation:** align the panel label to the printed phrase.
+
+### Finding 6 — Should Fine print exist at all?
+
+Cyril asked: *"idk if we need fine print at all?"* and *"idk how much the money map generator should be focusing on gross vs net."*
+
+**Investigated: keep it.** Fine print is not a form field — it is a map element with **172 references across 12 files**. It lays out (`src/layout/layout.ts`, `footnoteLineLayouts`), renders (`src/render/MapSvg.tsx`), is selectable in the inspector (`src/render/MapInspector.tsx:157-159`), supports text overrides (`MapSvg.tsx:435-437`), and exports. Deleting it is a product amputation, not a cleanup.
+
+The answerable version of the question is about **emphasis, not existence** — how prominently the tool should push a gross/net breakdown. That is a Phase 2 (Flow) decision. Phase 1 only moves its editor into Income.
+
+**Consequence for decision 3:** the Fine-print empty state is deferred to Phase 2 along with the emphasis question, rather than being added now.
+
+---
+
+## Addendum — items routed to later phases
+
+Raised by Cyril during Phase 1 review; recorded here so they are not lost, but deliberately NOT Phase 1 scope.
+
+### → Phase 2 (Flow): the generation payoff moment
+
+Cyril: *"there should be some sort of 'generation' payoff/UI/UX that makes the user feel the value of the product... maybe when saving?? BUT idw it to feel like ceremony when they are used to powerpoint."*
+
+**Recommendation: put it at export, not save.** Save is frequent and incidental; a moment there becomes the ceremony he is trying to avoid. Export is where the artifact becomes real and is infrequent enough to afford a beat — and it adds no click, because the user is already there. Seam exists: `exportPng` / `exportSvg` / `exportPdf` in `src/export/export.ts:298-318`.
+
+**Form:** not a modal, not confetti — anything requiring dismissal *is* ceremony. The payoff should be the artifact reveal: the map briefly composes and settles into its final exported state, then the file lands. CSS-only, no dismissal, no added step. PowerPoint offers no equivalent moment, so a restrained one reads as craft rather than as a gate.
+
+Also belongs in Phase 2: the gross/net emphasis question from Finding 6.
+
+### → Phase 3 (Visual Craft): autocomplete suggestion styling
+
+Cyril: *"the auto fill feature or whatever, the suggestions are all in like chunky bold font? idk mad ugly."*
+
+**Diagnosed:** `src/styles/app.css:1517-1520` sets `.autocomplete-option strong { color: #0e654a; font-weight: 750; }` on the matched substring (`src/ui/Autocomplete.tsx:133-138`). Two defects — `750` is heavier than normal bold and reads as a slab at 13px, and the highlight fires **two** signals (weight *and* colour) where one suffices. Compounded by a `border-top` hairline between every option (`app.css:1509`), producing ruled rows of heavy green text.
+
+**Fix:** one signal only. Either the green at normal weight, or ~600 weight with no colour shift. Reconsider the per-option rule.

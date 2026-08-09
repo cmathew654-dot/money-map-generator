@@ -12,12 +12,17 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 - [ ] **IA-01**: The Data panel's actual shipped structure (s51 Ledger accordion — sections, accordion rows, nested Positions/Sub-accounts) is documented as ground truth, explicitly superseding the stale canvas-first-editor-design.md description.
 - [ ] **IA-02**: Every field has exactly one section it belongs to — no two sections (client / income / accounts / need / notes) compete for the same kind of input.
 - [ ] **IA-03**: Nested structures inside Accounts (Positions, Sub-accounts) have a clear, stated relationship to their parent account and to sibling sections, resolving the "unclear what lives where" complaint.
+- [ ] **IA-04**: Every value that prints on the exported map is editable somewhere in the UI. Specifically `Account.valueTag`, `MoneyMapData.needTag`, and `IncomeSource.qualifier` — verified 2026-08-08 to render via `src/export/export.ts:37,41,48` with zero editing controls in `Form.tsx` or `Wizard.tsx` — gain controls in their owning sections. *(Added after the 2026-08-08 ambiguity sweep; highest-value item in Phase 1.)*
+- [ ] **IA-05**: The term "after-tax" names exactly one concept in the UI. It currently names three unrelated things — the household income total (`Form.tsx:640`), an account-type option (`book.ts:58`), and one Fine-print row's withholding figure (`Form.tsx:1206`, help text at 1229). At least two are renamed. *(Added 2026-08-08.)*
+- [ ] **IA-06**: A field's panel label matches the phrase it prints on the map. Specifically "Monthly account withdrawal" (`Form.tsx:503`) vs. the map's "As needed" chip (`render/MapSvg.tsx:2045`). *(Added 2026-08-08.)*
 
 ### Flow (FLOW)
 
 - [ ] **FLOW-01**: The Wizard (420px guided-setup column) and the Data panel (380px, behind the rail) have distinct, non-overlapping roles that are stated explicitly, not left to be inferred from code.
 - [ ] **FLOW-02**: Wizard's section/step boundaries align with the Data panel's section boundaries from IA-02, so a user moving between guided and freeform entry doesn't hit a different mental model.
 - [ ] **FLOW-03**: Adding any item (income source, account, need, flow, note) through any entry point stays unordered and non-blocking — no forced sequence, no modal wizard reintroduced (preserves the guided-freeform-build-flow-design.md readiness-checklist principle).
+- [ ] **FLOW-04**: Completing a map produces a felt payoff moment at **export** (not save), expressed as an artifact reveal rather than a modal, confetti, or anything requiring dismissal — it must add no click and no ceremony, since the user is migrating from PowerPoint. Seam: `exportPng`/`exportSvg`/`exportPdf` in `src/export/export.ts:298-318`. *(Added 2026-08-08 at Cyril's request.)*
+- [ ] **FLOW-05**: How prominently the tool pushes a gross/net breakdown is an explicit, recorded emphasis decision. Fine print stays in the product — verified 2026-08-08 as a map element with 172 references across 12 files, not a removable form field — so the open question is weight, not existence. *(Added 2026-08-08.)*
 
 ### Visual Craft (CRAFT)
 
@@ -25,6 +30,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 - [ ] **CRAFT-02**: The Data panel has deliberate vertical rhythm and typographic hierarchy (section headers, field labels, values) so density and structure are visible at a glance, replacing the "stack of form controls" feel.
 - [ ] **CRAFT-03**: Interactive states (focus, hover, accordion expand/collapse) have visible, smooth feedback that respects `prefers-reduced-motion`.
 - [ ] **CRAFT-04**: Mid-edit money field formatting behavior (`src/form/Form.tsx:351`) is resolved to one explicit, confirmed behavior and implemented consistently — closing the open formatted-vs-raw contradiction between spec and live code.
+- [ ] **CRAFT-05**: Autocomplete suggestion styling reads as considered rather than heavy. The match highlight fires one signal, not two — `src/styles/app.css:1517-1520` currently applies both `color: #0e654a` and `font-weight: 750` to the matched substring (`src/ui/Autocomplete.tsx:133-138`), compounded by a per-option `border-top` hairline (`app.css:1509`). *(Added 2026-08-08 — Cyril: "the suggestions are all in like chunky bold font? idk mad ugly".)*
 
 ### Verification (VERIFY)
 

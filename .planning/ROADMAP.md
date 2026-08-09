@@ -20,34 +20,41 @@ Four phases resolve the parked "field form nightmare" call from session 43: firs
 ### Phase 1: Information Architecture
 **Goal**: Cyril can look at any field and know exactly which Data panel section it lives in, with no conceptual overlap between sections.
 **Depends on**: Nothing (first phase)
-**Requirements**: IA-01, IA-02, IA-03
+**Requirements**: IA-01, IA-02, IA-03, IA-04, IA-05, IA-06
 **Success Criteria** (what must be TRUE):
   1. The Data panel's documented structure matches what's actually in the code (s51 Ledger accordion), not the stale canvas-first-editor-design.md description.
   2. For any given financial input (income source, account, position, sub-account, need line, note), Cyril can name its section without checking the code.
   3. No two sections (client / income / accounts / need / notes) claim the same kind of input — overlaps identified in the current keyed structure are resolved or explicitly ruled acceptable.
+  4. Nothing prints on the exported map that cannot be edited in the UI. `valueTag`, `needTag`, and `qualifier` have controls.
+  5. "After-tax" names one concept, not three.
+  6. Every panel label matches the phrase that field prints on the map.
 **Plans**: TBD
 **UI hint**: yes
+**UI-SPEC**: `.planning/phases/01-information-architecture/01-UI-SPEC.md` — APPROVED 2026-08-08, 6/6 dimensions. Carries 6 findings; criteria 4-6 come from the 2026-08-08 ambiguity sweep commissioned after Cyril's "make sure there's no other confusing crap like this."
 
 ### Phase 2: Guided vs. Freeform Flow
 **Goal**: Cyril knows without hesitation whether a task belongs in the Wizard or the Data panel, and moving between them doesn't force him to redo work or relearn a different mental model.
 **Depends on**: Phase 1
-**Requirements**: FLOW-01, FLOW-02, FLOW-03
+**Requirements**: FLOW-01, FLOW-02, FLOW-03, FLOW-04, FLOW-05
 **Success Criteria** (what must be TRUE):
   1. Cyril can state the Wizard's purpose and the Data panel's purpose in one sentence each, and the two don't overlap.
   2. Starting a task in the Wizard and finishing it in the Data panel (or vice versa) preserves context — same section names, no redone steps.
   3. Adding any item through any entry point remains unordered and non-blocking (no forced sequence, no modal reintroduced).
+  4. Exporting a finished map produces a felt payoff moment that adds no click and requires no dismissal — an artifact reveal, not a modal or confetti.
+  5. The gross/net emphasis question is decided and recorded. Fine print stays in the product; only its weight is open.
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 3: Visual Craft
 **Goal**: The Data panel reads as deliberately designed — distinct field treatment, clear rhythm and hierarchy, smooth interactive feedback — instead of a stack of generic rectangle fields.
 **Depends on**: Phase 2
-**Requirements**: CRAFT-01, CRAFT-02, CRAFT-03, CRAFT-04
+**Requirements**: CRAFT-01, CRAFT-02, CRAFT-03, CRAFT-04, CRAFT-05
 **Success Criteria** (what must be TRUE):
   1. Input and select fields have a distinct visual identity built on `--fm-*` tokens, not the default browser rectangle look.
   2. Section and field hierarchy is visible at a glance through spacing and typography, without reading labels first.
   3. Focus, hover, and accordion expand/collapse states give visible, smooth feedback and respect `prefers-reduced-motion`.
   4. Mid-edit money formatting behaves one confirmed way (formatted or raw) consistently across every money field — the Form.tsx:351 spec-vs-live contradiction is closed.
+  5. Autocomplete suggestions read as considered — the match highlight fires one signal, not both `font-weight: 750` and a colour shift.
 **Plans**: TBD
 **UI hint**: yes
 
