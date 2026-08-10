@@ -445,16 +445,21 @@ function TextField({
 
 function SectionHead({
   count,
+  noun,
   title,
 }: {
   count?: number
+  /** A bare tally reads as a random number; the noun says what was counted. */
+  noun?: string
   title: string
 }) {
   return (
     <header className="form-section-head">
       <h2>{title}</h2>
       {count !== undefined && (
-        <span className="form-section-count">{count}</span>
+        <span className="form-section-count">
+          {`${count} ${count === 1 ? noun : `${noun}s`}`}
+        </span>
       )}
     </header>
   )
@@ -559,7 +564,7 @@ export function IncomeSection({
 
   return (
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="income" ref={sectionRef}>
-      <SectionHead count={data.incomeSources.length} title="Income" />
+      <SectionHead count={data.incomeSources.length} noun="source" title="Income" />
       <div className="row-list">
         {data.incomeSources.map((source, index) => (
           <div className="stacked-row income-row" key={index}>
@@ -1121,7 +1126,7 @@ export function AccountsSection({
 
   return (
     <section className={active ? 'form-section accounts-section is-active' : 'form-section accounts-section'} data-form-section="accounts" ref={sectionRef}>
-      <SectionHead count={visible.length} title="Accounts" />
+      <SectionHead count={visible.length} noun="account" title="Accounts" />
       {visible.map((account) => (
         <AccountCard
           account={account}
@@ -1307,7 +1312,7 @@ export function NotesSection({
 
   return (
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="notes" ref={sectionRef}>
-      <SectionHead count={notes.length} title="Notes" />
+      <SectionHead count={notes.length} noun="note" title="Notes" />
       <div className="row-list">
         {notes.map((note, index) => (
           <div className="stacked-row note-row" key={note.id}>

@@ -176,7 +176,8 @@ describe('s51 section headers', () => {
     const markup = renderForm()
 
     expect(markup).toContain('form-section-head')
-    expect(markup).toMatch(/form-section-count[^>]*>2</)
+    // A bare tally reads as a random number, so the count names what it counts.
+    expect(markup).toMatch(/form-section-count[^>]*>\s*2 accounts\s*</)
     expect(formCss).toMatch(/\.form-section-head\s*\{[^}]*position:\s*sticky/)
   })
 })
