@@ -1750,21 +1750,25 @@ summary:focus-visible {
   text-transform: uppercase;
 }
 
+/* Quiet text actions in the same vocabulary as .add-button. The capsule was
+   the only rounded thing left in a panel that is otherwise a ledger, and the
+   bucket tint rode in on a coloured left border. */
 .account-preset-button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 8px;
-  border-color: #c9cfc9;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #5b6663;
+  gap: 5px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--fm-ink);
   font-size: 12px;
 }
 
 .account-preset-button:hover {
-  background: #f1f3f0;
-  color: #1c2422;
+  background: transparent;
+  color: var(--fm-ink);
+  text-decoration: underline;
 }
 
 .account-preset-button .account-swatch {
@@ -1856,11 +1860,13 @@ summary:focus-visible {
   height: 32px;
 }
 
+/* The tray around the presets was a rounded grey card - the container chrome
+   the ledger abolished everywhere else. The gap does the grouping instead. */
 .account-preset-row {
-  gap: 6px;
-  padding: 8px;
-  border-radius: 8px;
-  background: #f1f3f0;
+  gap: 14px;
+  padding: 8px 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .add-button {
