@@ -7,6 +7,10 @@
 
 # SESSION 3 — THE RAIL IS GONE. READ THIS BEFORE SECTIONS 1, 7 AND 8.
 
+> **Start at `.planning/HANDOVER-RAIL-MIGRATION.md` instead.** It is written for a cold start, was
+> independently verified against the tree, and supersedes this block wherever the two differ. This
+> block is kept for continuity.
+
 **Sections 1, 7 and 8 below describe session 2 and are superseded where they conflict with this
 one.** Section 4 (environment, dispatch traps) and section 5 (live traps in the code) are still
 accurate and still worth reading.
@@ -26,8 +30,14 @@ HEAD `1ddf641` on `lane/fields-ledger-axis`, clean, **still unpushed**. Six comm
 | `a7e70be` | **Rail deleted**; Data and Contents moved into the header; 72px reclaimed |
 | `1ddf641` | Restored a close-path assertion a worker had narrowed |
 
-**Verified at HEAD:** `npm run test` 814/814 across 61 files; `npm run build` clean; chromium e2e on
-canvas-editor, chrome-layout, accessibility and map-keyboard **28 passed**.
+**Verified:** `npm run test` **814/814 across 60 files** — 60, not 61; `rail-tooltips-s49.test.tsx`
+was deleted with the rail. `npm run build` clean. Chromium e2e on canvas-editor, chrome-layout,
+accessibility and map-keyboard **28 passed**.
+
+Two later commits are not in the table above: `1ddf641` restored a narrowed close-path assertion,
+and `d251966` regenerated the three stale desktop baselines (`editor`, `editor-inspector`,
+`wizard`) after review. **Baseline regeneration is therefore done, not pending** — an earlier
+version of this block said otherwise.
 
 ## Session 3 — the three findings worth carrying
 
@@ -63,7 +73,7 @@ were invisible in the diff and obvious in a headless capture. Build, `npx vite p
 
 | # | Item | State |
 |-|-|-|
-| 1 | **3 visual baselines fail by design**: `editor`, `editor with map inspector`, `wizard`. **No PNG was regenerated.** The first two were already stale pre-session; `wizard` is misnamed — `visual.spec.ts:73` only calls `openApp` and snapshots the resting editor. | Cyril's call, deferred per `DESIGN-DIRECTION.md` |
+| 1 | ~~3 visual baselines fail by design~~ **DONE in `d251966`.** `editor`, `editor-inspector` and `wizard` regenerated after reviewing each PNG. Only `chromium-1280x720` held stale baselines; `chromium-text-zoom-200` passed without regeneration. Note `wizard` is misnamed — `visual.spec.ts:73` only calls `openApp` and snapshots the resting editor. | Closed |
 | 2 | **Search results do not scroll into view.** Activating a Contents row only dispatches selection (`App.tsx:493`). Pre-existing — Contents never did this — but Contents is now the only finder, so a locator that does not reveal its target is half a locator. | Unbuilt, recommended next |
 | 3 | `gate11.mjs:173`, `gate11-note.mjs:17`, `gate12.mjs:245` branch on a `.editor-rail` selector that no longer exists. One-off gate scripts in the repo root, not in the build or test suite, so the branches are inert. | Whether they should be tracked at all is its own call |
 | 4 | Amendment 2 still marked **Open** at `DESIGN-DIRECTION.md:9,168-172` | Cyril ruled; the tree does not record it |
