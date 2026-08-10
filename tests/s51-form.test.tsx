@@ -165,9 +165,9 @@ describe('s51 in-panel close', () => {
     expect(renderForm()).not.toContain('aria-label="Close Data panel"')
   })
 
-  it('wires the close control to the same path as the rail toggle', () => {
+  it('wires the close control to the same path as the header toggle', () => {
     expect(appSource).toContain('onClose={closeDataPanel}')
-    expect(appSource).toContain('if (editorPanel === panel) closeDataPanel()')
+    expect(appSource).toContain('const toggleEditorPanel = (panel: EditorPanel) => {')
   })
 })
 

@@ -47,7 +47,7 @@ export type FormSection = 'client' | 'income' | 'accounts' | 'need' | 'notes'
 export interface FormProps {
   data: MoneyMapData
   onChange(next: MoneyMapData): void
-  /** Same close path as the editor rail toggle; omitted outside the panel. */
+  /** Same close path as the header toggle; omitted outside the panel. */
   onClose?: () => void
   filter?: string
   onFilterChange?: (filter: string) => void

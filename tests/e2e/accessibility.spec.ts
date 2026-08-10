@@ -12,7 +12,8 @@ async function tabTo(page: Page, target: Locator) {
 test.describe('WCAG 2.2 AA certification', () => {
   test('editor', async ({ page }, info) => {
     await openApp(page)
-    const rail = page.getByRole('complementary', { name: 'Editor tools' })
+    const header = page.locator('.app-header')
+    await expect(page.getByRole('complementary', { name: 'Editor tools' })).toHaveCount(0)
     const exercisePanel = async (name: 'Contents', button: Locator) => {
       await expect(button).toBeVisible()
       await tabTo(page, button)
@@ -27,7 +28,7 @@ test.describe('WCAG 2.2 AA certification', () => {
       await page.keyboard.press('Escape')
       await expect(button).toBeFocused()
     }
-    const contentsButton = rail.getByRole('button', { name: 'Contents', exact: true })
+    const contentsButton = header.getByRole('button', { name: 'Contents', exact: true })
     await exercisePanel('Contents', contentsButton)
   })
   test('wizard', async ({ page }, info) => { await openApp(page); await assertWcag22AA(page, info, 'wizard') })

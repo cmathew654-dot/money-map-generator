@@ -84,7 +84,6 @@ import {
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import { EditorPanels } from './ui/EditorPanels'
-import { EditorRail } from './ui/EditorRail'
 import { ClientCombobox } from './ui/ClientCombobox'
 import {
   applyMapTextEdit,
@@ -484,6 +483,8 @@ export default function App() {
   const firstShapePresetRef = useRef<HTMLButtonElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
   const editorPanelHeadingRef = useRef<HTMLHeadingElement>(null)
+  const editorPanelButtonRefs = useRef<Partial<Record<EditorPanel, HTMLButtonElement>>>({})
+  const previousEditorPanelRef = useRef<EditorPanel | null>(null)
   const { book, activeClientId } = snapshot
   const canMutate = canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
   const vocabulary = useMemo(() => buildVocabulary(book), [book])
@@ -632,6 +633,14 @@ export default function App() {
     setFocusRequest(undefined)
     setEditorPanel(null)
   }, [])
+
+  const toggleEditorPanel = (panel: EditorPanel) => {
+    if (editorPanel === panel) closeDataPanel()
+    else {
+      setFocusRequest(undefined)
+      setEditorPanel(panel)
+    }
+  }
 
   const commitSnapshot = useCallback(
     (next: BookSnapshot, targetClientId: string | null) => {
@@ -943,6 +952,13 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [canMutate, handleRedo, handleUndo])
+
+  useEffect(() => {
+    const closedPanel = previousEditorPanelRef.current
+    previousEditorPanelRef.current = editorPanel
+    if (!closedPanel || editorPanel) return
+    window.requestAnimationFrame(() => editorPanelButtonRefs.current[closedPanel]?.focus())
+  }, [editorPanel])
 
   useEffect(() => {
     if (!editorPanel || guidedSetup || presentMode) return
@@ -1960,6 +1976,28 @@ export default function App() {
         <div className="header-history-actions">
           <button aria-label="Undo" className="quiet-button history-button" disabled={!canMutate || history.past.length === 0} title="Undo (Ctrl+Z)" type="button" onClick={handleUndo}>&#x21B6;</button>
           <button aria-label="Redo" className="quiet-button history-button" disabled={!canMutate || history.future.length === 0} title="Redo (Ctrl+Shift+Z or Ctrl+Y)" type="button" onClick={handleRedo}>&#x21B7;</button>
+          {!guidedSetup && (
+            <>
+              <button
+                aria-expanded={editorPanel === 'data'}
+                className="quiet-button"
+                ref={(button) => { editorPanelButtonRefs.current.data = button ?? undefined }}
+                type="button"
+                onClick={() => toggleEditorPanel('data')}
+              >
+                Data
+              </button>
+              <button
+                aria-expanded={editorPanel === 'contents'}
+                className="quiet-button"
+                ref={(button) => { editorPanelButtonRefs.current.contents = button ?? undefined }}
+                type="button"
+                onClick={() => toggleEditorPanel('contents')}
+              >
+                Contents
+              </button>
+            </>
+          )}
         </div>
         <div className="header-spacer" />
         <div className="header-payoff-actions">
@@ -2070,16 +2108,6 @@ export default function App() {
           </aside>
         ) : (
           <>
-            <EditorRail
-              activePanel={editorPanel}
-              onToggle={(panel) => {
-                if (editorPanel === panel) closeDataPanel()
-                else {
-                  setFocusRequest(undefined)
-                  setEditorPanel(panel)
-                }
-              }}
-            />
             {editorPanel === 'contents' && (
               <EditorPanels
                 canMutate={canMutate}

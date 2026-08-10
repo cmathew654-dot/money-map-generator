@@ -105,11 +105,9 @@ test.describe('desktop visual baselines', () => {
     await page.getByRole('button', { name: 'Data', exact: true }).click()
     const geometry = await page.evaluate(() => {
       const workspace = document.querySelector<HTMLElement>('.workspace')!
-      const rail = document.querySelector<HTMLElement>('.editor-rail')!
       const panel = document.querySelector<HTMLElement>('.editor-panel')!
       const preview = document.querySelector<HTMLElement>('.preview-pane')!
       const panelRect = panel.getBoundingClientRect()
-      const railRect = rail.getBoundingClientRect()
       const workspaceRect = workspace.getBoundingClientRect()
       const previewRect = preview.getBoundingClientRect()
       return {
@@ -119,7 +117,7 @@ test.describe('desktop visual baselines', () => {
         panelScrollHeight: panel.scrollHeight,
         panelLeft: panelRect.left,
         panelRight: panelRect.right,
-        railRight: railRect.right,
+        workspaceLeft: workspaceRect.left,
         workspaceRight: workspaceRect.right,
         previewTop: previewRect.top,
         workspaceTop: workspaceRect.top,
@@ -128,7 +126,7 @@ test.describe('desktop visual baselines', () => {
     expect(geometry.panelPosition).toBe('absolute')
     expect(geometry.panelOverflowY).toMatch(/auto|scroll/)
     expect(geometry.panelScrollHeight).toBeGreaterThan(geometry.panelClientHeight)
-    expect(Math.abs(geometry.panelLeft - geometry.railRight)).toBeLessThan(1)
+    expect(Math.abs(geometry.panelLeft - geometry.workspaceLeft)).toBeLessThan(1)
     expect(geometry.panelRight).toBeLessThanOrEqual(geometry.workspaceRight + 1)
     expect(Math.abs(geometry.previewTop - geometry.workspaceTop)).toBeLessThan(1)
   })

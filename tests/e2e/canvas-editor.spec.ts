@@ -42,13 +42,32 @@ test('Tidy map separates overlapping account bounding boxes', async ({ page }) =
   await expect.poll(overlaps).toBe(false)
 })
 
-test('existing clients open on the canvas and Data restores rail focus when it closes', async ({ page }) => {
+test('Contents header filter narrows the bundled map contents', async ({ page }) => {
   await openApp(page)
 
-  const rail = page.getByRole('complementary', { name: 'Editor tools' })
-  await expect(rail).toBeVisible()
+  await page
+    .locator('.app-header')
+    .getByRole('button', { name: 'Contents', exact: true })
+    .click()
+  const panel = page.getByRole('dialog', { name: 'Contents' })
+  const filter = panel.getByRole('searchbox', { name: 'Filter contents' })
+  const cashAtBank = panel.getByRole('button', { name: 'Cash at Bank', exact: true })
+  const monthlyNeed = panel.getByRole('button', { name: 'Monthly income need', exact: true })
+
+  await expect(cashAtBank).toBeVisible()
+  await expect(monthlyNeed).toBeVisible()
+  await filter.fill('Cash at Bank')
+  await expect(cashAtBank).toBeVisible()
+  await expect(monthlyNeed).toHaveCount(0)
+})
+
+test('existing clients open on the canvas and header toggles restore focus after close or Escape', async ({ page }) => {
+  await openApp(page)
+
+  const header = page.locator('.app-header')
+  await expect(page.getByRole('complementary', { name: 'Editor tools' })).toHaveCount(0)
   for (const name of ['Data', 'Contents']) {
-    await expect(rail.getByRole('button', { name })).toHaveAttribute(
+    await expect(header.getByRole('button', { name, exact: true })).toHaveAttribute(
       'aria-expanded',
       'false',
     )
@@ -59,26 +78,37 @@ test('existing clients open on the canvas and Data restores rail focus when it c
   await expect(page.getByRole('button', { name: 'Guide me' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Full form' })).toHaveCount(0)
 
-  const data = rail.getByRole('button', { name: 'Data' })
-  await data.click()
-  const panel = page.getByRole('dialog', { name: 'Data' })
-  await expect(panel).toBeVisible()
-  await expect(data).toHaveAttribute('aria-expanded', 'true')
-  await expect(panel.getByRole('heading', { name: 'Data' })).toBeFocused()
+  for (const [name, closeWithEscape] of [
+    ['Data', true],
+    ['Contents', false],
+    ['Data', false],
+    ['Contents', true],
+  ] as const) {
+    const button = header.getByRole('button', { name, exact: true })
+    await button.click()
+    const panel = page.getByRole('dialog', { name })
+    await expect(panel).toBeVisible()
+    await expect(button).toHaveAttribute('aria-expanded', 'true')
+    await expect(panel.getByRole('heading', { name })).toBeFocused()
 
-  await page.keyboard.press('Escape')
-  await expect(panel).toHaveCount(0)
-  await expect(data).toBeFocused()
+    if (closeWithEscape) await page.keyboard.press('Escape')
+    else await panel.getByRole('button', { name: `Close ${name} panel` }).click()
+
+    await expect(panel).toHaveCount(0)
+    await expect(button).toBeFocused()
+  }
 })
 
-test('each editor rail button pairs its accessible text label with a visible decorative icon', async ({ page }) => {
+test('Data and Contents are plain text editing controls in the header left group', async ({ page }) => {
   await openApp(page)
 
-  const rail = page.getByRole('complementary', { name: 'Editor tools' })
+  const editingActions = page.locator('.header-history-actions')
+  const outputActions = page.locator('.header-payoff-actions')
   for (const name of ['Data', 'Contents']) {
-    const button = rail.getByRole('button', { name, exact: true })
-    await expect(button).toContainText(name)
-    await expect(button.locator('[aria-hidden=true]')).toBeVisible()
+    const button = editingActions.getByRole('button', { name, exact: true })
+    await expect(button).toHaveText(name)
+    await expect(button).toHaveClass(/quiet-button/)
+    await expect(outputActions.getByRole('button', { name, exact: true })).toHaveCount(0)
   }
 })
 
@@ -101,15 +131,17 @@ test('Data overlays the canvas below the desktop breakpoint', async ({ page }) =
 
 test('New still opens the guided setup', async ({ page }) => {
   await openApp(page)
-  await expect(
-    page.getByRole('complementary', { name: 'Editor tools' }),
-  ).toBeVisible()
+  const header = page.locator('.app-header')
+  await expect(header.getByRole('button', { name: 'Data', exact: true })).toBeVisible()
+  await expect(header.getByRole('button', { name: 'Contents', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'More actions' }).click()
   await page.getByRole('menuitem', { name: 'New client' }).click()
 
   await expect(
     page.getByRole('heading', { name: 'Who is this map for?' }),
   ).toBeVisible()
+  await expect(header.getByRole('button', { name: 'Data', exact: true })).toHaveCount(0)
+  await expect(header.getByRole('button', { name: 'Contents', exact: true })).toHaveCount(0)
 })
 
 test('Data filters records and Details focuses the selected account', async ({ page }) => {
