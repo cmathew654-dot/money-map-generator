@@ -168,6 +168,9 @@ describe('s51 in-panel close', () => {
   it('wires the close control to the same path as the header toggle', () => {
     expect(appSource).toContain('onClose={closeDataPanel}')
     expect(appSource).toContain('const toggleEditorPanel = (panel: EditorPanel) => {')
+    // The branch, not just the handler: re-pressing an open panel's toggle must
+    // close it down the same path as the in-panel close control.
+    expect(appSource).toContain('if (editorPanel === panel) closeDataPanel()')
   })
 })
 
