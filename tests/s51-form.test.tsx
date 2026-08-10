@@ -9,6 +9,7 @@ import { blankClient } from '../src/model/samples'
 import type { MoneyMapData } from '../src/model/types'
 
 const formCss: string = readFileSync('src/styles/form.css', 'utf8')
+const formSource: string = readFileSync('src/form/Form.tsx', 'utf8')
 
 function withAccounts(): MoneyMapData {
   const data = blankClient()
@@ -50,13 +51,25 @@ describe('s51 ledger rows collapse and expand', () => {
     expect(markup).not.toContain('Supporting note')
   })
 
-  it('keeps the dot, name and tabular value on the row', () => {
+  it('keeps the name, bucket tag and tabular value on the row', () => {
     const markup = renderAccounts()
 
-    expect(markup).toContain('account-swatch')
+    expect(markup).not.toMatch(
+      /class="account-summary"[^>]*><span[^>]*account-swatch/,
+    )
     expect(markup).toContain('Roth IRA')
+    expect(markup).toContain('TAX-PREFERRED')
     expect(markup).toContain('account-summary-value')
     expect(formCss).toMatch(/\.account-summary-value\s*\{[^}]*tabular-nums/)
+  })
+
+  it('keeps bucket tags as bare tagColor text', () => {
+    const tagRule = formCss.match(/\.account-summary-tag\s*\{([^}]*)\}/)?.[1]
+
+    expect(tagRule).toBeDefined()
+    expect(tagRule).not.toMatch(/border-radius/)
+    expect(formSource).toMatch(/BUCKETS\[account\.bucket\]\.tagColor/)
+    expect(formSource).not.toMatch(/BUCKETS\[account\.bucket\]\.stroke/)
   })
 
   it('expands the selected row in place and leaves the others closed', () => {

@@ -39,7 +39,7 @@ import {
   type VocabularyTerm,
 } from '../model/vocab'
 import { NOTE_WIDTH } from '../layout/layout'
-import { ARTBOARD } from '../render/tokens'
+import { ARTBOARD, BUCKETS } from '../render/tokens'
 import { Autocomplete } from '../ui/Autocomplete'
 
 export type FormSection = 'client' | 'income' | 'accounts' | 'need' | 'notes'
@@ -902,13 +902,20 @@ function AccountCard({
             onToggle()
           }}
         >
-          <span aria-hidden="true" className="account-swatch" />
-          <span
-            className={`account-summary-label${
-              account.label.trim() ? '' : ' is-unnamed'
-            }`}
-          >
-            {accountDisplayName(account)}
+          <span className="account-summary-copy">
+            <span
+              className={`account-summary-label${
+                account.label.trim() ? '' : ' is-unnamed'
+              }`}
+            >
+              {accountDisplayName(account)}
+            </span>
+            <span
+              className="account-summary-tag"
+              style={{ color: BUCKETS[account.bucket].tagColor }}
+            >
+              {BUCKETS[account.bucket].tag.toUpperCase()}
+            </span>
           </span>
           <span className="account-summary-value">{money(account.value)}</span>
           <span aria-hidden="true" className="account-row-chevron">
