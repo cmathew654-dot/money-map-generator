@@ -27,8 +27,8 @@ export async function focusPage(page: Page) {
   }))).toEqual({ focused: true, visibility: 'visible' })
 
   const pages = page.context().pages().filter((candidate) => !candidate.isClosed())
-  for (const other of pages) {
-    if (other !== page) await other.evaluate(() => window.dispatchEvent(new FocusEvent('blur')))
+  for (const candidate of pages) {
+    await candidate.evaluate(() => window.dispatchEvent(new FocusEvent('blur')))
   }
   await page.evaluate(() => window.dispatchEvent(new FocusEvent('focus')))
   await expect.poll(async () => {
