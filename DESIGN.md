@@ -91,7 +91,7 @@ Status surfaces remain low-chroma and readable: demo uses `#eef5ef` with `#155f4
 
 Literata is the document face. It is used for the 30px map masthead, the 24px workspace title, 19px account titles, and 25px primary map values. Georgia is its fallback.
 
-Public Sans is the interface and annotation face, with Segoe UI as fallback. Body and row text center around 14px to 14.5px. Interface labels are 12px, semibold, uppercase, and tracked at `0.08em`; section headings increase tracking to `0.14em`. Monetary inputs and map values use tabular numerals.
+Public Sans is the interface and annotation face, with Segoe UI as fallback. Body and row text center around 14px to 14.5px. The editor panel spends uppercase on exactly one tier: section headings and bucket tags are 12px, bold, uppercase, and tracked at `0.12em`. Field captions are the quiet tier — 12px, semibold, sentence case, tracked at `0.02em`. Monetary inputs and map values use tabular numerals.
 
 Map text uses generous role-specific leading: account titles use approximately `1.3`, while captions, rows, and sub-account labels use approximately `1.45`. Size and weight establish hierarchy before color does.
 
@@ -111,7 +111,9 @@ Buttons use Public Sans, compact geometry, and clear border contrast. Primary ac
 
 ### Inputs
 
-Inputs and selects are 32px high with `5px 8px` internal padding. Labels sit above fields in small uppercase text. Money inputs align right and use tabular numerals. Focus, validation, save, recovery, and error states must remain explicit.
+Inputs and selects are 32px high with `5px 8px` internal padding. Labels sit above fields in small sentence-case text, and each names its owner — "Position value", never a bare "Value". Money inputs align right and use tabular numerals. Focus, validation, save, recovery, and error states must remain explicit, and focus is never carried by colour alone: the panel keeps the app-wide 2px ring rather than replacing it with a hue shift.
+
+> Captions were specified as uppercase until 2026-08-09. `form.css` had already overridden that to sentence case when the Data panel was rebuilt as a ledger, and the override is now ratified rather than reverted. Measured in-browser at 12px Public Sans semibold with the panel at its 380px cap: uppercase plus `0.08em` tracking runs **36.1% wider** on average. Against real cell widths that costs one wrap — "Sub-account value" needs 145.4px in a 133px cell — and leaves "Position value" (111.9px in 116px) and "Supporting note" (128.7px in 133px) within ~4px of wrapping. In sentence case every caption clears its cell by at least 23px. Uppercase captions would also put a second caps tier under the section headings, which are the panel's only landmark cue.
 
 ### Menus
 
