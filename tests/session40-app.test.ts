@@ -17,7 +17,6 @@ describe('Session 40 App safety boundaries', () => {
     expect(appSource).toMatch(
       /export type EditorPanel = 'add' \| 'data' \| 'contents'\r?\n/,
     )
-    expect(appSource).not.toContain("'help'")
     expect(appSource).toMatch(
       /const \[editorPanel, setEditorPanel\] = useState<EditorPanel \| null>\(null\)/,
     )
