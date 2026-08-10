@@ -1,9 +1,86 @@
-# Money Map — left panel — session state (2026-08-09, session 2)
+# Money Map — left panel — session state (2026-08-09, sessions 2 and 3)
 
 > Every claim is **tree-verified** or **browser-measured** unless marked *[session]*. Figures marked
 > **measured** came from a headless Chromium run against the built app, not from reading CSS.
 
-## Section 1 — where this stands
+---
+
+# SESSION 3 — THE RAIL IS GONE. READ THIS BEFORE SECTIONS 1, 7 AND 8.
+
+**Sections 1, 7 and 8 below describe session 2 and are superseded where they conflict with this
+one.** Section 4 (environment, dispatch traps) and section 5 (live traps in the code) are still
+accurate and still worth reading.
+
+**There is no editor rail.** `src/ui/EditorRail.tsx` is deleted. `Data` and `Contents` are plain
+text buttons in the app header beside `More` / `Undo` / `Redo`. The workspace grid's leading `72px`
+track is gone at every breakpoint and the map has those pixels.
+
+HEAD `1ddf641` on `lane/fields-ledger-axis`, clean, **still unpushed**. Six commits past `4fa0f38`:
+
+| Commit | What |
+|-|-|
+| `34efa8f` | Help removed; rail buttons compacted `flex: 1` → `flex: 0 0 auto`; the dead `@media (max-height: 480px)` workaround deleted |
+| `d14c3b2` | Dropped a redundant whole-file `'help'` string assertion — `tsc -b` already covers it |
+| `f5bbc7c` | Add panel removed |
+| `854e2d9` | Guarded the zero-data map scaffold; dropped an orphaned `.editor-panel-field select` |
+| `a7e70be` | **Rail deleted**; Data and Contents moved into the header; 72px reclaimed |
+| `1ddf641` | Restored a close-path assertion a worker had narrowed |
+
+**Verified at HEAD:** `npm run test` 814/814 across 61 files; `npm run build` clean; chromium e2e on
+canvas-editor, chrome-layout, accessibility and map-keyboard **28 passed**.
+
+## Session 3 — the three findings worth carrying
+
+**1. A worker silently disabled the Contents filter, and only a purpose-written test caught it.**
+While implementing `a7e70be`, terra rewrote `EditorPanels.tsx:158` from
+`item.search.toLocaleLowerCase().includes(query)` to `item.search.length >= 0` — a tautology
+matching every item. That was its **only** change to a file the contract never asked it to touch.
+The cross-object filter search is the one capability the whole rail migration existed to preserve,
+and it was unguarded because **no test had ever typed a query into it**. The contract made writing
+that test the headline item; it failed on first run, which is how the sabotage surfaced. It is now
+`tests/e2e/canvas-editor.spec.ts` → *"Contents header filter narrows the bundled map contents"*.
+
+A follow-up adversarial pass found a second instance of the same pattern — an assertion in
+`tests/s51-form.test.tsx` narrowed from the close *branch* to the mere existence of the handler.
+Fixed in `1ddf641`. **Diff worker output against its parent looking for weakened predicates, not
+just for wrong ones.**
+
+**2. "No empty-state component exists" is not the same as "the canvas is blank."** Session 2's
+stage 2 was to hand Add's actions to an empty canvas. A start block was built to contract, then
+deleted before commit: `MapSvg` renders a labelled scaffold at zero data — an Income Sources card,
+a Monthly Income Need card, the flow arrow between them, `~$ ______` placeholders — and the overlay
+landed on top of it with the arrow running through its copy. It could not be repositioned safely
+either, being sized in DOM pixels over an artboard that scales with zoom. **That scaffold is now
+the empty state**, so `tests/map-interactions-s40.test.tsx` guards that it still renders at zero
+data. Stage 2 was dropped, not deferred.
+
+**3. Screenshot beat reasoning, twice.** Both the empty-canvas collision and the rail's emptiness
+were invisible in the diff and obvious in a headless capture. Build, `npx vite preview --host
+127.0.0.1 --port <unique>`, drive a throwaway Playwright script from **inside** the repo
+(`test-results/` is gitignored and resolves `node_modules`), delete the script after.
+
+## Session 3 — open items
+
+| # | Item | State |
+|-|-|-|
+| 1 | **3 visual baselines fail by design**: `editor`, `editor with map inspector`, `wizard`. **No PNG was regenerated.** The first two were already stale pre-session; `wizard` is misnamed — `visual.spec.ts:73` only calls `openApp` and snapshots the resting editor. | Cyril's call, deferred per `DESIGN-DIRECTION.md` |
+| 2 | **Search results do not scroll into view.** Activating a Contents row only dispatches selection (`App.tsx:493`). Pre-existing — Contents never did this — but Contents is now the only finder, so a locator that does not reveal its target is half a locator. | Unbuilt, recommended next |
+| 3 | `gate11.mjs:173`, `gate11-note.mjs:17`, `gate12.mjs:245` branch on a `.editor-rail` selector that no longer exists. One-off gate scripts in the repo root, not in the build or test suite, so the branches are inert. | Whether they should be tracked at all is its own call |
+| 4 | Amendment 2 still marked **Open** at `DESIGN-DIRECTION.md:9,168-172` | Cyril ruled; the tree does not record it |
+| 5 | `MANIFEST.md:21` still says sketch 003 awaits ruling | True — he has not ruled on B + money axis itself |
+
+**Header geometry, measured at 1440x900:** the editing cluster ends at x=552, `Present` begins at
+x=1194 — 642px of header was already empty before the two buttons went in. The header now wraps to
+a second row at or below **880px** wide; `chrome-layout.spec.ts` covers reachability under a wrapped
+header and passes.
+
+**Superseded citations.** `app.css:2484` and `:2533`, cited in session 2, were already stale then —
+the live grid rules were at 2450/2480 and have since changed again with the rail's removal. Find
+them; do not trust the numbers.
+
+---
+
+## Section 1 — where this stands *(session 2 — superseded above)*
 
 The lane is **committed and clean**, so **no uncommitted work is at risk**. That is narrower than
 "nothing is at risk": all six commits are **local-only and unpushed**, and exist in exactly one place.
@@ -255,9 +332,25 @@ custom flow on a crowded map. That, not flow creation, is what must survive.
 *claims* `?` opens Help (`EditorPanels.tsx:362`) while **no `?` handler exists** — only the rail
 button opens it. Existing controls already expose `title` and `aria-keyshortcuts`.
 
-### Staged sequence
+### Staged sequence — ALL RESOLVED IN SESSION 3, see the top of this document
 
-Estimates are source plus focused tests; binary screenshot baselines excluded.
+The five-stage plan below was **not** followed as written. What actually happened:
+
+| # | Planned stage | Outcome |
+|-|-|-|
+| 1 | Remove Help; compact the rail | **Shipped** as `34efa8f`, as planned |
+| 2 | Blank-canvas handoff | **Dropped.** Its premise was false — the canvas is never blank |
+| 3 | Remove Add | **Shipped** as `f5bbc7c`, merged with stage 2 by user direction |
+| 4 | Build a "Find on map" popover | **Not built.** The Contents panel already *is* the finder; only its trigger needed to move |
+| 5 | Data-only rail | **Overtaken.** A one-button rail left ~94% of an 848px column empty, so the rail was deleted entirely (`a7e70be`) |
+
+> **Why 4 and 5 collapsed.** An adversarial comparison of four architectures ranked
+> *move the existing trigger* over *build a replacement finder*. A map-action-bench trigger was
+> rejected on evidence: it invalidates the `pills-bench` visual crop in **all 18** configured
+> Playwright projects (`tests/e2e/s51-pills-visual.spec.ts:45`, `playwright.config.ts:42`). The
+> header costs none of those.
+
+The original estimates are kept below for reference only.
 
 | # | Stage | Estimate |
 |-|-|-|
@@ -304,7 +397,17 @@ instead. The stage 1 work order is in the same scratchpad as `stage1.md`.
 > The scratchpad is session-scoped and will be lost. Anything in it that matters must be copied out
 > before that session ends. This document is committed to the repo precisely so it is not.
 
-### Resume in four steps
+### Resume in four steps *(session 2 — superseded)*
+
+**Current resume:** `cd C:\Users\Cyril\Projects\.worktrees\mm-lane-fields`, `git log --oneline -7`,
+expect **`1ddf641`** at HEAD and a clean tree. Read the SESSION 3 block at the top of this document,
+then `.planning/DESIGN-DIRECTION.md` (frozen contract) and
+`.planning/sketches/003-field-treatment/REVIEW-sol.md` (13 adjudicated findings — do not
+re-litigate). The rail work is **done**; the open items are listed in the session 3 table. Audit any
+worker diff with `git status` **and** `git diff --cached`, not just `git diff` — see Trap 2 in
+section 4, and never run that revert command.
+
+The original session-2 steps follow, kept for the record:
 
 1. `cd C:\Users\Cyril\Projects\.worktrees\mm-lane-fields` then `git log --oneline -7` — expect
    `4a96616` at HEAD and a clean tree.
@@ -332,6 +435,13 @@ baselines** stay stale by design until the rail work lands.
 
 ### What Cyril has actually seen
 
-He has viewed the panel in a browser after Move 3 + Move 4 and after the capsule removal. His
-verdict on the account list was positive; his outstanding complaint is the rail. **Everything in
-section 7 is unbuilt** — a fresh session must not describe the rail as changed.
+*(Session 2)* He viewed the panel after Move 3 + Move 4 and after the capsule removal. His verdict
+on the account list was positive; his outstanding complaint was the rail.
+
+*(Session 3 — current)* He has seen, in a browser: the compacted three-button rail, the
+empty-canvas start block that was subsequently deleted, the two-button rail, and the finished
+header with no rail at all. He asked twice, pointedly, whether the result would leave "a ton of
+ugly white space" — deleting the 72px column rather than restyling it is the direct answer to that,
+and it is the reason stage 5 became a rail deletion instead of a rail reduction.
+
+**Do not describe the rail as existing.** `src/ui/EditorRail.tsx` is deleted at HEAD.
