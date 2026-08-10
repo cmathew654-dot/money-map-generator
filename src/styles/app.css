@@ -679,8 +679,7 @@ summary:focus-visible {
   font-weight: 600;
 }
 
-.editor-panel-field input,
-.editor-panel-field select {
+.editor-panel-field input {
   width: 100%;
   min-height: 32px;
   padding: 5px 7px;
