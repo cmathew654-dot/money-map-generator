@@ -6,19 +6,16 @@ interface EditorRailProps {
   onToggle(panel: EditorPanel): void
 }
 
-const panels: readonly EditorPanel[] = ['add', 'data', 'contents']
+const panels: readonly EditorPanel[] = ['data', 'contents']
 const panelLabels: Record<EditorPanel, string> = {
-  add: 'Add',
   data: 'Data',
   contents: 'Contents',
 }
 const panelTitles: Record<EditorPanel, string> = {
-  add: 'Add income, accounts, flows, or notes',
   data: 'The numbers behind the map',
   contents: 'Everything on the map, as a list',
 }
 const panelIcons: Record<EditorPanel, string> = {
-  add: '+',
   data: '▤',
   contents: '☰',
 }

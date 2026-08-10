@@ -57,7 +57,7 @@ import {
   moneyMapAlternativeText,
   saveBookToFile,
 } from './export/export'
-import { addIncomeSource, Form, type FormSection } from './form/Form'
+import { Form, type FormSection } from './form/Form'
 import {
   Wizard,
   wizardStepNumberForMapTarget,
@@ -108,7 +108,7 @@ const PAN_ZOOM_HINT_STORAGE_KEY = 'money-map-generator:pan-zoom-hint:v1'
 const WRITER_TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
 const WRITER_TAKEOVER_POLL_MS = 250
 
-export type EditorPanel = 'add' | 'data' | 'contents'
+export type EditorPanel = 'data' | 'contents'
 type FileSaveStatus = 'saved' | 'saving'
 type BrowserSaveStatus = 'saved' | 'saving' | 'error'
 type MapZoom = 'fit' | number
@@ -1811,24 +1811,6 @@ export default function App() {
     }, activeClient.notes?.length ?? 0), mapRect))
   }
 
-  const handlePanelAddIncome = () => {
-    if (!canMutate) return
-    const nextClient = {
-      ...activeClient,
-      incomeSources: addIncomeSource(activeClient.incomeSources, ''),
-    }
-    handleClientChange(nextClient)
-    addToast('Income source added')
-    selectMapTarget('income')
-    focusDataTarget('income', 'income')
-  }
-
-  const handlePanelAddAccount = (bucket: Bucket) => {
-    if (!canMutate) return
-    const id = handleQuickAdd(bucket, true)
-    if (id) focusDataTarget('accounts', id)
-  }
-
   const handlePanelAddFlow = (sourceId: string, targetId: string) => {
     if (!canMutate) return
     const nextClient = addCustomArrow(activeClient, sourceId, targetId)
@@ -1845,20 +1827,6 @@ export default function App() {
     const arrow = nextClient.customArrows?.at(-1)
     handleMapChange(nextClient, 'Flow added')
     if (arrow) selectMapTarget(`arrow:custom:${arrow.id}`)
-  }
-
-  const handlePanelAddFinePrint = () => {
-    if (!canMutate) return
-    const nextClient = {
-      ...activeClient,
-      footnotes: [
-        ...activeClient.footnotes,
-        { id: newId('footnote'), label: '', gross: null, net: null },
-      ],
-    }
-    handleClientChange(nextClient)
-    focusDataTarget('need', 'need')
-    addToast('Fine print added')
   }
 
   const placeTextNote = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -2112,39 +2080,15 @@ export default function App() {
                 }
               }}
             />
-            {(editorPanel === 'add' || editorPanel === 'contents') && (
+            {editorPanel === 'contents' && (
               <EditorPanels
-                activePanel={editorPanel}
                 canMutate={canMutate}
                 data={activeClient}
                 headingRef={editorPanelHeadingRef}
-                onAddAccount={handlePanelAddAccount}
-                onAddFinePrint={handlePanelAddFinePrint}
-                onAddFlow={handlePanelAddFlow}
-                onAddIncome={handlePanelAddIncome}
-                onAddTextNote={() => beginTextNotePlacement(true)}
                 onClose={closeDataPanel}
-                onOpenData={(focusId) => {
-                  if (focusId === 'income') {
-                    focusDataTarget('income', 'income')
-                  } else if (focusId === 'need') {
-                    focusDataTarget('need', 'need')
-                  } else if (focusId === 'accounts') {
-                    setEditorPanel('data')
-                    setDataFilter('')
-                    setDataSection('accounts')
-                    setFocusRequest(undefined)
-                  } else {
-                    setEditorPanel('data')
-                    setDataFilter('')
-                    setDataSection(undefined)
-                    setFocusRequest(undefined)
-                  }
-                }}
                 onRestoreGeneratedFlows={handleRestoreGeneratedArrows}
                 onOpenTarget={openDetailsForTargetKey}
                 onSelectTarget={selectMapTarget}
-                onSetNeed={() => focusDataTarget('need', 'need')}
                 selectedTargetKey={selectedMapTargetKey}
               />
             )}

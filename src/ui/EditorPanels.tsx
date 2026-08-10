@@ -1,27 +1,15 @@
 import { useState, type ReactNode, type RefObject } from 'react'
-import { ACCOUNT_PRESETS } from '../model/book'
-import type { Bucket, MoneyMapData } from '../model/types'
+import type { MoneyMapData } from '../model/types'
 import { footnoteHasContent, layoutMap } from '../layout/layout'
-import type { EditorPanel } from '../App'
-
-type ToolPanel = Exclude<EditorPanel, 'data'>
 
 interface EditorPanelsProps {
-  activePanel: ToolPanel
   data: MoneyMapData
   selectedTargetKey: string | null
   canMutate: boolean
   headingRef: RefObject<HTMLHeadingElement | null>
   onClose(): void
-  onOpenData(focusId?: string): void
   onSelectTarget(key: string): void
   onOpenTarget(key: string): void
-  onAddIncome(): void
-  onAddAccount(bucket: Bucket): void
-  onSetNeed(): void
-  onAddFlow(sourceId: string, targetId: string): void
-  onAddTextNote(): void
-  onAddFinePrint(): void
   onRestoreGeneratedFlows(): void
 }
 
@@ -30,11 +18,6 @@ interface ContentItem {
   label: string
   search: string
   hidden?: boolean
-}
-
-const panelTitles: Record<ToolPanel, string> = {
-  add: 'Add',
-  contents: 'Contents',
 }
 
 function endpointLabel(data: MoneyMapData, id: string): string {
@@ -124,18 +107,16 @@ export function contentItems(data: MoneyMapData): ContentItem[] {
 }
 
 function PanelShell({
-  panel,
   headingRef,
   onClose,
   children,
 }: {
-  panel: ToolPanel
   headingRef: RefObject<HTMLHeadingElement | null>
   onClose(): void
   children: ReactNode
 }) {
-  const title = panelTitles[panel]
-  const headingId = `editor-panel-${panel}-title`
+  const title = 'Contents'
+  const headingId = 'editor-panel-contents-title'
   return (
     <aside
       aria-labelledby={headingId}
@@ -153,121 +134,6 @@ function PanelShell({
       </button>
       {children}
     </aside>
-  )
-}
-
-function AddPanel({
-  data,
-  canMutate,
-  onOpenData,
-  onAddIncome,
-  onAddAccount,
-  onSetNeed,
-  onAddFlow,
-  onAddTextNote,
-  onAddFinePrint,
-}: Pick<
-  EditorPanelsProps,
-  | 'data'
-  | 'canMutate'
-  | 'onOpenData'
-  | 'onAddIncome'
-  | 'onAddAccount'
-  | 'onSetNeed'
-  | 'onAddFlow'
-  | 'onAddTextNote'
-  | 'onAddFinePrint'
->) {
-  const [accountBucket, setAccountBucket] = useState<Bucket>('afterTax')
-  const endpoints = [
-    { id: 'income', label: 'Income sources' },
-    { id: 'need', label: 'Monthly need' },
-    ...data.accounts.map((account) => ({ id: account.id, label: account.label || 'Untitled account' })),
-  ]
-  const [flowSource, setFlowSource] = useState('income')
-  const [flowTarget, setFlowTarget] = useState('need')
-  const source = endpoints.some((endpoint) => endpoint.id === flowSource)
-    ? flowSource
-    : endpoints[0]?.id ?? ''
-  const target = endpoints.some((endpoint) => endpoint.id === flowTarget)
-    ? flowTarget
-    : endpoints.find((endpoint) => endpoint.id !== source)?.id ?? ''
-  const emptyMap =
-    data.incomeSources.length === 0 &&
-    data.accounts.length === 0 &&
-    data.monthlyNeed === null
-  const incomeLabel = data.incomeSources.length === 0
-    ? 'Add income'
-    : 'Add income source'
-
-  return (
-    <div className="editor-panel-body">
-      <p className="editor-panel-intro">Add a map item, then edit its details in Data.</p>
-      <section aria-label="Add map item" className="editor-panel-section">
-        <h3>Map items</h3>
-        <button disabled={!canMutate} type="button" onClick={onAddIncome}>{incomeLabel}</button>
-        <label className="editor-panel-field">
-          Account bucket
-          <select
-            aria-label="Account bucket"
-            disabled={!canMutate}
-            value={accountBucket}
-            onChange={(event) => setAccountBucket(event.target.value as Bucket)}
-          >
-            {ACCOUNT_PRESETS.map((preset) => (
-              <option key={preset.bucket} value={preset.bucket}>{preset.chipLabel}</option>
-            ))}
-          </select>
-        </label>
-        <button disabled={!canMutate} type="button" onClick={() => onAddAccount(accountBucket)}>Add account</button>
-        <button type="button" onClick={onSetNeed}>Set monthly need</button>
-        {emptyMap && (
-          <button type="button" onClick={() => onOpenData()}>Open all data fields</button>
-        )}
-      </section>
-
-      {!emptyMap && (
-        <>
-          <section aria-label="Connect" className="editor-panel-section">
-            <h3>Connect</h3>
-            <label className="editor-panel-field">
-              From
-              <select
-                aria-label="Flow source"
-                disabled={!canMutate || endpoints.length < 2}
-                value={source}
-                onChange={(event) => setFlowSource(event.target.value)}
-              >
-                {endpoints.map((endpoint) => <option key={endpoint.id} value={endpoint.id}>{endpoint.label}</option>)}
-              </select>
-            </label>
-            <label className="editor-panel-field">
-              To
-              <select
-                aria-label="Flow target"
-                disabled={!canMutate || endpoints.length < 2}
-                value={target}
-                onChange={(event) => setFlowTarget(event.target.value)}
-              >
-                {endpoints.map((endpoint) => <option key={endpoint.id} value={endpoint.id}>{endpoint.label}</option>)}
-              </select>
-            </label>
-            <button
-              disabled={!canMutate || !source || !target || source === target}
-              type="button"
-              onClick={() => onAddFlow(source, target)}
-            >
-              Add flow
-            </button>
-          </section>
-          <section aria-label="Annotate" className="editor-panel-section">
-            <h3>Annotate</h3>
-            <button disabled={!canMutate} type="button" onClick={onAddTextNote}>Add text note</button>
-            <button disabled={!canMutate} type="button" onClick={onAddFinePrint}>Add fine print</button>
-          </section>
-        </>
-      )}
-    </div>
   )
 }
 
@@ -347,48 +213,25 @@ function ContentsPanel({
 }
 
 export function EditorPanels({
-  activePanel,
   data,
   selectedTargetKey,
   canMutate,
   headingRef,
   onClose,
-  onOpenData,
   onSelectTarget,
   onOpenTarget,
-  onAddIncome,
-  onAddAccount,
-  onSetNeed,
-  onAddFlow,
-  onAddTextNote,
-  onAddFinePrint,
   onRestoreGeneratedFlows,
 }: EditorPanelsProps) {
   return (
-    <PanelShell panel={activePanel} headingRef={headingRef} onClose={onClose}>
-      {activePanel === 'add' && (
-        <AddPanel
-          canMutate={canMutate}
-          data={data}
-          onAddAccount={onAddAccount}
-          onAddFinePrint={onAddFinePrint}
-          onAddFlow={onAddFlow}
-          onAddIncome={onAddIncome}
-          onAddTextNote={onAddTextNote}
-          onOpenData={onOpenData}
-          onSetNeed={onSetNeed}
-        />
-      )}
-      {activePanel === 'contents' && (
-        <ContentsPanel
-          canMutate={canMutate}
-          data={data}
-          onOpenTarget={onOpenTarget}
-          onRestoreGeneratedFlows={onRestoreGeneratedFlows}
-          onSelectTarget={onSelectTarget}
-          selectedTargetKey={selectedTargetKey}
-        />
-      )}
+    <PanelShell headingRef={headingRef} onClose={onClose}>
+      <ContentsPanel
+        canMutate={canMutate}
+        data={data}
+        onOpenTarget={onOpenTarget}
+        onRestoreGeneratedFlows={onRestoreGeneratedFlows}
+        onSelectTarget={onSelectTarget}
+        selectedTargetKey={selectedTargetKey}
+      />
     </PanelShell>
   )
 }

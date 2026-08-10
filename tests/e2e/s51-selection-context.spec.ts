@@ -33,11 +33,7 @@ async function clickAccountBody(
 }
 
 async function addNote(page: Page, text: string) {
-  await page.getByRole('button', { name: 'Add', exact: true }).click(T)
-  await page
-    .getByRole('dialog', { name: 'Add' })
-    .getByRole('button', { name: 'Add text note' })
-    .click(T)
+  await page.getByRole('button', { name: 'Add text note', exact: true }).press('Enter', T)
   const editor = page.getByRole('textbox', { name: 'Edit map note' })
   await editor.fill(text, T)
   await editor.press('Enter', T)

@@ -77,14 +77,14 @@ test.describe('toolbar reachable at 200 percent zoom (slice 11)', () => {
       })
     })
 
-    // Stage 1 leaves the compact rail with only Add, Data, and Contents.
-    expect(rail.length).toBe(3)
+    // The compact rail has only Data and Contents.
+    expect(rail.length).toBe(2)
 
     // At 360px tall the rail itself runs past the bottom edge (its own
     // problem); every button that IS on screen has to stay clickable, which
     // is what the wrapped .map-chrome used to break.
     const onScreen = rail.filter((probe) => probe.withinViewport)
-    expect(onScreen.length, JSON.stringify(rail.map((probe) => probe.box))).toBeGreaterThanOrEqual(3)
+    expect(onScreen.length, JSON.stringify(rail.map((probe) => probe.box))).toBeGreaterThanOrEqual(2)
     for (const probe of onScreen) {
       expect(probe.hitTestable, `rail button "${probe.label}" is covered by ${probe.coveredBy} at ${JSON.stringify(probe.box)}`).toBe(true)
     }

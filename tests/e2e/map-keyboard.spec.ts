@@ -77,9 +77,7 @@ test('keyboard arrangement persists move, resize, rotate, text offset, and conne
 test('Shift, Ctrl, and Cmd click toggle compatible account and note selection', async ({ page }) => {
   await openApp(page)
 
-  await page.getByRole('button', { name: 'Add', exact: true }).click()
-  const addPanel = page.getByRole('dialog', { name: 'Add' })
-  await addPanel.getByRole('button', { name: 'Add text note' }).click()
+  await page.getByRole('button', { name: 'Add text note' }).press('Enter')
   const noteEditor = page.getByRole('textbox', { name: 'Edit map note' })
   await noteEditor.fill('Selection note')
   await noteEditor.press('Enter')

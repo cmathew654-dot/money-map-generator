@@ -47,7 +47,7 @@ test('existing clients open on the canvas and Data restores rail focus when it c
 
   const rail = page.getByRole('complementary', { name: 'Editor tools' })
   await expect(rail).toBeVisible()
-  for (const name of ['Add', 'Data', 'Contents']) {
+  for (const name of ['Data', 'Contents']) {
     await expect(rail.getByRole('button', { name })).toHaveAttribute(
       'aria-expanded',
       'false',
@@ -75,7 +75,7 @@ test('each editor rail button pairs its accessible text label with a visible dec
   await openApp(page)
 
   const rail = page.getByRole('complementary', { name: 'Editor tools' })
-  for (const name of ['Add', 'Data', 'Contents']) {
+  for (const name of ['Data', 'Contents']) {
     const button = rail.getByRole('button', { name, exact: true })
     await expect(button).toContainText(name)
     await expect(button.locator('[aria-hidden=true]')).toBeVisible()
@@ -161,59 +161,6 @@ test('Data heading regains focus after a Details request becomes stale', async (
   await expect(panel.getByRole('heading', { name: 'Data' })).toBeFocused()
 })
 
-test('Add exposes map actions and selects new records', async ({ page }) => {
-  await openApp(page)
-
-  const rail = page.getByRole('complementary', { name: 'Editor tools' })
-  const addButton = rail.getByRole('button', { name: 'Add', exact: true })
-  const dataButton = rail.getByRole('button', { name: 'Data', exact: true })
-  await addButton.click()
-  const panel = page.getByRole('dialog', { name: 'Add' })
-  await expect(panel.getByRole('heading', { name: 'Add' })).toBeFocused()
-  for (const name of [
-    'Add income source',
-    'Add account',
-    'Set monthly need',
-    'Add flow',
-    'Add text note',
-    'Add fine print',
-  ]) {
-    await expect(panel.getByRole('button', { name })).toBeVisible()
-  }
-
-  await panel.getByRole('button', { name: 'Add account' }).click()
-  const dataPanel = page.getByRole('dialog', { name: 'Data' })
-  await expect(dataPanel.locator('[data-form-section="accounts"]')).toHaveClass(/is-active/)
-  await expect(page.locator('[data-map-target^="account:"][data-map-selected="true"]')).toHaveCount(1)
-  await expect(page.getByRole('region', { name: /Adjust/ })).toBeVisible()
-
-  await dataButton.click()
-  await addButton.click()
-  await panel.getByRole('button', { name: 'Add income source' }).click()
-  await expect(dataPanel.locator('[data-form-section="income"]')).toHaveClass(/is-active/)
-  await expect(page.locator('[data-map-target="income"][data-map-selected="true"]')).toHaveCount(1)
-
-  await dataButton.click()
-  await addButton.click()
-  await panel.getByRole('button', { name: 'Set monthly need' }).click()
-  await expect(dataPanel.locator('[data-form-section="need"]')).toHaveClass(/is-active/)
-  await dataButton.click()
-  await addButton.click()
-  await panel.getByRole('button', { name: 'Add flow' }).click()
-  await expect(page.locator('[data-map-target^="arrow:custom:"][data-map-selected="true"]')).toHaveCount(1)
-
-  await panel.getByRole('button', { name: 'Add fine print' }).click()
-  await expect(dataPanel.locator('[data-form-section="need"]')).toHaveClass(/is-active/)
-  await dataButton.click()
-  await addButton.click()
-  await panel.getByRole('button', { name: 'Add text note' }).click()
-  await expect(page.getByRole('textbox', { name: 'Edit map note' })).toBeFocused()
-
-  await page.keyboard.press('Escape')
-  await page.keyboard.press('Escape')
-  await expect(addButton).toBeFocused()
-})
-
 test('+ Account quick-add focuses and routes into the new account', async ({ page }) => {
   await openApp(page)
 
@@ -245,36 +192,19 @@ test('+ Account quick-add focuses and routes into the new account', async ({ pag
   await expect(page.getByRole('textbox', { name: 'Edit account name' })).toBeFocused()
 })
 
-test('empty Add panel opens the matching Data section without coercing blanks', async ({ page }) => {
+// Add used to be the only way to reach an emptied map's Data sections, so this
+// guarded its blanks. Data is now the only route, and the blank still must not
+// coerce to 0.
+test('a cleared map leaves the Data need field blank instead of coercing it', async ({ page }) => {
   await openApp(page)
 
   await page.getByRole('button', { name: 'More actions' }).click()
   await page.getByRole('menuitem', { name: /Clear map/ }).click()
   await page.getByRole('button', { name: 'Clear map', exact: true }).click()
 
-  const addButton = page.getByRole('button', { name: 'Add', exact: true })
-  await addButton.click()
-  const add = page.getByRole('dialog', { name: 'Add' })
-  await expect(add.getByRole('button', { name: 'Add income' })).toBeVisible()
-  await expect(add.getByRole('button', { name: 'Add account' })).toBeVisible()
-  await expect(add.getByRole('button', { name: 'Set monthly need' })).toBeVisible()
-  await expect(add.getByRole('button', { name: 'Open all data fields' })).toBeVisible()
-  await expect(add.getByRole('button', { name: 'Add flow' })).toHaveCount(0)
-  await expect(add.getByRole('button', { name: 'Add text note' })).toHaveCount(0)
-  await expect(add.getByRole('button', { name: 'Add fine print' })).toHaveCount(0)
-
-  const dataButton = page.getByRole('button', { name: 'Data', exact: true })
-  await add.getByRole('button', { name: 'Add income' }).click()
-  await expect(page.getByRole('dialog', { name: 'Data' }).locator('[data-form-section="income"]')).toHaveClass(/is-active/)
-  await dataButton.click()
-  await addButton.click()
-  await add.getByRole('button', { name: 'Add account' }).click()
-  await expect(page.getByRole('dialog', { name: 'Data' }).locator('[data-form-section="accounts"]')).toHaveClass(/is-active/)
-  await dataButton.click()
-  await addButton.click()
-  await add.getByRole('button', { name: 'Set monthly need' }).click()
-  await expect(page.getByRole('dialog', { name: 'Data' }).locator('[data-form-section="need"]')).toHaveClass(/is-active/)
-  await expect(page.getByRole('dialog', { name: 'Data' }).getByRole('textbox', { name: 'Monthly amount needed' })).toHaveValue('')
+  await page.getByRole('button', { name: 'Data', exact: true }).click()
+  const data = page.getByRole('dialog', { name: 'Data' })
+  await expect(data.getByRole('textbox', { name: 'Monthly amount needed' })).toHaveValue('')
 })
 
 test('Contents lists semantic map targets and restores hidden generated flows', async ({ page }) => {
@@ -305,9 +235,7 @@ test('Contents lists semantic map targets and restores hidden generated flows', 
   await openApp(page)
   await expect(page.getByText('Money Map', { exact: true }).first()).toBeVisible()
 
-  await page.getByRole('button', { name: 'Add', exact: true }).click()
-  const addPanel = page.getByRole('dialog', { name: 'Add' })
-  await addPanel.getByRole('button', { name: 'Add text note' }).click()
+  await page.getByRole('button', { name: 'Add text note' }).press('Enter')
   const noteEditor = page.getByRole('textbox', { name: 'Edit map note' })
   await noteEditor.fill('Review beneficiary update')
   await noteEditor.press('Enter')
@@ -498,7 +426,7 @@ test('an armed text note lands over an account without disturbing it', async ({ 
     })
   const before = await position()
 
-  await page.getByRole('button', { name: 'Add text note', exact: true }).click()
+  await page.getByRole('button', { name: 'Add text note' }).click()
   const box = await body.boundingBox()
   if (!box) throw new Error('Account body has no measurable bounds')
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)

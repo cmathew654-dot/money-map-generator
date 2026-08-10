@@ -16,21 +16,13 @@ const DATA: MoneyMapData = {
 function contentsMarkup(): string {
   return renderToStaticMarkup(
     createElement(EditorPanels, {
-      activePanel: 'contents',
       data: DATA,
       selectedTargetKey: null,
       canMutate: true,
       headingRef: createRef<HTMLHeadingElement>(),
       onClose: () => {},
-      onOpenData: () => {},
       onSelectTarget: () => {},
       onOpenTarget: () => {},
-      onAddIncome: () => {},
-      onAddAccount: () => {},
-      onSetNeed: () => {},
-      onAddFlow: () => {},
-      onAddTextNote: () => {},
-      onAddFinePrint: () => {},
       onRestoreGeneratedFlows: () => {},
     }),
   )

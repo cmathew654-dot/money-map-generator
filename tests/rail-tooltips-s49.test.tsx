@@ -6,10 +6,6 @@ describe('editor rail tooltips (s49)', () => {
     expect(railSource).toMatch(/title=\{panelTitles\[panel\]\}/)
   })
 
-  it('explains the Add panel', () => {
-    expect(railSource).toMatch(/add: 'Add income, accounts, flows, or notes'/)
-  })
-
   it('explains the Data and Contents panels', () => {
     expect(railSource).toMatch(/data: 'The numbers behind the map'/)
     expect(railSource).toMatch(/contents: 'Everything on the map, as a list'/)

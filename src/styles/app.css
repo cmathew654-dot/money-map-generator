@@ -648,13 +648,6 @@ summary:focus-visible {
   padding: 12px;
 }
 
-.editor-panel-intro {
-  margin: 0;
-  color: #5b6663;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
 .editor-panel-section,
 .editor-panel-warnings {
   display: grid;
