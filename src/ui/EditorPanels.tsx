@@ -35,7 +35,6 @@ interface ContentItem {
 const panelTitles: Record<ToolPanel, string> = {
   add: 'Add',
   contents: 'Contents',
-  help: 'Help',
 }
 
 function endpointLabel(data: MoneyMapData, id: string): string {
@@ -347,24 +346,6 @@ function ContentsPanel({
   )
 }
 
-function HelpPanel() {
-  return (
-    <div className="editor-panel-body">
-      <p className="editor-panel-intro">Keyboard shortcuts for editing the map.</p>
-      <dl className="editor-shortcuts">
-        <dt>Enter</dt><dd>Select the focused map item.</dd>
-        <dt>Escape</dt><dd>Close the active editor or panel.</dd>
-        <dt>Arrow keys</dt><dd>Nudge the selected item.</dd>
-        <dt>Duplicate</dt><dd>Use the inspector Duplicate action.</dd>
-        <dt>Delete</dt><dd>Use the inspector Delete action.</dd>
-        <dt>Copy / paste</dt><dd>Copy and paste selected map items.</dd>
-        <dt>Undo / redo</dt><dd>Use Ctrl+Z, Ctrl+Shift+Z, or Ctrl+Y.</dd>
-        <dt>?</dt><dd>Open Help from the editor rail.</dd>
-      </dl>
-    </div>
-  )
-}
-
 export function EditorPanels({
   activePanel,
   data,
@@ -408,7 +389,6 @@ export function EditorPanels({
           selectedTargetKey={selectedTargetKey}
         />
       )}
-      {activePanel === 'help' && <HelpPanel />}
     </PanelShell>
   )
 }

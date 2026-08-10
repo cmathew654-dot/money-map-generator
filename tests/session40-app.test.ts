@@ -1,3 +1,5 @@
+// @ts-expect-error Browser-only tsconfig intentionally omits Node ambient types.
+import { readFileSync } from 'node:fs'
 import appSource from '../src/App.tsx?raw'
 import { describe, expect, it } from 'vitest'
 import {
@@ -8,15 +10,24 @@ import {
   canWriteConnectedBook,
 } from '../src/App'
 
+const appCss: string = readFileSync('src/styles/app.css', 'utf8')
+
 describe('Session 40 App safety boundaries', () => {
   it('keeps the canvas shell panel state in App instead of form-mode storage', () => {
     expect(appSource).toMatch(
-      /type EditorPanel = 'add' \| 'data' \| 'contents' \| 'help'/,
+      /export type EditorPanel = 'add' \| 'data' \| 'contents'\r?\n/,
     )
+    expect(appSource).not.toContain("'help'")
     expect(appSource).toMatch(
       /const \[editorPanel, setEditorPanel\] = useState<EditorPanel \| null>\(null\)/,
     )
     expect(appSource).not.toContain('FORM_MODE_STORAGE_KEY')
+  })
+
+  it('keeps the remaining editor rail buttons compact', () => {
+    const rule = appCss.match(/\.editor-rail button \{([^}]*)\}/)?.[1]
+    expect(rule).toContain('flex: 0 0 auto;')
+    expect(appCss).not.toContain('@media (max-height: 480px)')
   })
 
   it('allows book mutation only to the real-mode writer outside recovery', () => {

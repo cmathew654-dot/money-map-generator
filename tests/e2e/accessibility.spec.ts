@@ -13,7 +13,7 @@ test.describe('WCAG 2.2 AA certification', () => {
   test('editor', async ({ page }, info) => {
     await openApp(page)
     const rail = page.getByRole('complementary', { name: 'Editor tools' })
-    const exercisePanel = async (name: 'Add' | 'Contents' | 'Help', button: Locator) => {
+    const exercisePanel = async (name: 'Add' | 'Contents', button: Locator) => {
       await expect(button).toBeVisible()
       await tabTo(page, button)
       await expect(button).toBeFocused()
@@ -29,10 +29,8 @@ test.describe('WCAG 2.2 AA certification', () => {
     }
     const addButton = rail.getByRole('button', { name: 'Add', exact: true })
     const contentsButton = rail.getByRole('button', { name: 'Contents', exact: true })
-    const helpButton = rail.getByRole('button', { name: 'Help', exact: true })
     await exercisePanel('Add', addButton)
     await exercisePanel('Contents', contentsButton)
-    await exercisePanel('Help', helpButton)
   })
   test('wizard', async ({ page }, info) => { await openApp(page); await assertWcag22AA(page, info, 'wizard') })
   test('presentation', async ({ page }, info) => { await openApp(page); await page.getByRole('button', { name: 'Present' }).click(); await assertWcag22AA(page, info, 'presentation') })

@@ -47,7 +47,7 @@ test('existing clients open on the canvas and Data restores rail focus when it c
 
   const rail = page.getByRole('complementary', { name: 'Editor tools' })
   await expect(rail).toBeVisible()
-  for (const name of ['Add', 'Data', 'Contents', 'Help']) {
+  for (const name of ['Add', 'Data', 'Contents']) {
     await expect(rail.getByRole('button', { name })).toHaveAttribute(
       'aria-expanded',
       'false',
@@ -75,7 +75,7 @@ test('each editor rail button pairs its accessible text label with a visible dec
   await openApp(page)
 
   const rail = page.getByRole('complementary', { name: 'Editor tools' })
-  for (const name of ['Add', 'Data', 'Contents', 'Help']) {
+  for (const name of ['Add', 'Data', 'Contents']) {
     const button = rail.getByRole('button', { name, exact: true })
     await expect(button).toContainText(name)
     await expect(button.locator('[aria-hidden=true]')).toBeVisible()
@@ -358,16 +358,6 @@ test('Contents lists semantic map targets and restores hidden generated flows', 
   await expect(hiddenGenerated).toBeEnabled()
   await hiddenGenerated.click()
   await expect(hiddenGenerated).toHaveAttribute('aria-pressed', 'true')
-})
-
-test('Help lists the editor keyboard shortcuts', async ({ page }) => {
-  await openApp(page)
-  await page.getByRole('button', { name: 'Help', exact: true }).click()
-  const panel = page.getByRole('dialog', { name: 'Help' })
-  await expect(panel.getByRole('heading', { name: 'Help' })).toBeFocused()
-  for (const text of ['Enter', 'Escape', 'Arrow keys', 'Duplicate', 'Delete', 'Copy / paste', 'Undo / redo', '?']) {
-    await expect(panel.getByText(text, { exact: true }).first()).toBeVisible()
-  }
 })
 
 test('copy, paste, delete, and alignment shortcuts do nothing inside controls and text overlays', async ({ page }) => {

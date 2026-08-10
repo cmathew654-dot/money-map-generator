@@ -108,7 +108,7 @@ const PAN_ZOOM_HINT_STORAGE_KEY = 'money-map-generator:pan-zoom-hint:v1'
 const WRITER_TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
 const WRITER_TAKEOVER_POLL_MS = 250
 
-export type EditorPanel = 'add' | 'data' | 'contents' | 'help'
+export type EditorPanel = 'add' | 'data' | 'contents'
 type FileSaveStatus = 'saved' | 'saving'
 type BrowserSaveStatus = 'saved' | 'saving' | 'error'
 type MapZoom = 'fit' | number
@@ -2112,7 +2112,7 @@ export default function App() {
                 }
               }}
             />
-            {(editorPanel === 'add' || editorPanel === 'contents' || editorPanel === 'help') && (
+            {(editorPanel === 'add' || editorPanel === 'contents') && (
               <EditorPanels
                 activePanel={editorPanel}
                 canMutate={canMutate}

@@ -77,8 +77,8 @@ test.describe('toolbar reachable at 200 percent zoom (slice 11)', () => {
       })
     })
 
-    // Add / Data / Contents / Help.
-    expect(rail.length).toBe(4)
+    // Stage 1 leaves the compact rail with only Add, Data, and Contents.
+    expect(rail.length).toBe(3)
 
     // At 360px tall the rail itself runs past the bottom edge (its own
     // problem); every button that IS on screen has to stay clickable, which
@@ -96,7 +96,7 @@ test.describe('toolbar reachable at 200 percent zoom (slice 11)', () => {
     await expect(contents).toHaveAttribute('aria-expanded', 'true')
   })
 
-  test('every editor rail button, Help included, fits inside the short viewport', async ({ page }) => {
+  test('every compact editor rail button fits inside the short viewport', async ({ page }) => {
     const measured = await page.evaluate(() => {
       const rail = document.querySelector<HTMLElement>('.editor-rail')
       if (!rail) throw new Error('No editor rail')
@@ -111,17 +111,17 @@ test.describe('toolbar reachable at 200 percent zoom (slice 11)', () => {
       }
     })
     const detail = JSON.stringify(measured)
-    // The rail box itself still spans the stacked workspace; only its buttons
-    // have to stay above the fold, and stretching them is what pushed Help off.
+    // The rail box itself still spans the stacked workspace; its compact
+    // controls must remain above the fold.
     for (const button of measured.buttons) {
       expect(button.bottom, `rail button "${button.label}" hangs past the fold: ${detail}`)
         .toBeLessThanOrEqual(measured.viewportHeight + 1)
     }
 
     // Reachable means clickable, not merely rendered.
-    const help = page.getByRole('button', { name: 'Help', exact: true })
-    await help.click({ timeout: 4000 })
-    await expect(help).toHaveAttribute('aria-expanded', 'true')
+    const contents = page.getByRole('button', { name: 'Contents', exact: true })
+    await contents.click({ timeout: 4000 })
+    await expect(contents).toHaveAttribute('aria-expanded', 'true')
   })
 })
 

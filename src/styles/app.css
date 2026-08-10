@@ -580,7 +580,7 @@ summary:focus-visible {
 .editor-rail button {
   display: flex;
   min-height: 54px;
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -604,15 +604,6 @@ summary:focus-visible {
 .editor-rail button[aria-expanded='true'] {
   background: #eef5ef;
   color: #155f4a;
-}
-
-/* Short viewports (200% zoom, or a laptop with the header wrapped): the rail
-   box still spans the whole workspace, so stretching four buttons across it
-   pushes Help past the fold. Let them collapse to their own height instead. */
-@media (max-height: 480px) {
-  .editor-rail button {
-    flex: 0 0 auto;
-  }
 }
 
 .editor-panel {
@@ -730,28 +721,6 @@ summary:focus-visible {
   color: #a82f24;
   font-size: 11px;
   line-height: 1.35;
-}
-
-.editor-shortcuts {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 8px 12px;
-  margin: 0;
-  padding: 12px;
-  border: 1px solid #dde1dc;
-  border-radius: 7px;
-  background: #fcfcfa;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.editor-shortcuts dt {
-  font-weight: 700;
-}
-
-.editor-shortcuts dd {
-  margin: 0;
-  color: #5b6663;
 }
 
 .preview-pane {

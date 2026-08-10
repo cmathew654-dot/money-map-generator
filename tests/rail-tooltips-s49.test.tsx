@@ -14,8 +14,4 @@ describe('editor rail tooltips (s49)', () => {
     expect(railSource).toMatch(/data: 'The numbers behind the map'/)
     expect(railSource).toMatch(/contents: 'Everything on the map, as a list'/)
   })
-
-  it('explains the Help panel', () => {
-    expect(railSource).toMatch(/help: 'Shortcuts and tips'/)
-  })
 })
