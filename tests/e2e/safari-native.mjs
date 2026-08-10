@@ -294,7 +294,7 @@ const selectedShape = shapeGroup
     )
   : null
 const positionLabels = shell
-  ? controlsForLabel(shell, 'Label').map((control) => control.value)
+  ? controlsForLabel(shell, 'Position label').map((control) => control.value)
   : []
 const stored = localStorage.getItem('${BOOK_KEY}') || ''
 return {
@@ -576,7 +576,7 @@ async function run() {
     await clickButton(driver, '+ Add position', accountCard)
     const positionLabel = await findControl(
       driver,
-      'Label',
+      'Position label',
       accountShell,
       'last',
     )

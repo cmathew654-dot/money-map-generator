@@ -689,9 +689,13 @@ function PositionRows({
       <p className="help-text">
         Break this account's total into holdings — e.g. by fund or carrier.
       </p>
+      <div className="position-column-head">
+        <span>Label</span>
+        <span>Value</span>
+      </div>
       {positions.map((position, index) => (
-        <div className="stacked-row nested-row" key={index}>
-          <div className="stacked-row-heading">
+        <div className="position-row" key={index}>
+          <div className="position-label-cell">
             <TextField
               autocomplete={{
                 bookTerms: vocabulary,
@@ -700,7 +704,7 @@ function PositionRows({
               inputRef={(element) => {
                 labelInputs.current[index] = element
               }}
-              label="Label"
+              label="Position label"
               value={position.label}
               onChange={(label) =>
                 onChange(
@@ -719,19 +723,17 @@ function PositionRows({
               }
             />
           </div>
-          <div className="nested-row-fields">
-            <MoneyField
-              label="Value"
-              value={position.value}
-              onChange={(value) =>
-                onChange(
-                  positions.map((item, itemIndex) =>
-                    itemIndex === index ? { ...item, value } : item,
-                  ),
-                )
-              }
-            />
-          </div>
+          <MoneyField
+            label="Position value"
+            value={position.value}
+            onChange={(value) =>
+              onChange(
+                positions.map((item, itemIndex) =>
+                  itemIndex === index ? { ...item, value } : item,
+                ),
+              )
+            }
+          />
         </div>
       ))}
       <button
@@ -779,7 +781,7 @@ function SubAccountRows({
               inputRef={(element) => {
                 labelInputs.current[index] = element
               }}
-              label="Label"
+              label="Sub-account label"
               value={subAccount.label}
               onChange={(label) =>
                 onChange(
@@ -811,7 +813,7 @@ function SubAccountRows({
               }
             />
             <MoneyField
-              label="Value"
+              label="Sub-account value"
               value={subAccount.value}
               onChange={(value) =>
                 onChange(
@@ -936,7 +938,7 @@ function AccountCard({
                 onChange={(label) => onChange({ ...account, label })}
               />
               <MoneyField
-                label="Value"
+                label="Account value"
                 value={account.value}
                 onChange={(value) => onChange({ ...account, value })}
               />
@@ -1215,7 +1217,7 @@ export function FinePrintSection({
               inputRef={(element) => {
                 labelInputs.current[index] = element
               }}
-              label="Label"
+              label="Fine print label"
               value={footnote.label}
               onChange={(label) =>
                 updateFootnote(index, { ...footnote, label })

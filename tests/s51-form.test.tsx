@@ -132,7 +132,12 @@ describe('s51 filter chrome', () => {
 
     expect(markup).toContain('data-filter-glyph')
     expect(formCss).toMatch(/\.data-form-filter input\s*\{[^}]*font-size:\s*14px/)
-    expect(formCss).toMatch(/\.data-form-filter input:focus[^{]*\{[^}]*#1e7a4a/)
+    // The filter field joined the shared ledger treatment, so its focus green
+    // now comes from that block's token rather than its own :focus rule.
+    expect(formCss).toMatch(
+      /:focus-visible[^{]*\{[^}]*border-bottom-color:\s*var\(--fm-flow\)/,
+    )
+    expect(formCss).toMatch(/--fm-flow:\s*#1e7a4a/)
   })
 })
 

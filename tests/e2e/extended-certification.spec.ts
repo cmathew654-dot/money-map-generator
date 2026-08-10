@@ -1088,7 +1088,7 @@ test.describe('extended desktop certification', () => {
       .getByRole('button', { name: '+ Add position', exact: true })
       .click()
     await accountShell
-      .getByLabel('Label', { exact: true })
+      .getByLabel('Position label', { exact: true })
       .last()
       .fill('Retention position')
     await account
@@ -1097,7 +1097,7 @@ test.describe('extended desktop certification', () => {
     await accountShell
       .locator('.subaccount-row')
       .last()
-      .getByLabel('Label', { exact: true })
+      .getByLabel('Sub-account label', { exact: true })
       .fill('Retention sub-account')
     await page
       .getByRole('button', { name: '+ Add fine print line', exact: true })
@@ -1105,7 +1105,7 @@ test.describe('extended desktop certification', () => {
     await page
       .locator('.footnote-row')
       .last()
-      .getByLabel('Label', { exact: true })
+      .getByLabel('Fine print label', { exact: true })
       .fill('Retention fine print')
     await page
       .getByRole('button', { name: '+ Add note', exact: true })
