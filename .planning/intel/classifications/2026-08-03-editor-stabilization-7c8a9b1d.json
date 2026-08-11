@@ -1,0 +1,12 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/plans/2026-08-03-editor-stabilization.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Editor Stabilization Implementation Plan",
+  "summary": "Stabilizes editor canvas interaction through seven coordinated implementation tasks preserving financial data.",
+  "scope": ["editor stabilization", "canvas interaction", "note placement", "drag and resize", "inspector", "form controls", "SVG rendering"],
+  "cross_refs": ["docs/superpowers/specs/2026-08-03-editor-stabilization-design.md"],
+  "locked": false,
+  "precedence": null
+}

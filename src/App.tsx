@@ -57,7 +57,7 @@ import {
   moneyMapAlternativeText,
   saveBookToFile,
 } from './export/export'
-import { addIncomeSource, Form, type FormSection } from './form/Form'
+import { Form, type FormSection } from './form/Form'
 import {
   Wizard,
   wizardStepNumberForMapTarget,
@@ -83,8 +83,7 @@ import {
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
-import { AutoFocusHeading, EditorPanels } from './ui/EditorPanels'
-import { EditorRail } from './ui/EditorRail'
+import { EditorPanels } from './ui/EditorPanels'
 import { ClientCombobox } from './ui/ClientCombobox'
 import {
   applyMapTextEdit,
@@ -108,7 +107,7 @@ const PAN_ZOOM_HINT_STORAGE_KEY = 'money-map-generator:pan-zoom-hint:v1'
 const WRITER_TAKEOVER_REQUEST_KEY = 'money-map-generator:writer-takeover-request'
 const WRITER_TAKEOVER_POLL_MS = 250
 
-export type EditorPanel = 'add' | 'data' | 'contents' | 'help'
+export type EditorPanel = 'data' | 'contents'
 type FileSaveStatus = 'saved' | 'saving'
 type BrowserSaveStatus = 'saved' | 'saving' | 'error'
 type MapZoom = 'fit' | number
@@ -385,7 +384,6 @@ export default function App() {
   })
   const [history, setHistory] = useState<BookHistory>(emptyHistory)
   const [editorPanel, setEditorPanel] = useState<EditorPanel | null>(null)
-  const [dataFilter, setDataFilter] = useState('')
   const [dataSection, setDataSection] = useState<FormSection>()
   const [formRevision, setFormRevision] = useState(0)
   const [guidedSetup, setGuidedSetup] = useState(false)
@@ -483,6 +481,9 @@ export default function App() {
   const shapePopoverButtonRef = useRef<HTMLButtonElement>(null)
   const firstShapePresetRef = useRef<HTMLButtonElement>(null)
   const printMapRef = useRef<HTMLDivElement>(null)
+  const editorPanelHeadingRef = useRef<HTMLHeadingElement>(null)
+  const editorPanelButtonRefs = useRef<Partial<Record<EditorPanel, HTMLButtonElement>>>({})
+  const previousEditorPanelRef = useRef<EditorPanel | null>(null)
   const { book, activeClientId } = snapshot
   const canMutate = canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
   const vocabulary = useMemo(() => buildVocabulary(book), [book])
@@ -497,7 +498,6 @@ export default function App() {
     setMapTextEdit(null)
   }, [mapTextEdit])
   useEffect(() => {
-    setDataFilter('')
     setDataSection(undefined)
     setFocusRequest(undefined)
   }, [activeClient.id])
@@ -631,6 +631,14 @@ export default function App() {
     setFocusRequest(undefined)
     setEditorPanel(null)
   }, [])
+
+  const toggleEditorPanel = (panel: EditorPanel) => {
+    if (editorPanel === panel) closeDataPanel()
+    else {
+      setFocusRequest(undefined)
+      setEditorPanel(panel)
+    }
+  }
 
   const commitSnapshot = useCallback(
     (next: BookSnapshot, targetClientId: string | null) => {
@@ -942,6 +950,24 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [canMutate, handleRedo, handleUndo])
+
+  useEffect(() => {
+    const closedPanel = previousEditorPanelRef.current
+    previousEditorPanelRef.current = editorPanel
+    if (!closedPanel || editorPanel) return
+    window.requestAnimationFrame(() => editorPanelButtonRefs.current[closedPanel]?.focus())
+  }, [editorPanel])
+
+  useEffect(() => {
+    if (!editorPanel || guidedSetup || presentMode) return
+    // `focusRequest` is read, never depended on: it re-runs only when a panel
+    // opens. With it in the deps, anything that cleared the focus request —
+    // a map selection, most of all — re-fired this and stole focus back to the
+    // heading mid-edit.
+    if (focusRequest) return
+    window.requestAnimationFrame(() => editorPanelHeadingRef.current?.focus())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorPanel, guidedSetup, presentMode])
 
   useEffect(() => {
     const handleEditorEscape = (event: globalThis.KeyboardEvent) => {
@@ -1302,7 +1328,6 @@ export default function App() {
 
   const focusDataTarget = (section: FormSection, id: string) => {
     setEditorPanel('data')
-    setDataFilter('')
     setDataSection(section)
     focusRequestCounter.current += 1
     setFocusRequest({ id, at: focusRequestCounter.current })
@@ -1799,24 +1824,6 @@ export default function App() {
     }, activeClient.notes?.length ?? 0), mapRect))
   }
 
-  const handlePanelAddIncome = () => {
-    if (!canMutate) return
-    const nextClient = {
-      ...activeClient,
-      incomeSources: addIncomeSource(activeClient.incomeSources, ''),
-    }
-    handleClientChange(nextClient)
-    addToast('Income source added')
-    selectMapTarget('income')
-    focusDataTarget('income', 'income')
-  }
-
-  const handlePanelAddAccount = (bucket: Bucket) => {
-    if (!canMutate) return
-    const id = handleQuickAdd(bucket, true)
-    if (id) focusDataTarget('accounts', id)
-  }
-
   const handlePanelAddFlow = (sourceId: string, targetId: string) => {
     if (!canMutate) return
     const nextClient = addCustomArrow(activeClient, sourceId, targetId)
@@ -1833,20 +1840,6 @@ export default function App() {
     const arrow = nextClient.customArrows?.at(-1)
     handleMapChange(nextClient, 'Flow added')
     if (arrow) selectMapTarget(`arrow:custom:${arrow.id}`)
-  }
-
-  const handlePanelAddFinePrint = () => {
-    if (!canMutate) return
-    const nextClient = {
-      ...activeClient,
-      footnotes: [
-        ...activeClient.footnotes,
-        { id: newId('footnote'), label: '', gross: null, net: null },
-      ],
-    }
-    handleClientChange(nextClient)
-    focusDataTarget('need', 'need')
-    addToast('Fine print added')
   }
 
   const placeTextNote = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -1980,6 +1973,40 @@ export default function App() {
         <div className="header-history-actions">
           <button aria-label="Undo" className="quiet-button history-button" disabled={!canMutate || history.past.length === 0} title="Undo (Ctrl+Z)" type="button" onClick={handleUndo}>&#x21B6;</button>
           <button aria-label="Redo" className="quiet-button history-button" disabled={!canMutate || history.future.length === 0} title="Redo (Ctrl+Shift+Z or Ctrl+Y)" type="button" onClick={handleRedo}>&#x21B7;</button>
+          {!guidedSetup && (
+            <>
+              <button
+                aria-expanded={editorPanel === 'data'}
+                className="panel-toggle panel-toggle-data"
+                ref={(button) => { editorPanelButtonRefs.current.data = button ?? undefined }}
+                type="button"
+                onClick={() => toggleEditorPanel('data')}
+              >
+                <svg aria-hidden="true" className="panel-toggle-glyph" viewBox="0 0 16 16">
+                  <rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1" />
+                  <path d="M6.25 2.75v10.5" />
+                </svg>
+                Data
+              </button>
+              <button
+                aria-expanded={editorPanel === 'contents'}
+                className="panel-toggle panel-toggle-contents"
+                ref={(button) => { editorPanelButtonRefs.current.contents = button ?? undefined }}
+                type="button"
+                onClick={() => toggleEditorPanel('contents')}
+              >
+                <svg aria-hidden="true" className="panel-toggle-glyph" viewBox="0 0 16 16">
+                  <path d="M2 4.25h1.5" />
+                  <path d="M5.5 4.25H14" />
+                  <path d="M2 8h1.5" />
+                  <path d="M5.5 8H14" />
+                  <path d="M2 11.75h1.5" />
+                  <path d="M5.5 11.75H14" />
+                </svg>
+                Contents
+              </button>
+            </>
+          )}
         </div>
         <div className="header-spacer" />
         <div className="header-payoff-actions">
@@ -2090,48 +2117,15 @@ export default function App() {
           </aside>
         ) : (
           <>
-            <EditorRail
-              activePanel={editorPanel}
-              onToggle={(panel) => {
-                if (editorPanel === panel) closeDataPanel()
-                else {
-                  setFocusRequest(undefined)
-                  setEditorPanel(panel)
-                }
-              }}
-            />
-            {(editorPanel === 'add' || editorPanel === 'contents' || editorPanel === 'help') && (
+            {editorPanel === 'contents' && (
               <EditorPanels
-                activePanel={editorPanel}
                 canMutate={canMutate}
                 data={activeClient}
-                onAddAccount={handlePanelAddAccount}
-                onAddFinePrint={handlePanelAddFinePrint}
-                onAddFlow={handlePanelAddFlow}
-                onAddIncome={handlePanelAddIncome}
-                onAddTextNote={() => beginTextNotePlacement(true)}
+                headingRef={editorPanelHeadingRef}
                 onClose={closeDataPanel}
-                onOpenData={(focusId) => {
-                  if (focusId === 'income') {
-                    focusDataTarget('income', 'income')
-                  } else if (focusId === 'need') {
-                    focusDataTarget('need', 'need')
-                  } else if (focusId === 'accounts') {
-                    setEditorPanel('data')
-                    setDataFilter('')
-                    setDataSection('accounts')
-                    setFocusRequest(undefined)
-                  } else {
-                    setEditorPanel('data')
-                    setDataFilter('')
-                    setDataSection(undefined)
-                    setFocusRequest(undefined)
-                  }
-                }}
                 onRestoreGeneratedFlows={handleRestoreGeneratedArrows}
                 onOpenTarget={openDetailsForTargetKey}
                 onSelectTarget={selectMapTarget}
-                onSetNeed={() => focusDataTarget('need', 'need')}
                 selectedTargetKey={selectedMapTargetKey}
               />
             )}
@@ -2141,16 +2135,14 @@ export default function App() {
                 className="editor-panel"
                 role="dialog"
               >
-                <AutoFocusHeading id="editor-panel-title">Data</AutoFocusHeading>
                 <fieldset className="mutation-fieldset" disabled={!canMutate}>
                   <Form
                     data={activeClient}
                     key={activeClient.id + ':' + formRevision}
-                    filter={dataFilter}
                     focusRequest={focusRequest}
+                    headingRef={editorPanelHeadingRef}
                     onChange={handleClientChange}
                     onClose={closeDataPanel}
-                    onFilterChange={setDataFilter}
                     onHoverAccount={setHighlightId}
                     activeSection={dataSection}
                     onSectionFocus={setDataSection}

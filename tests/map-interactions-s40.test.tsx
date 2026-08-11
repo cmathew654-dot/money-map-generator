@@ -165,6 +165,26 @@ describe('Session 40 map interaction affordances', () => {
     expect(outputMarkup).not.toContain('map-connect-instruction')
     expect(outputMarkup).not.toContain('data-selected-target=')
   })
+
+  // This scaffold IS the empty state now that Add is gone. If MapSvg ever stops
+  // drawing it at zero data, a new client opens to a blank sheet with no prompt.
+  it('still draws the income and need scaffold at zero data', () => {
+    const outputMarkup = renderToStaticMarkup(
+      <MapSvg
+        data={{
+          ...SAMPLE_WHITFIELD,
+          accounts: [],
+          incomeSources: [],
+          monthlyNeed: null,
+        }}
+      />,
+    )
+
+    expect(outputMarkup).toContain('INCOME SOURCES')
+    expect(outputMarkup).toContain('MONTHLY INCOME NEED')
+    expect(outputMarkup).toMatch(/~\$ _+/)
+  })
+
   it('selects focused endpoints with Enter or Space', () => {
     expect(accountKeyboardActivation('Enter', 'cash-at-bank')).toEqual({
       selectedTargetKey: 'account:cash-at-bank',

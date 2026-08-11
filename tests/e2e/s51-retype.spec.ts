@@ -48,12 +48,12 @@ test('retyping an aggregate account total leaves the rows alone and points at th
   const positions = panel
     .locator('.account-card[data-account-id="managed-after-tax-trust"] .nested-list')
     .first()
-  await expect(positions.getByLabel('Value').nth(0)).toHaveValue('$380,000', {
-    timeout: 5_000,
-  })
-  await expect(positions.getByLabel('Value').nth(1)).toHaveValue('$330,000', {
-    timeout: 5_000,
-  })
+  await expect(
+    positions.getByLabel('Position value', { exact: true }).nth(0),
+  ).toHaveValue('$380,000', { timeout: 5_000 })
+  await expect(
+    positions.getByLabel('Position value', { exact: true }).nth(1),
+  ).toHaveValue('$330,000', { timeout: 5_000 })
 })
 
 test('a text size staged on an aggregate total survives the notice that refuses the number', async ({

@@ -1,0 +1,12 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-03-session-45-handoff.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Session 45/46 Handoff — spec-modernization merged; pan-hint fixed; baselines committed at cb5cf31; final gate remains (2026-08-03)",
+  "summary": "Sprint handoff documenting completed Money Map work, test gate results, dogfood route, and remaining deployment sequence.",
+  "scope": ["Money Map", "spec-modernization", "e2e testing", "multi-tab sync", "visual baselines", "deployment gates"],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

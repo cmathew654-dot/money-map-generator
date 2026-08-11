@@ -1,0 +1,12 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-02-session-42-task-6.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Session 42 Task 6 Handoff to Task 7",
+  "summary": "Handoff documentation bridging Task 6 completion to Task 7, covering implementation status, test results, risks, and next steps.",
+  "scope": ["Task 6 completion", "ClientCombobox", "MapSvg", "connector preview", "test results", "Task 7 preparation"],
+  "cross_refs": ["C:/Users/Cyril/AGENTS.md", "C:/Users/Cyril/Projects/.worktrees/money-map-generator-s40/AGENTS.md", "C:/Users/Cyril/Projects/.worktrees/money-map-generator-s40/docs/superpowers/specs/2026-08-02-canvas-first-editor-design.md", "C:/Users/Cyril/Projects/.worktrees/money-map-generator-s40/docs/superpowers/plans/2026-08-02-canvas-first-editor.md", ".superpowers/sdd/2026-08-02-canvas-first-editor/progress.md", "docs/codex/SESSION-42-REPORT.md", "tests/e2e/interaction-regression.spec.ts", "tests/e2e/extended-certification.spec.ts", "tests/e2e/reflow.spec.ts"],
+  "locked": false,
+  "precedence": null
+}

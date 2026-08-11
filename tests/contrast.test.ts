@@ -1,3 +1,5 @@
+// @ts-expect-error Browser-only tsconfig intentionally omits Node ambient types.
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   ARROW_COLORS,
@@ -70,5 +72,37 @@ describe('palette contrast contract', () => {
     ['need red', NEED_RED, '#faeae7'],
   ])('%s meets 4.5:1 on its surface', (_name, foreground, background) => {
     expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5)
+  })
+})
+
+describe('ledger field boundary contrast', () => {
+  const formCss: string = readFileSync('src/styles/form.css', 'utf8')
+
+  function token(name: string): string {
+    const match = formCss.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, 'i'))
+    if (!match) {
+      throw new Error(`Expected --${name} to be defined in form.css.`)
+    }
+    return match[1]
+  }
+
+  // Sketch 003 eliminated the boxed treatment because its --fm-hairline input
+  // boundary measured 1.2875:1 against paper. The ledger rule is the boundary
+  // that replaced it, so it has to clear SC 1.4.11 on its own rather than
+  // inherit the defect that disqualified the option it beat.
+  it.each([
+    ['the field fill', 'fm-section'],
+    ['the panel surface', 'fm-surface'],
+  ])('the field rule meets 3:1 on %s', (_where, background) => {
+    expect(
+      contrastRatio(token('fm-muted'), token(background)),
+    ).toBeGreaterThanOrEqual(3)
+  })
+
+  // De-boxing the fields left focus with nothing but a hue shift on a rule of
+  // unchanged thickness. PRODUCT.md requires visible focus that never rests on
+  // colour alone, so the app-wide 2px ring has to survive in the panel.
+  it('never suppresses the app-wide focus ring', () => {
+    expect(formCss).not.toMatch(/:focus-visible[^{]*\{[^}]*outline:\s*none/)
   })
 })

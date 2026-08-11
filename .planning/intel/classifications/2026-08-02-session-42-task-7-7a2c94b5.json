@@ -1,0 +1,27 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-02-session-42-task-7.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Session 42 Task 7 Handoff",
+  "summary": "Handoff document with instructions to resume canvas-first editor implementation (Task 7) in an existing worktree on the repair/session-42 branch.",
+  "scope": ["canvas-first editor", "Task 7", "integration", "verification", "Playwright", "visual testing", "Chrome/Windows dogfood"],
+  "cross_refs": [
+    "C:/Users/Cyril/AGENTS.md",
+    "C:/Users/Cyril/Projects/.worktrees/money-map-generator-s40/AGENTS.md",
+    "C:/Users/Cyril/Projects/.worktrees/money-map-generator-s40/docs/superpowers/specs/2026-08-02-canvas-first-editor-design.md",
+    "C:/Users/Cyril/Projects/.worktrees/money-map-generator-s40/docs/superpowers/plans/2026-08-02-canvas-first-editor.md",
+    "C:/Users/Cyril/Projects/.worktrees/money-map-generator-s40/.superpowers/sdd/2026-08-02-canvas-first-editor/progress.md",
+    "docs/codex/SESSION-42-REPORT.md",
+    "src/App.tsx",
+    "src/styles/app.css",
+    "tests/e2e/visual.spec.ts",
+    "tests/e2e/canvas-editor.spec.ts",
+    "tests/e2e/interaction-regression.spec.ts",
+    "tests/e2e/extended-certification.spec.ts",
+    "tests/e2e/reflow.spec.ts"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

@@ -17,3 +17,5 @@ docs/superpowers/
 gate*.mjs
 repro*.mjs
 .env
+.planning/config.json
+docs/codex/

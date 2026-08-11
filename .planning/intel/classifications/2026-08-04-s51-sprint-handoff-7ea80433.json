@@ -1,0 +1,13 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-04-s51-sprint-handoff.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "S51 Sprint Handoff — P0-P3 COMPLETE, P4 remains",
+  "summary": "Sprint s51 project state transfer documenting merged deliverables, remaining P4 work, operational traps, and handoff checklist for s52.",
+  "scope": ["sprint handoff", "Money Map", "s51", "selection subsystem", "Data panel UI", "Vitest", "Playwright", "Vite", "git operations"],
+  "cross_refs": ["REVERT-MAP.md", "docs/lanes/s51-retype.md", "tests/e2e/s51-state-context.spec.ts", "gate12.mjs", "package.json"],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

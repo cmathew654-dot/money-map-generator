@@ -1,0 +1,13 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-04-session-50-handoff.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Session 50 Handoff — P-lanes Merged + Arrow Thickness Shipped, Awaiting Cyril (2026-08-04 night)",
+  "summary": "Session handoff: code lanes merged, arrow thickness shipped, awaiting Cyril decisions before push ceremony.",
+  "scope": ["Money Map", "code lanes", "arrow thickness", "dogfood testing", "demo server", "gate checks", "session handoff"],
+  "cross_refs": ["tests/arrow-sw-generated-s50.test.tsx", "tests/insplite-s49.test.tsx", "gate11.mjs"],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

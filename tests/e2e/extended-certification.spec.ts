@@ -742,13 +742,26 @@ test.describe('extended desktop certification', () => {
     await capture('Present', page.getByRole('button', { name: 'Present' }), '.app-header')
     await capture('Print', page.getByRole('button', { name: 'Print', exact: true }), '.app-header')
     await capture('Export map', page.getByRole('button', { name: 'Export map' }), '.app-header')
-    await capture('Add rail action', page.getByRole('button', { name: 'Add', exact: true }), '.editor-rail')
-    await capture('Data rail action', page.getByRole('button', { name: 'Data', exact: true }), '.editor-rail')
-    await capture('Contents rail action', page.getByRole('button', { name: 'Contents', exact: true }), '.editor-rail')
-    await capture('Help rail action', page.getByRole('button', { name: 'Help', exact: true }), '.editor-rail')
+    await capture('Data panel toggle', page.getByRole('button', { name: 'Data', exact: true }), '.app-header')
+    await capture('Contents panel toggle', page.getByRole('button', { name: 'Contents', exact: true }), '.app-header')
     await fullForm(page)
     await capture('Data panel', page.getByRole('dialog', { name: 'Data' }), 'viewport')
     await assertWcag22AA(page, testInfo, 'text-spacing-editor')
+
+    // Audit the book menu before expanding an account: expanding also selects
+    // it on the map, and the floating inspector under the open menu trips
+    // axe's target-size rule (a WCAG 2.5.8 dismissible-overlay false positive).
+    await page.getByRole('button', { name: 'More actions' }).click()
+    await capture('Open Book menu', page.getByRole('menu'), 'viewport')
+    await capture(
+      'Download book backup menu item',
+      page.getByRole('menuitem', { name: 'Download book backup' }),
+      'viewport',
+    )
+    await assertWcag22AA(page, testInfo, 'text-spacing-book-menu')
+    await page.getByRole('button', { name: 'More actions' }).click()
+    await expect(page.getByRole('menu')).toBeHidden()
+
     const firstAccount = page.locator('.account-card').first()
     await firstAccount.locator('button.account-summary').click()
     const shapeGroup = page.getByRole('group', {
@@ -773,16 +786,6 @@ test.describe('extended desktop certification', () => {
       shapeGroup.getByRole('button', { name: 'Card shape' }),
       '.editor-panel',
     )
-
-    await page.getByRole('button', { name: 'More actions' }).click()
-    await capture('Open Book menu', page.getByRole('menu'), 'viewport')
-    await capture(
-      'Download book backup menu item',
-      page.getByRole('menuitem', { name: 'Download book backup' }),
-      'viewport',
-    )
-    await assertWcag22AA(page, testInfo, 'text-spacing-book-menu')
-    await page.keyboard.press('Escape')
 
     await page.evaluate(() => {
       const extendedWindow = window as Window & {
@@ -1099,7 +1102,7 @@ test.describe('extended desktop certification', () => {
       .getByRole('button', { name: '+ Add position', exact: true })
       .click()
     await accountShell
-      .getByLabel('Label', { exact: true })
+      .getByLabel('Position label', { exact: true })
       .last()
       .fill('Retention position')
     await account
@@ -1108,7 +1111,7 @@ test.describe('extended desktop certification', () => {
     await accountShell
       .locator('.subaccount-row')
       .last()
-      .getByLabel('Label', { exact: true })
+      .getByLabel('Sub-account label', { exact: true })
       .fill('Retention sub-account')
     await page
       .getByRole('button', { name: '+ Add fine print line', exact: true })
@@ -1116,7 +1119,7 @@ test.describe('extended desktop certification', () => {
     await page
       .locator('.footnote-row')
       .last()
-      .getByLabel('Label', { exact: true })
+      .getByLabel('Fine print label', { exact: true })
       .fill('Retention fine print')
     await page
       .getByRole('button', { name: '+ Add note', exact: true })

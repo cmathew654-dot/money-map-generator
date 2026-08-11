@@ -6,6 +6,7 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type Ref,
+  type RefObject,
 } from 'react'
 import {
   BLANK,
@@ -39,18 +40,17 @@ import {
   type VocabularyTerm,
 } from '../model/vocab'
 import { NOTE_WIDTH } from '../layout/layout'
-import { ARTBOARD } from '../render/tokens'
+import { ARTBOARD, BUCKETS } from '../render/tokens'
 import { Autocomplete } from '../ui/Autocomplete'
 
 export type FormSection = 'client' | 'income' | 'accounts' | 'need' | 'notes'
 
 export interface FormProps {
   data: MoneyMapData
+  headingRef?: RefObject<HTMLHeadingElement | null>
   onChange(next: MoneyMapData): void
-  /** Same close path as the editor rail toggle; omitted outside the panel. */
+  /** Same close path as the header toggle; omitted outside the panel. */
   onClose?: () => void
-  filter?: string
-  onFilterChange?: (filter: string) => void
   activeSection?: FormSection
   onSectionFocus?: (section: FormSection) => void
   focusRequest?: { id: string; at: number }
@@ -445,16 +445,21 @@ function TextField({
 
 function SectionHead({
   count,
+  noun,
   title,
 }: {
   count?: number
+  /** A bare tally reads as a random number; the noun says what was counted. */
+  noun?: string
   title: string
 }) {
   return (
     <header className="form-section-head">
       <h2>{title}</h2>
       {count !== undefined && (
-        <span className="form-section-count">{count}</span>
+        <span className="form-section-count">
+          {`${count} ${count === 1 ? noun : `${noun}s`}`}
+        </span>
       )}
     </header>
   )
@@ -500,8 +505,16 @@ export function NeedSection({
       <p className="help-text">
         The red number — what the household must cover each month.
       </p>
+      <TextField
+        label="Need tag"
+        value={data.needTag ?? ''}
+        onChange={(needTag) => onChange({ ...data, needTag })}
+      />
+      <p className="help-text">
+        Short qualifier printed beside the monthly need — e.g. net.
+      </p>
       <MoneyField
-        label="Monthly account withdrawal"
+        label="As needed"
         value={data.asNeededAmount}
         onChange={(asNeededAmount) =>
           onChange({ ...data, asNeededAmount })
@@ -520,7 +533,6 @@ export function NeedSection({
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="need" ref={sectionRef}>
       <SectionHead title="Need" />
       {fields}
-      <FinePrintSection data={data} onChange={onChange} />
     </section>
   )
 }
@@ -552,7 +564,7 @@ export function IncomeSection({
 
   return (
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="income" ref={sectionRef}>
-      <SectionHead count={data.incomeSources.length} title="Income" />
+      <SectionHead count={data.incomeSources.length} noun="source" title="Income" />
       <div className="row-list">
         {data.incomeSources.map((source, index) => (
           <div className="stacked-row income-row" key={index}>
@@ -608,7 +620,21 @@ export function IncomeSection({
                   <option value="yr">yr</option>
                 </select>
               </label>
+              <TextField
+                autocomplete={{
+                  bookTerms: vocabulary,
+                  seeds: noSeeds,
+                }}
+                label="Qualifier"
+                value={source.qualifier ?? ''}
+                onChange={(qualifier) =>
+                  updateSource(index, { ...source, qualifier })
+                }
+              />
             </div>
+            <p className="help-text">
+              Printed beside the amount on the map — e.g. Gross.
+            </p>
           </div>
         ))}
       </div>
@@ -645,6 +671,7 @@ export function IncomeSection({
           <NeedSection data={data} embedded onChange={onChange} />
         )}
       </div>
+      <FinePrintSection data={data} onChange={onChange} />
     </section>
   )
 }
@@ -664,9 +691,16 @@ function PositionRows({
   return (
     <div className="nested-list">
       <h4>Positions</h4>
+      <p className="help-text">
+        Break this account's total into holdings — e.g. by fund or carrier.
+      </p>
+      <div className="position-column-head">
+        <span>Label</span>
+        <span>Value</span>
+      </div>
       {positions.map((position, index) => (
-        <div className="stacked-row nested-row" key={index}>
-          <div className="stacked-row-heading">
+        <div className="position-row" key={index}>
+          <div className="position-label-cell">
             <TextField
               autocomplete={{
                 bookTerms: vocabulary,
@@ -675,7 +709,7 @@ function PositionRows({
               inputRef={(element) => {
                 labelInputs.current[index] = element
               }}
-              label="Label"
+              label="Position label"
               value={position.label}
               onChange={(label) =>
                 onChange(
@@ -694,19 +728,17 @@ function PositionRows({
               }
             />
           </div>
-          <div className="nested-row-fields">
-            <MoneyField
-              label="Value"
-              value={position.value}
-              onChange={(value) =>
-                onChange(
-                  positions.map((item, itemIndex) =>
-                    itemIndex === index ? { ...item, value } : item,
-                  ),
-                )
-              }
-            />
-          </div>
+          <MoneyField
+            label="Position value"
+            value={position.value}
+            onChange={(value) =>
+              onChange(
+                positions.map((item, itemIndex) =>
+                  itemIndex === index ? { ...item, value } : item,
+                ),
+              )
+            }
+          />
         </div>
       ))}
       <button
@@ -739,6 +771,10 @@ function SubAccountRows({
   return (
     <div className="nested-list">
       <h4>Sub-accounts</h4>
+      <p className="help-text">
+        Carve out a named pool inside this account — e.g. RMD short-term
+        funds. It gets its own shape on the map.
+      </p>
       {subAccounts.map((subAccount, index) => (
         <div className="stacked-row subaccount-row" key={index}>
           <div className="stacked-row-heading">
@@ -750,7 +786,7 @@ function SubAccountRows({
               inputRef={(element) => {
                 labelInputs.current[index] = element
               }}
-              label="Label"
+              label="Sub-account label"
               value={subAccount.label}
               onChange={(label) =>
                 onChange(
@@ -782,7 +818,7 @@ function SubAccountRows({
               }
             />
             <MoneyField
-              label="Value"
+              label="Sub-account value"
               value={subAccount.value}
               onChange={(value) =>
                 onChange(
@@ -871,13 +907,20 @@ function AccountCard({
             onToggle()
           }}
         >
-          <span aria-hidden="true" className="account-swatch" />
-          <span
-            className={`account-summary-label${
-              account.label.trim() ? '' : ' is-unnamed'
-            }`}
-          >
-            {accountDisplayName(account)}
+          <span className="account-summary-copy">
+            <span
+              className={`account-summary-label${
+                account.label.trim() ? '' : ' is-unnamed'
+              }`}
+            >
+              {accountDisplayName(account)}
+            </span>
+            <span
+              className="account-summary-tag"
+              style={{ color: BUCKETS[account.bucket].tagColor }}
+            >
+              {BUCKETS[account.bucket].tag.toUpperCase()}
+            </span>
           </span>
           <span className="account-summary-value">{money(account.value)}</span>
           <span aria-hidden="true" className="account-row-chevron">
@@ -907,10 +950,19 @@ function AccountCard({
                 onChange={(label) => onChange({ ...account, label })}
               />
               <MoneyField
-                label="Value"
+                label="Account value"
                 value={account.value}
                 onChange={(value) => onChange({ ...account, value })}
               />
+              <TextField
+                label="Value tag"
+                value={account.valueTag ?? ''}
+                onChange={(valueTag) => onChange({ ...account, valueTag })}
+              />
+              <p className="help-text">
+                Short qualifier printed beside the value on the map — e.g.
+                est.
+              </p>
               <label className="form-field">
                 <span>Account type</span>
                 <select
@@ -984,16 +1036,6 @@ function AccountCard({
   )
 }
 
-/** row-level twin of the section filter: same case-insensitive substring test */
-export function accountMatchesQuery(account: Account, query: string) {
-  return (
-    !query ||
-    (account.label + ' ' + JSON.stringify(account))
-      .toLocaleLowerCase()
-      .includes(query)
-  )
-}
-
 /**
  * A row is open when the user says so; otherwise it follows the map selection.
  * Manual expands therefore survive a selection change, and the auto-expanded
@@ -1018,13 +1060,10 @@ export function AccountsSection({
   active = false,
   presetLabel = 'Add:',
   vocabulary = [],
-  query = '',
 }: FormProps & {
   sectionRef?: Ref<HTMLElement>
   active?: boolean
   presetLabel?: string
-  /** already lower-cased filter query; empty renders every row */
-  query?: string
 }) {
   const [manualOpen, setManualOpen] = useState<Record<string, boolean>>({})
   const [lastSelected, setLastSelected] = useState(selectedAccountId ?? null)
@@ -1068,13 +1107,11 @@ export function AccountsSection({
     if (!focusFirstField()) requestAnimationFrame(focusFirstField)
   }, [focusRequest])
 
-  const visible = data.accounts.filter((account) =>
-    accountMatchesQuery(account, query),
-  )
+  const visible = data.accounts
 
   return (
     <section className={active ? 'form-section accounts-section is-active' : 'form-section accounts-section'} data-form-section="accounts" ref={sectionRef}>
-      <SectionHead count={visible.length} title="Accounts" />
+      <SectionHead count={visible.length} noun="account" title="Accounts" />
       {visible.map((account) => (
         <AccountCard
           account={account}
@@ -1177,7 +1214,7 @@ export function FinePrintSection({
               inputRef={(element) => {
                 labelInputs.current[index] = element
               }}
-              label="Label"
+              label="Fine print label"
               value={footnote.label}
               onChange={(label) =>
                 updateFootnote(index, { ...footnote, label })
@@ -1227,7 +1264,7 @@ export function FinePrintSection({
         + Add fine print line
       </button>
       <p className="help-text">
-        The after-tax amount appears in green.
+        The net amount appears in green.
       </p>
     </div>
   )
@@ -1260,7 +1297,7 @@ export function NotesSection({
 
   return (
     <section className={active ? 'form-section is-active' : 'form-section'} data-form-section="notes" ref={sectionRef}>
-      <SectionHead count={notes.length} title="Notes" />
+      <SectionHead count={notes.length} noun="note" title="Notes" />
       <div className="row-list">
         {notes.map((note, index) => (
           <div className="stacked-row note-row" key={note.id}>
@@ -1288,6 +1325,9 @@ export function NotesSection({
           </div>
         ))}
       </div>
+      {notes.length === 0 && (
+        <p className="empty-state">No notes yet.</p>
+      )}
       <button
         className="add-button"
         type="button"
@@ -1432,8 +1472,7 @@ export function nextEnterFocusTarget<T>(
 
 export function Form({
   data,
-  filter,
-  onFilterChange,
+  headingRef,
   activeSection,
   onSectionFocus,
   focusRequest,
@@ -1444,17 +1483,11 @@ export function Form({
   onSelectAccount,
   vocabulary,
 }: FormProps) {
-  const [localFilter, setLocalFilter] = useState(filter ?? '')
-  const filterValue = onFilterChange ? filter ?? localFilter : localFilter
   const incomeSectionRef = useRef<HTMLElement>(null)
   const needSectionRef = useRef<HTMLElement>(null)
   const sectionRefs = useRef<
     Partial<Record<FormSection, HTMLElement | null>>
   >({})
-
-  useEffect(() => {
-    if (onFilterChange) setLocalFilter(filter ?? '')
-  }, [filter, onFilterChange])
 
   const sectionLabels: Record<FormSection, string> = {
     client: 'Client',
@@ -1463,28 +1496,7 @@ export function Form({
     need: 'Need',
     notes: 'Notes',
   }
-  const query = filterValue.trim().toLocaleLowerCase()
-  const sectionMatches = (section: FormSection) => {
-    const sectionData =
-      section === 'client'
-        ? data.client
-        : section === 'income'
-          ? data.incomeSources
-          : section === 'accounts'
-            ? data.accounts
-            : section === 'need'
-              ? {
-                  monthlyNeed: data.monthlyNeed,
-                  needTag: data.needTag,
-                  asNeededAmount: data.asNeededAmount,
-                  footnotes: data.footnotes,
-                }
-              : data.notes
-    return !query ||
-      (section + ' ' + sectionLabels[section] + ' ' + JSON.stringify(sectionData))
-        .toLocaleLowerCase()
-        .includes(query)
-  }
+  const visibleSections = Object.keys(sectionLabels) as FormSection[]
   const registerSection = (section: FormSection) => (node: HTMLElement | null) => {
     sectionRefs.current[section] = node
   }
@@ -1526,40 +1538,9 @@ export function Form({
       onSubmit={(event) => event.preventDefault()}
     >
       <div className="data-form-tools">
-        <label className="data-form-filter">
-          <span>Filter</span>
-          <svg
-            aria-hidden="true"
-            className="data-filter-glyph"
-            viewBox="0 0 16 16"
-          >
-            <circle cx="7" cy="7" r="4.25" />
-            <path d="m10.25 10.25 3.25 3.25" />
-          </svg>
-          <input
-            aria-label="Filter data"
-            placeholder="Filter data"
-            type="search"
-            value={filterValue}
-            onChange={(event) => {
-              setLocalFilter(event.target.value)
-              onFilterChange?.(event.target.value)
-            }}
-          />
-        </label>
-        {filterValue.trim() && (
-          <span className="data-filter-query">{filterValue.trim()}</span>
-        )}
-        {onClose && (
-          <button
-            aria-label="Close Data panel"
-            className="data-form-close"
-            type="button"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        )}
+        <h2 className="visually-hidden" id="editor-panel-title" ref={headingRef} tabIndex={-1}>
+          Data
+        </h2>
         <nav aria-label="Data sections" className="data-form-sections">
           {(Object.keys(sectionLabels) as FormSection[]).map((section) => (
             <button
@@ -1573,8 +1554,18 @@ export function Form({
             </button>
           ))}
         </nav>
+        {onClose && (
+          <button
+            aria-label="Close Data panel"
+            className="data-form-close"
+            type="button"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        )}
       </div>
-      {sectionMatches('client') && (
+      {visibleSections.includes('client') && (
         <ClientSection
           active={activeSection === 'client'}
           data={data}
@@ -1582,7 +1573,7 @@ export function Form({
           sectionRef={registerSection('client')}
         />
       )}
-      {sectionMatches('income') && (
+      {visibleSections.includes('income') && (
         <IncomeSection
           active={activeSection === 'income'}
           data={data}
@@ -1592,7 +1583,7 @@ export function Form({
           vocabulary={vocabulary}
         />
       )}
-      {sectionMatches('accounts') && (
+      {visibleSections.includes('accounts') && (
         <AccountsSection
           active={activeSection === 'accounts'}
           data={data}
@@ -1603,10 +1594,9 @@ export function Form({
           onSelectAccount={onSelectAccount}
           sectionRef={registerSection('accounts')}
           vocabulary={vocabulary}
-          query={query}
         />
       )}
-      {sectionMatches('need') && (
+      {visibleSections.includes('need') && (
         <NeedSection
           active={activeSection === 'need'}
           data={data}
@@ -1614,7 +1604,7 @@ export function Form({
           sectionRef={needSectionRef}
         />
       )}
-      {sectionMatches('notes') && (
+      {visibleSections.includes('notes') && (
         <NotesSection
           active={activeSection === 'notes'}
           data={data}
@@ -1622,9 +1612,6 @@ export function Form({
           onChange={onChange}
           sectionRef={registerSection('notes')}
         />
-      )}
-      {!(Object.keys(sectionLabels) as FormSection[]).some(sectionMatches) && (
-        <p className="empty-state">No matching data sections.</p>
       )}
     </form>
   )

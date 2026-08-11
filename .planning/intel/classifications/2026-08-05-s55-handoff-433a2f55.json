@@ -1,0 +1,19 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-05-s55-handoff.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "S55 Handoff — post Batch A/B + s55 bug/spec pass (2026-08-05 ~04:20)",
+  "summary": "Project handoff documenting sprint s55 work, test states, commits, decisions, and known traps.",
+  "scope": ["Money Map", "git commits", "test results", "UI components", "bug fixes", "specifications"],
+  "cross_refs": [
+    "repair/session-42",
+    "src/render/selection.ts",
+    "Form.tsx:351",
+    "tests/s54-selection-reducer.test.ts",
+    "tests/e2e/reflow.spec.ts:55"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

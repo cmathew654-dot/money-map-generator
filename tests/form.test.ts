@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import {
   ClientSection,
   AccountsSection,
-  Form,
   IncomeSection,
   NeedSection,
   NotesSection,
@@ -109,36 +108,6 @@ describe('income source presets', () => {
     expect(data.needTag).toBe('goal')
     expect(data.incomeSources[0].qualifier).toBe('Gross')
     expect(data.accounts[0].valueTag).toBe('est.')
-  })
-})
-
-describe('Data panel filtering', () => {
-  it('hides nonmatching sections without mutating the model', () => {
-    const data = blankClient()
-    data.accounts = [
-      {
-        id: 'managed-ira',
-        bucket: 'taxDeferred',
-        label: 'Managed IRA',
-        value: 80_000,
-      },
-    ]
-    const before = JSON.stringify(data)
-
-    const markup = renderToStaticMarkup(
-      createElement(Form, {
-        activeSection: 'accounts',
-        data,
-        filter: 'Managed IRA',
-        onChange: () => undefined,
-        onSectionFocus: () => undefined,
-      }),
-    )
-
-    expect(markup).toContain('data-form-section="accounts"')
-    expect(markup).not.toContain('data-form-section="client"')
-    expect(markup).toContain('Managed IRA')
-    expect(data).toEqual(JSON.parse(before))
   })
 })
 
@@ -270,10 +239,57 @@ describe('client date selects', () => {
   })
 })
 
-describe('need fine print', () => {
-  it('nests the renamed fine print controls in Need', () => {
+describe('account value tag', () => {
+  it('renders a value tag control bound to the account', () => {
     const data = blankClient()
-    data.footnotes = [{ id: 'footnote-test', label: '', gross: null, net: null }]
+    data.accounts = [
+      {
+        id: 'account-test',
+        bucket: 'cash',
+        label: 'Cash at Bank',
+        value: 25_000,
+        valueTag: 'est.',
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      createElement(AccountsSection, {
+        data,
+        selectedAccountId: 'account-test',
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('Value tag')
+    expect(markup).toContain('value="est."')
+  })
+})
+
+describe('income source qualifier', () => {
+  it('renders an editable control scoped to that row', () => {
+    const data = blankClient()
+    data.incomeSources = [
+      { id: 'income-a', label: 'Pension', amount: 2_000, period: 'mo', qualifier: 'Gross' },
+      { id: 'income-b', label: 'Rental', amount: 900, period: 'mo' },
+    ]
+
+    const markup = renderToStaticMarkup(
+      createElement(IncomeSection, {
+        data,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain('Qualifier')
+    expect(markup).toContain('value="Gross"')
+  })
+})
+
+describe('need tag', () => {
+  it('renders an editable control bound to the stored need tag', () => {
+    const data = blankClient()
+    data.monthlyNeed = 4_000
+    data.needTag = 'net'
 
     const markup = renderToStaticMarkup(
       createElement(NeedSection, {
@@ -282,11 +298,99 @@ describe('need fine print', () => {
       }),
     )
 
-    expect(markup).toContain('Fine print')
-    expect(markup).toContain('+ Add fine print line')
-    expect(markup).toContain('Remove fine print line 1')
-    expect(markup).not.toContain('Footnotes')
-    expect(markup).not.toContain('+ Add footnote')
+    expect(markup).toContain('Need tag')
+    expect(markup).toContain('value="net"')
+  })
+})
+
+describe('income fine print', () => {
+  // Realigned 2026-08-09 (IA-02, plan 01-03): fine print's fields (Gross/Net)
+  // are an income breakdown, not a Need figure — Phase 1 deliberately moved
+  // its editor and filter index from Need into Income. This test previously
+  // pinned fine print to Need; it now asserts the new home and the vacated one.
+  it('nests the renamed fine print controls in Income, not Need', () => {
+    const data = blankClient()
+    data.footnotes = [{ id: 'footnote-test', label: '', gross: null, net: null }]
+
+    const incomeMarkup = renderToStaticMarkup(
+      createElement(IncomeSection, {
+        data,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(incomeMarkup).toContain('Fine print')
+    expect(incomeMarkup).toContain('+ Add fine print line')
+    expect(incomeMarkup).toContain('Remove fine print line 1')
+    expect(incomeMarkup).not.toContain('Footnotes')
+    expect(incomeMarkup).not.toContain('+ Add footnote')
+
+    const needMarkup = renderToStaticMarkup(
+      createElement(NeedSection, {
+        data,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(needMarkup).not.toContain('Fine print')
+    expect(needMarkup).not.toContain('+ Add fine print line')
+  })
+})
+
+describe('nested-group help text', () => {
+  it('gives Positions and Sub-accounts distinct help lines', () => {
+    const data = blankClient()
+    data.accounts = [
+      {
+        id: 'account-nested',
+        bucket: 'cash',
+        label: 'Cash at Bank',
+        value: 25_000,
+        positions: [],
+        subAccounts: [],
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      createElement(AccountsSection, {
+        data,
+        selectedAccountId: 'account-nested',
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(markup).toContain(
+      "Break this account&#x27;s total into holdings — e.g. by fund or carrier.",
+    )
+    expect(markup).toContain(
+      'Carve out a named pool inside this account — e.g. RMD short-term funds. It gets its own shape on the map.',
+    )
+  })
+})
+
+describe('notes empty state', () => {
+  it('states emptiness with zero notes and hides it with one or more', () => {
+    const empty = blankClient()
+
+    const emptyMarkup = renderToStaticMarkup(
+      createElement(NotesSection, {
+        data: empty,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(emptyMarkup).toContain('No notes yet.')
+
+    const withNote = appendBlankNote(empty)
+
+    const filledMarkup = renderToStaticMarkup(
+      createElement(NotesSection, {
+        data: withNote,
+        onChange: () => undefined,
+      }),
+    )
+
+    expect(filledMarkup).not.toContain('No notes yet.')
   })
 })
 

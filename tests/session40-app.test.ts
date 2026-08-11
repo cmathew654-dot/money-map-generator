@@ -11,7 +11,7 @@ import {
 describe('Session 40 App safety boundaries', () => {
   it('keeps the canvas shell panel state in App instead of form-mode storage', () => {
     expect(appSource).toMatch(
-      /type EditorPanel = 'add' \| 'data' \| 'contents' \| 'help'/,
+      /export type EditorPanel = 'data' \| 'contents'\r?\n/,
     )
     expect(appSource).toMatch(
       /const \[editorPanel, setEditorPanel\] = useState<EditorPanel \| null>\(null\)/,

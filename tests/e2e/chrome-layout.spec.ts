@@ -53,75 +53,19 @@ test.describe('toolbar reachable at 200 percent zoom (slice 11)', () => {
     }
   })
 
-  test('the editor rail stays clickable under the wrapped map chrome', async ({ page }) => {
-    const rail: ButtonProbe[] = await page.evaluate(() => {
-      const buttons = [...document.querySelectorAll<HTMLElement>('.editor-rail button')]
-      return buttons.map((button) => {
-        const box = button.getBoundingClientRect()
-        const cx = box.left + box.width / 2
-        const cy = box.top + box.height / 2
-        const hit = document.elementFromPoint(cx, cy)
-        return {
-          label: button.textContent?.trim() || null,
-          box: { left: box.left, top: box.top, right: box.right, bottom: box.bottom },
-          withinViewport:
-            box.left >= 0 &&
-            box.top >= 0 &&
-            box.right <= window.innerWidth &&
-            box.bottom <= window.innerHeight,
-          hitTestable: hit === button || Boolean(hit && button.contains(hit)),
-          coveredBy: hit && !button.contains(hit)
-            ? `${hit.tagName.toLowerCase()}.${hit.className}`
-            : null,
-        }
-      })
-    })
+  test('Data and Contents stay reachable after the header wraps', async ({ page }) => {
+    const header = page.locator('.app-header')
+    expect(await header.evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThan(52)
 
-    // Add / Data / Contents / Help.
-    expect(rail.length).toBe(4)
-
-    // At 360px tall the rail itself runs past the bottom edge (its own
-    // problem); every button that IS on screen has to stay clickable, which
-    // is what the wrapped .map-chrome used to break.
-    const onScreen = rail.filter((probe) => probe.withinViewport)
-    expect(onScreen.length, JSON.stringify(rail.map((probe) => probe.box))).toBeGreaterThanOrEqual(3)
-    for (const probe of onScreen) {
-      expect(probe.hitTestable, `rail button "${probe.label}" is covered by ${probe.coveredBy} at ${JSON.stringify(probe.box)}`).toBe(true)
+    for (const name of ['Data', 'Contents']) {
+      const button = header.getByRole('button', { name, exact: true })
+      await button.scrollIntoViewIfNeeded()
+      await expect(button).toBeVisible()
+      await button.click({ timeout: 4000 })
+      await expect(button).toHaveAttribute('aria-expanded', 'true')
+      await page.keyboard.press('Escape')
+      await expect(button).toBeFocused()
     }
-
-    // Contents sits lowest of the on-screen buttons, right where the wrapped
-    // bench lands.
-    const contents = page.getByRole('button', { name: 'Contents', exact: true })
-    await contents.click({ timeout: 4000 })
-    await expect(contents).toHaveAttribute('aria-expanded', 'true')
-  })
-
-  test('every editor rail button, Help included, fits inside the short viewport', async ({ page }) => {
-    const measured = await page.evaluate(() => {
-      const rail = document.querySelector<HTMLElement>('.editor-rail')
-      if (!rail) throw new Error('No editor rail')
-      const railBox = rail.getBoundingClientRect()
-      return {
-        viewportHeight: window.innerHeight,
-        rail: { top: railBox.top, bottom: railBox.bottom, scrollHeight: rail.scrollHeight, clientHeight: rail.clientHeight },
-        buttons: [...rail.querySelectorAll<HTMLElement>('button')].map((button) => {
-          const box = button.getBoundingClientRect()
-          return { label: button.textContent?.trim() || null, top: box.top, bottom: box.bottom }
-        }),
-      }
-    })
-    const detail = JSON.stringify(measured)
-    // The rail box itself still spans the stacked workspace; only its buttons
-    // have to stay above the fold, and stretching them is what pushed Help off.
-    for (const button of measured.buttons) {
-      expect(button.bottom, `rail button "${button.label}" hangs past the fold: ${detail}`)
-        .toBeLessThanOrEqual(measured.viewportHeight + 1)
-    }
-
-    // Reachable means clickable, not merely rendered.
-    const help = page.getByRole('button', { name: 'Help', exact: true })
-    await help.click({ timeout: 4000 })
-    await expect(help).toHaveAttribute('aria-expanded', 'true')
   })
 })
 

@@ -48,7 +48,7 @@ export const BUCKETS: Record<string, BucketStyle> = {
     stroke: '#b98a1e',
     tagColor: '#836313',
     tint: '#fdf8ec',
-    tag: 'After-Tax',
+    tag: 'Taxable',
   },
   taxDeferred: {
     stroke: '#2f6bab',

@@ -1,4 +1,4 @@
-import { createElement } from 'react'
+import { createElement, createRef } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { buildPdf } from '../src/export/pdf'
@@ -16,20 +16,13 @@ const DATA: MoneyMapData = {
 function contentsMarkup(): string {
   return renderToStaticMarkup(
     createElement(EditorPanels, {
-      activePanel: 'contents',
       data: DATA,
       selectedTargetKey: null,
       canMutate: true,
+      headingRef: createRef<HTMLHeadingElement>(),
       onClose: () => {},
-      onOpenData: () => {},
       onSelectTarget: () => {},
       onOpenTarget: () => {},
-      onAddIncome: () => {},
-      onAddAccount: () => {},
-      onSetNeed: () => {},
-      onAddFlow: () => {},
-      onAddTextNote: () => {},
-      onAddFinePrint: () => {},
       onRestoreGeneratedFlows: () => {},
     }),
   )

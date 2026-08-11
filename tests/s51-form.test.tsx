@@ -9,6 +9,7 @@ import { blankClient } from '../src/model/samples'
 import type { MoneyMapData } from '../src/model/types'
 
 const formCss: string = readFileSync('src/styles/form.css', 'utf8')
+const formSource: string = readFileSync('src/form/Form.tsx', 'utf8')
 
 function withAccounts(): MoneyMapData {
   const data = blankClient()
@@ -50,13 +51,25 @@ describe('s51 ledger rows collapse and expand', () => {
     expect(markup).not.toContain('Supporting note')
   })
 
-  it('keeps the dot, name and tabular value on the row', () => {
+  it('keeps the name, bucket tag and tabular value on the row', () => {
     const markup = renderAccounts()
 
-    expect(markup).toContain('account-swatch')
+    expect(markup).not.toMatch(
+      /class="account-summary"[^>]*><span[^>]*account-swatch/,
+    )
     expect(markup).toContain('Roth IRA')
+    expect(markup).toContain('TAX-PREFERRED')
     expect(markup).toContain('account-summary-value')
     expect(formCss).toMatch(/\.account-summary-value\s*\{[^}]*tabular-nums/)
+  })
+
+  it('keeps bucket tags as bare tagColor text', () => {
+    const tagRule = formCss.match(/\.account-summary-tag\s*\{([^}]*)\}/)?.[1]
+
+    expect(tagRule).toBeDefined()
+    expect(tagRule).not.toMatch(/border-radius/)
+    expect(formSource).toMatch(/BUCKETS\[account\.bucket\]\.tagColor/)
+    expect(formSource).not.toMatch(/BUCKETS\[account\.bucket\]\.stroke/)
   })
 
   it('expands the selected row in place and leaves the others closed', () => {
@@ -119,23 +132,6 @@ describe('s51 auto-expand follows the map selection', () => {
   })
 })
 
-describe('s51 filter chrome', () => {
-  it('narrows the ledger to matching rows', () => {
-    const markup = renderForm({ filter: 'Roth' })
-
-    expect(markup).toContain('Roth IRA')
-    expect(markup).not.toContain('Cash at Bank')
-  })
-
-  it('renders an inline search glyph and a 14px full-width field', () => {
-    const markup = renderForm()
-
-    expect(markup).toContain('data-filter-glyph')
-    expect(formCss).toMatch(/\.data-form-filter input\s*\{[^}]*font-size:\s*14px/)
-    expect(formCss).toMatch(/\.data-form-filter input:focus[^{]*\{[^}]*#1e7a4a/)
-  })
-})
-
 describe('s51 in-panel close', () => {
   it('renders a close control when the panel supplies a close path', () => {
     expect(renderForm({ onClose: () => undefined })).toContain(
@@ -147,18 +143,24 @@ describe('s51 in-panel close', () => {
     expect(renderForm()).not.toContain('aria-label="Close Data panel"')
   })
 
-  it('wires the close control to the same path as the rail toggle', () => {
+  it('wires the close control to the same path as the header toggle', () => {
     expect(appSource).toContain('onClose={closeDataPanel}')
+    expect(appSource).toContain('const toggleEditorPanel = (panel: EditorPanel) => {')
+    // The branch, not just the handler: re-pressing an open panel's toggle must
+    // close it down the same path as the in-panel close control.
     expect(appSource).toContain('if (editorPanel === panel) closeDataPanel()')
   })
 })
 
 describe('s51 section headers', () => {
-  it('gives each section a sticky header with a right-aligned count', () => {
+  it('gives each section a header with a right-aligned count', () => {
     const markup = renderForm()
 
     expect(markup).toContain('form-section-head')
-    expect(markup).toMatch(/form-section-count[^>]*>2</)
-    expect(formCss).toMatch(/\.form-section-head\s*\{[^}]*position:\s*sticky/)
+    // A bare tally reads as a random number, so the count names what it counts.
+    expect(markup).toMatch(/form-section-count[^>]*>\s*2 accounts\s*</)
+    expect(formCss).toMatch(
+      /\.editor-panel \.form-section-head\s*\{(?![^}]*position:\s*sticky)[^}]*\}/,
+    )
   })
 })

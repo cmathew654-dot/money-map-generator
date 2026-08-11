@@ -1,0 +1,13 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/specs/2026-08-02-canvas-first-editor-design.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Canvas-First Editor Design",
+  "summary": "Technical specification for redesigning Money Map workspace from form-first to canvas-first editing model with context-driven panels.",
+  "scope": ["canvas editor", "UI interaction model", "Data panel", "Add panel", "Contents panel", "contextual inspector", "pointer behavior", "selection synchronization", "alignment and distribution", "flow creation", "responsive behavior"],
+  "cross_refs": ["2026-08-02-editor-tidy-design.md"],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

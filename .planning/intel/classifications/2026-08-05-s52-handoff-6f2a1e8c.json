@@ -1,0 +1,12 @@
+{
+  "source_path": "C:/Users/Cyril/Projects/money-map-generator/docs/superpowers/handoffs/2026-08-05-s52-handoff.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "S52 Handoff — O-ROT2 + P4-1/P4-2 COMPLETE, P4-3..5 remain (2026-08-05 ~23:00)",
+  "summary": "Sprint S52 handoff documenting O-ROT2 completion, remaining test/deployment/sign-off phases, known traps, and workflow for next phase.",
+  "scope": ["sprint S52", "O-ROT2", "click-again model", "Playwright tests", "vitest", "Money Map", "gate12", "workflow", "handoff"],
+  "cross_refs": ["docs/lanes/s52-adversarial-review.md"],
+  "locked": false,
+  "precedence": null
+}
