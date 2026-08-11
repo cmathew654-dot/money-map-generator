@@ -29,54 +29,9 @@
   line-height: 1.2;
 }
 
-/* Glyph-only search (no placeholder — the magnifier carries the meaning).
-   83px basis + 55px floor balance the row so all five section buttons fit
-   without the nav ever scrolling at 100% zoom; the scroll valve below
-   stays for text-zoom only. */
-.editor-panel .data-form-filter {
-  flex: 1 1 82px;
-  min-width: 55px;
-  position: relative;
-  display: block;
-  color: var(--fm-muted);
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-/* The search glyph carries the meaning; the word would only repeat it. */
-.editor-panel .data-form-filter > span:first-child {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.data-filter-glyph {
-  position: absolute;
-  top: 50%;
-  left: 6px;
-  width: 15px;
-  height: 15px;
-  fill: none;
-  pointer-events: none;
-  stroke: var(--fm-muted);
-  stroke-linecap: round;
-  stroke-width: 1.5;
-  transform: translateY(-50%);
-}
-
-.editor-panel .data-form-filter input {
-  height: 34px;
-  padding: 5px 4px 5px 25px;
-  font-size: 14px;
-}
-
 .editor-panel .data-form-close {
   flex: 0 0 auto;
+  margin-left: auto;
   display: grid;
   width: 24px;
   height: 24px;
@@ -102,11 +57,6 @@
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: thin;
-}
-
-/* Tight side padding so all five section buttons fit the 380px row. */
-.editor-panel .data-form-sections button {
-  padding: 5px 3px;
 }
 
 /* ----------------------------------------------------------- section header */
@@ -447,7 +397,6 @@
 
 /* Ledger fields use a distinct 2px rule; record separators stay 1px hairlines. */
 .editor-panel :is(
-  .data-form-filter,
   .account-body,
   .income-row,
   .fine-print-section,
@@ -464,7 +413,6 @@
 }
 
 .editor-panel :is(
-  .data-form-filter,
   .account-body,
   .income-row,
   .fine-print-section,
@@ -476,7 +424,6 @@
 }
 
 .editor-panel :is(
-  .data-form-filter,
   .account-body,
   .income-row,
   .fine-print-section,

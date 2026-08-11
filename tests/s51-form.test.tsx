@@ -132,28 +132,6 @@ describe('s51 auto-expand follows the map selection', () => {
   })
 })
 
-describe('s51 filter chrome', () => {
-  it('narrows the ledger to matching rows', () => {
-    const markup = renderForm({ filter: 'Roth' })
-
-    expect(markup).toContain('Roth IRA')
-    expect(markup).not.toContain('Cash at Bank')
-  })
-
-  it('renders an inline search glyph and a 14px full-width field', () => {
-    const markup = renderForm()
-
-    expect(markup).toContain('data-filter-glyph')
-    expect(formCss).toMatch(/\.data-form-filter input\s*\{[^}]*font-size:\s*14px/)
-    // The filter field joined the shared ledger treatment, so its focus green
-    // now comes from that block's token rather than its own :focus rule.
-    expect(formCss).toMatch(
-      /:focus-visible[^{]*\{[^}]*border-bottom-color:\s*var\(--fm-flow\)/,
-    )
-    expect(formCss).toMatch(/--fm-flow:\s*#1e7a4a/)
-  })
-})
-
 describe('s51 in-panel close', () => {
   it('renders a close control when the panel supplies a close path', () => {
     expect(renderForm({ onClose: () => undefined })).toContain(

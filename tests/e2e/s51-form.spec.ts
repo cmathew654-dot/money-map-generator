@@ -38,7 +38,7 @@ test.describe('s51 Data panel ledger', () => {
     await expect(cashRow).toHaveAttribute('aria-expanded', 'false', SEE)
   })
 
-  test('the row toggles on click and the filter narrows the ledger', async ({ page }) => {
+  test('the row toggles on click and the ledger remains visible', async ({ page }) => {
     await openApp(page)
     const panel = await openData(page)
 
@@ -48,9 +48,10 @@ test.describe('s51 Data panel ledger', () => {
     await cashRow.click(ACT)
     await expect(cashRow).toHaveAttribute('aria-expanded', 'false', SEE)
 
-    await panel.getByLabel('Filter data').fill('Roth', ACT)
+    const rothRow = panel.locator('[data-account-id="roth-ira-dana"]')
+    await rothRow.scrollIntoViewIfNeeded(ACT)
     await expect(panel.locator('[data-account-id="roth-ira-dana"]')).toHaveCount(1, SEE)
-    await expect(panel.locator('[data-account-id="cash-at-bank"]')).toHaveCount(0, SEE)
+    await expect(panel.locator('[data-account-id="cash-at-bank"]')).toHaveCount(1, SEE)
   })
 
   test('the in-panel close button closes the Data panel', async ({ page }) => {

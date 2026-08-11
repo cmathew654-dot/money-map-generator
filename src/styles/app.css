@@ -1205,20 +1205,6 @@ summary:focus-visible {
   backdrop-filter: blur(8px);
 }
 
-.data-form-filter {
-  display: grid;
-  gap: 4px;
-  color: #5b6663;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.data-form-filter input {
-  min-width: 0;
-}
-
 .data-form-sections {
   display: flex;
   gap: 4px;
@@ -1226,11 +1212,12 @@ summary:focus-visible {
 }
 
 .data-form-sections button {
-  padding: 5px 8px;
+  padding: 6px 10px;
   border-color: transparent;
   background: transparent;
   color: #5b6663;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -1714,25 +1701,23 @@ summary:focus-visible {
   text-transform: uppercase;
 }
 
-/* Quiet text actions in the same vocabulary as .add-button. The capsule was
-   the only rounded thing left in a panel that is otherwise a ledger, and the
-   bucket tint rode in on a coloured left border. */
+/* Ghost affordance for preset actions; bucket tint stays on the swatch. */
 .account-preset-button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 0;
-  border: 0;
-  border-radius: 0;
+  padding: 3px 8px;
+  border: 1px solid #b9c1b8;
+  border-radius: 4px;
   background: transparent;
   color: var(--fm-ink);
   font-size: 12px;
 }
 
 .account-preset-button:hover {
-  background: transparent;
+  background: #f1f3f0;
+  border-color: #808a84;
   color: var(--fm-ink);
-  text-decoration: underline;
 }
 
 .account-preset-button .account-swatch {

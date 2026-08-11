@@ -51,8 +51,6 @@ export interface FormProps {
   onChange(next: MoneyMapData): void
   /** Same close path as the header toggle; omitted outside the panel. */
   onClose?: () => void
-  filter?: string
-  onFilterChange?: (filter: string) => void
   activeSection?: FormSection
   onSectionFocus?: (section: FormSection) => void
   focusRequest?: { id: string; at: number }
@@ -1038,16 +1036,6 @@ function AccountCard({
   )
 }
 
-/** row-level twin of the section filter: same case-insensitive substring test */
-export function accountMatchesQuery(account: Account, query: string) {
-  return (
-    !query ||
-    (account.label + ' ' + JSON.stringify(account))
-      .toLocaleLowerCase()
-      .includes(query)
-  )
-}
-
 /**
  * A row is open when the user says so; otherwise it follows the map selection.
  * Manual expands therefore survive a selection change, and the auto-expanded
@@ -1072,13 +1060,10 @@ export function AccountsSection({
   active = false,
   presetLabel = 'Add:',
   vocabulary = [],
-  query = '',
 }: FormProps & {
   sectionRef?: Ref<HTMLElement>
   active?: boolean
   presetLabel?: string
-  /** already lower-cased filter query; empty renders every row */
-  query?: string
 }) {
   const [manualOpen, setManualOpen] = useState<Record<string, boolean>>({})
   const [lastSelected, setLastSelected] = useState(selectedAccountId ?? null)
@@ -1122,9 +1107,7 @@ export function AccountsSection({
     if (!focusFirstField()) requestAnimationFrame(focusFirstField)
   }, [focusRequest])
 
-  const visible = data.accounts.filter((account) =>
-    accountMatchesQuery(account, query),
-  )
+  const visible = data.accounts
 
   return (
     <section className={active ? 'form-section accounts-section is-active' : 'form-section accounts-section'} data-form-section="accounts" ref={sectionRef}>
@@ -1489,8 +1472,6 @@ export function nextEnterFocusTarget<T>(
 
 export function Form({
   data,
-  filter,
-  onFilterChange,
   headingRef,
   activeSection,
   onSectionFocus,
@@ -1502,17 +1483,11 @@ export function Form({
   onSelectAccount,
   vocabulary,
 }: FormProps) {
-  const [localFilter, setLocalFilter] = useState(filter ?? '')
-  const filterValue = onFilterChange ? filter ?? localFilter : localFilter
   const incomeSectionRef = useRef<HTMLElement>(null)
   const needSectionRef = useRef<HTMLElement>(null)
   const sectionRefs = useRef<
     Partial<Record<FormSection, HTMLElement | null>>
   >({})
-
-  useEffect(() => {
-    if (onFilterChange) setLocalFilter(filter ?? '')
-  }, [filter, onFilterChange])
 
   const sectionLabels: Record<FormSection, string> = {
     client: 'Client',
@@ -1521,30 +1496,7 @@ export function Form({
     need: 'Need',
     notes: 'Notes',
   }
-  const query = filterValue.trim().toLocaleLowerCase()
-  const sectionMatches = (section: FormSection) => {
-    const sectionData =
-      section === 'client'
-        ? data.client
-        : section === 'income'
-          ? { incomeSources: data.incomeSources, footnotes: data.footnotes }
-          : section === 'accounts'
-            ? data.accounts
-            : section === 'need'
-              ? {
-                  monthlyNeed: data.monthlyNeed,
-                  needTag: data.needTag,
-                  asNeededAmount: data.asNeededAmount,
-                }
-              : data.notes
-    return !query ||
-      (section + ' ' + sectionLabels[section] + ' ' + JSON.stringify(sectionData))
-        .toLocaleLowerCase()
-        .includes(query)
-  }
-  const visibleSections = (Object.keys(sectionLabels) as FormSection[]).filter(
-    sectionMatches,
-  )
+  const visibleSections = Object.keys(sectionLabels) as FormSection[]
   const registerSection = (section: FormSection) => (node: HTMLElement | null) => {
     sectionRefs.current[section] = node
   }
@@ -1589,36 +1541,6 @@ export function Form({
         <h2 className="visually-hidden" id="editor-panel-title" ref={headingRef} tabIndex={-1}>
           Data
         </h2>
-        <label className="data-form-filter">
-          <span>Filter</span>
-          <svg
-            aria-hidden="true"
-            className="data-filter-glyph"
-            viewBox="0 0 16 16"
-          >
-            <circle cx="7" cy="7" r="4.25" />
-            <path d="m10.25 10.25 3.25 3.25" />
-          </svg>
-          <input
-            aria-label="Filter data"
-            type="search"
-            value={filterValue}
-            onChange={(event) => {
-              setLocalFilter(event.target.value)
-              onFilterChange?.(event.target.value)
-            }}
-          />
-        </label>
-        {onClose && (
-          <button
-            aria-label="Close Data panel"
-            className="data-form-close"
-            type="button"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        )}
         <nav aria-label="Data sections" className="data-form-sections">
           {(Object.keys(sectionLabels) as FormSection[]).map((section) => (
             <button
@@ -1632,6 +1554,16 @@ export function Form({
             </button>
           ))}
         </nav>
+        {onClose && (
+          <button
+            aria-label="Close Data panel"
+            className="data-form-close"
+            type="button"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        )}
       </div>
       {visibleSections.includes('client') && (
         <ClientSection
@@ -1662,7 +1594,6 @@ export function Form({
           onSelectAccount={onSelectAccount}
           sectionRef={registerSection('accounts')}
           vocabulary={vocabulary}
-          query={query}
         />
       )}
       {visibleSections.includes('need') && (
@@ -1681,9 +1612,6 @@ export function Form({
           onChange={onChange}
           sectionRef={registerSection('notes')}
         />
-      )}
-      {query && visibleSections.length === 0 && (
-        <p className="empty-state">No fields match that filter.</p>
       )}
     </form>
   )

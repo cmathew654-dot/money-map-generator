@@ -384,7 +384,6 @@ export default function App() {
   })
   const [history, setHistory] = useState<BookHistory>(emptyHistory)
   const [editorPanel, setEditorPanel] = useState<EditorPanel | null>(null)
-  const [dataFilter, setDataFilter] = useState('')
   const [dataSection, setDataSection] = useState<FormSection>()
   const [formRevision, setFormRevision] = useState(0)
   const [guidedSetup, setGuidedSetup] = useState(false)
@@ -499,7 +498,6 @@ export default function App() {
     setMapTextEdit(null)
   }, [mapTextEdit])
   useEffect(() => {
-    setDataFilter('')
     setDataSection(undefined)
     setFocusRequest(undefined)
   }, [activeClient.id])
@@ -1330,7 +1328,6 @@ export default function App() {
 
   const focusDataTarget = (section: FormSection, id: string) => {
     setEditorPanel('data')
-    setDataFilter('')
     setDataSection(section)
     focusRequestCounter.current += 1
     setFocusRequest({ id, at: focusRequestCounter.current })
@@ -2142,12 +2139,10 @@ export default function App() {
                   <Form
                     data={activeClient}
                     key={activeClient.id + ':' + formRevision}
-                    filter={dataFilter}
                     focusRequest={focusRequest}
                     headingRef={editorPanelHeadingRef}
                     onChange={handleClientChange}
                     onClose={closeDataPanel}
-                    onFilterChange={setDataFilter}
                     onHoverAccount={setHighlightId}
                     activeSection={dataSection}
                     onSectionFocus={setDataSection}

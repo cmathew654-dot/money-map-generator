@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import {
   ClientSection,
   AccountsSection,
-  Form,
   IncomeSection,
   NeedSection,
   NotesSection,
@@ -109,36 +108,6 @@ describe('income source presets', () => {
     expect(data.needTag).toBe('goal')
     expect(data.incomeSources[0].qualifier).toBe('Gross')
     expect(data.accounts[0].valueTag).toBe('est.')
-  })
-})
-
-describe('Data panel filtering', () => {
-  it('hides nonmatching sections without mutating the model', () => {
-    const data = blankClient()
-    data.accounts = [
-      {
-        id: 'managed-ira',
-        bucket: 'taxDeferred',
-        label: 'Managed IRA',
-        value: 80_000,
-      },
-    ]
-    const before = JSON.stringify(data)
-
-    const markup = renderToStaticMarkup(
-      createElement(Form, {
-        activeSection: 'accounts',
-        data,
-        filter: 'Managed IRA',
-        onChange: () => undefined,
-        onSectionFocus: () => undefined,
-      }),
-    )
-
-    expect(markup).toContain('data-form-section="accounts"')
-    expect(markup).not.toContain('data-form-section="client"')
-    expect(markup).toContain('Managed IRA')
-    expect(data).toEqual(JSON.parse(before))
   })
 })
 
