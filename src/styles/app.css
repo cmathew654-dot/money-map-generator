@@ -2328,6 +2328,13 @@ summary:focus-visible {
     box-shadow: none;
   }
 
+  button *,
+  summary *,
+  .menu-popover *,
+  .app-status-banner * {
+    color: inherit !important;
+  }
+
   button:disabled,
   input:disabled,
   select:disabled {
