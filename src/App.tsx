@@ -1980,20 +1980,32 @@ export default function App() {
             <>
               <button
                 aria-expanded={editorPanel === 'data'}
-                className="quiet-button"
+                className="panel-toggle panel-toggle-data"
                 ref={(button) => { editorPanelButtonRefs.current.data = button ?? undefined }}
                 type="button"
                 onClick={() => toggleEditorPanel('data')}
               >
+                <svg aria-hidden="true" className="panel-toggle-glyph" viewBox="0 0 16 16">
+                  <rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1" />
+                  <path d="M6.25 2.75v10.5" />
+                </svg>
                 Data
               </button>
               <button
                 aria-expanded={editorPanel === 'contents'}
-                className="quiet-button"
+                className="panel-toggle panel-toggle-contents"
                 ref={(button) => { editorPanelButtonRefs.current.contents = button ?? undefined }}
                 type="button"
                 onClick={() => toggleEditorPanel('contents')}
               >
+                <svg aria-hidden="true" className="panel-toggle-glyph" viewBox="0 0 16 16">
+                  <path d="M2 4.25h1.5" />
+                  <path d="M5.5 4.25H14" />
+                  <path d="M2 8h1.5" />
+                  <path d="M5.5 8H14" />
+                  <path d="M2 11.75h1.5" />
+                  <path d="M5.5 11.75H14" />
+                </svg>
                 Contents
               </button>
             </>

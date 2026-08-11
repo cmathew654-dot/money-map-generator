@@ -1601,7 +1601,7 @@ export function Form({
           </svg>
           <input
             aria-label="Filter data"
-            placeholder="Filter data"
+            placeholder="Filter"
             type="search"
             value={filterValue}
             onChange={(event) => {

@@ -29,9 +29,11 @@
   line-height: 1.2;
 }
 
+/* 86px floor: Chrome reserves ~8px inside a search field beyond its padding,
+   so the full "Filter" placeholder needs 84px+ (measured, not derived). */
 .editor-panel .data-form-filter {
-  flex: 1 1 72px;
-  min-width: 72px;
+  flex: 1 1 86px;
+  min-width: 86px;
   position: relative;
   display: block;
   color: var(--fm-muted);
@@ -65,9 +67,11 @@
   transform: translateY(-50%);
 }
 
+/* Right padding stays lean so the full "Filter" placeholder fits the 72px
+   floor; the row has zero slack to give the input more width. */
 .editor-panel .data-form-filter input {
   height: 34px;
-  padding: 5px 10px 5px 29px;
+  padding: 5px 6px 5px 29px;
   font-size: 14px;
 }
 

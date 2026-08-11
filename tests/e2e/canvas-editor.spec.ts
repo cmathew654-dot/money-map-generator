@@ -99,7 +99,7 @@ test('existing clients open on the canvas and header toggles restore focus after
   }
 })
 
-test('Data and Contents are plain text editing controls in the header left group', async ({ page }) => {
+test('Data and Contents are shaped panel toggles in the header left group', async ({ page }) => {
   await openApp(page)
 
   const editingActions = page.locator('.header-history-actions')
@@ -107,7 +107,8 @@ test('Data and Contents are plain text editing controls in the header left group
   for (const name of ['Data', 'Contents']) {
     const button = editingActions.getByRole('button', { name, exact: true })
     await expect(button).toHaveText(name)
-    await expect(button).toHaveClass(/quiet-button/)
+    await expect(button).toHaveClass(new RegExp(`panel-toggle-${name.toLowerCase()}`))
+    await expect(button.locator('svg.panel-toggle-glyph')).toHaveCount(1)
     await expect(outputActions.getByRole('button', { name, exact: true })).toHaveCount(0)
   }
 })
