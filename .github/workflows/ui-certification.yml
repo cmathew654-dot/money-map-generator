@@ -226,19 +226,32 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-results/safari-native
-          npm run preview -- --host 127.0.0.1 --port 4187 \
+          preview_port=$((4000 + GITHUB_RUN_ID % 1000))
+          driver_port=$((5000 + GITHUB_RUN_ID % 1000))
+          npm run preview -- --host 127.0.0.1 --port "${preview_port}" \
             > test-results/safari-native/vite-preview.log 2>&1 &
           preview_pid=$!
           safari_pid=
+          terminate_tree() {
+            local pid="${1:-}"
+            [[ -n "${pid}" ]] || return 0
+            for child in $(pgrep -P "${pid}" 2>/dev/null || true); do
+              terminate_tree "${child}"
+            done
+            kill -TERM "${pid}" 2>/dev/null || true
+            for _ in {1..10}; do
+              kill -0 "${pid}" 2>/dev/null || return 0
+              sleep 0.1
+            done
+            kill -KILL "${pid}" 2>/dev/null || true
+          }
           cleanup() {
-            if [[ -n "${safari_pid}" ]]; then
-              kill "${safari_pid}" 2>/dev/null || true
-            fi
-            kill "${preview_pid}" 2>/dev/null || true
+            terminate_tree "${safari_pid:-}"
+            terminate_tree "${preview_pid:-}"
           }
           trap cleanup EXIT
           for attempt in {1..60}; do
-            if curl --fail --silent http://127.0.0.1:4187/ > /dev/null; then
+            if curl --fail --silent "http://127.0.0.1:${preview_port}/" > /dev/null; then
               break
             fi
             if [[ "${attempt}" == 60 ]]; then
@@ -247,22 +260,29 @@ jobs:
             fi
             sleep 1
           done
-          /usr/bin/safaridriver --enable || sudo /usr/bin/safaridriver --enable
-          /usr/bin/safaridriver -p 4444 \
+          if ! sudo -n /usr/bin/safaridriver --enable; then
+            echo "::error title=Safari runner setup::SafariDriver could not be enabled without an interactive password." >&2
+            exit 1
+          fi
+          /usr/bin/safaridriver -p "${driver_port}" \
             > test-results/safari-native/safaridriver.log 2>&1 &
           safari_pid=$!
           for attempt in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:4444/status > /dev/null; then
+            if ! kill -0 "${safari_pid}" 2>/dev/null; then
+              echo "::error title=Safari runner setup::SafariDriver exited before readiness." >&2
+              exit 1
+            fi
+            if curl --fail --silent "http://127.0.0.1:${driver_port}/status" > /dev/null; then
               break
             fi
             if [[ "${attempt}" == 30 ]]; then
-              echo "SafariDriver did not become ready" >&2
+              echo "::error title=Safari runner setup::SafariDriver did not become ready" >&2
               exit 1
             fi
             sleep 1
           done
-          BASE_URL=http://127.0.0.1:4187 \
-          WEBDRIVER_URL=http://127.0.0.1:4444 \
+          BASE_URL="http://127.0.0.1:${preview_port}" \
+          WEBDRIVER_URL="http://127.0.0.1:${driver_port}" \
           ARTIFACT_DIR=test-results/safari-native \
           DOWNLOAD_DIR="${HOME}/Downloads" \
           node tests/e2e/safari-native.mjs

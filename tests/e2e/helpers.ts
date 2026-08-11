@@ -5,7 +5,7 @@ export const BOOK_KEY = 'money-map-generator:book'
 export const LEGACY_BOOK_KEY = 'money-map-book:v1'
 
 export async function openApp(page: Page) {
-  await page.goto('/')
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.getByText('Money Map', { exact: true }).first()).toBeVisible()
   await page.emulateMedia({ reducedMotion: 'reduce' })
 }
@@ -13,8 +13,11 @@ export async function evidence(page: Page, info: TestInfo, name: string) {
   await page.screenshot({ path: info.outputPath(`${name}.png`), fullPage: true })
 }
 export async function fullForm(page: Page) {
-  await page.getByRole('button', { name: 'Data', exact: true }).click()
-  await expect(page.locator('.client-form')).toBeVisible()
+  const form = page.locator('.client-form')
+  if (!(await form.isVisible())) {
+    await page.getByRole('button', { name: 'Data', exact: true }).click()
+  }
+  await expect(form).toBeVisible()
 }
 export async function focusPage(page: Page) {
   await page.bringToFront()
@@ -24,8 +27,8 @@ export async function focusPage(page: Page) {
   }))).toEqual({ focused: true, visibility: 'visible' })
 
   const pages = page.context().pages().filter((candidate) => !candidate.isClosed())
-  for (const other of pages) {
-    if (other !== page) await other.evaluate(() => window.dispatchEvent(new FocusEvent('blur')))
+  for (const candidate of pages) {
+    await candidate.evaluate(() => window.dispatchEvent(new FocusEvent('blur')))
   }
   await page.evaluate(() => window.dispatchEvent(new FocusEvent('focus')))
   await expect.poll(async () => {

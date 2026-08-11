@@ -38,7 +38,7 @@ export type SelectionEvent =
     }
   | { type: 'panel/rowClick'; accountId: string; modified: boolean }
   /** Enter/Space on a connect endpoint. */
-  | { type: 'key/activate'; key: string }
+  | { type: 'key/activate'; key: string; modified: boolean }
   /** Programmatic replace (quick-add, paste, duplicate, commit). */
   | { type: 'select'; keys: string[] }
   | { type: 'clear'; reason: ClearReason }
@@ -132,7 +132,7 @@ export function selectionReducer(
     case 'panel/rowClick':
       return primary(state, `account:${event.accountId}`, event.modified)
     case 'key/activate':
-      return replace(event.key)
+      return primary(state, event.key, event.modified)
     case 'select':
       return event.keys.length === 0
         ? cleared(state)

@@ -1,29 +1,33 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { assertWcag22AA, openApp } from './helpers'
 
-async function tabTo(page: Page, target: Locator) {
+async function tabTo(page: Page, target: Locator, key = 'Tab') {
   for (let index = 0; index < 40; index += 1) {
     if (await target.evaluate((node) => node === document.activeElement)) return
-    await page.keyboard.press('Tab')
+    await page.keyboard.press(key)
   }
   throw new Error('Could not reach target with Tab')
 }
 
 test.describe('WCAG 2.2 AA certification', () => {
-  test('editor', async ({ page }, info) => {
+  test('editor', async ({ browserName, page }, info) => {
     await openApp(page)
+    const isMac = await page.evaluate(() => navigator.platform.startsWith('Mac'))
+    const tabKey = isMac && browserName === 'webkit'
+      ? 'Alt+Tab'
+      : 'Tab'
     const header = page.locator('.app-header')
     await expect(page.getByRole('complementary', { name: 'Editor tools' })).toHaveCount(0)
     const exercisePanel = async (name: 'Contents', button: Locator) => {
       await expect(button).toBeVisible()
-      await tabTo(page, button)
+      await tabTo(page, button, tabKey)
       await expect(button).toBeFocused()
       await page.keyboard.press('Enter')
       const panel = page.getByRole('dialog', { name })
       await expect(panel).toBeVisible()
       await expect(panel.getByRole('heading', { name })).toBeFocused()
       await assertWcag22AA(page, info, 'editor-' + name.toLowerCase())
-      await page.keyboard.press('Tab')
+      await page.keyboard.press(tabKey)
       await expect(panel.getByRole('button', { name: 'Close ' + name + ' panel' })).toBeFocused()
       await page.keyboard.press('Escape')
       await expect(button).toBeFocused()

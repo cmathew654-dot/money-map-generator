@@ -6,7 +6,16 @@ test-results/
 *.local
 tsconfig.tsbuildinfo
 dist-real
-.impeccable/hook.cache.json
+.agents/
+.claude/
+.codex/
+.impeccable/
+.planning/
+docs/dogfood/
+docs/lanes/
+docs/superpowers/
+gate*.mjs
+repro*.mjs
 .env
 .planning/config.json
 docs/codex/
