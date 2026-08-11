@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <path d="M4 10v14c0 3.3 4.5 6 10 6s10-2.7 10-6V10" fill="#fcfcfa" stroke="#1c2422" stroke-width="2.2"/>
-  <ellipse cx="14" cy="10" rx="10" ry="5" fill="#fcfcfa" stroke="#1c2422" stroke-width="2.2"/>
-  <path d="M30 3c-.7 5.7-3.7 10-9 13" fill="none" stroke="#1e7a4a" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="1.5 2.5"/>
-  <path d="m18.5 14.5 3.8 1.2-2.8 2.8z" fill="#1e7a4a"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 104" width="104" height="104" role="img" aria-label="Money Map">
+  <rect x="8" y="8" width="96" height="96" fill="#16211d"></rect>
+  <rect x="0" y="0" width="96" height="96" fill="#0c7a4e"></rect>
+  <text x="48" y="48" fill="#fcfcfa" font-family="&#39;Source Serif 4&#39;,&#39;Source Serif Pro&#39;,Charter,Georgia,serif" font-size="54" font-weight="600" text-anchor="middle" dominant-baseline="central">M</text>
 </svg>

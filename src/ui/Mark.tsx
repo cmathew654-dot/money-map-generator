@@ -1,34 +1,28 @@
+/* Logo option 2d, "Hard offset" (Money Map logo options, 2026-08-10):
+   green tile, hard ink offset, serif M. Drawn in a 26-unit box so the
+   glyph's 24px tile carries an exact 2px shadow at the header's 26px
+   render size — the 1/12 offset ratio of the source mark, pixel-snapped. */
 export function Mark() {
   return (
     <svg
       aria-hidden="true"
       className="wordmark-glyph"
-      viewBox="0 0 32 32"
+      viewBox="0 0 26 26"
     >
-      <path
-        d="M4 10v14c0 3.3 4.5 6 10 6s10-2.7 10-6V10"
+      <rect fill="#16211d" height="24" width="24" x="2" y="2" />
+      <rect fill="#0c7a4e" height="24" width="24" x="0" y="0" />
+      <text
+        dominantBaseline="central"
         fill="#fcfcfa"
-        stroke="#1c2422"
-        strokeWidth="2.2"
-      />
-      <ellipse
-        cx="14"
-        cy="10"
-        fill="#fcfcfa"
-        rx="10"
-        ry="5"
-        stroke="#1c2422"
-        strokeWidth="2.2"
-      />
-      <path
-        d="M30 3c-.7 5.7-3.7 10-9 13"
-        fill="none"
-        stroke="#1e7a4a"
-        strokeDasharray="1.5 2.5"
-        strokeLinecap="round"
-        strokeWidth="2.2"
-      />
-      <path d="m18.5 14.5 3.8 1.2-2.8 2.8z" fill="#1e7a4a" />
+        fontFamily="Literata, Georgia, serif"
+        fontSize="13.5"
+        fontWeight="600"
+        textAnchor="middle"
+        x="12"
+        y="12"
+      >
+        M
+      </text>
     </svg>
   )
 }
