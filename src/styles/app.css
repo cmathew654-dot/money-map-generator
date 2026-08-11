@@ -1141,7 +1141,6 @@ summary:focus-visible {
 .data-form-tools {
   position: sticky;
   z-index: 2;
-  top: 41px;
   display: grid;
   gap: 8px;
   margin: -4px -20px 12px;
@@ -1460,14 +1459,13 @@ summary:focus-visible {
   min-height: 100%;
 }
 /*
- * focusRequest scrolls these into the Data panel, which stacks two sticky
- * headers (.editor-panel > h2 at 44px, .data-form-tools stuck at 41px and 85px
- * tall). Without the margin the entry lands underneath them.
+ * focusRequest scrolls these into the Data panel, whose tools row is 52px tall.
+ * Without the extra 8px margin the entry lands underneath it.
  */
 .account-card,
 .form-section,
 .note-row textarea {
-  scroll-margin-top: 132px;
+  scroll-margin-top: 60px;
 }
 
 .account-card-shell {

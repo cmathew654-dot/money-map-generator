@@ -2126,15 +2126,13 @@ export default function App() {
                 className="editor-panel"
                 role="dialog"
               >
-                <h2 id="editor-panel-title" ref={editorPanelHeadingRef} tabIndex={-1}>
-                  Data
-                </h2>
                 <fieldset className="mutation-fieldset" disabled={!canMutate}>
                   <Form
                     data={activeClient}
                     key={activeClient.id + ':' + formRevision}
                     filter={dataFilter}
                     focusRequest={focusRequest}
+                    headingRef={editorPanelHeadingRef}
                     onChange={handleClientChange}
                     onClose={closeDataPanel}
                     onFilterChange={setDataFilter}

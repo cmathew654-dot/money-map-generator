@@ -13,19 +13,27 @@
 /* ---------------------------------------------------------------- tools bar */
 
 .editor-panel .data-form-tools {
-  grid-template-areas: 'filter close' 'nav query';
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
+  gap: 8px;
+  position: sticky;
+  top: 0;
   margin: -10px -14px 10px;
   padding: 9px 14px 8px;
-  column-gap: 8px;
-  row-gap: 7px;
+}
+
+.editor-panel .data-form-tools > h2 {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.2;
 }
 
 .editor-panel .data-form-filter {
+  flex: 1 1 72px;
+  min-width: 72px;
   position: relative;
   display: block;
-  grid-area: filter;
   color: var(--fm-muted);
   font-size: 14px;
   font-weight: 400;
@@ -66,10 +74,10 @@
 /* Active-query echo. Parked on the nav row so the tools bar keeps one height
    and the sticky section headers below it never shift. */
 .editor-panel .data-filter-query {
+  flex: 0 1 auto;
   max-width: 96px;
   align-self: center;
   overflow: hidden;
-  grid-area: query;
   color: var(--fm-flow);
   font-size: 11px;
   font-weight: 600;
@@ -79,11 +87,11 @@
 }
 
 .editor-panel .data-form-close {
+  flex: 0 0 auto;
   display: grid;
   width: 32px;
   height: 32px;
   min-height: 32px;
-  grid-area: close;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -101,7 +109,9 @@
 }
 
 .editor-panel .data-form-sections {
-  grid-area: nav;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 /* ----------------------------------------------------------- section header */
@@ -112,11 +122,6 @@
 }
 
 .editor-panel .form-section-head {
-  position: sticky;
-  z-index: 1;
-  /* .data-form-tools sticks at 41px and is 83px tall, so its bottom edge is
-   * 124px. Anything larger leaves a strip where scrolled rows show through. */
-  top: 124px;
   display: flex;
   align-items: baseline;
   justify-content: space-between;

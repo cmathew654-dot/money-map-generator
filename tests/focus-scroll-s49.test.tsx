@@ -5,14 +5,13 @@ import formSource from '../src/form/Form.tsx?raw'
 
 /**
  * focusRequest (Details / dblclick on the map) scrolls the matching entry into
- * the Data panel. The panel stacks two sticky headers — `.editor-panel > h2`
- * (44px) and `.data-form-tools` (85px, stuck at top: 41px) — so anything landing
- * above 126px sits underneath them. scroll-margin-top keeps the entry clear.
+ * the Data panel. The panel has one sticky tools row (~52px), so anything
+ * landing above that row sits underneath it. scroll-margin-top keeps the entry clear.
  */
 const css: string = readFileSync('src/styles/app.css', 'utf8')
   // Comments hold commas and would land in the selector split below.
   .replace(/\/\*[\s\S]*?\*\//g, '')
-const STICKY_STACK = 126
+const STICKY_STACK = 52
 
 function scrollMarginRule(): { selectors: string[]; value: number } {
   const match = css.match(
@@ -42,6 +41,6 @@ describe('focus scroll clears the sticky panel headers (s49)', () => {
   })
 
   it('clears the full sticky header stack', () => {
-    expect(scrollMarginRule().value).toBeGreaterThanOrEqual(STICKY_STACK)
+    expect(scrollMarginRule().value).toBe(STICKY_STACK + 8)
   })
 })

@@ -175,12 +175,14 @@ describe('s51 in-panel close', () => {
 })
 
 describe('s51 section headers', () => {
-  it('gives each section a sticky header with a right-aligned count', () => {
+  it('gives each section a header with a right-aligned count', () => {
     const markup = renderForm()
 
     expect(markup).toContain('form-section-head')
     // A bare tally reads as a random number, so the count names what it counts.
     expect(markup).toMatch(/form-section-count[^>]*>\s*2 accounts\s*</)
-    expect(formCss).toMatch(/\.form-section-head\s*\{[^}]*position:\s*sticky/)
+    expect(formCss).toMatch(
+      /\.editor-panel \.form-section-head\s*\{(?![^}]*position:\s*sticky)[^}]*\}/,
+    )
   })
 })

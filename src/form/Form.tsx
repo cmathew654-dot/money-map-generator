@@ -6,6 +6,7 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type Ref,
+  type RefObject,
 } from 'react'
 import {
   BLANK,
@@ -46,6 +47,7 @@ export type FormSection = 'client' | 'income' | 'accounts' | 'need' | 'notes'
 
 export interface FormProps {
   data: MoneyMapData
+  headingRef?: RefObject<HTMLHeadingElement | null>
   onChange(next: MoneyMapData): void
   /** Same close path as the header toggle; omitted outside the panel. */
   onClose?: () => void
@@ -1489,6 +1491,7 @@ export function Form({
   data,
   filter,
   onFilterChange,
+  headingRef,
   activeSection,
   onSectionFocus,
   focusRequest,
@@ -1583,6 +1586,9 @@ export function Form({
       onSubmit={(event) => event.preventDefault()}
     >
       <div className="data-form-tools">
+        <h2 className="visually-hidden" id="editor-panel-title" ref={headingRef} tabIndex={-1}>
+          Data
+        </h2>
         <label className="data-form-filter">
           <span>Filter</span>
           <svg
