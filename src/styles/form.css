@@ -29,11 +29,13 @@
   line-height: 1.2;
 }
 
-/* 86px floor: Chrome reserves ~8px inside a search field beyond its padding,
-   so the full "Filter" placeholder needs 84px+ (measured, not derived). */
+/* Glyph-only search (no placeholder — the magnifier carries the meaning).
+   83px basis + 55px floor balance the row so all five section buttons fit
+   without the nav ever scrolling at 100% zoom; the scroll valve below
+   stays for text-zoom only. */
 .editor-panel .data-form-filter {
-  flex: 1 1 86px;
-  min-width: 86px;
+  flex: 1 1 82px;
+  min-width: 55px;
   position: relative;
   display: block;
   color: var(--fm-muted);
@@ -56,7 +58,7 @@
 .data-filter-glyph {
   position: absolute;
   top: 50%;
-  left: 9px;
+  left: 6px;
   width: 15px;
   height: 15px;
   fill: none;
@@ -67,41 +69,24 @@
   transform: translateY(-50%);
 }
 
-/* Right padding stays lean so the full "Filter" placeholder fits the 72px
-   floor; the row has zero slack to give the input more width. */
 .editor-panel .data-form-filter input {
   height: 34px;
-  padding: 5px 6px 5px 29px;
+  padding: 5px 4px 5px 25px;
   font-size: 14px;
-}
-
-/* Active-query echo. Parked on the nav row so the tools bar keeps one height
-   and the sticky section headers below it never shift. */
-.editor-panel .data-filter-query {
-  flex: 0 1 auto;
-  max-width: 96px;
-  align-self: center;
-  overflow: hidden;
-  color: var(--fm-flow);
-  font-size: 11px;
-  font-weight: 600;
-  text-align: right;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .editor-panel .data-form-close {
   flex: 0 0 auto;
   display: grid;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
   color: var(--fm-muted);
-  font-size: 19px;
+  font-size: 17px;
   line-height: 1;
   place-items: center;
 }
@@ -116,6 +101,12 @@
   flex: 0 1 auto;
   min-width: 0;
   overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+/* Tight side padding so all five section buttons fit the 380px row. */
+.editor-panel .data-form-sections button {
+  padding: 5px 3px;
 }
 
 /* ----------------------------------------------------------- section header */

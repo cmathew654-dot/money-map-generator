@@ -1219,14 +1219,6 @@ summary:focus-visible {
   min-width: 0;
 }
 
-.data-filter-query {
-  color: #155f4a;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 .data-form-sections {
   display: flex;
   gap: 4px;

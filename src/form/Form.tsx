@@ -1601,7 +1601,6 @@ export function Form({
           </svg>
           <input
             aria-label="Filter data"
-            placeholder="Filter"
             type="search"
             value={filterValue}
             onChange={(event) => {
@@ -1610,9 +1609,6 @@ export function Form({
             }}
           />
         </label>
-        {filterValue.trim() && (
-          <span className="data-filter-query">{filterValue.trim()}</span>
-        )}
         {onClose && (
           <button
             aria-label="Close Data panel"
