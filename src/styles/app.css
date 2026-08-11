@@ -116,14 +116,16 @@ button:disabled:hover {
   stroke-width: 1.5;
 }
 
-/* Data is the primary workspace entry: tonal fill at rest. */
+/* Data is the primary workspace entry: a rest-state tint of the same flow
+   green the open state fills with, so the pair reads as one family. */
 .panel-toggle-data {
   border-color: transparent;
-  background: #dfe6de;
+  background: #d9ecdf;
+  color: #155f4a;
 }
 
 .panel-toggle-data:hover {
-  background: #d3dcd2;
+  background: #cbe4d4;
 }
 
 /* Contents is the quieter sibling: same shape, hairline ghost. */
