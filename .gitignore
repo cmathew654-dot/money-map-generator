@@ -11,6 +11,8 @@ dist-real
 .codex/
 .impeccable/
 .planning/
+.ship/
+.superpowers/
 docs/dogfood/
 docs/lanes/
 docs/superpowers/

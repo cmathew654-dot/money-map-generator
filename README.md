@@ -7,7 +7,7 @@
 
 ![Walkthrough: editing a client's money map, account values, monthly need, and the data rail](docs/media/walkthrough.gif)
 
-I built this browser-local editor to replace the PowerPoint diagrams I used for client meetings. I prepare each map in 15–30 minutes instead of 2–3 hours, then export it as an image or PDF.
+This browser-local editor builds one-page client money maps and exports them as images or PDFs.
 
 The demo uses fictional data. Imported books stay in the browser.
 
