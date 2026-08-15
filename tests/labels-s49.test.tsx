@@ -5,7 +5,7 @@ import mapSvgSource from '../src/render/MapSvg.tsx?raw'
 import { asNeededChipFontSize } from '../src/layout/layout'
 import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import { MapSvg } from '../src/render/MapSvg'
-import { TYPE } from '../src/render/tokens'
+import { FLOW_GREEN, TYPE } from '../src/render/tokens'
 import type { MoneyMapData } from '../src/model/types'
 import {
   MAX_MAP_TEXT_FONT_SIZE,
@@ -69,6 +69,21 @@ describe('flow label z-order', () => {
 })
 
 describe('as-needed chip font size', () => {
+  it('renders the chip as plain green text without a capsule', () => {
+    const markup = render(SAMPLE_WHITFIELD)
+    const chipStart = markup.indexOf('data-as-needed-chip="true"')
+    const chipMarkup = markup.slice(
+      markup.lastIndexOf('<g', chipStart),
+      markup.indexOf('</g>', chipStart) + 4,
+    )
+
+    expect(chipMarkup).toContain('data-as-needed-chip="true"')
+    expect(chipMarkup).toContain('data-map-target="asNeededChip"')
+    expect(chipMarkup).toContain('As needed')
+    expect(chipMarkup).not.toMatch(/<rect[^>]+stroke-dasharray=/)
+    expect(chipMarkup).toContain(`fill="${FLOW_GREEN}"`)
+  })
+
   it('falls back to the arrow label size', () => {
     expect(asNeededChipFontSize(SAMPLE_WHITFIELD)).toBe(TYPE.arrowLabel)
   })

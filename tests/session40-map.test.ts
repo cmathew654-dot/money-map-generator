@@ -200,7 +200,8 @@ describe('Session 40 map editing and capacity', () => {
       ...SAMPLE_WHITFIELD,
       accounts: [...SAMPLE_WHITFIELD.accounts, ...extraAccounts],
       footnotes: Array.from({ length: 6 }, (_, index) => ({
-        ...SAMPLE_WHITFIELD.footnotes[0],
+        gross: 96_500,
+        net: 74_300,
         id: `stress-footnote-${index}`,
         label: `Scenario ${index + 1}`,
       })),

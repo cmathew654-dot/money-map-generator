@@ -1,4 +1,9 @@
-import { layoutMap, OVERRIDE_BOUNDS, rotatedBounds } from '../layout/layout'
+import {
+  layoutMap,
+  layoutOverrideRect,
+  OVERRIDE_BOUNDS,
+  rotatedBounds,
+} from '../layout/layout'
 import {
   duplicatePlacement,
   placementsOverlap,
@@ -379,33 +384,55 @@ export function resetArrangement(data: MoneyMapData): MoneyMapData {
   return reset
 }
 
-/** Where an item currently sits on the map, keyed by layout key or `note:<id>`. */
-export interface TidyAnchor {
-  key: string
-  x: number
-  y: number
-  w?: number
-  h?: number
-}
-
 const TIDY_GRID = 12
-// ponytail: fallback box size when a caller doesn't pass real w/h — good enough for
-// overlap checks; upgrade path is wiring actual placed w/h into TidyAnchor.
-const TIDY_DEFAULT_W = 180
-const TIDY_DEFAULT_H = 120
 const TIDY_MAX_RING = 1200
 // Relocated items keep this much clearance from neighbors: exact edge-to-edge
 // adjacency reads as touching on screen and can round into a 1px overlap.
 const TIDY_CLEARANCE = 4
 
-/**
- * Snaps each anchor to the nearest grid line, then searches outward in grid
- * rings for the nearest clear placement. Leaves everything else — sizes,
- * rotations, text offsets, arrow labels — exactly as the advisor arranged it.
- */
+function clearPositionalOverrides(data: MoneyMapData): MoneyMapData {
+  const overrides = data.layoutOverrides
+  if (!overrides) return data
+
+  const positionalKeys = new Set([
+    'income',
+    'need',
+    'asNeededChip',
+    ...data.accounts.map((account) => account.id),
+  ])
+  let changed = false
+  const next: NonNullable<MoneyMapData['layoutOverrides']> = {}
+
+  for (const [key, override] of Object.entries(overrides)) {
+    if (!positionalKeys.has(key)) {
+      next[key] = override
+      continue
+    }
+    const { dx: _dx, dy: _dy, ...rest } = override
+    const remaining = Object.fromEntries(
+      Object.entries(rest).filter(([, value]) => value !== undefined),
+    )
+    if (
+      'dx' in override ||
+      'dy' in override ||
+      Object.keys(remaining).length !== Object.keys(rest).length ||
+      Object.keys(remaining).length === 0
+    ) {
+      changed = true
+    }
+    if (Object.keys(remaining).length > 0) next[key] = remaining
+  }
+
+  if (!changed) return data
+  return {
+    ...data,
+    layoutOverrides: Object.keys(next).length > 0 ? next : undefined,
+  }
+}
+
+/** Clears positional overrides and ring-searches only notes that overlap content. */
 export function tidyArrangement(
   data: MoneyMapData,
-  anchors: readonly TidyAnchor[],
   bounds?: {
     left: number
     top: number
@@ -413,114 +440,102 @@ export function tidyArrangement(
     bottom: number
   },
 ): MoneyMapData {
-  const snap = (value: number) => Math.round(value / TIDY_GRID) * TIDY_GRID
+  const tidySnap = (value: number) => Math.round(value / TIDY_GRID) * TIDY_GRID
+  const reset = clearPositionalOverrides(data)
+  const freshLayout = layoutMap(reset)
+  const chip = layoutOverrideRect(reset, 'asNeededChip')
+  const contentRects: { x: number; y: number; w: number; h: number }[] = [
+    freshLayout.income,
+    freshLayout.need,
+    ...freshLayout.accounts.map((account) => rotatedBounds(account, account.rot)),
+    ...(chip ? [chip] : []),
+  ]
+  let tidied = reset
 
-  const placed: { x: number; y: number; w: number; h: number }[] = []
-  for (const anchor of anchors) {
-    const w = anchor.w ?? TIDY_DEFAULT_W
-    const h = anchor.h ?? TIDY_DEFAULT_H
-    let x = snap(anchor.x)
-    let y = snap(anchor.y)
+  for (const placedNote of freshLayout.notes) {
+    const note = placedNote.note
+    const w = placedNote.w
+    const h = placedNote.h
+    // ponytail: raw note.x/y, not clamped rendered position, rotation, or background padding;
+    // upgrade path: use placedNote clamped rect + rotatedBounds.
+    const anchor = { x: note.x, y: note.y, w, h }
+    if (!contentRects.some((rect) => placementsOverlap(anchor, rect))) {
+      contentRects.push(anchor)
+      continue
+    }
 
-    // The renderer clamps overrides into these bounds, so a snap that lands
-    // outside would write a delta the item never actually moves by — and tidy
-    // would report work left to do forever.
+    let x = tidySnap(anchor.x)
+    let y = tidySnap(anchor.y)
     if (bounds !== undefined) {
       x = Math.min(Math.max(x, bounds.left), bounds.right - w)
       y = Math.min(Math.max(y, bounds.top), bounds.bottom - h)
     }
-
-    if (placed.some((rect) => placementsOverlap({ x, y, w, h }, rect))) {
-      let found = false
-      for (
-        let distance = TIDY_GRID;
-        distance <= TIDY_MAX_RING && !found;
-        distance += TIDY_GRID
-      ) {
-        const candidates: { dx: number; dy: number }[] = []
-        for (let dx = -distance; dx <= distance; dx += TIDY_GRID) {
-          for (let dy = -distance; dy <= distance; dy += TIDY_GRID) {
-            if (Math.max(Math.abs(dx), Math.abs(dy)) !== distance) continue
+    let found = false
+    for (
+      let distance = TIDY_GRID;
+      distance <= TIDY_MAX_RING && !found;
+      distance += TIDY_GRID
+    ) {
+      const candidates: { dx: number; dy: number }[] = []
+      for (let dx = -distance; dx <= distance; dx += TIDY_GRID) {
+        for (let dy = -distance; dy <= distance; dy += TIDY_GRID) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) === distance) {
             candidates.push({ dx, dy })
           }
         }
-        candidates.sort(
-          (a, b) =>
-            a.dx * a.dx + a.dy * a.dy - (b.dx * b.dx + b.dy * b.dy) ||
-            a.dy - b.dy ||
-            a.dx - b.dx,
-        )
-
-        for (const { dx, dy } of candidates) {
-          const candidateX = x + dx
-          const candidateY = y + dy
-          if (
-            (bounds === undefined ||
-              // The renderer clamps override positions at the bounds, so a
-              // candidate whose footprint sticks out would silently not move.
-              (candidateX >= bounds.left &&
-                candidateX + w <= bounds.right &&
-                candidateY >= bounds.top &&
-                candidateY + h <= bounds.bottom)) &&
-            !placed.some((rect) =>
-              placementsOverlap(
-                {
-                  x: candidateX - TIDY_CLEARANCE,
-                  y: candidateY - TIDY_CLEARANCE,
-                  w: w + TIDY_CLEARANCE * 2,
-                  h: h + TIDY_CLEARANCE * 2,
-                },
-                rect,
-              ),
-            )
-          ) {
-            x = candidateX
-            y = candidateY
-            found = true
-            break
-          }
+      }
+      candidates.sort(
+        (a, b) =>
+          a.dx * a.dx + a.dy * a.dy - (b.dx * b.dx + b.dy * b.dy) ||
+          a.dy - b.dy ||
+          a.dx - b.dx,
+      )
+      for (const { dx, dy } of candidates) {
+        const candidateX = x + dx
+        const candidateY = y + dy
+        if (
+          (bounds === undefined ||
+            (candidateX >= bounds.left &&
+              candidateX + w <= bounds.right &&
+              candidateY >= bounds.top &&
+              candidateY + h <= bounds.bottom)) &&
+          !contentRects.some((rect) =>
+            placementsOverlap(
+              {
+                x: candidateX - TIDY_CLEARANCE,
+                y: candidateY - TIDY_CLEARANCE,
+                w: w + TIDY_CLEARANCE * 2,
+                h: h + TIDY_CLEARANCE * 2,
+              },
+              rect,
+            ),
+          )
+        ) {
+          x = candidateX
+          y = candidateY
+          found = true
+          break
         }
       }
     }
-    placed.push({ x, y, w, h })
+
+    // ponytail: ring-search exhaustion falls back to snapped position; a saturated
+    // map can retain residual overlap; upgrade path: expand ring or warn.
+    contentRects.push({ x, y, w, h })
+    const dx = Math.abs(x - anchor.x) < 0.5 ? 0 : x - anchor.x
+    const dy = Math.abs(y - anchor.y) < 0.5 ? 0 : y - anchor.y
+    if (dx === 0 && dy === 0) continue
+    tidied = {
+      ...tidied,
+      notes: tidied.notes?.map((item) =>
+        item.id === note.id
+          ? { ...item, x: item.x + dx, y: item.y + dy }
+          : item,
+      ),
+    }
   }
 
-  let next = data
-
-  anchors.forEach((anchor, i) => {
-    // Sub-pixel residue is invisible on screen but keeps the Tidy button live.
-    const dx = Math.abs(placed[i].x - anchor.x) < 0.5 ? 0 : placed[i].x - anchor.x
-    const dy = Math.abs(placed[i].y - anchor.y) < 0.5 ? 0 : placed[i].y - anchor.y
-    if (dx === 0 && dy === 0) return
-
-    if (anchor.key.startsWith('note:')) {
-      const id = anchor.key.slice('note:'.length)
-      if (!next.notes?.some((note) => note.id === id)) return
-      next = {
-        ...next,
-        notes: next.notes.map((note) =>
-          note.id === id ? { ...note, x: note.x + dx, y: note.y + dy } : note,
-        ),
-      }
-      return
-    }
-
-    const overrides = next.layoutOverrides ?? {}
-    const override = overrides[anchor.key] ?? {}
-    next = {
-      ...next,
-      layoutOverrides: {
-        ...overrides,
-        [anchor.key]: {
-          ...override,
-          ...(dx === 0 ? {} : { dx: (override.dx ?? 0) + dx }),
-          ...(dy === 0 ? {} : { dy: (override.dy ?? 0) + dy }),
-        },
-      },
-    }
-  })
-
-  return next
+  return tidied
 }
 
 export function newBook(): MoneyMapFile {

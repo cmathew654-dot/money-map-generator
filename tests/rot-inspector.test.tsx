@@ -47,7 +47,11 @@ const NOTE_DATA: MoneyMapData = {
   ...SAMPLE_WHITFIELD,
   notes: [{ id: 'audit-note', text: 'Keep this visible', x: 500, y: 400 }],
 }
-const FOOTNOTE_KEY = `text:footnotes:line:${SAMPLE_WHITFIELD.footnotes[0].id}`
+const FOOTNOTE_DATA: MoneyMapData = {
+  ...SAMPLE_WHITFIELD,
+  footnotes: [{ id: 'footnote-whitfield-rmd', label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 }],
+}
+const FOOTNOTE_KEY = `text:footnotes:line:${FOOTNOTE_DATA.footnotes[0].id}`
 
 const inspect = (selectedTargetKey: string, data: MoneyMapData, changes: MoneyMapData[]) =>
   MapInspector({
@@ -83,7 +87,7 @@ describe('inspector rotation control coverage', () => {
   it.each([
     ['as-needed chip', 'asNeededChip', SAMPLE_WHITFIELD],
     ['note', 'note:audit-note', NOTE_DATA],
-    ['footnote line', FOOTNOTE_KEY, SAMPLE_WHITFIELD],
+    ['footnote line', FOOTNOTE_KEY, FOOTNOTE_DATA],
   ])('renders the rotate control for %s selections', (_name, key, data) => {
     const markup = markupFor(key, data)
     expect(markup).toContain('aria-label="Rotate counterclockwise"')
@@ -93,7 +97,7 @@ describe('inspector rotation control coverage', () => {
   it.each([
     ['as-needed chip', 'asNeededChip', SAMPLE_WHITFIELD],
     ['note', 'note:audit-note', NOTE_DATA],
-    ['footnote line', FOOTNOTE_KEY, SAMPLE_WHITFIELD],
+    ['footnote line', FOOTNOTE_KEY, FOOTNOTE_DATA],
   ])('writes rot on the %s override key', (_name, key, data) => {
     expect(rotate(key, 'Rotate clockwise', data)?.layoutOverrides?.[key]?.rot).toBe(5)
     expect(rotate(key, 'Rotate counterclockwise', data)?.layoutOverrides?.[key]?.rot).toBe(355)

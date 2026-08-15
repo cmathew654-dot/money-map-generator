@@ -5,11 +5,13 @@ import { SAMPLE_WHITFIELD } from '../src/model/samples'
 import { MapSvg, rotateHandleTarget } from '../src/render/MapSvg'
 import { snapRotation, withOverride } from '../src/render/mapInteraction'
 
-const FOOTNOTE_KEY = `text:footnotes:line:${SAMPLE_WHITFIELD.footnotes[0].id}`
+const FOOTNOTE_ID = 'footnote-whitfield-rmd'
+const FOOTNOTE_KEY = `text:footnotes:line:${FOOTNOTE_ID}`
 const NOTE_KEY = 'note:rot-note'
 
 const data = {
   ...SAMPLE_WHITFIELD,
+  footnotes: [{ id: FOOTNOTE_ID, label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 }],
   notes: [{ id: 'rot-note', text: 'Rotate me', x: 520, y: 420 }],
 }
 

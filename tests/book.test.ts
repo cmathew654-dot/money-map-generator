@@ -16,8 +16,7 @@ import {
   tidyArrangement,
   updateClient,
 } from '../src/model/book'
-import { buildTidyAnchors, layoutMap } from '../src/layout/layout'
-import { placementsOverlap } from '../src/render/mapInteraction'
+import { layoutMap, OVERRIDE_BOUNDS } from '../src/layout/layout'
 import {
   blankClient,
   SAMPLE_CALLOWAY,
@@ -33,17 +32,36 @@ import {
 } from '../src/model/types'
 
 describe('book operations', () => {
-  it('builds tidy anchors with each account placement dimensions', () => {
-    const layout = layoutMap(structuredClone(SAMPLE_WHITFIELD))
-    expect(buildTidyAnchors).toBeDefined()
-    const anchors = buildTidyAnchors(layout, null)
-
-    for (const placed of layout.accounts) {
-      expect(anchors.find((anchor) => anchor.key === placed.account.id)).toMatchObject({
-        w: placed.w,
-        h: placed.h,
-      })
+  it('returns dragged items to the engine layout and clears overlapping notes', () => {
+    const clean = structuredClone(SAMPLE_WHITFIELD)
+    const cleanLayout = layoutMap(clean)
+    clean.notes = [
+      {
+        id: 'note-overlap',
+        text: 'Overlap',
+        x: cleanLayout.income.x,
+        y: cleanLayout.income.y,
+        fs: 19,
+      },
+    ]
+    const source: MoneyMapData = {
+      ...clean,
+      layoutOverrides: {
+        income: { dx: 180, dy: 72, rot: 6 },
+        'cash-at-bank': { dx: 240, dy: 96, rot: 8 },
+        'text:masthead:label': { dx: 4, fs: 16 },
+      },
     }
+
+    const first = tidyArrangement(source, OVERRIDE_BOUNDS)
+
+    expect(first.layoutOverrides?.income).toEqual({ rot: 6 })
+    expect(first.layoutOverrides?.['cash-at-bank']).toEqual({ rot: 8 })
+    expect(first.layoutOverrides?.['text:masthead:label']).toEqual({ dx: 4, fs: 16 })
+    expect(layoutMap(first).warnings.some((warning) => warning.code === 'note-content-overlap')).toBe(false)
+
+    const second = tidyArrangement(first, OVERRIDE_BOUNDS)
+    expect(second).toBe(first)
   })
 
   it('creates a truly blank client', () => {
@@ -317,7 +335,7 @@ describe('book operations', () => {
     expect(reset.layoutOverrides).toBeUndefined()
   })
 
-  it('snaps map anchors to the 12-unit grid and keeps the rest of the composition', () => {
+  it('clears positional overrides while preserving other tidy state', () => {
     const source: MoneyMapData = {
       ...structuredClone(SAMPLE_WHITFIELD),
       notes: [{ id: 'note-grid', text: 'Keep', x: 517, y: 481, fs: 19 }],
@@ -338,14 +356,9 @@ describe('book operations', () => {
       ],
     }
 
-    const tidied = tidyArrangement(source, [
-      { key: 'income', x: 813, y: 159 },
-      { key: 'note:note-grid', x: 517, y: 481 },
-    ])
+    const tidied = tidyArrangement(source)
 
-    expect(tidied.layoutOverrides?.income).toMatchObject({
-      dx: 8,
-      dy: 4,
+    expect(tidied.layoutOverrides?.income).toEqual({
       w: 321,
       rot: 4,
     })
@@ -353,7 +366,6 @@ describe('book operations', () => {
       dx: 3,
       dy: 9,
     })
-    expect(tidied.notes?.[0]).toMatchObject({ x: 516, y: 480, fs: 19 })
     expect(tidied.customArrows?.[0]).toMatchObject({
       labelDx: 11,
       labelDy: -8,
@@ -364,118 +376,32 @@ describe('book operations', () => {
   it('keeps the same client reference when every anchor already sits on the grid', () => {
     const source: MoneyMapData = {
       ...structuredClone(SAMPLE_WHITFIELD),
-      notes: [{ id: 'note-grid', text: 'Keep', x: 516, y: 480, fs: 19 }],
       layoutOverrides: {
-        income: { dx: 8, dy: 4, w: 321, rot: 4 },
+        income: { w: 321, rot: 4 },
         'text:masthead:label': { fs: 16 },
       },
     }
 
-    expect(
-      tidyArrangement(source, [
-        { key: 'income', x: 816, y: 156 },
-        { key: 'note:note-grid', x: 516, y: 480 },
-      ]),
-    ).toBe(source)
+    expect(tidyArrangement(source)).toBe(source)
   })
 
-  it('resolves overlaps between accounts onto the grid', () => {
-    const source: MoneyMapData = structuredClone(SAMPLE_WHITFIELD)
-
-    const tidied = tidyArrangement(source, [
-      { key: 'acc-a', x: 696, y: 300, w: 180, h: 120 },
-      // ~20px overlap with acc-a once both are snapped to the grid
-      { key: 'acc-b', x: 856, y: 300, w: 180, h: 120 },
-    ])
-
-    const rectA = { x: 696 + (tidied.layoutOverrides?.['acc-a']?.dx ?? 0), y: 300 + (tidied.layoutOverrides?.['acc-a']?.dy ?? 0), w: 180, h: 120 }
-    const rectB = { x: 856 + (tidied.layoutOverrides?.['acc-b']?.dx ?? 0), y: 300 + (tidied.layoutOverrides?.['acc-b']?.dy ?? 0), w: 180, h: 120 }
-
-    expect(placementsOverlap(rectA, rectB)).toBe(false)
-    expect(rectA.x % 12).toBe(0)
-    expect(rectA.y % 12).toBe(0)
-    expect(rectB.x % 12).toBe(0)
-    expect(rectB.y % 12).toBe(0)
-  })
-
-  it('separates overlapping anchors within bounds', () => {
-    const source: MoneyMapData = structuredClone(SAMPLE_WHITFIELD)
-    const anchors = [
-      { key: 'acc-a', x: 1260, y: 960, w: 120, h: 120 },
-      { key: 'acc-b', x: 1260, y: 960, w: 120, h: 120 },
-      { key: 'acc-c', x: 1260, y: 960, w: 120, h: 120 },
-    ] as const
-    const bounds = { left: 48, top: 118, right: 1272, bottom: 972 }
-
-    const tidied = tidyArrangement(source, anchors, bounds)
-    const rects = anchors.map((anchor) => ({
-      x: anchor.x + (tidied.layoutOverrides?.[anchor.key]?.dx ?? 0),
-      y: anchor.y + (tidied.layoutOverrides?.[anchor.key]?.dy ?? 0),
-      w: anchor.w,
-      h: anchor.h,
-    }))
-
-    for (let i = 0; i < rects.length; i++) {
-      expect(rects[i].x).toBeGreaterThanOrEqual(bounds.left)
-      expect(rects[i].x).toBeLessThanOrEqual(bounds.right)
-      expect(rects[i].y).toBeGreaterThanOrEqual(bounds.top)
-      expect(rects[i].y).toBeLessThanOrEqual(bounds.bottom)
-      for (let j = i + 1; j < rects.length; j++) {
-        expect(placementsOverlap(rects[i], rects[j])).toBe(false)
-      }
-    }
-  })
-
-  it('separates overlapping anchors without bounds', () => {
-    const source: MoneyMapData = structuredClone(SAMPLE_WHITFIELD)
-    const anchors = [
-      { key: 'acc-a', x: 300, y: 300, w: 120, h: 120 },
-      { key: 'acc-b', x: 300, y: 300, w: 120, h: 120 },
-      { key: 'acc-c', x: 300, y: 300, w: 120, h: 120 },
-    ] as const
-
-    const tidied = tidyArrangement(source, anchors)
-    const rects = anchors.map((anchor) => ({
-      x: anchor.x + (tidied.layoutOverrides?.[anchor.key]?.dx ?? 0),
-      y: anchor.y + (tidied.layoutOverrides?.[anchor.key]?.dy ?? 0),
-      w: anchor.w,
-      h: anchor.h,
-    }))
-
-    for (let i = 0; i < rects.length; i++) {
-      for (let j = i + 1; j < rects.length; j++) {
-        expect(placementsOverlap(rects[i], rects[j])).toBe(false)
-      }
-    }
-  })
-
-  it('converges for an item pinned at the bottom bound', () => {
+  it('clears a pinned account override and converges', () => {
     // The renderer clamps an override to bounds.bottom - h. With h off the grid
     // the clamp limit is off the grid too, so an unclamped snap wrote a phantom
     // delta on every tidy click while the item never moved.
     const bounds = { left: 48, top: 118, right: 1272, bottom: 972 }
-    const h = 122.8467
-    const pinnedY = bounds.bottom - h // 849.1533 — already at the clamp limit
     const source: MoneyMapData = {
       ...structuredClone(SAMPLE_WHITFIELD),
-      layoutOverrides: { daf: { dx: 0, dy: 40 } },
+      layoutOverrides: { 'cash-at-bank': { dx: 0, dy: 40 } },
     }
-    const anchors = [{ key: 'daf', x: 600, y: pinnedY, w: 180, h }] as const
-
-    // Steady state already: tidy must be a no-op, so canTidyMap reads false.
-    expect(tidyArrangement(source, anchors, bounds)).toBe(source)
-
-    // And no drift accumulates across repeated clicks.
-    let current = source
-    for (let i = 0; i < 3; i++) current = tidyArrangement(current, anchors, bounds)
-    expect(current.layoutOverrides?.daf).toEqual({ dx: 0, dy: 40 })
+    const first = tidyArrangement(source, bounds)
+    expect(first.layoutOverrides?.['cash-at-bank']).toBeUndefined()
+    expect(tidyArrangement(first, bounds)).toBe(first)
   })
 
   it('ignores sub-pixel snap residue', () => {
     const source: MoneyMapData = structuredClone(SAMPLE_WHITFIELD)
-    expect(
-      tidyArrangement(source, [{ key: 'acc-a', x: 599.982, y: 300.019, w: 180, h: 120 }]),
-    ).toBe(source)
+    expect(tidyArrangement(source)).toBe(source)
   })
 
   it('changes semantic account type without changing effective shape', () => {

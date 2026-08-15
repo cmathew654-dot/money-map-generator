@@ -2010,20 +2010,11 @@ export function AsNeededLabel({
     >
       <title>{accessibleLabel}</title>
       <rect
-        x={arrow.labelAt.x - 94 * scale}
-        y={arrow.labelAt.y - 19 * scale}
-        width={188 * scale}
-        height={38 * scale}
-        rx={19 * scale}
-        fill="#ffffff"
-        stroke={FLOW_GREEN}
-        strokeDasharray="5 4"
-      />
-      <rect
         x={arrow.labelAt.x - 87 * scale}
         y={arrow.labelAt.y - 15 * scale}
         width={174 * scale}
         height={30 * scale}
+        stroke="none"
         {...editableHitAreaProps(
           { kind: 'asNeededAmount' },
           onElementClick,
@@ -2033,7 +2024,7 @@ export function AsNeededLabel({
       <text
         x={arrow.labelAt.x}
         y={arrow.labelAt.y + 5 * scale}
-        fill={INK}
+        fill={FLOW_GREEN}
         fontFamily={FONT_SANS}
         fontSize={fontSize}
         textAnchor="middle"

@@ -46,7 +46,7 @@ import {
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
-import { asNeededChipCenter, buildTidyAnchors, layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
+import { asNeededChipCenter, layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
 import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import {
   exportPdf,
@@ -510,10 +510,7 @@ export default function App() {
     ([key, override]) => key.startsWith('text:') && (override.dx !== undefined || override.dy !== undefined),
   )
   const hasHiddenArrows = (activeClient.hiddenArrows?.length ?? 0) > 0
-  const mapLayout = layoutMap(activeClient)
-  const asNeededChipRect = layoutOverrideRect(activeClient, 'asNeededChip')
-  const tidyAnchors = buildTidyAnchors(mapLayout, asNeededChipRect)
-  const tidiedClient = tidyArrangement(activeClient, tidyAnchors, OVERRIDE_BOUNDS)
+  const tidiedClient = tidyArrangement(activeClient, OVERRIDE_BOUNDS)
   const canTidyMap = tidiedClient !== activeClient
   const previewClient = (() => {
     const fsInfo = mapTextEdit
@@ -1190,7 +1187,7 @@ export default function App() {
 
   const handleTidyMap = () => {
     if (!canTidyMap) return
-    handleMapChange(tidiedClient, 'Map aligned to grid.')
+    handleMapChange(tidiedClient, 'Map rearranged to the clean layout.', true)
   }
 
   const handleRestoreGeneratedArrows = () => {
@@ -1417,12 +1414,16 @@ export default function App() {
     })
   }
 
-  const handleMapChange = (rawNext: typeof activeClient, feedback?: string) => {
+  const handleMapChange = (
+    rawNext: typeof activeClient,
+    feedback?: string,
+    skipFreeze = false,
+  ) => {
     bumpFormRevision()
     const current = snapshotRef.current
     const before =
       current.book.clients.find((item) => item.id === rawNext.id) ?? activeClient
-    const next = freezeAsNeededChip(before, rawNext)
+    const next = skipFreeze ? rawNext : freezeAsNeededChip(before, rawNext)
     commitSnapshot(
       {
         book: updateClient(current.book, next.id, next),
@@ -2008,7 +2009,9 @@ export default function App() {
             </>
           )}
         </div>
-        <div className="header-spacer" />
+        <div className="header-spacer">
+          <Toast messages={toasts} onDismiss={dismissToast} />
+        </div>
         <div className="header-payoff-actions">
           <button
             className="quiet-button"
@@ -2306,7 +2309,7 @@ export default function App() {
               <div className="action-bench" role="group" aria-label="Map actions">
                 <button
                   disabled={!canMutate || !canTidyMap}
-                  title={canTidyMap ? 'Align movable items to the grid' : 'Already aligned'}
+                  title={canTidyMap ? 'Rearrange items into the clean layout' : 'Already in the clean layout'}
                   type="button"
                   onClick={handleTidyMap}
                 >
@@ -2477,7 +2480,6 @@ export default function App() {
           everything back.
         </Dialog>
       )}
-      <Toast messages={toasts} onDismiss={dismissToast} />
     </main>
   )
 }

@@ -299,6 +299,8 @@ summary:focus-visible {
 
 .header-spacer {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .menu {
@@ -570,12 +572,11 @@ summary:focus-visible {
 }
 
 .toast-region {
-  position: fixed;
-  z-index: 20;
-  right: 18px;
-  bottom: 64px;
+  position: static;
   display: grid;
-  width: min(300px, calc(100vw - 36px));
+  width: min(300px, 100%);
+  max-width: 100%;
+  margin-left: auto;
   gap: 8px;
   pointer-events: none;
 }
@@ -584,8 +585,16 @@ summary:focus-visible {
   /* .map-chrome pins to the viewport and can wrap into multiple rows below
      this width (see .map-chrome's own media query) — give the toast region
      enough headroom to clear it in that layout too. */
+  /* ponytail: between ~615–700px, wrapped chrome can exceed the 140px clearance
+     and overlap toasts; upgrade path: measure chrome height or dock mobile
+     toasts at the top of the viewport. */
   .toast-region {
+    position: fixed;
+    z-index: 20;
+    right: 18px;
     bottom: 140px;
+    width: min(300px, calc(100vw - 36px));
+    margin-left: 0;
   }
 }
 
@@ -597,6 +606,19 @@ summary:focus-visible {
   box-shadow: 0 5px 18px rgb(28 36 34 / 14%);
   color: #5b6663;
   font-size: 13px;
+}
+
+@media (min-width: 701px) {
+  .header-spacer .toast-region .toast:not(:last-child) {
+    display: none;
+  }
+
+  .toast {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .visually-hidden {
@@ -963,6 +985,7 @@ summary:focus-visible {
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  max-width: calc(100vw - 32px);
 }
 
 @media (max-width: 700px) {
@@ -981,12 +1004,14 @@ summary:focus-visible {
 }
 
 .pan-zoom-hint {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 8px);
+  position: static;
+  order: -1;
   display: flex;
   box-sizing: border-box;
-  width: min(280px, calc(100vw - 32px));
+  width: min(280px, 100%);
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 1 280px;
   align-items: center;
   gap: 8px;
   border: 1px solid #9ba49d;
@@ -1000,6 +1025,7 @@ summary:focus-visible {
 
 .pan-zoom-hint span {
   flex: 1;
+  min-width: 0;
 }
 
 .pan-zoom-hint button {
