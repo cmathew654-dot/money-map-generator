@@ -33,7 +33,11 @@ const NOTE_DATA: MoneyMapData = {
   ...SAMPLE_WHITFIELD,
   notes: [{ id: 'step-note', text: 'Fine rotation', x: 500, y: 400 }],
 }
-const FOOTNOTE_KEY = `text:footnotes:line:${SAMPLE_WHITFIELD.footnotes[0].id}`
+const FOOTNOTE_DATA: MoneyMapData = {
+  ...SAMPLE_WHITFIELD,
+  footnotes: [{ id: 'footnote-whitfield-rmd', label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 }],
+}
+const FOOTNOTE_KEY = `text:footnotes:line:${FOOTNOTE_DATA.footnotes[0].id}`
 
 const rotate = (
   selectedTargetKey: string,
@@ -62,7 +66,7 @@ describe('inspector rotate step is 5 degrees', () => {
 
   it.each([
     ['note', 'note:step-note', NOTE_DATA],
-    ['footnote line', FOOTNOTE_KEY, SAMPLE_WHITFIELD],
+    ['footnote line', FOOTNOTE_KEY, FOOTNOTE_DATA],
     ['as-needed chip', 'asNeededChip', SAMPLE_WHITFIELD],
   ])('steps %s selections by 5 degrees per click', (_name, key, data) => {
     expect(rotate(key, 'Rotate clockwise', data)?.layoutOverrides?.[key]?.rot).toBe(5)

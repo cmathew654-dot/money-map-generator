@@ -81,7 +81,7 @@ export const SAMPLE_WHITFIELD: MoneyMapData = {
       style: 'dotted',
     },
   ],
-  footnotes: [{ id: 'footnote-whitfield-rmd', label: 'Jordan 2026 RMD', gross: 96500, net: 74300 }],
+  footnotes: [],
 }
 
 export const SAMPLE_CALLOWAY: MoneyMapData = {

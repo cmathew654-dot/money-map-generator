@@ -16,6 +16,8 @@ import {
 } from '../src/model/samples'
 import { MapSvg } from '../src/render/MapSvg'
 
+const FOOTNOTE = { id: 'footnote-whitfield-rmd', label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 }
+
   it('returns original data for zero-displacement nudges', () => {
     const next = nudgeLayoutOverride(SAMPLE_WHITFIELD, 'cash-at-bank', {
       x: 0,
@@ -104,7 +106,7 @@ describe('Session 40 layout/render repair', () => {
   })
 
   it('uses per-footnote sizes for rendering and baseline spacing', () => {
-    const first = SAMPLE_WHITFIELD.footnotes[0]
+    const first = FOOTNOTE
     const second = {
       id: 'footnote-second-line',
       label: 'Dana 2026 RMD',
@@ -134,7 +136,7 @@ describe('Session 40 layout/render repair', () => {
   })
 
   it('keeps adjacent variable-size lines separated after per-line movement', () => {
-    const first = SAMPLE_WHITFIELD.footnotes[0]
+    const first = FOOTNOTE
     const second = {
       id: 'footnote-large-second',
       label: 'Dana 2026 RMD',
@@ -249,6 +251,7 @@ describe('Session 40 layout/render repair', () => {
   it('includes placed notes in bounds and warns on a real fine-print collision', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
+      footnotes: [FOOTNOTE],
       notes: [
         {
           id: 'note-over-footnote',

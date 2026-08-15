@@ -100,7 +100,12 @@ describe('serializeMapSvg', () => {
 
 describe('moneyMapAlternativeText', () => {
   it('describes the complete map in a logical plain-language order', () => {
-    const description = moneyMapAlternativeText(SAMPLE_WHITFIELD)
+    const description = moneyMapAlternativeText({
+      ...SAMPLE_WHITFIELD,
+      footnotes: [
+        { id: 'footnote-test', label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 },
+      ],
+    })
 
     expect(description).toContain('Money Map for Jordan & Dana Whitfield, 2026.')
     expect(description).toContain('Income sources:')
