@@ -153,6 +153,16 @@ test.describe('toasts never cover the toolbar (slice 8)', () => {
     })
     expect(hitsButton).toBe(true)
   })
+
+  test('desktop toasts render inside the header spacer', async ({ page }) => {
+    await page.getByRole('button', { name: '+ Account', exact: true }).click()
+    await page
+      .getByLabel('Add account')
+      .getByRole('button', { name: 'Short-Term', exact: true })
+      .click()
+
+    await expect(page.locator('.header-spacer .toast-region')).toBeVisible()
+  })
 })
 
 test.describe('honest pan hint (slice 12)', () => {

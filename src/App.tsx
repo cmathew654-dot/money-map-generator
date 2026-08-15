@@ -1994,7 +1994,9 @@ export default function App() {
           <button aria-label="Undo" className="quiet-button history-button" disabled={!canMutate || history.past.length === 0} title="Undo (Ctrl+Z)" type="button" onClick={handleUndo}>&#x21B6;</button>
           <button aria-label="Redo" className="quiet-button history-button" disabled={!canMutate || history.future.length === 0} title="Redo (Ctrl+Shift+Z or Ctrl+Y)" type="button" onClick={handleRedo}>&#x21B7;</button>
         </div>
-        <div className="header-spacer" />
+        <div className="header-spacer">
+          <Toast messages={toasts} onDismiss={dismissToast} />
+        </div>
         <div className="header-payoff-actions">
           <button
             className="quiet-button"
@@ -2501,7 +2503,6 @@ export default function App() {
           everything back.
         </Dialog>
       )}
-      <Toast messages={toasts} onDismiss={dismissToast} />
     </main>
   )
 }
