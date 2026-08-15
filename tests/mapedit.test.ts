@@ -314,6 +314,9 @@ describe('seamless map text editor geometry and typography', () => {
   it('marks every interactive editable-line text node as clickable or click-through', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
+      footnotes: [
+        { id: 'footnote-test', label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 },
+      ],
       notes: [
         {
           id: 'line-audit-note',
@@ -1261,7 +1264,7 @@ describe('noninteractive map rendering', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
       footnotes: [
-        ...SAMPLE_WHITFIELD.footnotes,
+        { id: 'footnote-whitfield-rmd', label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 },
         {
           id: 'footnote-dana-2026-rmd',
           label: 'Dana 2026 RMD',
@@ -1306,6 +1309,9 @@ describe('noninteractive map rendering', () => {
   it('renders every newly movable fixed text role at its override offset', () => {
     const data = {
       ...SAMPLE_WHITFIELD,
+      footnotes: [
+        { id: 'footnote-test', label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 },
+      ],
       layoutOverrides: {
         'text:income:header': { dx: 11, dy: 12 },
         'text:income:row': { dx: 21, dy: 22 },

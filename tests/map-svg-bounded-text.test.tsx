@@ -24,7 +24,10 @@ const html = (text: string) =>
 
 describe('MapSvg bounded text', () => {
   it('renders fitted text while retaining every exact constrained value', () => {
-    const data = structuredClone(SAMPLE_WHITFIELD)
+    const data = structuredClone({
+      ...SAMPLE_WHITFIELD,
+      footnotes: [{ id: 'footnote-bounded', label: '', gross: null as number | null, net: null as number | null }],
+    })
     const long = 'BOUNDARY '.repeat(80).trim()
     data.client.title = `TITLE ${long}`
     data.client.mastheadLabel = `LABEL ${long}`

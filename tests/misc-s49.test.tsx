@@ -11,6 +11,9 @@ const decoder = new TextDecoder('latin1')
 const DATA: MoneyMapData = {
   ...SAMPLE_WHITFIELD,
   notes: [{ id: 'note-1', text: 'Review beneficiary update', x: 100, y: 100 }],
+  footnotes: [
+    { id: 'footnote-test', label: 'Jordan 2026 RMD', gross: 96_500, net: 74_300 },
+  ],
 }
 
 function contentsMarkup(): string {
