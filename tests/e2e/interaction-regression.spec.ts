@@ -818,16 +818,16 @@ test.describe('approved desktop interaction regression', () => {
 
     await page.getByRole('button', { name: 'Tidy map', exact: true }).click()
     await expect(
-      page.locator('.toast').filter({ hasText: 'Map aligned to grid.' }),
+      page.locator('.toast').filter({ hasText: 'Map rearranged to the clean layout.' }),
     ).toBeVisible()
     const tidiedPosition = await svgPosition(bodyHit)
-    // Snapping to the nearest 12 units can never move an anchor more than 6.
-    expect(Math.abs(tidiedPosition.x - movedPosition.x)).toBeLessThanOrEqual(6)
-    expect(Math.abs(tidiedPosition.y - movedPosition.y)).toBeLessThanOrEqual(6)
-    expect(tidiedPosition).not.toEqual(generatedPosition)
-    expect(
-      (await currentClient(page)).layoutOverrides?.[accountId]?.dx,
-    ).toBeDefined()
+    expect(tidiedPosition).toEqual(generatedPosition)
+    await expect
+      .poll(async () => (await currentClient(page)).layoutOverrides?.[accountId])
+      .toBeUndefined()
+    await expect(
+      page.getByRole('button', { name: 'Tidy map', exact: true }),
+    ).toBeDisabled()
 
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect
