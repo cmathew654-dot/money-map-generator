@@ -138,13 +138,13 @@ button:disabled:hover {
   background: #f1f3f0;
 }
 
-/* Open state is loud and binary: flow-green fill — a state, deliberately
-   not the ink of the Print/Export CTAs. */
+/* Open state is quiet: green-tinted surface + green border, ink text.
+   Reads as selected without competing with the map (Cyril, 2026-08-15). */
 .panel-toggle[aria-expanded='true'],
 .panel-toggle[aria-expanded='true']:hover {
   border-color: #1e7a4a;
-  background: #1e7a4a;
-  color: #fcfcfa;
+  background: #e7f0ea;
+  color: #1c2422;
 }
 
 @media (prefers-reduced-motion: reduce) {
