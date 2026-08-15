@@ -5,8 +5,6 @@ import { describe, expect, it } from 'vitest'
 import { freezeAsNeededChip } from '../src/App'
 import {
   asNeededChipCenter,
-  buildTidyAnchors,
-  layoutMap,
   layoutOverrideRect,
   OVERRIDE_BOUNDS,
 } from '../src/layout/layout'
@@ -160,18 +158,31 @@ describe('as-needed chip freeze at gesture start', () => {
 })
 
 describe('tidy convergence with a frozen chip', () => {
-  // Mirrors App: anchors from the live layout, tidy, then the choke-point freeze.
   const tidyOnce = (client: MoneyMapData): MoneyMapData => {
-    const anchors = buildTidyAnchors(
-      layoutMap(client),
-      layoutOverrideRect(client, 'asNeededChip'),
-    )
-    const tidied = tidyArrangement(client, anchors, OVERRIDE_BOUNDS)
+    const tidied = tidyArrangement(client, OVERRIDE_BOUNDS)
     return tidied === client ? client : freezeAsNeededChip(client, tidied)
   }
 
   it.each(SAMPLES)('settles by the second tidy click (%s)', (_name, sample) => {
     const first = tidyOnce(sample)
     expect(tidyOnce(first)).toBe(first)
+  })
+
+  it('leaves Tidy disabled after one click on a dragged client with an as-needed amount', () => {
+    const dragged: MoneyMapData = {
+      ...structuredClone(SAMPLE_CALLOWAY),
+      layoutOverrides: {
+        'calloway-cash-at-home': { dx: 240, dy: 96 },
+        'calloway-short-term': { dx: -180, dy: 72 },
+      },
+    }
+    const tidied = tidyArrangement(dragged, OVERRIDE_BOUNDS)
+    const canTidyMap = tidyArrangement(tidied, OVERRIDE_BOUNDS) !== tidied
+
+    expect(dragged.asNeededAmount).toBe(20_000)
+    expect(canTidyMap).toBe(false)
+    expect(appSource).toMatch(
+      /const handleTidyMap = \(\) => \{[\s\S]{0,220}?handleMapChange\(tidiedClient, 'Map rearranged to the clean layout\.', true\)/,
+    )
   })
 })
