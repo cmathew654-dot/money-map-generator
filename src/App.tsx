@@ -43,7 +43,23 @@ import {
   type FileReadResult,
   type FileStoreApi,
 } from './model/filestore'
-import { deriveKey, newSalt } from './model/crypto'
+import {
+  deriveKey,
+  envelopeVersion,
+  kekFromPassphrase,
+  kekFromPrf,
+  kekFromRecoveryCode,
+  newDataKey,
+  newRecoveryCode,
+  newSalt,
+  openBook,
+  readWraps,
+  saltFromEnvelope,
+  unwrapDataKey,
+  wrapDataKey,
+  type Wrap,
+} from './model/crypto'
+import { enrollPrf, isPrfAvailable, prfOutput } from './model/webauthn'
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
@@ -85,6 +101,7 @@ import {
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import { PassphraseDialog } from './ui/PassphraseDialog'
+import { RecoveryCodeDialog } from './ui/RecoveryCodeDialog'
 import { EncryptAnnouncement, EncryptCeremony } from './ui/EncryptCeremony'
 import { EditorPanels } from './ui/EditorPanels'
 import { ClientCombobox } from './ui/ClientCombobox'
@@ -259,10 +276,68 @@ type AppDialog =
   | { kind: 'delete'; clientId: string; name: string }
   | { kind: 'error'; title: string; message: string }
   | { kind: 'loadBook'; book: MoneyMapFile }
-  | { kind: 'passphrase'; mode: 'create' | 'open'; fileName: string }
+  | { kind: 'passphrase'; mode: 'create' | 'open'; fileName: string; allowRecovery: boolean }
   | { kind: 'resetLayout' }
   | { kind: 'resetTextPositions' }
   | { kind: 'clearMap'; clientId: string; name: string }
+
+type FileFactor = {
+  factor: 'passphrase' | 'recovery'
+  value: string
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes))
+}
+
+function bytesFromBase64(value: string): Uint8Array {
+  return Uint8Array.from(atob(value), (character) => character.charCodeAt(0))
+}
+
+async function createFileCrypto(passphrase: string): Promise<{
+  fileCrypto: { dek: CryptoKey; wraps: Wrap[] }
+  recoveryCode: string
+}> {
+  const dek = await newDataKey()
+  const passphraseSalt = newSalt()
+  const recoveryCode = newRecoveryCode()
+  const recoverySalt = newSalt()
+  const wraps: Wrap[] = [
+    await wrapDataKey(dek, await kekFromPassphrase(passphrase, passphraseSalt), {
+      type: 'passphrase',
+      label: 'Passphrase',
+      salt: bytesToBase64(passphraseSalt),
+      iter: 600_000,
+    }),
+    await wrapDataKey(dek, await kekFromRecoveryCode(recoveryCode, recoverySalt), {
+      type: 'recovery',
+      label: 'Recovery code',
+      salt: bytesToBase64(recoverySalt),
+    }),
+  ]
+
+  try {
+    if (await isPrfAvailable()) {
+      const { credentialId, prfSalt } = await enrollPrf('Windows Hello')
+      wraps.push(
+        await wrapDataKey(
+          dek,
+          await kekFromPrf(await prfOutput(credentialId, prfSalt)),
+          {
+            type: 'webauthn',
+            label: 'Windows Hello',
+            credentialId,
+            prfSalt,
+          },
+        ),
+      )
+    }
+  } catch {
+    // Windows Hello is optional; passphrase and recovery wraps are enough.
+  }
+
+  return { fileCrypto: { dek, wraps }, recoveryCode }
+}
 
 function initialBrowserBook(): BrowserBookLoad { return loadBrowserBook(localStorage) }
 
@@ -451,9 +526,14 @@ export default function App() {
   const toastCounter = useRef(0)
   const fileSaveRevision = useRef(0)
   const fileWriteQueue = useRef<Promise<unknown>>(Promise.resolve())
-  const fileCryptoRef = useRef<{ key: CryptoKey; salt: Uint8Array } | null>(null)
+  const fileCryptoRef = useRef<{ dek: CryptoKey; wraps: Wrap[] } | null>(null)
   const [ceremony, setCeremony] = useState<{ envelope: string; fileName: string } | null>(null)
-  const passphraseResolveRef = useRef<((passphrase: string | null) => void) | null>(null)
+  const [recoveryCodePrompt, setRecoveryCodePrompt] = useState<{
+    code: string
+    fileName: string
+    resolve(): void
+  } | null>(null)
+  const passphraseResolveRef = useRef<((factor: FileFactor | null) => void) | null>(null)
   const writerTakeoverTimerRef = useRef<number | null>(null)
   const releaseTimerRef = useRef<number | null>(null)
   const writerFocusRequestedRef = useRef(false)
@@ -717,20 +797,31 @@ export default function App() {
   }, [])
 
   const promptForPassphrase = useCallback(
-    (mode: 'create' | 'open', fileName: string) =>
-      new Promise<string | null>((resolve) => {
+    (mode: 'create' | 'open', fileName: string, allowRecovery = true) =>
+      new Promise<FileFactor | null>((resolve) => {
         passphraseResolveRef.current = resolve
-        setDialog({ kind: 'passphrase', mode, fileName })
+        setDialog({ kind: 'passphrase', mode, fileName, allowRecovery })
       }),
     [],
   )
 
-  const finishPassphrasePrompt = useCallback((passphrase: string | null) => {
+  const finishPassphrasePrompt = useCallback((
+    value: string | null,
+    factor: FileFactor['factor'] = 'passphrase',
+  ) => {
     const resolve = passphraseResolveRef.current
     passphraseResolveRef.current = null
     setDialog(null)
-    resolve?.(passphrase)
+    resolve?.(value === null ? null : { factor, value })
   }, [])
+
+  const showRecoveryCode = useCallback(
+    (code: string, fileName: string) =>
+      new Promise<void>((resolve) => {
+        setRecoveryCodePrompt({ code, fileName, resolve })
+      }),
+    [],
+  )
 
   useEffect(() => {
     if (!fileStoreSupported) return
@@ -935,7 +1026,7 @@ export default function App() {
     const timeout = window.setTimeout(() => {
       const write = fileWriteQueue.current
         .catch(() => undefined)
-        .then(() => writeBookFile(connectedFile, book, fileCrypto.key, fileCrypto.salt))
+        .then(() => writeBookFile(connectedFile, book, fileCrypto.dek, fileCrypto.wraps))
       fileWriteQueue.current = write
       void write.then(
         () => {
@@ -1066,23 +1157,70 @@ export default function App() {
       let result: FileReadResult
       let decryptAttempted = false
       let passphraseCancelled = false
-      let fileCrypto: { key: CryptoKey; salt: Uint8Array } | null = null
+      let fileCrypto: { dek: CryptoKey; wraps: Wrap[] } | null = null
+      let migrationPassphrase: string | null = null
       try {
         if (!(await requestBookFilePermission(handle))) {
           throw new Error('File permission was not granted.')
         }
         result = {
           status: 'success',
-          book: await readBookFile(handle, async (salt) => {
-            const passphrase = await promptForPassphrase('open', handle.name)
-            if (passphrase === null) {
-              passphraseCancelled = true
-              throw new DOMException('Passphrase prompt cancelled.', 'AbortError')
+          book: await readBookFile(handle, async (envelope) => {
+            if (envelopeVersion(envelope) === 1) {
+              const passphrase = await promptForPassphrase('open', handle.name, false)
+              if (passphrase === null) {
+                passphraseCancelled = true
+                throw new DOMException('Passphrase prompt cancelled.', 'AbortError')
+              }
+              decryptAttempted = true
+              migrationPassphrase = passphrase.value
+              return deriveKey(passphrase.value, saltFromEnvelope(envelope))
             }
-            decryptAttempted = true
-            const key = await deriveKey(passphrase, salt)
-            fileCrypto = { key, salt }
-            return key
+
+            const wraps = readWraps(envelope)
+            const webauthnWrap = wraps.find((wrap) => wrap.type === 'webauthn')
+            if (webauthnWrap?.credentialId && webauthnWrap.prfSalt) {
+              try {
+                if (await isPrfAvailable()) {
+                  const dek = await unwrapDataKey(
+                    webauthnWrap,
+                    await kekFromPrf(
+                      await prfOutput(
+                        webauthnWrap.credentialId,
+                        webauthnWrap.prfSalt,
+                      ),
+                    ),
+                  )
+                  await openBook(dek, envelope)
+                  fileCrypto = { dek, wraps }
+                  return dek
+                }
+              } catch {
+                // Fall through to passphrase or recovery-code unlock.
+              }
+            }
+
+            while (true) {
+              const passphrase = await promptForPassphrase('open', handle.name)
+              if (passphrase === null) {
+                passphraseCancelled = true
+                throw new DOMException('Passphrase prompt cancelled.', 'AbortError')
+              }
+              decryptAttempted = true
+              const wrap = wraps.find((candidate) => candidate.type === passphrase.factor)
+              if (!wrap?.salt) throw new Error(`No ${passphrase.factor} wrap is available.`)
+              const salt = bytesFromBase64(wrap.salt)
+              try {
+                const kek = passphrase.factor === 'recovery'
+                  ? await kekFromRecoveryCode(passphrase.value, salt)
+                  : await kekFromPassphrase(passphrase.value, salt, wrap.iter)
+                const dek = await unwrapDataKey(wrap, kek)
+                fileCrypto = { dek, wraps }
+                return dek
+              } catch {
+                // A wrong factor leaves the envelope untouched and can be retried.
+              }
+            }
           }),
         }
       } catch (error) {
@@ -1105,22 +1243,23 @@ export default function App() {
         return
       }
 
-      // A plaintext book never calls getKey, so it arrives here with no crypto.
-      // Encrypt it now: connecting without a key would leave the save effect
-      // permanently skipping writes while the advisor believes it is saving.
+      // Plaintext never calls getDataKey; v1 keys cannot be wrapped because
+      // they are non-extractable. Migrate either format before connecting.
       if (!fileCrypto) {
-        const passphrase = await promptForPassphrase('create', handle.name)
+        const passphrase = migrationPassphrase === null
+          ? await promptForPassphrase('create', handle.name)
+          : { factor: 'passphrase', value: migrationPassphrase } as const
         if (passphrase === null) return
-        const salt = newSalt()
-        const key = await deriveKey(passphrase, salt)
         try {
-          const envelope = await writeBookFile(handle, resolution.book, key, salt)
+          const created = await createFileCrypto(passphrase.value)
+          fileCrypto = created.fileCrypto
+          const envelope = await writeBookFile(handle, resolution.book, fileCrypto.dek, fileCrypto.wraps)
+          await showRecoveryCode(created.recoveryCode, handle.name)
           setCeremony({ envelope, fileName: handle.name })
         } catch {
           addToast(`Could not encrypt ${handle.name}; current book unchanged`)
           return
         }
-        fileCrypto = { key, salt }
       }
 
       closeMapTextEditor(true)
@@ -1136,7 +1275,7 @@ export default function App() {
       rememberConnectedFile(handle)
       addToast(isReconnect ? 'Saving to this file again' : 'Changes will now save to this file')
     },
-    [addToast, canMutate, closeMapTextEditor, commitSnapshot, promptForPassphrase, rememberConnectedFile, resetWizard],
+    [addToast, canMutate, closeMapTextEditor, commitSnapshot, promptForPassphrase, rememberConnectedFile, resetWizard, showRecoveryCode],
   )
 
   const handleCreateConnectedFile = async () => {
@@ -1144,10 +1283,15 @@ export default function App() {
       const handle = await chooseNewBookFile()
       const passphrase = await promptForPassphrase('create', handle.name)
       if (passphrase === null) return
-      const salt = newSalt()
-      const key = await deriveKey(passphrase, salt)
-      fileCryptoRef.current = { key, salt }
-      const envelope = await writeBookFile(handle, snapshotRef.current.book, key, salt)
+      const created = await createFileCrypto(passphrase.value)
+      const envelope = await writeBookFile(
+        handle,
+        snapshotRef.current.book,
+        created.fileCrypto.dek,
+        created.fileCrypto.wraps,
+      )
+      await showRecoveryCode(created.recoveryCode, handle.name)
+      fileCryptoRef.current = created.fileCrypto
       rememberConnectedFile(handle)
       setCeremony({ envelope, fileName: handle.name })
     } catch (error) {
@@ -2488,8 +2632,20 @@ export default function App() {
       <div ref={printMapRef} aria-hidden="true" className="print-map">
         <MapSvg data={activeClient} />
       </div>
+      {recoveryCodePrompt && (
+        <RecoveryCodeDialog
+          code={recoveryCodePrompt.code}
+          fileName={recoveryCodePrompt.fileName}
+          onConfirm={() => {
+            const resolve = recoveryCodePrompt.resolve
+            setRecoveryCodePrompt(null)
+            resolve()
+          }}
+        />
+      )}
       {dialog?.kind === 'passphrase' && (
         <PassphraseDialog
+          allowRecovery={dialog.allowRecovery}
           fileName={dialog.fileName}
           mode={dialog.mode}
           onCancel={() => finishPassphrasePrompt(null)}
