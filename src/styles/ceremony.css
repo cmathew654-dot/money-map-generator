@@ -21,6 +21,33 @@
   opacity: 0;
 }
 
+.encrypt-ceremony.lock-cover {
+  position: fixed;
+  z-index: 100;
+  pointer-events: auto;
+  background-color: rgb(252 252 250 / 0.98);
+}
+
+.lock-card {
+  position: relative;
+  width: min(360px, calc(100vw - 32px));
+  padding: 28px;
+  border: 1px solid #dde1dc;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1c2422;
+  text-align: center;
+  box-shadow: 0 8px 30px rgb(28 36 34 / 0.16);
+}
+
+.lock-card h2 {
+  margin: 0;
+}
+
+.lock-card p {
+  margin: 12px 0 20px;
+}
+
 /*
  * The real base64 payload from the envelope. Held well below body contrast on
  * purpose: it is texture that shows the data is unreadable, not text to read.

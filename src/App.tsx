@@ -292,6 +292,25 @@ type FileFactor = {
   value: string
 }
 
+export const AUTO_LOCK_MS = 10 * 60 * 1000
+
+export function shouldAutoLock(state: {
+  now: number
+  lastActivity: number
+  connected: boolean
+  hasCrypto: boolean
+  dialogOpen: boolean
+  recoveryOpen: boolean
+  ceremonyPlaying: boolean
+  fileWriteInFlight: boolean
+  locked: boolean
+}): boolean {
+  return state.connected && state.hasCrypto && !state.dialogOpen &&
+    !state.recoveryOpen && !state.ceremonyPlaying &&
+    !state.fileWriteInFlight && !state.locked &&
+    state.now - state.lastActivity >= AUTO_LOCK_MS
+}
+
 function bytesToBase64(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes))
 }
@@ -534,6 +553,7 @@ export default function App() {
   const [placingTextNote, setPlacingTextNote] = useState(false)
   const [shapePopoverOpen, setShapePopoverOpen] = useState(false)
   const [exporting, setExporting] = useState<'png' | 'pdf' | 'svg' | null>(null)
+  const [locked, setLocked] = useState(false)
   const [fileStoreSupported] = useState(() =>
     DATA_MODE === 'real' && supportsFileStore(window as unknown as FileStoreApi),
   )
@@ -541,6 +561,11 @@ export default function App() {
   const toastCounter = useRef(0)
   const fileSaveRevision = useRef(0)
   const fileWriteQueue = useRef<Promise<unknown>>(Promise.resolve())
+  const fileSaveTimeoutRef = useRef<number | null>(null)
+  const fileWriteInFlightRef = useRef(false)
+  const lockInFlightRef = useRef(false)
+  const lastActivityRef = useRef(Date.now())
+  const lockButtonRef = useRef<HTMLButtonElement>(null)
   const fileCryptoRef = useRef<{ dek: CryptoKey; wraps: Wrap[] } | null>(null)
   const [ceremony, setCeremony] = useState<{
     envelope: string
@@ -597,7 +622,7 @@ export default function App() {
   const editorPanelButtonRefs = useRef<Partial<Record<EditorPanel, HTMLButtonElement>>>({})
   const previousEditorPanelRef = useRef<EditorPanel | null>(null)
   const { book, activeClientId } = snapshot
-  const canMutate = browserBookLoaded && canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
+  const canMutate = browserBookLoaded && !locked && canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
   const vocabulary = useMemo(() => buildVocabulary(book), [book])
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
@@ -770,7 +795,7 @@ export default function App() {
 
   const commitSnapshot = useCallback(
     (next: BookSnapshot, targetClientId: string | null) => {
-      if (!canMutate) return
+      if (!canMutate && !locked) return
       const nextHistory = pushHistory(
         historyRef.current,
         historyBaselineRef.current ?? snapshotRef.current,
@@ -782,7 +807,7 @@ export default function App() {
       showHistory(nextHistory)
       showSnapshot(next)
     },
-    [canMutate, showHistory, showSnapshot],
+    [canMutate, locked, showHistory, showSnapshot],
   )
 
   const resetWizard = useCallback(() => {
@@ -898,6 +923,27 @@ export default function App() {
     if (error === undefined) return
     setBrowserSaveStatus(error ? 'error' : 'saved'); setBrowserSaveError(error ?? '')
   }, [browserBookLoaded, recovery, tabId])
+  const flushConnectedFileSave = useCallback(() => {
+    const handle = connectedFile
+    const fileCrypto = fileCryptoRef.current
+    if (!handle || !fileCrypto) return Promise.resolve()
+    if (fileSaveTimeoutRef.current !== null) {
+      window.clearTimeout(fileSaveTimeoutRef.current)
+      fileSaveTimeoutRef.current = null
+    }
+    fileSaveRevision.current += 1
+    const write = fileWriteQueue.current
+      .catch(() => undefined)
+      .then(() => {
+        fileWriteInFlightRef.current = true
+        return writeBookFile(handle, snapshotRef.current.book, fileCrypto.dek, fileCrypto.wraps)
+      })
+      .finally(() => {
+        fileWriteInFlightRef.current = false
+      })
+    fileWriteQueue.current = write
+    return write
+  }, [connectedFile])
   const startFreshBrowserBook = useCallback(() => {
     if (currentBrowserWriter(localStorage) !== tabId) return
     const next = newBook()
@@ -906,7 +952,7 @@ export default function App() {
     showSnapshot({ book: next, activeClientId: next.clients[0].id })
   }, [showHistory, showSnapshot, tabId])
   useEffect(() => {
-    if (DATA_MODE !== 'real' || !browserBookLoaded || !isWriter || recovery) return
+    if (DATA_MODE !== 'real' || !browserBookLoaded || !isWriter || recovery || locked) return
     const revision = ++browserSaveRevisionRef.current
     setBrowserSaveStatus('saving')
     void getBrowserDataKey()
@@ -923,7 +969,7 @@ export default function App() {
         setBrowserSaveStatus('error')
         setBrowserSaveError(error instanceof Error ? error.message : 'Money Map could not encrypt changes in this browser.')
       })
-  }, [book, browserBookLoaded, isWriter, recovery])
+  }, [book, browserBookLoaded, isWriter, locked, recovery])
   const clearWriterTakeoverTimer = useCallback(() => {
     if (writerTakeoverTimerRef.current === null) return
     window.clearTimeout(writerTakeoverTimerRef.current)
@@ -1116,15 +1162,21 @@ export default function App() {
 
   useEffect(() => {
     if (!connectedFile || !canWriteConnectedBook(canMutate, true)) return
+    if (locked) return
     const fileCrypto = fileCryptoRef.current
     if (!fileCrypto) return
     fileSaveRevision.current += 1
     const revision = fileSaveRevision.current
     setFileSaveStatus('saving')
     const timeout = window.setTimeout(() => {
+      fileSaveTimeoutRef.current = null
+      fileWriteInFlightRef.current = true
       const write = fileWriteQueue.current
         .catch(() => undefined)
         .then(() => writeBookFile(connectedFile, book, fileCrypto.dek, fileCrypto.wraps))
+        .finally(() => {
+          fileWriteInFlightRef.current = false
+        })
       fileWriteQueue.current = write
       void write.then(
         () => {
@@ -1143,7 +1195,11 @@ export default function App() {
         },
       )
     }, 800)
-    return () => window.clearTimeout(timeout)
+    fileSaveTimeoutRef.current = timeout
+    return () => {
+      window.clearTimeout(timeout)
+      if (fileSaveTimeoutRef.current === timeout) fileSaveTimeoutRef.current = null
+    }
   }, [addToast, book, canMutate, connectedFile])
 
   useEffect(() => {
@@ -1239,6 +1295,7 @@ export default function App() {
 
   const rememberConnectedFile = useCallback(
     (handle: BookFileHandle) => {
+      lastActivityRef.current = Date.now()
       setConnectedFile(handle)
       setReconnectFile(null)
       setFileSaveStatus('saved')
@@ -1251,7 +1308,7 @@ export default function App() {
 
   const replaceBookFromFile = useCallback(
     async (handle: BookFileHandle, isReconnect: boolean) => {
-      if (!canMutate) return
+      if (!canMutate && !locked) return
       let result: FileReadResult
       let decryptAttempted = false
       let passphraseCancelled = false
@@ -1403,8 +1460,78 @@ export default function App() {
       }
       addToast(isReconnect ? 'Saving to this file again' : 'Changes will now save to this file')
     },
-    [addToast, canMutate, closeMapTextEditor, commitSnapshot, promptForPassphrase, promptForWindowsHello, rememberConnectedFile, resetWizard, showRecoveryCode],
+    [addToast, canMutate, closeMapTextEditor, commitSnapshot, locked, promptForPassphrase, promptForWindowsHello, rememberConnectedFile, resetWizard, showRecoveryCode],
   )
+
+  const lockConnectedFile = useCallback(async () => {
+    const handle = connectedFile
+    if (!handle || !fileCryptoRef.current || lockInFlightRef.current) return
+    lockInFlightRef.current = true
+    try {
+      flushBrowserSave()
+      await flushConnectedFileSave()
+      fileCryptoRef.current = null
+      showHistory(emptyHistory())
+      showSnapshot({ book: newBook(), activeClientId: newBook().clients[0].id })
+      setEditorPanel(null)
+      setMapTextEdit(null)
+      dispatchSelection({ type: 'clear', reason: 'clientChange' })
+      await deleteStoredBookDataKey(connectedFile).catch(() => undefined)
+      setLocked(true)
+    } catch {
+      addToast(`Could not finish saving ${handle.name}; file remains unlocked`)
+    } finally {
+      lockInFlightRef.current = false
+    }
+  }, [addToast, connectedFile, flushBrowserSave, flushConnectedFileSave, showHistory, showSnapshot])
+
+  const handleUnlock = useCallback(async () => {
+    const handle = connectedFile
+    if (!locked || !handle || lockInFlightRef.current) return
+    lockInFlightRef.current = true
+    try {
+      await replaceBookFromFile(handle, true)
+      if (fileCryptoRef.current) {
+        lastActivityRef.current = Date.now()
+        setLocked(false)
+      }
+    } finally {
+      lockInFlightRef.current = false
+    }
+  }, [connectedFile, locked, replaceBookFromFile])
+
+  useEffect(() => {
+    const activity = () => {
+      lastActivityRef.current = Date.now()
+    }
+    const check = () => {
+      void (shouldAutoLock({
+        now: Date.now(),
+        lastActivity: lastActivityRef.current,
+        connected: Boolean(connectedFile),
+        hasCrypto: Boolean(fileCryptoRef.current),
+        dialogOpen: Boolean(dialog),
+        recoveryOpen: Boolean(recoveryCodePrompt),
+        ceremonyPlaying: Boolean(ceremony),
+        fileWriteInFlight: fileWriteInFlightRef.current,
+        locked: locked || lockInFlightRef.current,
+      }) && lockConnectedFile())
+    }
+    document.addEventListener('pointerdown', activity)
+    document.addEventListener('keydown', activity)
+    document.addEventListener('wheel', activity)
+    const interval = window.setInterval(check, 30_000)
+    return () => {
+      document.removeEventListener('pointerdown', activity)
+      document.removeEventListener('keydown', activity)
+      document.removeEventListener('wheel', activity)
+      window.clearInterval(interval)
+    }
+  }, [ceremony, connectedFile, dialog, lockConnectedFile, locked, recoveryCodePrompt])
+
+  useEffect(() => {
+    if (locked) window.requestAnimationFrame(() => lockButtonRef.current?.focus())
+  }, [locked])
 
   const handleCreateConnectedFile = async () => {
     try {
@@ -2303,6 +2430,21 @@ export default function App() {
     </div>
   )
 
+  const lockCover = locked && (
+    <div className="encrypt-ceremony is-sealed lock-cover">
+      <pre aria-hidden="true" className="encrypt-ceremony-cipher">
+        {'7F3A 91C2 0D44 B8E1 6A20 55F0 '.repeat(420)}
+      </pre>
+      <section aria-describedby="lock-cover-message" aria-labelledby="lock-cover-title" aria-modal="true" className="lock-card" role="dialog">
+        <h2 id="lock-cover-title">Locked</h2>
+        <p id="lock-cover-message">Money Map locked after 10 minutes of inactivity.</p>
+        <button ref={lockButtonRef} className="primary-button" type="button" onClick={() => void handleUnlock()}>
+          Unlock
+        </button>
+      </section>
+    </div>
+  )
+
   return (
     <main
       ref={appShellRef}
@@ -2947,6 +3089,7 @@ export default function App() {
           everything back.
         </Dialog>
       )}
+      {lockCover}
     </main>
   )
 }
