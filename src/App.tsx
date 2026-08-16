@@ -2197,9 +2197,6 @@ export default function App() {
               <>
                 <MenuItem onClick={() => void handleCreateConnectedFile()}>Save changes to a file...</MenuItem>
                 <MenuItem onClick={() => void handleOpenConnectedFile()}>Open and keep saving...</MenuItem>
-                {connectedFile && (
-                  <MenuItem onClick={() => void handleAddWindowsHello()}>Unlock with Windows Hello...</MenuItem>
-                )}
               </>
             )}
             {fileStoreSupported && reconnectFile && !connectedFile && (
@@ -2214,6 +2211,12 @@ export default function App() {
                   <span className="menu-file-status">{fileSaveStatus === 'saving' ? 'Saving...' : 'Saved'}</span>
                 </div>
                 <MenuItem onClick={handleDisconnectFile}>Stop saving to this file</MenuItem>
+                <MenuItem
+                  title="Optional. Adds a fingerprint or PIN unlock alongside your passphrase — nothing to remember."
+                  onClick={() => void handleAddWindowsHello()}
+                >
+                  Unlock with Windows Hello (optional)...
+                </MenuItem>
               </>
             )}
             <MenuSeparator />
