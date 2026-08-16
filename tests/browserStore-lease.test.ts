@@ -3,10 +3,12 @@ import {
   acquireBrowserWriter,
   currentBrowserWriter,
   publishBrowserWriterTakeoverRequest,
+  releaseBrowserWriter,
   WRITER_HEARTBEAT_MS,
   WRITER_STORAGE_KEY,
   type StorageLike,
 } from '../src/model/browserStore'
+import * as browserStore from '../src/model/browserStore'
 
 class MemoryStorage implements StorageLike {
   private readonly values = new Map<string, string>()
@@ -17,6 +19,36 @@ class MemoryStorage implements StorageLike {
 }
 
 describe('browser writer lease expiry', () => {
+  it('writes the prepared ciphertext before the pagehide path returns', () => {
+    const storage = new MemoryStorage()
+    acquireBrowserWriter(storage, 'closing-tab')
+    const saveAtPagehide = (browserStore as typeof browserStore & {
+      savePreparedBrowserBook?: (storage: StorageLike, tabId: string, ciphertext: string | null) => string | null
+    }).savePreparedBrowserBook ?? (() => 'prepared ciphertext was not saved')
+
+    expect(saveAtPagehide(storage, 'closing-tab', 'sealed snapshot')).toBeNull()
+    expect(storage.getItem('money-map-generator:book')).toBe('sealed snapshot')
+  })
+
+  it('never releases a successor lease when a closing tab has already lost ownership', () => {
+    const storage = new MemoryStorage()
+    acquireBrowserWriter(storage, 'closing-tab')
+    acquireBrowserWriter(storage, 'successor-tab', true)
+
+    releaseBrowserWriter(storage, 'closing-tab')
+
+    expect(currentBrowserWriter(storage)).toBe('successor-tab')
+  })
+
+  it('does not let a stale pagehide write replace the successor snapshot', () => {
+    const storage = new MemoryStorage()
+    acquireBrowserWriter(storage, 'closing-tab')
+    acquireBrowserWriter(storage, 'successor-tab', true)
+
+    expect(browserStore.savePreparedBrowserBook(storage, 'closing-tab', 'stale ciphertext')).toBeUndefined()
+    expect(storage.getItem('money-map-generator:book')).toBeNull()
+  })
+
   it('republishes a blocked takeover request with a fresh timestamp', () => {
     const storage = new MemoryStorage()
 

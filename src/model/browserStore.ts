@@ -1,4 +1,5 @@
 import { newBook, parseBook } from './book'
+import { isEnvelope, open, saltFromEnvelope, seal } from './crypto'
 import type { MoneyMapFile } from './types'
 
 export const BOOK_STORAGE_KEY = 'money-map-generator:book'
@@ -39,7 +40,10 @@ export type BrowserBookLoad =
   | { status: 'recovery'; book: MoneyMapFile; raw: string; message: string }
   | { status: 'error'; book: MoneyMapFile; raw: string | null; message: string }
 
-export function loadBrowserBook(storage: StorageLike): BrowserBookLoad {
+export async function loadBrowserBook(
+  storage: StorageLike,
+  getKey: (salt: Uint8Array) => Promise<CryptoKey>,
+): Promise<BrowserBookLoad> {
   let raw: string | null
   try {
     raw = storage.getItem(BOOK_STORAGE_KEY)
@@ -53,6 +57,30 @@ export function loadBrowserBook(storage: StorageLike): BrowserBookLoad {
   }
 
   if (raw) {
+    if (isEnvelope(raw)) {
+      let plaintext: string
+      try {
+        const key = await getKey(saltFromEnvelope(raw))
+        plaintext = await open(key, raw)
+      } catch {
+        return {
+          status: 'error',
+          book: newBook(),
+          raw,
+          message: 'The passphrase did not open the saved book.',
+        }
+      }
+      try {
+        return { status: 'ready', book: parseBook(plaintext), raw }
+      } catch {
+        return {
+          status: 'recovery',
+          book: newBook(),
+          raw,
+          message: 'The saved Money Map could not be opened.',
+        }
+      }
+    }
     try {
       return { status: 'ready', book: parseBook(raw), raw }
     } catch {
@@ -104,13 +132,40 @@ export function loadBrowserBook(storage: StorageLike): BrowserBookLoad {
   return { status: 'ready', book: legacyBook, raw: legacyRaw }
 }
 
-export function saveBrowserBook(storage: StorageLike, book: MoneyMapFile): string | null {
+export function sealBook(
+  book: MoneyMapFile,
+  key: CryptoKey,
+  salt: Uint8Array,
+): Promise<string> {
+  return seal(key, JSON.stringify(book), salt)
+}
+
+export function writeSealedBook(storage: StorageLike, ciphertext: string): string | null {
   try {
-    storage.setItem(BOOK_STORAGE_KEY, JSON.stringify(book))
+    storage.setItem(BOOK_STORAGE_KEY, ciphertext)
     return null
   } catch {
     return 'Money Map could not save changes in this browser.'
   }
+}
+
+export async function saveBrowserBook(
+  storage: StorageLike,
+  book: MoneyMapFile,
+  key: CryptoKey,
+  salt: Uint8Array,
+): Promise<string | null> {
+  return writeSealedBook(storage, await sealBook(book, key, salt))
+}
+
+/** Writes an already-encrypted snapshot; safe to call from pagehide. */
+export function savePreparedBrowserBook(
+  storage: StorageLike,
+  tabId: string,
+  ciphertext: string | null,
+): string | null | undefined {
+  if (!ciphertext || currentBrowserWriter(storage) !== tabId) return undefined
+  return writeSealedBook(storage, ciphertext)
 }
 
 interface WriterLease {
@@ -169,6 +224,7 @@ export function acquireBrowserWriter(
 
 export function releaseBrowserWriter(storage: StorageLike, tabId: string): void {
   try {
+    // A delayed pagehide from the old owner must not delete its successor's lease.
     if (readLease(storage)?.tabId === tabId) storage.removeItem(WRITER_STORAGE_KEY)
   } catch {
     // A failed release is harmless: the next explicit takeover replaces the lease.

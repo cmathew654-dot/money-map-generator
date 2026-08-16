@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { loadBrowserBook, resolveDataMode, saveBrowserBook, type StorageLike } from '../src/model/browserStore'
+import { loadBrowserBook, resolveDataMode, type StorageLike, writeSealedBook } from '../src/model/browserStore'
+
+const unexpectedGetKey = async () => { throw new Error('Plaintext load requested a key.') }
 
 describe('resolveDataMode', () => {
   it.each([
@@ -18,18 +20,18 @@ describe('resolveDataMode', () => {
 })
 
 describe('browser storage errors', () => {
-  it('does not expose browser or parser internals', () => {
+  it('does not expose browser or parser internals', async () => {
     const blocked: StorageLike = {
       getItem() { throw new DOMException('Access is denied for opaque origin') },
       setItem() { throw new DOMException('QuotaExceededError: internal path') },
       removeItem() {},
     }
-    const blockedLoad = loadBrowserBook(blocked)
+    const blockedLoad = await loadBrowserBook(blocked, unexpectedGetKey)
     expect(blockedLoad.status).toBe('error')
     expect(blockedLoad.status !== 'ready' && blockedLoad.message).toBe(
       'Money Map could not read saved changes from this browser.',
     )
-    expect(saveBrowserBook(blocked, { fileType: 'money-map-book', version: 1, clients: [] })).toBe(
+    expect(writeSealedBook(blocked, 'sealed book')).toBe(
       'Money Map could not save changes in this browser.',
     )
 
@@ -38,7 +40,7 @@ describe('browser storage errors', () => {
       setItem() {},
       removeItem() {},
     }
-    const malformedLoad = loadBrowserBook(malformed)
+    const malformedLoad = await loadBrowserBook(malformed, unexpectedGetKey)
     expect(malformedLoad.status).toBe('recovery')
     expect(malformedLoad.status !== 'ready' && malformedLoad.message).toBe(
       'The saved Money Map could not be opened.',

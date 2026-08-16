@@ -16,20 +16,22 @@ class MemoryStorage implements StorageLike {
   removeItem(key: string) { this.removed.push(key); this.values.delete(key) }
 }
 
+const unexpectedGetKey = async () => { throw new Error('Plaintext load requested a key.') }
+
 describe('legacy browser book migration', () => {
-  it('copies a valid legacy book to the current key and removes the legacy key', () => {
+  it('copies a valid legacy book to the current key and removes the legacy key', async () => {
     const storage = new MemoryStorage()
     const raw = JSON.stringify(newBook())
     storage.values.set(LEGACY_BOOK_STORAGE_KEY, raw)
 
-    const loaded = loadBrowserBook(storage)
+    const loaded = await loadBrowserBook(storage, unexpectedGetKey)
 
     expect(loaded.status).toBe('ready')
     expect(storage.values.get(BOOK_STORAGE_KEY)).toBe(raw)
     expect(storage.values.has(LEGACY_BOOK_STORAGE_KEY)).toBe(false)
   })
 
-  it('never overwrites valid current data with legacy data', () => {
+  it('never overwrites valid current data with legacy data', async () => {
     const storage = new MemoryStorage()
     const current = newBook()
     const legacy = newBook()
@@ -38,7 +40,7 @@ describe('legacy browser book migration', () => {
     storage.values.set(BOOK_STORAGE_KEY, currentRaw)
     storage.values.set(LEGACY_BOOK_STORAGE_KEY, JSON.stringify(legacy))
 
-    const loaded = loadBrowserBook(storage)
+    const loaded = await loadBrowserBook(storage, unexpectedGetKey)
 
     expect(loaded.status).toBe('ready')
     expect(loaded.book.clients[0].client.title).toBe(current.clients[0].client.title)
@@ -46,11 +48,11 @@ describe('legacy browser book migration', () => {
     expect(storage.writes).toHaveLength(0)
   })
 
-  it('returns corrupt legacy payloads for recovery without writing either key', () => {
+  it('returns corrupt legacy payloads for recovery without writing either key', async () => {
     const storage = new MemoryStorage()
     storage.values.set(LEGACY_BOOK_STORAGE_KEY, '{broken legacy')
 
-    const loaded = loadBrowserBook(storage)
+    const loaded = await loadBrowserBook(storage, unexpectedGetKey)
 
     expect(loaded.status).toBe('recovery')
     expect(loaded.raw).toBe('{broken legacy')
@@ -58,12 +60,12 @@ describe('legacy browser book migration', () => {
     expect(storage.values.get(LEGACY_BOOK_STORAGE_KEY)).toBe('{broken legacy')
   })
 
-  it('prioritizes corrupt current data for recovery rather than replacing it', () => {
+  it('prioritizes corrupt current data for recovery rather than replacing it', async () => {
     const storage = new MemoryStorage()
     storage.values.set(BOOK_STORAGE_KEY, '{broken current')
     storage.values.set(LEGACY_BOOK_STORAGE_KEY, JSON.stringify(newBook()))
 
-    const loaded = loadBrowserBook(storage)
+    const loaded = await loadBrowserBook(storage, unexpectedGetKey)
 
     expect(loaded.status).toBe('recovery')
     expect(loaded.raw).toBe('{broken current')
