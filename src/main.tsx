@@ -5,6 +5,7 @@ import './styles/app.css'
 import './styles/selection.css'
 import './styles/form.css'
 import './styles/pills.css'
+import './styles/ceremony.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

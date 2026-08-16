@@ -85,6 +85,7 @@ import {
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
 import { PassphraseDialog } from './ui/PassphraseDialog'
+import { EncryptAnnouncement, EncryptCeremony } from './ui/EncryptCeremony'
 import { EditorPanels } from './ui/EditorPanels'
 import { ClientCombobox } from './ui/ClientCombobox'
 import {
@@ -449,8 +450,9 @@ export default function App() {
   const focusRequestCounter = useRef(0)
   const toastCounter = useRef(0)
   const fileSaveRevision = useRef(0)
-  const fileWriteQueue = useRef<Promise<void>>(Promise.resolve())
+  const fileWriteQueue = useRef<Promise<unknown>>(Promise.resolve())
   const fileCryptoRef = useRef<{ key: CryptoKey; salt: Uint8Array } | null>(null)
+  const [ceremony, setCeremony] = useState<{ envelope: string; fileName: string } | null>(null)
   const passphraseResolveRef = useRef<((passphrase: string | null) => void) | null>(null)
   const writerTakeoverTimerRef = useRef<number | null>(null)
   const releaseTimerRef = useRef<number | null>(null)
@@ -1112,7 +1114,8 @@ export default function App() {
         const salt = newSalt()
         const key = await deriveKey(passphrase, salt)
         try {
-          await writeBookFile(handle, resolution.book, key, salt)
+          const envelope = await writeBookFile(handle, resolution.book, key, salt)
+          setCeremony({ envelope, fileName: handle.name })
         } catch {
           addToast(`Could not encrypt ${handle.name}; current book unchanged`)
           return
@@ -1144,9 +1147,9 @@ export default function App() {
       const salt = newSalt()
       const key = await deriveKey(passphrase, salt)
       fileCryptoRef.current = { key, salt }
-      await writeBookFile(handle, snapshotRef.current.book, key, salt)
+      const envelope = await writeBookFile(handle, snapshotRef.current.book, key, salt)
       rememberConnectedFile(handle)
-      addToast('Changes will now save to this file')
+      setCeremony({ envelope, fileName: handle.name })
     } catch (error) {
       fileCryptoRef.current = null
       if (error instanceof DOMException && error.name === 'AbortError') return
@@ -2372,6 +2375,16 @@ export default function App() {
               />
             )}
           </div>
+          {ceremony && !presentMode && (
+            <>
+              <EncryptCeremony
+                envelope={ceremony.envelope}
+                fileName={ceremony.fileName}
+                onDone={() => setCeremony(null)}
+              />
+              <EncryptAnnouncement fileName={ceremony.fileName} />
+            </>
+          )}
           {!presentMode && (
             <div className="map-chrome">
               <div className="action-bench" role="group" aria-label="Map actions">
