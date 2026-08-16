@@ -527,7 +527,11 @@ export default function App() {
   const fileSaveRevision = useRef(0)
   const fileWriteQueue = useRef<Promise<unknown>>(Promise.resolve())
   const fileCryptoRef = useRef<{ dek: CryptoKey; wraps: Wrap[] } | null>(null)
-  const [ceremony, setCeremony] = useState<{ envelope: string; fileName: string } | null>(null)
+  const [ceremony, setCeremony] = useState<{
+    envelope: string
+    fileName: string
+    mode?: 'seal' | 'unseal'
+  } | null>(null)
   const [recoveryCodePrompt, setRecoveryCodePrompt] = useState<{
     code: string
     fileName: string
@@ -1158,6 +1162,10 @@ export default function App() {
       let decryptAttempted = false
       let passphraseCancelled = false
       let fileCrypto: { dek: CryptoKey; wraps: Wrap[] } | null = null
+      // Captured so the unseal ceremony can render the file's real bytes.
+      let openedEnvelope: string | null = null
+      // A file that was just sealed shows the seal ceremony, never both.
+      let migrated = false
       let migrationPassphrase: string | null = null
       try {
         if (!(await requestBookFilePermission(handle))) {
@@ -1166,6 +1174,7 @@ export default function App() {
         result = {
           status: 'success',
           book: await readBookFile(handle, async (envelope) => {
+            openedEnvelope = envelope
             if (envelopeVersion(envelope) === 1) {
               const passphrase = await promptForPassphrase('open', handle.name, false)
               if (passphrase === null) {
@@ -1255,7 +1264,8 @@ export default function App() {
           fileCrypto = created.fileCrypto
           const envelope = await writeBookFile(handle, resolution.book, fileCrypto.dek, fileCrypto.wraps)
           await showRecoveryCode(created.recoveryCode, handle.name)
-          setCeremony({ envelope, fileName: handle.name })
+          setCeremony({ envelope, fileName: handle.name, mode: 'seal' })
+          migrated = true
         } catch {
           addToast(`Could not encrypt ${handle.name}; current book unchanged`)
           return
@@ -1273,6 +1283,11 @@ export default function App() {
       resetWizard()
       fileCryptoRef.current = fileCrypto
       rememberConnectedFile(handle)
+      // The inverse of sealing: an encrypted file resolves out of its own
+      // ciphertext. Plaintext files never had any, so they get nothing.
+      if (openedEnvelope && !migrated) {
+        setCeremony({ envelope: openedEnvelope, fileName: handle.name, mode: 'unseal' })
+      }
       addToast(isReconnect ? 'Saving to this file again' : 'Changes will now save to this file')
     },
     [addToast, canMutate, closeMapTextEditor, commitSnapshot, promptForPassphrase, rememberConnectedFile, resetWizard, showRecoveryCode],
@@ -2524,9 +2539,12 @@ export default function App() {
               <EncryptCeremony
                 envelope={ceremony.envelope}
                 fileName={ceremony.fileName}
+                mode={ceremony.mode}
                 onDone={() => setCeremony(null)}
               />
-              <EncryptAnnouncement fileName={ceremony.fileName} />
+              {ceremony.mode !== 'unseal' && (
+                <EncryptAnnouncement fileName={ceremony.fileName} />
+              )}
             </>
           )}
           {!presentMode && (
