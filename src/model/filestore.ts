@@ -1,5 +1,11 @@
 import { parseBook } from './book'
-import { isEnvelope, open, saltFromEnvelope, seal } from './crypto'
+import {
+  envelopeVersion,
+  open,
+  openBook,
+  sealBook,
+  type Wrap,
+} from './crypto'
 import type { MoneyMapFile } from './types'
 
 const DATABASE_NAME = 'money-map-filestore'
@@ -91,22 +97,27 @@ export async function chooseExistingBookFile(): Promise<BookFileHandle> {
 
 export async function readBookFile(
   handle: BookFileHandle,
-  getKey: (salt: Uint8Array) => Promise<CryptoKey>,
+  getDataKey: (envelope: string) => Promise<CryptoKey>,
 ): Promise<MoneyMapFile> {
   const text = await (await handle.getFile()).text()
-  if (!isEnvelope(text)) return parseBook(text)
-  const key = await getKey(saltFromEnvelope(text))
-  return parseBook(await open(key, text))
+  const version = envelopeVersion(text)
+  if (version === 2) {
+    return parseBook(await openBook(await getDataKey(text), text))
+  }
+  if (version === 1) {
+    return parseBook(await open(await getDataKey(text), text))
+  }
+  return parseBook(text)
 }
 
 /** Returns the envelope that was written, so callers can show the real bytes. */
 export async function writeBookFile(
   handle: BookFileHandle,
   book: MoneyMapFile,
-  key: CryptoKey,
-  salt: Uint8Array,
+  dek: CryptoKey,
+  wraps: Wrap[],
 ): Promise<string> {
-  const envelope = await seal(key, JSON.stringify(book, null, 2), salt)
+  const envelope = await sealBook(dek, JSON.stringify(book, null, 2), wraps)
   const writable = await handle.createWritable()
   try {
     await writable.write(envelope)

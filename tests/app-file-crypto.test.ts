@@ -1,4 +1,5 @@
 import appSource from '../src/App.tsx?raw'
+import passphraseDialogSource from '../src/ui/PassphraseDialog.tsx?raw'
 import { describe, expect, it } from 'vitest'
 
 const connectedSaveEffect =
@@ -12,14 +13,15 @@ const replaceBookFromFile =
   )?.[0] ?? ''
 
 describe('connected file encryption wiring', () => {
-  it('reuses the connected file key and salt for autosaves', () => {
+  it('reuses the connected file data key and wraps for autosaves', () => {
     expect(connectedSaveEffect).toMatch(
       /const fileCrypto = fileCryptoRef\.current/,
     )
     expect(connectedSaveEffect).toMatch(
-      /writeBookFile\(connectedFile, book, fileCrypto\.key, fileCrypto\.salt\)/,
+      /writeBookFile\(connectedFile, book, fileCrypto\.dek, fileCrypto\.wraps\)/,
     )
     expect(connectedSaveEffect).not.toContain('deriveKey(')
+    expect(connectedSaveEffect).not.toContain('newDataKey(')
   })
 
   it('skips an autosave with no connected file crypto identity', () => {
@@ -30,7 +32,19 @@ describe('connected file encryption wiring', () => {
 
   it('gives readBookFile a key callback', () => {
     expect(replaceBookFromFile).toMatch(
-      /readBookFile\(handle, async \(salt\) =>/,
+      /readBookFile\(handle, async \(envelope\) =>/,
+    )
+  })
+
+  it('falls through to the passphrase prompt when WebAuthn fails', () => {
+    expect(replaceBookFromFile).toMatch(
+      /const webauthnWrap = wraps\.find[\s\S]*?try \{[\s\S]*?prfOutput\([\s\S]*?await openBook\(dek, envelope\)[\s\S]*?\} catch \{[\s\S]*?\}[\s\S]*?promptForPassphrase\('open'/,
+    )
+  })
+
+  it('does not offer a recovery factor for v1 envelopes', () => {
+    expect(replaceBookFromFile).toMatch(
+      /envelopeVersion\(envelope\) === 1[\s\S]*?promptForPassphrase\('open', handle\.name, false\)/,
     )
   })
 
@@ -44,7 +58,7 @@ describe('connected file encryption wiring', () => {
       /if \(!fileCrypto\) \{[\s\S]*?promptForPassphrase\('create'/,
     )
     expect(replaceBookFromFile).toMatch(
-      /if \(!fileCrypto\) \{[\s\S]*?writeBookFile\(handle, resolution\.book, key, salt\)/,
+      /if \(!fileCrypto\) \{[\s\S]*?writeBookFile\(handle, resolution\.book, fileCrypto\.dek, fileCrypto\.wraps\)/,
     )
   })
 
@@ -52,5 +66,11 @@ describe('connected file encryption wiring', () => {
     expect(replaceBookFromFile).toMatch(
       /if \(!fileCrypto\) \{[\s\S]*?if \(passphrase === null\) return/,
     )
+  })
+
+  it('offers and normalizes a recovery code in open mode', () => {
+    expect(passphraseDialogSource).toContain('Use a recovery code instead')
+    expect(passphraseDialogSource).toContain('normalizeRecoveryCode(passphrase)')
+    expect(passphraseDialogSource).toContain('allowRecovery && !recovering')
   })
 })
