@@ -645,6 +645,7 @@ function validateLayoutOverrides(
     for (const field of [
       'dx',
       'dy',
+      'z',
       'fs',
       'w',
       'h',

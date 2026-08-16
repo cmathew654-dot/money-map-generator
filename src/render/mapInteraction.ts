@@ -6,7 +6,7 @@ import type {
   MapNoteFont,
   MoneyMapData,
 } from '../model/types'
-import { layoutMap, layoutOverrideRect } from '../layout/layout'
+import { layoutMap, layoutOverrideRect, sortMapItemsByZ } from '../layout/layout'
 import {
   ACCOUNT_TEXT_ROLES,
   MAX_CUSTOM_ARROW_WIDTH,
@@ -842,4 +842,35 @@ export function withOverride(
       [key]: merged,
     },
   }
+}
+
+export type MapZOrderAction = 'forward' | 'backward' | 'front' | 'back'
+
+export function reorderMapItem(
+  data: MoneyMapData,
+  key: string,
+  action: MapZOrderAction,
+): MoneyMapData {
+  const keys = [
+    ...data.accounts.map((account) => account.id),
+    ...(data.notes ?? []).map((note) => `note:${note.id}`),
+  ]
+  const current = sortMapItemsByZ(keys, data, (item) => item)
+  const index = current.indexOf(key)
+  if (index < 0) return data
+  const target =
+    action === 'front'
+      ? current.length - 1
+      : action === 'back'
+        ? 0
+        : index + (action === 'forward' ? 1 : -1)
+  if (target === index || target < 0 || target >= current.length) return data
+  const nextOrder = [...current]
+  nextOrder.splice(index, 1)
+  nextOrder.splice(target, 0, key)
+  const layoutOverrides = { ...data.layoutOverrides }
+  nextOrder.forEach((item, z) => {
+    layoutOverrides[item] = { ...layoutOverrides[item], z }
+  })
+  return { ...data, layoutOverrides }
 }

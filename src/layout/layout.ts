@@ -73,6 +73,17 @@ export interface PlacedNote extends Placed {
   note: MapNote
 }
 
+export function sortMapItemsByZ<T>(
+  items: readonly T[],
+  data: MoneyMapData,
+  keyOf: (item: T) => string,
+): T[] {
+  return items
+    .map((item, index) => ({ item, index, z: data.layoutOverrides?.[keyOf(item)]?.z ?? 0 }))
+    .sort((left, right) => left.z - right.z || left.index - right.index)
+    .map(({ item }) => item)
+}
+
 export interface SubAccountLayout {
   captionFontSize: number
   captionLeading: number

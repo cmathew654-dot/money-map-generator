@@ -44,6 +44,7 @@ import {
   hideGeneratedArrow,
   moveCustomArrowLabel,
   moveMapNote,
+  reorderMapItem,
   retargetCustomArrow,
   resetTextPosition,
   setCustomArrowColor,
@@ -340,6 +341,7 @@ export function MapInspector({
       onChange(moveMapNote(data, noteId, next.x, next.y))
     }
   }
+  const zKey = accountId ?? (noteId ? `note:${noteId}` : null)
   const resize = (key: string, amount: number) => {
     const placed = layoutOverrideRect(data, key)
     if (!placed) return
@@ -670,6 +672,12 @@ export function MapInspector({
         )}
 
         {(layoutKey || note) && <MoveControls move={move} />}
+        {zKey && (
+          <InspectorGroup label="Layer">
+            <button aria-label="Bring forward" type="button" onClick={() => onChange(reorderMapItem(data, zKey, 'forward'))}>Bring forward</button>
+            <button aria-label="Send backward" type="button" onClick={() => onChange(reorderMapItem(data, zKey, 'backward'))}>Send backward</button>
+          </InspectorGroup>
+        )}
         {(account || note) && <button type="button" onClick={duplicate}>Duplicate</button>}
 
         <span aria-hidden="true" className="map-inspector-divider" />
