@@ -29,6 +29,7 @@ import {
   needTextLayout,
   nudgeLayoutOverride,
   OVERRIDE_BOUNDS,
+  sortMapItemsByZ,
   usableTextWidth,
 } from '../layout/layout'
 import { textWidth } from '../layout/textfit'
@@ -82,6 +83,7 @@ import {
   moveCustomArrowLabel,
   moveMapNote,
   resizeMapNote,
+  reorderMapItem,
   retargetCustomArrow,
   snapRectToAlignment,
   snapRotation,
@@ -2822,23 +2824,38 @@ export function MapSvg({
     ? rotateHandleTarget(displayData, selectedTargetKey)
     : null
 
+  const sortedMapItems = sortMapItemsByZ(
+    [
+      ...layout.accounts.map((placed) => ({
+        key: placed.account.id,
+        kind: 'account' as const,
+        placed,
+      })),
+      ...layout.notes.map((placed) => ({
+        key: `note:${placed.note.id}`,
+        kind: 'note' as const,
+        placed,
+      })),
+    ],
+    displayData,
+    (item) => item.key,
+  )
   const selectedAccountId =
     onChange && selectedTargetKey?.startsWith('account:')
       ? selectedTargetKey.slice('account:'.length)
       : null
   const selectedAccount = selectedAccountId
-    ? layout.accounts.find(
-        (placed) => placed.account.id === selectedAccountId,
+    ? sortedMapItems.find(
+        (item) => item.kind === 'account' && item.placed.account.id === selectedAccountId,
       )
     : undefined
-  const renderedAccounts = selectedAccount
-    ? [
-        ...layout.accounts.filter(
-          (placed) => placed.account.id !== selectedAccountId,
-        ),
-        selectedAccount,
-      ]
-    : layout.accounts
+  const renderedMapItems =
+    selectedAccount && selectedAccountId && displayData.layoutOverrides?.[selectedAccountId]?.z === undefined
+      ? [
+          ...sortedMapItems.filter((item) => item !== selectedAccount),
+          selectedAccount,
+        ]
+      : sortedMapItems
 
   return (
     <svg
@@ -2888,6 +2905,32 @@ export function MapSvg({
             x: event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0,
             y: event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0,
           }))
+        }
+        const layerItem = target.closest<SVGElement>('[data-connect-id], [data-note-id]')
+        const layerKey =
+          layerItem?.getAttribute('data-connect-id') ??
+          (layerItem?.getAttribute('data-note-id')
+            ? `note:${layerItem.getAttribute('data-note-id')}`
+            : null)
+        if (
+          layerKey &&
+          !target.closest('[data-layout-key]') &&
+          (event.key === '[' || event.key === ']') &&
+          !event.altKey &&
+          !event.shiftKey
+        ) {
+          event.preventDefault()
+          event.stopPropagation()
+          onChange(
+            reorderMapItem(
+              data,
+              layerKey,
+              event.ctrlKey || event.metaKey
+                ? event.key === ']' ? 'front' : 'back'
+                : event.key === ']' ? 'forward' : 'backward',
+            ),
+          )
+          return
         }
         const textKey = target.closest('[data-layout-key]')?.getAttribute('data-layout-key')
         if (textKey && arrowKeys.includes(event.key) && !event.altKey && !event.ctrlKey && !event.metaKey) {
@@ -3189,7 +3232,74 @@ export function MapSvg({
         )}
       </g>
       <g aria-label="Accounts" role="group">
-        {renderedAccounts.map((placed) => {
+        {renderedMapItems.map((item) => {
+          if (item.kind === 'note') {
+            const placed = item.placed
+            return (
+              <g
+                aria-label={onChange ? `Adjust note: ${placed.note.text}` : undefined}
+                className={onChange ? 'map-draggable map-note' : 'map-note'}
+                data-map-selected={
+                  selectedTargetKeys.includes(`note:${placed.note.id}`)
+                    ? 'true'
+                    : undefined
+                }
+                data-map-target={onChange ? `note:${placed.note.id}` : undefined}
+                data-note-id={placed.note.id}
+                key={placed.note.id}
+                onFocus={
+                  onChange
+                    ? (event) => {
+                        if (shouldFocusSelect(event.currentTarget)) {
+                          onSelectionEvent?.({
+                            type: 'focus/reveal',
+                            key: `note:${placed.note.id}`,
+                          })
+                        }
+                      }
+                    : undefined
+                }
+                onPointerDown={
+                  onChange
+                    ? beginDrag(placed.note.id, 'noteMove', placed)
+                    : undefined
+                }
+                role={onChange ? 'group' : undefined}
+                tabIndex={onChange ? 0 : undefined}
+                transform={rotateTransform(
+                  data.layoutOverrides?.[`note:${placed.note.id}`]?.rot,
+                  placed.x + placed.w / 2,
+                  placed.y + placed.h / 2,
+                )}
+                aria-keyshortcuts={onChange ? 'BracketLeft BracketRight' : undefined}
+              >
+                <NoteBlock
+                  interactive={Boolean(onChange)}
+                  onElementClick={onElementClick}
+                  onTextPointerDown={
+                    onChange
+                      ? beginDrag(placed.note.id, 'noteMove', placed)
+                      : undefined
+                  }
+                  placed={placed}
+                  color={data.layoutOverrides?.[`note:${placed.note.id}`]?.color}
+                />
+                {onChange &&
+                  selectedTargetKey === `note:${placed.note.id}` && (
+                    <ResizeHandle
+                      label={`note: ${placed.note.text}`}
+                      rect={placed}
+                      onPointerDown={beginDrag(
+                        placed.note.id,
+                        'noteResize',
+                        placed,
+                      )}
+                    />
+                  )}
+              </g>
+            )
+          }
+          const placed = item.placed
           const style = BUCKETS[placed.account.bucket]
           const shape = accountShape(placed.account)
           const runway =
@@ -3345,74 +3455,6 @@ export function MapSvg({
           />
         </g>
       )}
-      <g aria-label="Map notes" role="group">
-        {layout.notes.map((placed) => (
-          <g
-            aria-label={onChange ? `Adjust note: ${placed.note.text}` : undefined}
-            className={onChange ? 'map-draggable map-note' : 'map-note'}
-            data-map-selected={
-              selectedTargetKeys.includes(`note:${placed.note.id}`)
-                ? 'true'
-                : undefined
-            }
-            data-map-target={onChange ? `note:${placed.note.id}` : undefined}
-            data-note-id={placed.note.id}
-            key={placed.note.id}
-            onFocus={
-              onChange
-                ? (event) => {
-                    if (shouldFocusSelect(event.currentTarget)) {
-                      onSelectionEvent?.({
-                        type: 'focus/reveal',
-                        key: `note:${placed.note.id}`,
-                      })
-                    }
-                  }
-                : undefined
-            }
-            onPointerDown={
-              onChange
-                ? beginDrag(
-                    placed.note.id,
-                    'noteMove',
-                    placed,
-                  )
-                : undefined
-            }
-            role={onChange ? 'group' : undefined}
-            tabIndex={onChange ? 0 : undefined}
-            transform={rotateTransform(
-              data.layoutOverrides?.[`note:${placed.note.id}`]?.rot,
-              placed.x + placed.w / 2,
-              placed.y + placed.h / 2,
-            )}
-          >
-            <NoteBlock
-              interactive={Boolean(onChange)}
-              onElementClick={onElementClick}
-              onTextPointerDown={
-                onChange
-                  ? beginDrag(placed.note.id, 'noteMove', placed)
-                  : undefined
-              }
-              placed={placed}
-              color={data.layoutOverrides?.[`note:${placed.note.id}`]?.color}
-            />
-            {onChange &&
-              selectedTargetKey === `note:${placed.note.id}` && (
-                <ResizeHandle
-                  label={`note: ${placed.note.text}`}
-                  rect={placed}
-                  onPointerDown={beginDrag(
-                    placed.note.id,
-                    'noteResize',
-                    placed,
-                  )}
-                />
-              )}
-          </g>
-        ))}
-      </g>
       <Footnotes
         data={displayData}
         onElementClick={onElementClick}

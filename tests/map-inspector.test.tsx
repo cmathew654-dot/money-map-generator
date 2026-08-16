@@ -85,6 +85,15 @@ describe('persistent map inspector', () => {
     expect(markup).not.toContain('Tidy alignment')
   })
 
+  it('provides layer controls for accounts and notes', () => {
+    expect(render('account:cash-at-bank')).toContain('Bring forward')
+    expect(render('account:cash-at-bank')).toContain('Send backward')
+    expect(render('note:audit-note', {
+      ...SAMPLE_WHITFIELD,
+      notes: [{ id: 'audit-note', text: 'Keep this visible', x: 500, y: 400 }],
+    })).toContain('Bring forward')
+  })
+
   it('gives custom and generated arrows the appropriate visual controls', () => {
     const arrowId = SAMPLE_WHITFIELD.customArrows![0].id
     const custom = render(`arrow:custom:${arrowId}`, {

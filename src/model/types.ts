@@ -170,6 +170,8 @@ export function mapItemTextOverrideKey<
 export interface LayoutOverride {
   dx?: number
   dy?: number
+  /** Manual document-order rank for accounts and text notes. */
+  z?: number
   fs?: number
   w?: number
   h?: number
