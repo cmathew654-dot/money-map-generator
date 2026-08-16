@@ -1,4 +1,5 @@
 import { parseBook } from './book'
+import { isEnvelope, open, saltFromEnvelope, seal } from './crypto'
 import type { MoneyMapFile } from './types'
 
 const DATABASE_NAME = 'money-map-filestore'
@@ -90,17 +91,23 @@ export async function chooseExistingBookFile(): Promise<BookFileHandle> {
 
 export async function readBookFile(
   handle: BookFileHandle,
+  getKey: (salt: Uint8Array) => Promise<CryptoKey>,
 ): Promise<MoneyMapFile> {
-  return parseBook(await (await handle.getFile()).text())
+  const text = await (await handle.getFile()).text()
+  if (!isEnvelope(text)) return parseBook(text)
+  const key = await getKey(saltFromEnvelope(text))
+  return parseBook(await open(key, text))
 }
 
 export async function writeBookFile(
   handle: BookFileHandle,
   book: MoneyMapFile,
+  key: CryptoKey,
+  salt: Uint8Array,
 ): Promise<void> {
   const writable = await handle.createWritable()
   try {
-    await writable.write(JSON.stringify(book, null, 2))
+    await writable.write(await seal(key, JSON.stringify(book, null, 2), salt))
   } finally {
     await writable.close()
   }
