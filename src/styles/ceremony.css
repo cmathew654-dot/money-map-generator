@@ -38,7 +38,7 @@
   font-size: 12px;
   line-height: 1.45;
   letter-spacing: 0.02em;
-  white-space: pre;
+  white-space: pre-wrap;
   word-break: break-all;
   user-select: none;
   clip-path: inset(0 0 100% 0);

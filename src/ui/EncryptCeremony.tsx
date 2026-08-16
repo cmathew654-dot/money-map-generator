@@ -9,8 +9,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
  * rather than celebrating one.
  */
 
-const COLUMNS = 78
-const ROWS = 26
+/**
+ * Enough characters to cover a large display. The block wraps in CSS rather
+ * than being split here, so it fills whatever width it is given.
+ */
+const FILL_LENGTH = 14_000
 
 /** Pull the base64 payload out of the envelope for display. */
 function ciphertextBody(envelope: string): string {
@@ -22,19 +25,12 @@ function ciphertextBody(envelope: string): string {
   }
 }
 
-/**
- * Tile the payload into fixed-width lines. Short books repeat rather than
- * leaving the panel half empty; the characters are still the book's own.
- */
-function toLines(payload: string): string[] {
-  const needed = COLUMNS * ROWS
+/** Short books repeat rather than leaving the panel half empty. */
+function toFill(payload: string): string {
+  if (!payload) return ''
   let filled = payload
-  while (filled.length < needed) filled += payload
-  const lines: string[] = []
-  for (let row = 0; row < ROWS; row += 1) {
-    lines.push(filled.slice(row * COLUMNS, (row + 1) * COLUMNS))
-  }
-  return lines
+  while (filled.length < FILL_LENGTH) filled += payload
+  return filled.slice(0, FILL_LENGTH)
 }
 
 interface EncryptCeremonyProps {
@@ -47,7 +43,7 @@ interface EncryptCeremonyProps {
 
 export function EncryptCeremony({ envelope, fileName, onDone }: EncryptCeremonyProps) {
   const [phase, setPhase] = useState<'sealing' | 'sealed' | 'clearing'>('sealing')
-  const lines = useMemo(() => toLines(ciphertextBody(envelope)), [envelope])
+  const fill = useMemo(() => toFill(ciphertextBody(envelope)), [envelope])
   const doneRef = useRef(onDone)
   doneRef.current = onDone
 
@@ -67,7 +63,7 @@ export function EncryptCeremony({ envelope, fileName, onDone }: EncryptCeremonyP
 
   return (
     <div className={`encrypt-ceremony is-${phase}`} aria-hidden="true">
-      <pre className="encrypt-ceremony-cipher">{lines.join('\n')}</pre>
+      <pre className="encrypt-ceremony-cipher">{fill}</pre>
       <p className="encrypt-ceremony-caption">
         <span className="encrypt-ceremony-mark" />
         Encrypted to {fileName}
