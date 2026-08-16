@@ -99,18 +99,21 @@ export async function readBookFile(
   return parseBook(await open(key, text))
 }
 
+/** Returns the envelope that was written, so callers can show the real bytes. */
 export async function writeBookFile(
   handle: BookFileHandle,
   book: MoneyMapFile,
   key: CryptoKey,
   salt: Uint8Array,
-): Promise<void> {
+): Promise<string> {
+  const envelope = await seal(key, JSON.stringify(book, null, 2), salt)
   const writable = await handle.createWritable()
   try {
-    await writable.write(await seal(key, JSON.stringify(book, null, 2), salt))
+    await writable.write(envelope)
   } finally {
     await writable.close()
   }
+  return envelope
 }
 
 export async function requestBookFilePermission(
