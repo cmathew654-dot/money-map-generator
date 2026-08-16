@@ -316,27 +316,24 @@ async function createFileCrypto(passphrase: string): Promise<{
     }),
   ]
 
-  try {
-    if (await isPrfAvailable()) {
-      const { credentialId, prfSalt } = await enrollPrf('Windows Hello')
-      wraps.push(
-        await wrapDataKey(
-          dek,
-          await kekFromPrf(await prfOutput(credentialId, prfSalt)),
-          {
-            type: 'webauthn',
-            label: 'Windows Hello',
-            credentialId,
-            prfSalt,
-          },
-        ),
-      )
-    }
-  } catch {
-    // Windows Hello is optional; passphrase and recovery wraps are enough.
-  }
-
   return { fileCrypto: { dek, wraps }, recoveryCode }
+}
+
+/**
+ * Windows Hello is deliberately NOT enrolled while creating a book. Setting up
+ * a file already costs a passphrase and a recovery code the advisor must write
+ * down; a third system dialog stacked on top reads as an interrogation. Hello
+ * is pure convenience, so it is offered later, from the menu, once the advisor
+ * has felt the passphrase and knows what it would save them.
+ */
+async function windowsHelloWrap(dek: CryptoKey): Promise<Wrap> {
+  const { credentialId, prfSalt } = await enrollPrf('Windows Hello')
+  return wrapDataKey(dek, await kekFromPrf(await prfOutput(credentialId, prfSalt)), {
+    type: 'webauthn',
+    label: 'Windows Hello',
+    credentialId,
+    prfSalt,
+  })
 }
 
 function initialBrowserBook(): BrowserBookLoad { return loadBrowserBook(localStorage) }
@@ -1316,6 +1313,28 @@ export default function App() {
     }
   }
 
+  const handleAddWindowsHello = async () => {
+    const fileCrypto = fileCryptoRef.current
+    if (!connectedFile || !fileCrypto) return
+    if (fileCrypto.wraps.some((wrap) => wrap.type === 'webauthn')) {
+      addToast('This file already opens with Windows Hello')
+      return
+    }
+    try {
+      if (!(await isPrfAvailable())) {
+        addToast('Windows Hello is not available in this browser')
+        return
+      }
+      const wraps = [...fileCrypto.wraps, await windowsHelloWrap(fileCrypto.dek)]
+      await writeBookFile(connectedFile, snapshotRef.current.book, fileCrypto.dek, wraps)
+      fileCryptoRef.current = { dek: fileCrypto.dek, wraps }
+      addToast('This file now opens with Windows Hello')
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      addToast('Could not set up Windows Hello for this file')
+    }
+  }
+
   const handleOpenConnectedFile = async () => {
     try {
       const handle = await chooseExistingBookFile()
@@ -2177,6 +2196,9 @@ export default function App() {
               <>
                 <MenuItem onClick={() => void handleCreateConnectedFile()}>Save changes to a file...</MenuItem>
                 <MenuItem onClick={() => void handleOpenConnectedFile()}>Open and keep saving...</MenuItem>
+                {connectedFile && (
+                  <MenuItem onClick={() => void handleAddWindowsHello()}>Unlock with Windows Hello...</MenuItem>
+                )}
               </>
             )}
             {fileStoreSupported && reconnectFile && !connectedFile && (
