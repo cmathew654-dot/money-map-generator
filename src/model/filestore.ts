@@ -11,6 +11,12 @@ import type { MoneyMapFile } from './types'
 const DATABASE_NAME = 'money-map-filestore'
 const HANDLE_STORE = 'handles'
 const BOOK_HANDLE_KEY = 'book'
+const BOOK_DEK_KEY = 'book-dek'
+
+interface StoredBookDataKey {
+  handle: BookFileHandle
+  dek: CryptoKey
+}
 
 interface WritableBookFile {
   write(data: string): Promise<void>
@@ -183,7 +189,37 @@ export async function storeBookFileHandle(
     store.put(handle, BOOK_HANDLE_KEY))
 }
 
+async function handlesReferToSameFile(a: BookFileHandle, b: BookFileHandle): Promise<boolean> {
+  if (a === b) return true
+  const isSameEntry = (a as BookFileHandle & { isSameEntry?: (other: BookFileHandle) => Promise<boolean> }).isSameEntry
+  return typeof isSameEntry === 'function' ? isSameEntry.call(a, b) : a.name === b.name
+}
+
+export async function getStoredBookDataKey(handle: BookFileHandle): Promise<CryptoKey | null> {
+  const stored = await useHandleStore('readonly', (store) => store.get(BOOK_DEK_KEY)) as StoredBookDataKey | undefined
+  if (!stored?.dek || !(await handlesReferToSameFile(stored.handle, handle))) return null
+  return stored.dek
+}
+
+export async function storeBookFileDataKey(handle: BookFileHandle, dek: CryptoKey): Promise<void> {
+  await useHandleStore('readwrite', (store) => store.put({ handle, dek } satisfies StoredBookDataKey, BOOK_DEK_KEY))
+}
+
+export async function deleteStoredBookDataKey(handle?: BookFileHandle): Promise<void> {
+  if (handle) {
+    const stored = await useHandleStore('readonly', (store) => store.get(BOOK_DEK_KEY)) as StoredBookDataKey | undefined
+    if (stored?.handle && !(await handlesReferToSameFile(stored.handle, handle))) return
+  }
+  await useHandleStore('readwrite', (store) => store.delete(BOOK_DEK_KEY))
+}
+
+export async function clearStoredBookDataKey(): Promise<void> {
+  await deleteStoredBookDataKey()
+}
+
 export async function clearStoredBookFileHandle(): Promise<void> {
-  await useHandleStore('readwrite', (store) =>
-    store.delete(BOOK_HANDLE_KEY))
+  await useHandleStore('readwrite', (store) => {
+    store.delete(BOOK_HANDLE_KEY)
+    return store.delete(BOOK_DEK_KEY)
+  })
 }

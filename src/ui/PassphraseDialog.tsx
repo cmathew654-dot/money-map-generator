@@ -26,11 +26,11 @@ export function PassphraseDialog({
 
   const submit = () => {
     if (creating && passphrase.length < 8) {
-      setError('Passphrase must be at least 8 characters.')
+      setError('Password must be at least 8 characters.')
       return
     }
     if (creating && passphrase !== confirmation) {
-      setError('Passphrases do not match.')
+      setError('Passwords do not match.')
       return
     }
     onSubmit(
@@ -48,21 +48,21 @@ export function PassphraseDialog({
     <Dialog
       confirmLabel={creating ? 'Encrypt and save' : 'Open file'}
       open
-      title={creating ? 'Create a file passphrase' : 'Open encrypted file'}
+      title={creating ? 'Create a file password' : 'Open encrypted file'}
       onClose={onCancel}
       onConfirm={submit}
     >
       <form onSubmit={handleSubmit}>
         <p className="form-caption">
           {creating
-            ? `This passphrase protects ${fileName}. It cannot be recovered.`
+            ? `This password locks ${fileName}. You'll get a recovery code on the next step — save it, because there is no other way back in.`
             : recovering
               ? `Enter the recovery code for ${fileName}.`
-              : `Enter the passphrase for ${fileName}.`}
+              : `Enter the password for ${fileName}.`}
         </p>
         <div className="client-fields">
           <label className="form-field">
-            <span>{recovering ? 'Recovery code' : 'Passphrase'}</span>
+            <span>{recovering ? 'Recovery code' : 'Password'}</span>
             <input
               aria-describedby="passphrase-error"
               aria-invalid={Boolean(error) || undefined}
@@ -82,7 +82,7 @@ export function PassphraseDialog({
           </label>
           {creating && (
             <label className="form-field">
-              <span>Confirm passphrase</span>
+              <span>Confirm password</span>
               <input
                 aria-describedby="passphrase-error"
                 aria-invalid={Boolean(error) || undefined}

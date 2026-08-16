@@ -32,13 +32,17 @@ import {
   chooseExistingBookFile,
   chooseNewBookFile,
   getStoredBookFileHandle,
+  getStoredBookDataKey,
   readBookFile,
   requestBookFilePermission,
   resolveFileConnection,
   storeBookFileHandle,
+  storeBookFileDataKey,
   supportsFileStore,
   writeBookFile,
   clearStoredBookFileHandle,
+  clearStoredBookDataKey,
+  deleteStoredBookDataKey,
   type BookFileHandle,
   type FileReadResult,
   type FileStoreApi,
@@ -277,6 +281,7 @@ type AppDialog =
   | { kind: 'error'; title: string; message: string }
   | { kind: 'loadBook'; book: MoneyMapFile }
   | { kind: 'passphrase'; mode: 'create' | 'open'; fileName: string; allowRecovery: boolean }
+  | { kind: 'windowsHello'; mode: 'create' | 'open'; fileName: string }
   | { kind: 'resetLayout' }
   | { kind: 'resetTextPositions' }
   | { kind: 'clearMap'; clientId: string; name: string }
@@ -294,37 +299,46 @@ function bytesFromBase64(value: string): Uint8Array {
   return Uint8Array.from(atob(value), (character) => character.charCodeAt(0))
 }
 
-async function createFileCrypto(passphrase: string): Promise<{
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError' ||
+    error instanceof Error && isAbortError(error.cause)
+}
+
+async function createFileCrypto(passphrase: string | null, helloFirst = false): Promise<{
   fileCrypto: { dek: CryptoKey; wraps: Wrap[] }
   recoveryCode: string
 }> {
   const dek = await newDataKey()
-  const passphraseSalt = newSalt()
   const recoveryCode = newRecoveryCode()
   const recoverySalt = newSalt()
-  const wraps: Wrap[] = [
-    await wrapDataKey(dek, await kekFromPassphrase(passphrase, passphraseSalt), {
-      type: 'passphrase',
-      label: 'Passphrase',
-      salt: bytesToBase64(passphraseSalt),
-      iter: 600_000,
-    }),
-    await wrapDataKey(dek, await kekFromRecoveryCode(recoveryCode, recoverySalt), {
+  const recoveryWrap = await wrapDataKey(dek, await kekFromRecoveryCode(recoveryCode, recoverySalt), {
       type: 'recovery',
       label: 'Recovery code',
       salt: bytesToBase64(recoverySalt),
-    }),
-  ]
+    })
+  let wraps: Wrap[]
+  if (helloFirst) {
+    const webauthnWrap = await windowsHelloWrap(dek)
+    wraps = [webauthnWrap, recoveryWrap]
+  } else {
+    const passphraseSalt = newSalt()
+    wraps = [
+      await wrapDataKey(dek, await kekFromPassphrase(passphrase ?? '', passphraseSalt), {
+        type: 'passphrase',
+        label: 'Passphrase',
+        salt: bytesToBase64(passphraseSalt),
+        iter: 600_000,
+      }),
+      recoveryWrap,
+    ]
+  }
 
   return { fileCrypto: { dek, wraps }, recoveryCode }
 }
 
 /**
- * Windows Hello is deliberately NOT enrolled while creating a book. Setting up
- * a file already costs a passphrase and a recovery code the advisor must write
- * down; a third system dialog stacked on top reads as an interrogation. Hello
- * is pure convenience, so it is offered later, from the menu, once the advisor
- * has felt the passphrase and knows what it would save them.
+ * Windows Hello is the first-choice factor for new files when PRF is available;
+ * the passphrase flow remains the fallback and the way to open older files.
  */
 async function windowsHelloWrap(dek: CryptoKey): Promise<Wrap> {
   const { credentialId, prfSalt } = await enrollPrf('Windows Hello')
@@ -533,9 +547,11 @@ export default function App() {
   const [recoveryCodePrompt, setRecoveryCodePrompt] = useState<{
     code: string
     fileName: string
+    hasPassphraseWrap: boolean
     resolve(): void
   } | null>(null)
   const passphraseResolveRef = useRef<((factor: FileFactor | null) => void) | null>(null)
+  const windowsHelloResolveRef = useRef<((choice: 'continue' | 'password' | null) => void) | null>(null)
   const writerTakeoverTimerRef = useRef<number | null>(null)
   const releaseTimerRef = useRef<number | null>(null)
   const writerFocusRequestedRef = useRef(false)
@@ -817,10 +833,26 @@ export default function App() {
     resolve?.(value === null ? null : { factor, value })
   }, [])
 
+  const promptForWindowsHello = useCallback(
+    (mode: 'create' | 'open', fileName: string) =>
+      new Promise<'continue' | 'password' | null>((resolve) => {
+        windowsHelloResolveRef.current = resolve
+        setDialog({ kind: 'windowsHello', mode, fileName })
+      }),
+    [],
+  )
+
+  const finishWindowsHelloPrompt = useCallback((choice: 'continue' | 'password' | null) => {
+    const resolve = windowsHelloResolveRef.current
+    windowsHelloResolveRef.current = null
+    setDialog(null)
+    resolve?.(choice)
+  }, [])
+
   const showRecoveryCode = useCallback(
-    (code: string, fileName: string) =>
+    (code: string, fileName: string, hasPassphraseWrap: boolean) =>
       new Promise<void>((resolve) => {
-        setRecoveryCodePrompt({ code, fileName, resolve })
+        setRecoveryCodePrompt({ code, fileName, hasPassphraseWrap, resolve })
       }),
     [],
   )
@@ -1185,10 +1217,26 @@ export default function App() {
             }
 
             const wraps = readWraps(envelope)
+            const cachedDek = await getStoredBookDataKey(handle)
+            if (cachedDek) {
+              try {
+                await openBook(cachedDek, envelope)
+                fileCrypto = { dek: cachedDek, wraps }
+                return cachedDek
+              } catch {
+                await deleteStoredBookDataKey(handle).catch(() => undefined)
+              }
+            }
             const webauthnWrap = wraps.find((wrap) => wrap.type === 'webauthn')
             if (webauthnWrap?.credentialId && webauthnWrap.prfSalt) {
               try {
                 if (await isPrfAvailable()) {
+                  // Windows will ask you to confirm with your fingerprint or PIN.
+                  const choice = await promptForWindowsHello('open', handle.name)
+                  if (choice === null) {
+                    throw new DOMException('Windows Hello prompt cancelled.', 'AbortError')
+                  }
+                  if (choice === 'password') throw new Error('Use password flow')
                   const dek = await unwrapDataKey(
                     webauthnWrap,
                     await kekFromPrf(
@@ -1261,7 +1309,7 @@ export default function App() {
           const created = await createFileCrypto(passphrase.value)
           fileCrypto = created.fileCrypto
           const envelope = await writeBookFile(handle, resolution.book, fileCrypto.dek, fileCrypto.wraps)
-          await showRecoveryCode(created.recoveryCode, handle.name)
+          await showRecoveryCode(created.recoveryCode, handle.name, true)
           setCeremony({ envelope, fileName: handle.name, mode: 'seal' })
           migrated = true
         } catch {
@@ -1281,6 +1329,9 @@ export default function App() {
       resetWizard()
       fileCryptoRef.current = fileCrypto
       rememberConnectedFile(handle)
+      // The browser-local book copy is deliberately plaintext by owner decision;
+      // caching the DEK here adds no exposure and removes repeat Hello prompts.
+      void storeBookFileDataKey(handle, fileCrypto.dek).catch(() => undefined)
       // The inverse of sealing: an encrypted file resolves out of its own
       // ciphertext. Plaintext files never had any, so they get nothing.
       if (openedEnvelope && !migrated) {
@@ -1288,28 +1339,51 @@ export default function App() {
       }
       addToast(isReconnect ? 'Saving to this file again' : 'Changes will now save to this file')
     },
-    [addToast, canMutate, closeMapTextEditor, commitSnapshot, promptForPassphrase, rememberConnectedFile, resetWizard, showRecoveryCode],
+    [addToast, canMutate, closeMapTextEditor, commitSnapshot, promptForPassphrase, promptForWindowsHello, rememberConnectedFile, resetWizard, showRecoveryCode],
   )
 
   const handleCreateConnectedFile = async () => {
     try {
       const handle = await chooseNewBookFile()
-      const passphrase = await promptForPassphrase('create', handle.name)
-      if (passphrase === null) return
-      const created = await createFileCrypto(passphrase.value)
+      let created: Awaited<ReturnType<typeof createFileCrypto>>
+      while (true) {
+        const helloAvailable = await isPrfAvailable()
+        const choice = helloAvailable
+          ? await promptForWindowsHello('create', handle.name)
+          : 'password' as const
+        if (choice === null) return
+        const passphrase = choice === 'password'
+          ? await promptForPassphrase('create', handle.name)
+          : null
+        if (choice === 'password' && passphrase === null) return
+        try {
+          created = choice === 'continue'
+            ? await createFileCrypto(null, true)
+            : await createFileCrypto(passphrase!.value)
+          break
+        } catch (error) {
+          if (choice === 'continue' && isAbortError(error)) continue
+          throw error
+        }
+      }
       const envelope = await writeBookFile(
         handle,
         snapshotRef.current.book,
         created.fileCrypto.dek,
         created.fileCrypto.wraps,
       )
-      await showRecoveryCode(created.recoveryCode, handle.name)
+      await showRecoveryCode(
+        created.recoveryCode,
+        handle.name,
+        created.fileCrypto.wraps.some((wrap) => wrap.type === 'passphrase'),
+      )
       fileCryptoRef.current = created.fileCrypto
       rememberConnectedFile(handle)
+      void storeBookFileDataKey(handle, created.fileCrypto.dek).catch(() => undefined)
       setCeremony({ envelope, fileName: handle.name })
     } catch (error) {
       fileCryptoRef.current = null
-      if (error instanceof DOMException && error.name === 'AbortError') return
+      if (isAbortError(error)) return
       addToast('Could not create the book file')
     }
   }
@@ -1352,6 +1426,7 @@ export default function App() {
     setConnectedFile(null)
     setReconnectFile(null)
     setFileSaveStatus('saved')
+    void clearStoredBookDataKey().catch(() => undefined)
     void clearStoredBookFileHandle().catch(() => undefined)
     addToast('Stopped saving to this file')
   }
@@ -2334,7 +2409,31 @@ export default function App() {
       <div className="visually-hidden" role="status">{leaseAnnouncement(DATA_MODE, canMutate, writerTakeoverPending)}</div>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
         {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information. Best in Chrome or Edge.</span></section>}
-        {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
+        {recovery && (
+          <section className="app-status-banner is-danger">
+            <strong>Saved copy needs recovery</strong>
+            <span>{recovery.message} Nothing was overwritten.</span>
+            <button type="button" onClick={downloadRecoveryCopy}>
+              Download damaged copy
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const next = newBook()
+                const error = saveBrowserBook(localStorage, next)
+                if (error) {
+                  setBrowserSaveError(error)
+                  setBrowserSaveStatus('error')
+                } else {
+                  setRecovery(null)
+                  showSnapshot({ book: next, activeClientId: next.clients[0].id })
+                }
+              }}
+            >
+              Start fresh
+            </button>
+          </section>
+        )}
         {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Changes are not being saved</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Try again</button></section>}
       </div>}
       <div className={`workspace${editorPanel ? ' has-editor-panel' : ''}${guidedSetup ? ' is-guided-setup' : ''}`}>
@@ -2681,6 +2780,7 @@ export default function App() {
           acknowledged={recoveryAcknowledged}
           code={recoveryCodePrompt.code}
           fileName={recoveryCodePrompt.fileName}
+          hasPassphraseWrap={recoveryCodePrompt.hasPassphraseWrap}
           onAcknowledgedChange={setRecoveryAcknowledged}
           onConfirm={() => {
             const resolve = recoveryCodePrompt.resolve
@@ -2698,6 +2798,30 @@ export default function App() {
           onCancel={() => finishPassphrasePrompt(null)}
           onSubmit={finishPassphrasePrompt}
         />
+      )}
+      {dialog?.kind === 'windowsHello' && (
+        <Dialog
+          confirmLabel="Continue"
+          open
+          title={dialog.mode === 'create' ? 'Lock this file with Windows Hello' : 'Open this file with Windows Hello'}
+          onClose={() => finishWindowsHelloPrompt(null)}
+          onConfirm={() => finishWindowsHelloPrompt('continue')}
+        >
+          <p>
+            {dialog.mode === 'create'
+              ? 'Windows will now ask you to confirm with your fingerprint or PIN. That confirmation is what locks this file — there is no password to remember.'
+              : 'Windows will ask you to confirm with your fingerprint or PIN.'}
+          </p>
+          {dialog.mode === 'create' && (
+            <button
+              className="text-button"
+              type="button"
+              onClick={() => finishWindowsHelloPrompt('password')}
+            >
+              Use a password instead
+            </button>
+          )}
+        </Dialog>
       )}
       {dialog?.kind === 'delete' && (
         <Dialog

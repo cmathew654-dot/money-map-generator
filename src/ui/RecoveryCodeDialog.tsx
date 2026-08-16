@@ -4,6 +4,7 @@ import '../styles/recovery.css'
 export interface RecoveryCodeDialogProps {
   code: string
   fileName: string
+  hasPassphraseWrap?: boolean
   /**
    * Held by the parent rather than local state: this component is rendered as
    * a plain function in tests, so it cannot use hooks. The alternative it
@@ -26,6 +27,7 @@ function setActionStatus(button: HTMLButtonElement, message: string) {
 export function RecoveryCodeDialog({
   code,
   fileName,
+  hasPassphraseWrap = true,
   acknowledged,
   onAcknowledgedChange,
   onConfirm,
@@ -65,6 +67,11 @@ export function RecoveryCodeDialog({
         <p className="recovery-intro" id="recovery-dialog-intro">
           Store this code somewhere secure before continuing.
         </p>
+        {!hasPassphraseWrap && (
+          <p>
+            If this computer breaks or is replaced, this code is the only way to open the file.
+          </p>
+        )}
 
         <dl className="recovery-details">
           <div>
@@ -130,8 +137,7 @@ export function RecoveryCodeDialog({
               onChange={(event) => onAcknowledgedChange(event.currentTarget.checked)}
             />
             <span>
-              I have saved this code and understand it cannot be recovered; without
-              it, the client book cannot be opened if I forget the passphrase.
+              I saved this code. Without it, a lost password (or a broken computer) means this file can never be opened.
             </span>
           </label>
 

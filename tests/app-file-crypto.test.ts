@@ -73,4 +73,32 @@ describe('connected file encryption wiring', () => {
     expect(passphraseDialogSource).toContain('normalizeRecoveryCode(passphrase)')
     expect(passphraseDialogSource).toContain('allowRecovery && !recovering')
   })
+
+  it('uses Hello plus recovery, without a passphrase, for Hello-first creation', () => {
+    expect(appSource).toMatch(/isPrfAvailable\(\)[\s\S]*?Lock this file with Windows Hello/)
+    expect(appSource).toMatch(/createFileCrypto\(null, true\)/)
+    expect(appSource).toMatch(/wraps = \[.*webauthn[\s\S]*?recovery/)
+    expect(appSource).not.toMatch(/helloCreate[\s\S]*?createFileCrypto\(passphrase\.value\)/)
+  })
+
+  it('tries the cached DEK before Hello and removes stale cache entries', () => {
+    expect(replaceBookFromFile).toMatch(/getStoredBookDataKey\(handle\)/)
+    expect(replaceBookFromFile).toMatch(/deleteStoredBookDataKey\(handle\)/)
+    expect(replaceBookFromFile).toMatch(/openBook\(cachedDek, envelope\)/)
+  })
+
+  it('frames Hello unlock before asserting the PRF', () => {
+    expect(replaceBookFromFile).toMatch(/promptForWindowsHello\('open'/)
+    expect(replaceBookFromFile).toMatch(/Windows will ask you to confirm with your fingerprint or PIN\./)
+  })
+
+  it('caches the DEK on connect and clears it on disconnect', () => {
+    expect(appSource).toMatch(/storeBookFileDataKey\(handle, fileCrypto\.dek\)/)
+    expect(appSource).toMatch(/clearStoredBookDataKey\(\)/)
+  })
+
+  it('lets the framing dialog fall back to the password flow', () => {
+    expect(appSource).toMatch(/Use a password instead/)
+    expect(appSource).toMatch(/promptForPassphrase\('create', handle\.name\)/)
+  })
 })

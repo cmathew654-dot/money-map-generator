@@ -76,6 +76,20 @@ describe('recovery code dialog', () => {
     expect(markup).toContain(CODE)
   })
 
+  it('explains that recovery is the only path when there is no password wrap', () => {
+    const markup = renderToStaticMarkup(
+      createElement(RecoveryCodeDialog, {
+        acknowledged: false,
+        code: CODE,
+        fileName: FILE_NAME,
+        hasPassphraseWrap: false,
+        onAcknowledgedChange: () => undefined,
+        onConfirm: () => undefined,
+      }),
+    )
+    expect(markup).toContain('If this computer breaks or is replaced, this code is the only way to open the file.')
+  })
+
   it('keeps confirmation disabled until the acknowledgement is ticked', () => {
     expect(namedControl(dialog(false).tree, 'recovery-confirm').props.disabled).toBe(true)
     expect(namedControl(dialog(true).tree, 'recovery-confirm').props.disabled).toBe(false)
