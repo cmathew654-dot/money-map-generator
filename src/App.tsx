@@ -70,7 +70,6 @@ import { buildVocabulary } from './model/vocab'
 import { asNeededChipCenter, layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
 import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, savePreparedBrowserBook, sealBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
 import { getBrowserDataKey } from './model/browserDataKey'
-import { newSalt } from './model/crypto'
 import {
   exportPdf,
   exportPng,
