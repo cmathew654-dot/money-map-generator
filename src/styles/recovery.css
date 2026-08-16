@@ -1,0 +1,183 @@
+.app-dialog.recovery-dialog {
+  width: min(680px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100vh - 32px);
+  padding: 24px;
+  overflow: auto;
+}
+
+.recovery-dialog-content {
+  color: #1c2422;
+}
+
+.recovery-intro {
+  max-width: 65ch;
+  margin: 0;
+  color: #47504d;
+}
+
+.recovery-details {
+  display: grid;
+  gap: 4px;
+  margin: 16px 0 0;
+}
+
+.recovery-details > div {
+  display: flex;
+  min-width: 0;
+  gap: 8px;
+}
+
+.recovery-details dt,
+.recovery-code-label {
+  color: #47504d;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.recovery-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.recovery-print-date {
+  display: none !important;
+}
+
+.recovery-code-label {
+  margin: 16px 0 8px;
+}
+
+.recovery-code {
+  display: block;
+  padding: 24px 16px;
+  border-radius: 10px;
+  background: #f4f6f2;
+  color: #1c2422;
+  font: 600 24px/1.7 ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  letter-spacing: 0.08em;
+  overflow-wrap: break-word;
+  text-align: center;
+  text-wrap: balance;
+  user-select: all;
+}
+
+.recovery-code-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.recovery-dialog .recovery-secondary-action {
+  border-color: #dde1dc;
+  background: #ffffff;
+}
+
+.recovery-dialog .recovery-secondary-action:hover {
+  border-color: #b9c1b8;
+  background: #f1f3f0;
+}
+
+.recovery-action-status {
+  flex: 1 1 180px;
+  min-height: 21px;
+  margin: 0;
+  color: #47504d;
+  font-size: 13px;
+}
+
+.recovery-acknowledgement {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f4f6f2;
+  color: #1c2422;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.recovery-acknowledgement input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: #1e7a4a;
+}
+
+.recovery-confirmation .dialog-actions {
+  margin-top: 16px;
+}
+
+.recovery-confirm {
+  min-height: 36px;
+}
+
+@media (max-width: 560px) {
+  .app-dialog.recovery-dialog {
+    padding: 16px;
+  }
+
+  .recovery-code {
+    padding: 16px 12px;
+    font-size: 20px;
+  }
+
+  .recovery-confirmation .dialog-actions {
+    justify-content: stretch;
+  }
+
+  .recovery-confirm {
+    width: 100%;
+  }
+}
+
+@media print {
+  body:has(.recovery-dialog[open]) .app-shell > * {
+    display: none !important;
+  }
+
+  body:has(.recovery-dialog[open]) .app-shell > .recovery-dialog {
+    display: block !important;
+  }
+
+  .app-dialog.recovery-dialog[open] {
+    position: static;
+    width: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  .recovery-dialog::backdrop {
+    display: none;
+  }
+
+  .recovery-dialog .recovery-intro,
+  .recovery-dialog .recovery-code-actions,
+  .recovery-dialog .recovery-confirmation {
+    display: none;
+  }
+
+  .recovery-dialog .recovery-print-date {
+    display: flex !important;
+  }
+
+  .recovery-code {
+    margin-top: 8px;
+    padding: 24px;
+    font-size: 28px;
+    print-color-adjust: exact;
+  }
+}
