@@ -529,6 +529,7 @@ export default function App() {
     fileName: string
     mode?: 'seal' | 'unseal'
   } | null>(null)
+  const [recoveryAcknowledged, setRecoveryAcknowledged] = useState(false)
   const [recoveryCodePrompt, setRecoveryCodePrompt] = useState<{
     code: string
     fileName: string
@@ -2674,11 +2675,14 @@ export default function App() {
       </div>
       {recoveryCodePrompt && (
         <RecoveryCodeDialog
+          acknowledged={recoveryAcknowledged}
           code={recoveryCodePrompt.code}
           fileName={recoveryCodePrompt.fileName}
+          onAcknowledgedChange={setRecoveryAcknowledged}
           onConfirm={() => {
             const resolve = recoveryCodePrompt.resolve
             setRecoveryCodePrompt(null)
+            setRecoveryAcknowledged(false)
             resolve()
           }}
         />

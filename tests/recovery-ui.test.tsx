@@ -31,10 +31,17 @@ function findElement(
   return undefined
 }
 
-function dialog(onConfirm = vi.fn()) {
+function dialog(acknowledged = false, onConfirm = vi.fn(), onAcknowledgedChange = vi.fn()) {
   return {
     onConfirm,
-    tree: RecoveryCodeDialog({ code: CODE, fileName: FILE_NAME, onConfirm }),
+    onAcknowledgedChange,
+    tree: RecoveryCodeDialog({
+      acknowledged,
+      code: CODE,
+      fileName: FILE_NAME,
+      onAcknowledgedChange,
+      onConfirm,
+    }),
   }
 }
 
@@ -42,18 +49,6 @@ function namedControl(tree: ReactNode, name: string) {
   const control = findElement(tree, (element) => element.props.name === name)
   if (!control) throw new Error(`Missing recovery control: ${name}`)
   return control
-}
-
-function formControls(acknowledged = false) {
-  const controls: Record<string, unknown> = {}
-  const form = {
-    elements: { namedItem: (name: string) => controls[name] ?? null },
-  } as unknown as HTMLFormElement
-  const acknowledgement = { checked: acknowledged, form } as HTMLInputElement
-  const confirmation = { disabled: true, form } as HTMLButtonElement
-  controls['recovery-acknowledgement'] = acknowledgement
-  controls['recovery-confirm'] = confirmation
-  return { acknowledgement, confirmation }
 }
 
 function buttonWithStatus() {
@@ -70,8 +65,10 @@ describe('recovery code dialog', () => {
   it('renders the recovery code on screen', () => {
     const markup = renderToStaticMarkup(
       createElement(RecoveryCodeDialog, {
+        acknowledged: false,
         code: CODE,
         fileName: FILE_NAME,
+        onAcknowledgedChange: () => undefined,
         onConfirm: () => undefined,
       }),
     )
@@ -80,36 +77,38 @@ describe('recovery code dialog', () => {
   })
 
   it('keeps confirmation disabled until the acknowledgement is ticked', () => {
-    const { tree } = dialog()
-    const checkbox = namedControl(tree, 'recovery-acknowledgement')
-    const confirm = namedControl(tree, 'recovery-confirm')
-    const controls = formControls()
-    controls.confirmation.disabled = confirm.props.disabled === true
-
-    expect(controls.confirmation.disabled).toBe(true)
-
-    const onChange = checkbox.props.onChange as (event: {
-      currentTarget: HTMLInputElement
-    }) => void
-    controls.acknowledgement.checked = true
-    onChange({ currentTarget: controls.acknowledgement })
-
-    expect(controls.confirmation.disabled).toBe(false)
+    expect(namedControl(dialog(false).tree, 'recovery-confirm').props.disabled).toBe(true)
+    expect(namedControl(dialog(true).tree, 'recovery-confirm').props.disabled).toBe(false)
   })
 
-  it('fires onConfirm only after acknowledgement', () => {
-    const { tree, onConfirm } = dialog()
-    const confirm = namedControl(tree, 'recovery-confirm')
-    const controls = formControls()
-    const onClick = confirm.props.onClick as (event: {
-      currentTarget: HTMLButtonElement
+  it('reports the acknowledgement to its parent', () => {
+    const { tree, onAcknowledgedChange } = dialog(false)
+    const checkbox = namedControl(tree, 'recovery-acknowledgement')
+    const onChange = checkbox.props.onChange as (event: {
+      currentTarget: { checked: boolean }
     }) => void
 
-    onClick({ currentTarget: controls.confirmation })
-    expect(onConfirm).not.toHaveBeenCalled()
+    onChange({ currentTarget: { checked: true } })
 
-    controls.acknowledgement.checked = true
-    onClick({ currentTarget: controls.confirmation })
+    expect(onAcknowledgedChange).toHaveBeenCalledWith(true)
+  })
+
+  /*
+   * The earlier version of this test drove a hand-built fake of
+   * form.elements.namedItem, so it verified the mechanism rather than the
+   * behaviour and passed while the real button did nothing at all. Assert what
+   * an advisor can actually do: the button is disabled until acknowledged, and
+   * once enabled it confirms directly.
+   */
+  it('confirms directly once acknowledged, and cannot be clicked before', () => {
+    const before = namedControl(dialog(false).tree, 'recovery-confirm')
+    expect(before.props.disabled).toBe(true)
+
+    const { tree, onConfirm } = dialog(true)
+    const confirm = namedControl(tree, 'recovery-confirm')
+    expect(confirm.props.disabled).toBe(false)
+
+    ;(confirm.props.onClick as () => void)()
     expect(onConfirm).toHaveBeenCalledOnce()
   })
 

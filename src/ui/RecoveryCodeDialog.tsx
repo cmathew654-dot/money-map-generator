@@ -4,6 +4,15 @@ import '../styles/recovery.css'
 export interface RecoveryCodeDialogProps {
   code: string
   fileName: string
+  /**
+   * Held by the parent rather than local state: this component is rendered as
+   * a plain function in tests, so it cannot use hooks. The alternative it
+   * originally used - toggling button.disabled by hand and reading the
+   * checkbox back through form.elements - failed silently whenever a link in
+   * that chain was null, which left the advisor stuck on this screen.
+   */
+  acknowledged: boolean
+  onAcknowledgedChange(next: boolean): void
   onConfirm(): void
 }
 
@@ -17,6 +26,8 @@ function setActionStatus(button: HTMLButtonElement, message: string) {
 export function RecoveryCodeDialog({
   code,
   fileName,
+  acknowledged,
+  onAcknowledgedChange,
   onConfirm,
 }: RecoveryCodeDialogProps) {
   const printedOn = new Date().toLocaleDateString(undefined, {
@@ -103,18 +114,20 @@ export function RecoveryCodeDialog({
           />
         </div>
 
-        <form className="recovery-confirmation">
+        {/*
+          Acknowledgement is React state, not imperative DOM. Reading the
+          checkbox back through form.elements and toggling button.disabled by
+          hand fails silently when any link in the chain is null, and React
+          re-applies its own disabled prop on the next render anyway.
+        */}
+        <div className="recovery-confirmation">
           <label className="recovery-acknowledgement">
             <input
               autoFocus
+              checked={acknowledged}
               name="recovery-acknowledgement"
               type="checkbox"
-              onChange={(event) => {
-                const confirm = event.currentTarget.form?.elements.namedItem(
-                  'recovery-confirm',
-                ) as HTMLButtonElement | null
-                if (confirm) confirm.disabled = !event.currentTarget.checked
-              }}
+              onChange={(event) => onAcknowledgedChange(event.currentTarget.checked)}
             />
             <span>
               I have saved this code and understand it cannot be recovered; without
@@ -125,20 +138,15 @@ export function RecoveryCodeDialog({
           <div className="dialog-actions">
             <button
               className="primary-button recovery-confirm"
-              disabled
+              disabled={!acknowledged}
               name="recovery-confirm"
               type="button"
-              onClick={(event) => {
-                const acknowledgement = event.currentTarget.form?.elements.namedItem(
-                  'recovery-acknowledgement',
-                ) as HTMLInputElement | null
-                if (acknowledgement?.checked) onConfirm()
-              }}
+              onClick={onConfirm}
             >
               I have saved the code
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </dialog>
   )
