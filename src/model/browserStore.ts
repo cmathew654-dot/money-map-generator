@@ -158,6 +158,16 @@ export async function saveBrowserBook(
   return writeSealedBook(storage, await sealBook(book, key, salt))
 }
 
+/** Writes an already-encrypted snapshot; safe to call from pagehide. */
+export function savePreparedBrowserBook(
+  storage: StorageLike,
+  tabId: string,
+  ciphertext: string | null,
+): string | null | undefined {
+  if (!ciphertext || currentBrowserWriter(storage) !== tabId) return undefined
+  return writeSealedBook(storage, ciphertext)
+}
+
 interface WriterLease {
   tabId: string
   updatedAt: number
@@ -214,6 +224,7 @@ export function acquireBrowserWriter(
 
 export function releaseBrowserWriter(storage: StorageLike, tabId: string): void {
   try {
+    // A delayed pagehide from the old owner must not delete its successor's lease.
     if (readLease(storage)?.tabId === tabId) storage.removeItem(WRITER_STORAGE_KEY)
   } catch {
     // A failed release is harmless: the next explicit takeover replaces the lease.

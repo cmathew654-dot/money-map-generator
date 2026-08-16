@@ -47,7 +47,9 @@ import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
 import { asNeededChipCenter, layoutMap, layoutOverrideRect, NOTE_WIDTH, OVERRIDE_BOUNDS, rotatedBounds } from './layout/layout'
-import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, saveBrowserBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
+import { acquireBrowserWriter, BOOK_STORAGE_KEY, currentBrowserWriter, DATA_MODE, loadBrowserBook, publishBrowserWriterTakeoverRequest, releaseBrowserWriter, savePreparedBrowserBook, sealBook, WRITER_HEARTBEAT_MS, WRITER_STORAGE_KEY, type BrowserBookLoad } from './model/browserStore'
+import { getBrowserDataKey } from './model/browserDataKey'
+import { newSalt } from './model/crypto'
 import {
   exportPdf,
   exportPng,
@@ -260,7 +262,9 @@ type AppDialog =
   | { kind: 'resetTextPositions' }
   | { kind: 'clearMap'; clientId: string; name: string }
 
-function initialBrowserBook(): BrowserBookLoad { return loadBrowserBook(localStorage) }
+function initialBrowserBook(): BrowserBookLoad {
+  return { status: 'ready', book: newBook(), raw: null }
+}
 
 export function artboardPointFromClient(
   point: { x: number; y: number },
@@ -422,6 +426,7 @@ export default function App() {
   const [browserSaveStatus, setBrowserSaveStatus] = useState<BrowserSaveStatus>(initialLoad.status === 'error' ? 'error' : 'saved')
   const [browserSaveError, setBrowserSaveError] = useState(initialLoad.status === 'error' ? initialLoad.message : '')
   const [recovery, setRecovery] = useState(initialLoad.status === 'recovery' ? { raw: initialLoad.raw, message: initialLoad.message } : null)
+  const [browserBookLoaded, setBrowserBookLoaded] = useState(DATA_MODE === 'demo')
   // Tab ids must be unique across tabs minted in the same millisecond
   // (session restore opens siblings together); newId's realm-local counter
   // can't guarantee that, so add per-tab entropy.
@@ -451,6 +456,9 @@ export default function App() {
   const releaseTimerRef = useRef<number | null>(null)
   const writerFocusRequestedRef = useRef(false)
   const writerFocusInitializedRef = useRef(false)
+  const browserSaveRevisionRef = useRef(0)
+  const preparedBrowserBookRef = useRef<string | null>(null)
+  const browserSaveSaltRef = useRef(newSalt())
   const exportInFlightRef = useRef<'png' | 'pdf' | 'svg' | null>(null)
   const mapClipboardRef = useRef<Array<{ kind: 'account' | 'note'; id: string }>>([])
   const mapCommandFeedbackRef = useRef<string | null>(null)
@@ -485,7 +493,7 @@ export default function App() {
   const editorPanelButtonRefs = useRef<Partial<Record<EditorPanel, HTMLButtonElement>>>({})
   const previousEditorPanelRef = useRef<EditorPanel | null>(null)
   const { book, activeClientId } = snapshot
-  const canMutate = canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
+  const canMutate = browserBookLoaded && canMutateBook(DATA_MODE, isWriter, Boolean(recovery))
   const vocabulary = useMemo(() => buildVocabulary(book), [book])
   const activeClient =
     book.clients.find((client) => client.id === activeClientId) ??
@@ -619,6 +627,25 @@ export default function App() {
     setHistory(next)
   }, [])
 
+  useEffect(() => {
+    if (DATA_MODE !== 'real') return
+    let cancelled = false
+    void loadBrowserBook(localStorage, () => getBrowserDataKey()).then((latest) => {
+      if (cancelled) return
+      if (latest.status === 'ready') {
+        showHistory(emptyHistory())
+        showSnapshot({ book: latest.book, activeClientId: latest.book.clients[0].id })
+      } else if (latest.status === 'recovery') {
+        setRecovery({ raw: latest.raw, message: latest.message })
+      } else {
+        setBrowserSaveStatus('error')
+        setBrowserSaveError(latest.message)
+      }
+      setBrowserBookLoaded(true)
+    })
+    return () => { cancelled = true }
+  }, [showHistory, showSnapshot])
+
   const bumpFormRevision = useCallback(() => {
     setFormRevision((revision) => revision + 1)
     setFocusRequest(undefined)
@@ -719,17 +746,46 @@ export default function App() {
   }, [fileStoreSupported])
 
   const flushBrowserSave = useCallback(() => {
-    if (DATA_MODE !== 'real' || recovery || currentBrowserWriter(localStorage) !== tabId) return
-    const error = saveBrowserBook(localStorage, snapshotRef.current.book)
+    if (DATA_MODE !== 'real' || !browserBookLoaded || recovery) return
+    const error = savePreparedBrowserBook(localStorage, tabId, preparedBrowserBookRef.current)
+    if (error === undefined) return
     setBrowserSaveStatus(error ? 'error' : 'saved'); setBrowserSaveError(error ?? '')
-  }, [recovery, tabId])
+  }, [browserBookLoaded, recovery, tabId])
+  const startFreshBrowserBook = useCallback(() => {
+    if (currentBrowserWriter(localStorage) !== tabId) return
+    const next = newBook()
+    setRecovery(null)
+    showHistory(emptyHistory())
+    showSnapshot({ book: next, activeClientId: next.clients[0].id })
+  }, [showHistory, showSnapshot, tabId])
+  useEffect(() => {
+    if (DATA_MODE !== 'real' || !browserBookLoaded || !isWriter || recovery) return
+    const revision = ++browserSaveRevisionRef.current
+    setBrowserSaveStatus('saving')
+    void getBrowserDataKey()
+      .then((key) => sealBook(book, key, browserSaveSaltRef.current))
+      .then((ciphertext) => {
+        // An older seal may finish after a newer edit; keep only the newest snapshot.
+        if (revision !== browserSaveRevisionRef.current) return
+        preparedBrowserBookRef.current = ciphertext
+        setBrowserSaveStatus('saved')
+        setBrowserSaveError('')
+      })
+      .catch((error: unknown) => {
+        if (revision !== browserSaveRevisionRef.current) return
+        setBrowserSaveStatus('error')
+        setBrowserSaveError(error instanceof Error ? error.message : 'Money Map could not encrypt changes in this browser.')
+      })
+  }, [book, browserBookLoaded, isWriter, recovery])
   const clearWriterTakeoverTimer = useCallback(() => {
     if (writerTakeoverTimerRef.current === null) return
     window.clearTimeout(writerTakeoverTimerRef.current)
     writerTakeoverTimerRef.current = null
   }, [])
-  const adoptLatestBrowserBook = useCallback(() => {
-    const latest = loadBrowserBook(localStorage)
+  const adoptLatestBrowserBook = useCallback(async () => {
+    const latest = await loadBrowserBook(localStorage, () => getBrowserDataKey())
+    // Another tab can take the lease while decrypting; never revive this writer afterward.
+    if (currentBrowserWriter(localStorage) !== tabId) return false
     if (latest.status === 'ready') {
       bumpFormRevision()
       showHistory(emptyHistory())
@@ -743,16 +799,18 @@ export default function App() {
       setBrowserSaveError(latest.message)
     }
     return false
-  }, [bumpFormRevision, showHistory, showSnapshot])
+  }, [bumpFormRevision, showHistory, showSnapshot, tabId])
   const finishBrowserWriterTakeover = useCallback(() => {
     clearWriterTakeoverTimer()
     setWriterTakeoverPending(false)
-    if (!adoptLatestBrowserBook()) {
-      releaseBrowserWriter(localStorage, tabId)
-      setIsWriter(false)
-      return
-    }
-    setIsWriter(true)
+    void adoptLatestBrowserBook().then((adopted) => {
+      if (!adopted) {
+        releaseBrowserWriter(localStorage, tabId)
+        setIsWriter(false)
+        return
+      }
+      if (currentBrowserWriter(localStorage) === tabId) setIsWriter(true)
+    })
   }, [adoptLatestBrowserBook, clearWriterTakeoverTimer, tabId])
   const requestBrowserWriterTakeover = useCallback(() => {
     if (writerTakeoverTimerRef.current !== null) return
@@ -832,6 +890,8 @@ export default function App() {
       if (document.visibilityState === 'hidden') {
         flush()
         if (currentBrowserWriter(localStorage) === tabId) {
+          // A hidden tab's pending takeover poll must not reclaim the lease after yielding it.
+          clearWriterTakeoverTimer()
           releaseBrowserWriter(localStorage, tabId)
           setIsWriter(false)
         }
@@ -843,7 +903,12 @@ export default function App() {
         requestBrowserWriterTakeover()
       }
     }
-    const handlePageHide = () => { flushBrowserSave(); releaseBrowserWriter(localStorage, tabId) }
+    const handlePageHide = () => {
+      // pagehide and a delayed takeover poll can interleave; cancel the poll before release.
+      clearWriterTakeoverTimer()
+      flushBrowserSave()
+      releaseBrowserWriter(localStorage, tabId)
+    }
     const handlePageShow = () => {
       if (acquireBrowserWriter(localStorage, tabId).status === 'acquired') {
         finishBrowserWriterTakeover()
@@ -874,16 +939,16 @@ export default function App() {
         }
       }
       if (event.key === BOOK_STORAGE_KEY && currentBrowserWriter(localStorage) !== tabId) {
-        const latest = loadBrowserBook(localStorage)
-        if (latest.status === 'ready') {
+        void loadBrowserBook(localStorage, () => getBrowserDataKey()).then((latest) => {
+          if (currentBrowserWriter(localStorage) === tabId || latest.status !== 'ready') return
           showHistory(emptyHistory())
           showSnapshot({ book: latest.book, activeClientId: latest.book.clients[0].id })
-        }
+        })
       }
     }
     window.addEventListener('pagehide', handlePageHide); window.addEventListener('beforeunload', handlePageHide); window.addEventListener('pageshow', handlePageShow); document.addEventListener('visibilitychange', hidden); window.addEventListener('storage', storage)
     return () => { window.removeEventListener('pagehide', handlePageHide); window.removeEventListener('beforeunload', handlePageHide); window.removeEventListener('pageshow', handlePageShow); document.removeEventListener('visibilitychange', hidden); window.removeEventListener('storage', storage) }
-  }, [finishBrowserWriterTakeover, flushBrowserSave, presentMode, requestBrowserWriterTakeover, showHistory, showSnapshot, tabId])
+  }, [clearWriterTakeoverTimer, finishBrowserWriterTakeover, flushBrowserSave, presentMode, requestBrowserWriterTakeover, showHistory, showSnapshot, tabId])
 
   useEffect(
     () => () => {
@@ -2078,7 +2143,7 @@ export default function App() {
       <div className="visually-hidden" role="status">{leaseAnnouncement(DATA_MODE, canMutate, writerTakeoverPending)}</div>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
         {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information. Best in Chrome or Edge.</span></section>}
-        {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={() => { const next=newBook(); const error=saveBrowserBook(localStorage,next); if(error){setBrowserSaveError(error);setBrowserSaveStatus('error')}else{setRecovery(null);showSnapshot({book:next,activeClientId:next.clients[0].id})} }}>Start fresh</button></section>}
+        {recovery && <section className="app-status-banner is-danger"><strong>Saved copy needs recovery</strong><span>{recovery.message} Nothing was overwritten.</span><button type="button" onClick={downloadRecoveryCopy}>Download damaged copy</button><button type="button" onClick={startFreshBrowserBook}>Start fresh</button></section>}
         {browserSaveStatus === 'error' && <section className="app-status-banner is-danger"><strong>Changes are not being saved</strong><span>{browserSaveError}</span><button type="button" onClick={flushBrowserSave}>Try again</button></section>}
       </div>}
       <div className={`workspace${editorPanel ? ' has-editor-panel' : ''}${guidedSetup ? ' is-guided-setup' : ''}`}>

@@ -93,6 +93,21 @@ describe('encrypted browser book persistence', () => {
     expect(requestedKey).toBe(false)
   })
 
+  it('migrates a plaintext browser copy to a sealed copy on its first save', async () => {
+    const storage = new MemoryStorage()
+    const plaintextBook = newBook()
+    plaintextBook.clients[0].client.title = 'Plaintext until first save'
+    storage.setItem(BOOK_STORAGE_KEY, JSON.stringify(plaintextBook))
+
+    const loaded = await loadBrowserBook(storage, async () => key)
+    await saveBrowserBook(storage, loaded.book, key, salt)
+    const stored = storage.getItem(BOOK_STORAGE_KEY)!
+
+    expect(isEnvelope(stored)).toBe(true)
+    expect(stored).not.toContain('Plaintext until first save')
+    expect((await loadBrowserBook(storage, async () => key)).book).toEqual(plaintextBook)
+  })
+
   it('writes sealed data synchronously', async () => {
     const storage = new MemoryStorage()
     let awaitResolved = false
