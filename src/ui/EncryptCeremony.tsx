@@ -34,21 +34,48 @@ function toFill(payload: string): string {
 }
 
 interface EncryptCeremonyProps {
-  /** The envelope string that was just written to disk. */
+  /** The envelope string that was just written, or just opened. */
   envelope: string
   /** File the book was sealed to, e.g. "money-map-book.json". */
   fileName: string
+  /**
+   * 'seal' is the one-time moment a book becomes encrypted: it earns a
+   * confirmation card. 'unseal' happens every time a file is opened, so it is
+   * the dissolve alone — a card on every open would be noise, not payoff.
+   */
+  mode?: 'seal' | 'unseal'
   onDone: () => void
 }
 
-export function EncryptCeremony({ envelope, fileName, onDone }: EncryptCeremonyProps) {
-  const [phase, setPhase] = useState<'sealing' | 'sealed' | 'clearing'>('sealing')
+export function EncryptCeremony({
+  envelope,
+  fileName,
+  mode = 'seal',
+  onDone,
+}: EncryptCeremonyProps) {
+  const sealing = mode === 'seal'
+  const [phase, setPhase] = useState<'sealing' | 'sealed' | 'clearing'>(
+    sealing ? 'sealing' : 'sealed',
+  )
   const fill = useMemo(() => toFill(ciphertextBody(envelope)), [envelope])
   const doneRef = useRef(onDone)
   doneRef.current = onDone
 
   useEffect(() => {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+
+    // Unsealing is a gate the advisor is waiting behind, not an event to dwell
+    // on: it starts already covered and lifts away immediately.
+    if (!sealing) {
+      const liftAt = reduced ? 0 : 90
+      const doneAt = liftAt + (reduced ? 200 : 560)
+      const timers = [
+        window.setTimeout(() => setPhase('clearing'), liftAt),
+        window.setTimeout(() => doneRef.current(), doneAt),
+      ]
+      return () => timers.forEach(window.clearTimeout)
+    }
+
     const sealedAt = reduced ? 0 : 640
     const clearAt = sealedAt + (reduced ? 900 : 1100)
     const doneAt = clearAt + (reduced ? 0 : 320)
@@ -59,15 +86,17 @@ export function EncryptCeremony({ envelope, fileName, onDone }: EncryptCeremonyP
       window.setTimeout(() => doneRef.current(), doneAt),
     ]
     return () => timers.forEach(window.clearTimeout)
-  }, [envelope])
+  }, [envelope, sealing])
 
   return (
-    <div className={`encrypt-ceremony is-${phase}`} aria-hidden="true">
+    <div className={`encrypt-ceremony is-${phase} is-${mode}`} aria-hidden="true">
       <pre className="encrypt-ceremony-cipher">{fill}</pre>
-      <p className="encrypt-ceremony-caption">
-        <span className="encrypt-ceremony-mark" />
-        Encrypted to {fileName}
-      </p>
+      {sealing && (
+        <p className="encrypt-ceremony-caption">
+          <span className="encrypt-ceremony-mark" />
+          Encrypted to {fileName}
+        </p>
+      )}
     </div>
   )
 }

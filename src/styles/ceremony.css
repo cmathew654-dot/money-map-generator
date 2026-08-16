@@ -50,6 +50,26 @@
   clip-path: inset(0 0 0 0);
 }
 
+/*
+ * Unsealing is the inverse of sealing and uses the same direction of travel:
+ * sealing covers the map top-to-bottom, opening uncovers it top-to-bottom. The
+ * symmetry is the point — it makes "sealed" and "open" one idea, not two
+ * unrelated animations. Faster than the seal, because the advisor is waiting
+ * behind this one rather than being shown something.
+ */
+.encrypt-ceremony.is-unseal {
+  transition: opacity 520ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.encrypt-ceremony.is-unseal .encrypt-ceremony-cipher {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 520ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.encrypt-ceremony.is-unseal.is-clearing .encrypt-ceremony-cipher {
+  clip-path: inset(100% 0 0 0);
+}
+
 .encrypt-ceremony-caption {
   position: relative;
   display: flex;
