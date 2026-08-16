@@ -43,6 +43,7 @@ import {
   type FileReadResult,
   type FileStoreApi,
 } from './model/filestore'
+import { deriveKey, newSalt } from './model/crypto'
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
 import { buildVocabulary } from './model/vocab'
@@ -83,6 +84,7 @@ import {
 } from './render/mapInteraction'
 import { ARTBOARD } from './render/tokens'
 import { Dialog } from './ui/Dialog'
+import { PassphraseDialog } from './ui/PassphraseDialog'
 import { EditorPanels } from './ui/EditorPanels'
 import { ClientCombobox } from './ui/ClientCombobox'
 import {
@@ -256,6 +258,7 @@ type AppDialog =
   | { kind: 'delete'; clientId: string; name: string }
   | { kind: 'error'; title: string; message: string }
   | { kind: 'loadBook'; book: MoneyMapFile }
+  | { kind: 'passphrase'; mode: 'create' | 'open'; fileName: string }
   | { kind: 'resetLayout' }
   | { kind: 'resetTextPositions' }
   | { kind: 'clearMap'; clientId: string; name: string }
@@ -447,6 +450,8 @@ export default function App() {
   const toastCounter = useRef(0)
   const fileSaveRevision = useRef(0)
   const fileWriteQueue = useRef<Promise<void>>(Promise.resolve())
+  const fileCryptoRef = useRef<{ key: CryptoKey; salt: Uint8Array } | null>(null)
+  const passphraseResolveRef = useRef<((passphrase: string | null) => void) | null>(null)
   const writerTakeoverTimerRef = useRef<number | null>(null)
   const releaseTimerRef = useRef<number | null>(null)
   const writerFocusRequestedRef = useRef(false)
@@ -709,6 +714,22 @@ export default function App() {
     setToasts((current) => current.filter((toast) => toast.id !== id))
   }, [])
 
+  const promptForPassphrase = useCallback(
+    (mode: 'create' | 'open', fileName: string) =>
+      new Promise<string | null>((resolve) => {
+        passphraseResolveRef.current = resolve
+        setDialog({ kind: 'passphrase', mode, fileName })
+      }),
+    [],
+  )
+
+  const finishPassphrasePrompt = useCallback((passphrase: string | null) => {
+    const resolve = passphraseResolveRef.current
+    passphraseResolveRef.current = null
+    setDialog(null)
+    resolve?.(passphrase)
+  }, [])
+
   useEffect(() => {
     if (!fileStoreSupported) return
     void getStoredBookFileHandle()
@@ -904,13 +925,15 @@ export default function App() {
 
   useEffect(() => {
     if (!connectedFile || !canWriteConnectedBook(canMutate, true)) return
+    const fileCrypto = fileCryptoRef.current
+    if (!fileCrypto) return
     fileSaveRevision.current += 1
     const revision = fileSaveRevision.current
     setFileSaveStatus('saving')
     const timeout = window.setTimeout(() => {
       const write = fileWriteQueue.current
         .catch(() => undefined)
-        .then(() => writeBookFile(connectedFile, book))
+        .then(() => writeBookFile(connectedFile, book, fileCrypto.key, fileCrypto.salt))
       fileWriteQueue.current = write
       void write.then(
         () => {
@@ -920,6 +943,7 @@ export default function App() {
         },
         () => {
           if (fileSaveRevision.current !== revision) return
+          fileCryptoRef.current = null
           setConnectedFile(null)
           setReconnectFile(connectedFile)
           addToast(
@@ -1038,12 +1062,29 @@ export default function App() {
     async (handle: BookFileHandle, isReconnect: boolean) => {
       if (!canMutate) return
       let result: FileReadResult
+      let decryptAttempted = false
+      let passphraseCancelled = false
+      let fileCrypto: { key: CryptoKey; salt: Uint8Array } | null = null
       try {
         if (!(await requestBookFilePermission(handle))) {
           throw new Error('File permission was not granted.')
         }
-        result = { status: 'success', book: await readBookFile(handle) }
+        result = {
+          status: 'success',
+          book: await readBookFile(handle, async (salt) => {
+            const passphrase = await promptForPassphrase('open', handle.name)
+            if (passphrase === null) {
+              passphraseCancelled = true
+              throw new DOMException('Passphrase prompt cancelled.', 'AbortError')
+            }
+            decryptAttempted = true
+            const key = await deriveKey(passphrase, salt)
+            fileCrypto = { key, salt }
+            return key
+          }),
+        }
       } catch (error) {
+        if (passphraseCancelled) return
         result = { status: 'failure', error }
       }
 
@@ -1053,11 +1094,30 @@ export default function App() {
       )
       if (!resolution.connected) {
         addToast(
-          isReconnect
+          decryptAttempted
+            ? `The passphrase did not open ${handle.name}; current book unchanged`
+            : isReconnect
             ? `Could not reconnect ${handle.name}; browser copy kept`
             : `Could not open ${handle.name}; current book unchanged`,
         )
         return
+      }
+
+      // A plaintext book never calls getKey, so it arrives here with no crypto.
+      // Encrypt it now: connecting without a key would leave the save effect
+      // permanently skipping writes while the advisor believes it is saving.
+      if (!fileCrypto) {
+        const passphrase = await promptForPassphrase('create', handle.name)
+        if (passphrase === null) return
+        const salt = newSalt()
+        const key = await deriveKey(passphrase, salt)
+        try {
+          await writeBookFile(handle, resolution.book, key, salt)
+        } catch {
+          addToast(`Could not encrypt ${handle.name}; current book unchanged`)
+          return
+        }
+        fileCrypto = { key, salt }
       }
 
       closeMapTextEditor(true)
@@ -1069,19 +1129,26 @@ export default function App() {
         null,
       )
       resetWizard()
+      fileCryptoRef.current = fileCrypto
       rememberConnectedFile(handle)
       addToast(isReconnect ? 'Saving to this file again' : 'Changes will now save to this file')
     },
-    [addToast, canMutate, closeMapTextEditor, commitSnapshot, rememberConnectedFile, resetWizard],
+    [addToast, canMutate, closeMapTextEditor, commitSnapshot, promptForPassphrase, rememberConnectedFile, resetWizard],
   )
 
   const handleCreateConnectedFile = async () => {
     try {
       const handle = await chooseNewBookFile()
-      await writeBookFile(handle, snapshotRef.current.book)
+      const passphrase = await promptForPassphrase('create', handle.name)
+      if (passphrase === null) return
+      const salt = newSalt()
+      const key = await deriveKey(passphrase, salt)
+      fileCryptoRef.current = { key, salt }
+      await writeBookFile(handle, snapshotRef.current.book, key, salt)
       rememberConnectedFile(handle)
       addToast('Changes will now save to this file')
     } catch (error) {
+      fileCryptoRef.current = null
       if (error instanceof DOMException && error.name === 'AbortError') return
       addToast('Could not create the book file')
     }
@@ -1099,6 +1166,7 @@ export default function App() {
 
   const handleDisconnectFile = () => {
     fileSaveRevision.current += 1
+    fileCryptoRef.current = null
     setConnectedFile(null)
     setReconnectFile(null)
     setFileSaveStatus('saved')
@@ -2407,6 +2475,14 @@ export default function App() {
       <div ref={printMapRef} aria-hidden="true" className="print-map">
         <MapSvg data={activeClient} />
       </div>
+      {dialog?.kind === 'passphrase' && (
+        <PassphraseDialog
+          fileName={dialog.fileName}
+          mode={dialog.mode}
+          onCancel={() => finishPassphrasePrompt(null)}
+          onSubmit={finishPassphrasePrompt}
+        />
+      )}
       {dialog?.kind === 'delete' && (
         <Dialog
           confirmLabel="Delete"
