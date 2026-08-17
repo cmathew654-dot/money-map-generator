@@ -7,55 +7,69 @@
 .map-chrome .action-bench {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   box-sizing: border-box;
   border: 1px solid var(--mm-rule);
-  border-radius: 10px;
+  border-radius: var(--mm-radius-section);
   padding: 4px;
   background: var(--mm-surface);
-  /* Matches the adjacent .zoom-cluster shadow — a hairline alone disappears
-     against the near-white map page. */
-  box-shadow: 0 2px 9px rgb(28 36 34 / 14%);
+  box-shadow: var(--mm-shadow-compact);
 }
 
 .map-chrome .action-bench > button,
 .map-chrome .action-bench .shape-quick-add > button {
   display: inline-flex;
-  height: 30px;
+  height: var(--mm-h-md);
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: var(--mm-btn-gap);
   border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 0 10px;
+  border-radius: var(--mm-radius-control);
+  padding: var(--mm-btn-py) var(--mm-btn-px-md);
   background: transparent;
   box-shadow: none;
   color: var(--mm-ink);
-  font-family: 'Public Sans', 'Segoe UI', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
+  font: var(--mm-type-control);
   white-space: nowrap;
 }
 
 .map-chrome .action-bench > button:hover:not(:disabled),
 .map-chrome .action-bench .shape-quick-add > button:hover:not(:disabled) {
-  background: var(--mm-section);
+  border-color: transparent;
+  background: rgb(28 36 34 / 6%);
+}
+
+.map-chrome .action-bench > button:active:not(:disabled) {
+  background: rgb(28 36 34 / 10%);
 }
 
 .map-chrome .action-bench > button:disabled:hover {
-  background: transparent;
+  border-color: var(--mm-rule-strong);
+  background: var(--mm-section);
+}
+
+.map-chrome .action-bench > button:disabled,
+.map-chrome .action-bench .shape-quick-add > button:disabled {
+  border-color: var(--mm-rule-strong);
+  background: var(--mm-section);
+  color: var(--mm-dim);
 }
 
 /* + Account is the one primary action on the bench. */
 .map-chrome .action-bench .shape-quick-add > button {
   border-color: var(--mm-flow);
   background: var(--mm-flow);
-  color: #ffffff;
+  color: var(--mm-on-ink);
 }
 
 .map-chrome .action-bench .shape-quick-add > button:hover:not(:disabled) {
-  background: var(--mm-flow);
-  filter: brightness(0.92);
+  border-color: var(--mm-flow-deep);
+  background: var(--mm-flow-deep);
+}
+
+.map-chrome .action-bench .shape-quick-add > button:active:not(:disabled) {
+  border-color: #10513e;
+  background: #10513e;
 }
 
 .map-chrome .action-bench .bench-divider {
@@ -63,7 +77,7 @@
   height: 18px;
   flex: 0 0 auto;
   margin: 0 4px;
-  background: var(--mm-rule);
+  background: var(--mm-rule-faint);
 }
 
 .map-chrome .action-bench .bench-glyph {

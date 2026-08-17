@@ -237,21 +237,15 @@ describe('persistent map inspector', () => {
 
   it('keeps inspector controls compact without losing their focus outline', () => {
     const css = readFileSync('src/styles/app.css', 'utf8')
+    const tokensCss = readFileSync('src/styles/tokens.css', 'utf8')
     const controlBlock =
       /\.map-inspector (?:button|select)[^{]*\{([^}]*)\}/s.exec(css)?.[1] ?? ''
-    const minHeight = Number(
-      /min-height:\s*(\d+)px/.exec(controlBlock)?.[1],
-    )
 
-    // Compact, but never below the 32px hit target the advisor needs.
-    expect(minHeight).toBeGreaterThanOrEqual(32)
-    expect(minHeight).toBeLessThan(40)
-    expect(css).toMatch(
-      /\.map-inspector button[^{]*\{[^}]*font-size:\s*1[12]px/s,
-    )
-    expect(css).toMatch(
-      /\.map-inspector select[^{]*\{[^}]*font-size:\s*1[12]px/s,
-    )
+    // Phase 2 makes inspector controls the 28px small-button tier.
+    expect(controlBlock).toMatch(/min-height:\s*var\(--mm-h-sm\)/)
+    expect(controlBlock).toMatch(/font-size:\s*var\(--mm-fs-sm\)/)
+    expect(tokensCss).toMatch(/--mm-h-sm:\s*28px/)
+    expect(tokensCss).toMatch(/--mm-fs-sm:\s*12px/)
     expect(css).toMatch(
       /button:focus-visible[^{]*\{[^}]*outline:\s*2px solid/s,
     )

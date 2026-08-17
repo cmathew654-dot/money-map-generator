@@ -61,37 +61,42 @@
 
 /* ----------------------------------------------------------- section header */
 
+.editor-panel .client-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mm-space-20);
+}
+
 .editor-panel .form-section {
-  padding-top: 0;
-  border-top: 0;
+  margin: 0;
+  padding: var(--mm-section-py) var(--mm-section-px);
+  border: 1px solid var(--fm-hairline);
+  border-radius: var(--mm-radius-section);
+  background: var(--fm-section);
 }
 
 .editor-panel .form-section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
-  margin: 0 -14px 6px;
-  padding: 6px 14px 5px;
-  border-bottom: 1px solid var(--fm-hairline);
-  background: var(--fm-section);
+  gap: var(--mm-space-12);
+  margin: 0 0 var(--mm-space-10);
 }
 
 .editor-panel .form-section-head h2 {
   margin: 0;
-  color: var(--fm-ink);
-  font-family: 'Literata', Georgia, serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  margin-right: calc(-1 * var(--mm-track-eyebrow));
+  color: var(--fm-muted);
+  font: var(--mm-type-eyebrow);
+  letter-spacing: var(--mm-track-eyebrow);
   text-transform: uppercase;
 }
 
 .editor-panel .form-section-count {
-  color: var(--fm-muted);
-  font-size: 12px;
+  color: var(--mm-dim);
+  font: var(--mm-type-help);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* One level of uppercase only. Tracked caps mark section headers; every field
@@ -102,10 +107,14 @@
 .editor-panel .account-preset-label,
 .editor-panel .checkbox-field {
   color: var(--fm-muted);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font: var(--mm-type-caption);
+  letter-spacing: var(--mm-track-caption);
   text-transform: none;
+}
+
+.editor-panel .form-field > span {
+  padding-left: var(--mm-input-px);
+  margin-bottom: var(--mm-field-gap);
 }
 
 /* -------------------------------------------------------------- ledger rows */
@@ -124,10 +133,6 @@
 
 .editor-panel .accounts-section .account-card-shell:first-of-type .account-card {
   border-top: 1px solid var(--fm-hairline);
-}
-
-.editor-panel .account-card.is-selected {
-  box-shadow: inset 3px 0 0 var(--fm-flow);
 }
 
 .editor-panel .account-card.is-selected > .account-summary {
@@ -158,9 +163,9 @@
 }
 
 .editor-panel .account-swatch {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: var(--mm-chip-tick-w);
+  height: var(--mm-chip-tick-h);
+  border-radius: 0;
 }
 
 .editor-panel .account-summary-label {
@@ -178,11 +183,10 @@
 }
 
 .editor-panel .account-summary-tag {
-  font-family: 'Public Sans', 'Segoe UI', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  line-height: 1.2;
+  margin-right: calc(-1 * var(--mm-track-eyebrow));
+  font: var(--mm-type-eyebrow);
+  font-weight: var(--mm-fw-semibold);
+  letter-spacing: var(--mm-track-eyebrow);
   text-transform: uppercase;
 }
 
@@ -227,26 +231,25 @@
 .editor-panel .account-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px 12px;
+  gap: var(--mm-field-stack) var(--mm-space-12);
 }
 
 .editor-panel .account-body .form-field > span,
 .editor-panel .account-body .nested-list h4 {
   color: var(--fm-muted);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font: var(--mm-type-caption);
+  letter-spacing: var(--mm-track-caption);
   text-transform: none;
 }
 
 .editor-panel .account-body .form-field {
-  gap: 3px;
+  gap: 0;
 }
 
 .editor-panel .account-body input,
 .editor-panel .account-body select {
-  height: 30px;
-  font-size: 13px;
+  height: var(--mm-h-md);
+  font-size: var(--mm-fs-base);
 }
 
 /* Nested positions / sub-accounts hang off a hairline rail with tick marks. */
@@ -264,10 +267,10 @@
 
 .editor-panel .account-body .nested-list .stacked-row {
   position: relative;
-  padding: 8px 9px;
+  padding: var(--mm-row-p);
   border: 1px solid var(--fm-hairline);
-  border-radius: 4px;
-  background: var(--mm-on-ink);
+  border-radius: var(--mm-radius-row);
+  background: var(--fm-surface);
 }
 
 .editor-panel .account-body .nested-list .stacked-row::before {
@@ -308,38 +311,38 @@
 /* ------------------------------------------------ income / need ledger rows */
 
 .editor-panel .row-list {
-  gap: 0;
+  gap: var(--mm-space-8);
 }
 
 .editor-panel .income-row,
 .editor-panel .note-row {
-  padding: 9px 12px;
-  border: 0;
-  border-bottom: 1px solid var(--fm-hairline);
-  border-radius: 0;
+  gap: var(--mm-space-8);
+  padding: var(--mm-row-p);
+  border: 1px solid var(--fm-hairline);
+  border-radius: var(--mm-radius-row);
   background: var(--fm-surface);
 }
 
 .editor-panel [data-form-section='income'] .row-list,
 .editor-panel [data-form-section='notes'] .row-list {
-  border-top: 1px solid var(--fm-hairline);
+  border-top: 0;
 }
 
 .editor-panel .income-row,
 .editor-panel .fine-print-section .stacked-row,
 .editor-panel .account-body .nested-list .stacked-row {
-  gap: 6px;
+  gap: var(--mm-space-8);
 }
 
 .editor-panel .income-row .form-field,
 .editor-panel .account-body .nested-list .form-field {
-  gap: 3px;
+  gap: 0;
 }
 
 .editor-panel .income-row input,
 .editor-panel .income-row select {
-  height: 30px;
-  font-size: 13px;
+  height: var(--mm-h-md);
+  font-size: var(--mm-fs-base);
 }
 
 .editor-panel .need-fields {
@@ -359,24 +362,22 @@
 }
 
 .editor-panel .need-fields > .form-field > span {
-  color: var(--fm-ink);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
+  color: var(--fm-muted);
+  font: var(--mm-type-caption);
+  letter-spacing: var(--mm-track-caption);
   text-transform: none;
 }
 
 .editor-panel .need-fields input {
-  height: 30px;
-  border: 0;
-  border-bottom: 2px solid var(--fm-muted);
-  border-radius: 0;
-  font-size: 13px;
+  height: var(--mm-h-md);
+  font-size: var(--mm-fs-base);
 }
 
 .editor-panel .need-fields > .help-text {
-  margin: 4px 0 8px;
-  font-size: 11.5px;
+  margin: var(--mm-field-help-gap) 0 0;
+  padding-left: var(--mm-input-px);
+  color: var(--mm-dim);
+  font: var(--mm-type-help);
 }
 
 .editor-panel .fine-print-section {
@@ -384,18 +385,14 @@
   border-top: 1px solid var(--fm-hairline);
 }
 
-/* A footnote gets no shape on the map, so it gets no container here either —
-   same record treatment as income and note rows. Sub-accounts keep their card
-   because they DO get their own shape. */
 .editor-panel .fine-print-section .stacked-row {
-  border: 0;
-  border-bottom: 1px solid var(--fm-hairline);
-  border-radius: 0;
+  padding: var(--mm-row-p);
+  border: 1px solid var(--fm-hairline);
+  border-radius: var(--mm-radius-row);
   background: var(--fm-surface);
 }
 
-
-/* Ledger fields use a distinct 2px rule; record separators stay 1px hairlines. */
+/* Ledger fields use a distinct heavy underline; record separators stay hairlines. */
 .editor-panel :is(
   .account-body,
   .income-row,
@@ -405,10 +402,12 @@
 ) :is(input:not([type='checkbox']), select, textarea) {
   width: 100%;
   min-width: 0;
+  height: var(--mm-h-md);
+  padding: var(--mm-input-py) var(--mm-input-px) calc(var(--mm-input-py) - 0.5px);
   border: 0;
-  border-bottom: 2px solid var(--fm-muted);
-  border-radius: 0;
-  background: var(--fm-section);
+  border-bottom: var(--mm-input-rule) solid var(--mm-rule-heavy);
+  border-radius: var(--mm-radius-control) var(--mm-radius-control) 0 0;
+  background: var(--mm-field);
   color: var(--fm-ink);
 }
 
@@ -420,7 +419,7 @@
   .client-fields
 ) :is(input:not([type='checkbox']), select, textarea):hover {
   border-bottom-color: var(--fm-ink);
-  background: #eef2ee;
+  background-color: var(--mm-field);
 }
 
 .editor-panel :is(
@@ -430,8 +429,38 @@
   .note-row,
   .client-fields
 ) :is(input:not([type='checkbox']), select, textarea):focus-visible {
+  outline: var(--mm-focus-width) solid var(--mm-focus);
+  outline-offset: var(--mm-focus-offset);
+  border-bottom-width: var(--mm-input-rule-focus);
   border-bottom-color: var(--fm-flow);
-  background: #e6f2e9;
+  padding-bottom: calc(var(--mm-input-py) - 1px);
+  background-color: var(--mm-field);
+}
+
+.editor-panel :is(
+  .account-body,
+  .income-row,
+  .fine-print-section,
+  .note-row,
+  .client-fields
+) :is(input:not([type='checkbox']), select, textarea):disabled {
+  border-bottom-color: var(--mm-rule-strong);
+  background-color: var(--mm-section);
+  color: var(--mm-dim);
+}
+
+.editor-panel :is(
+  .account-body,
+  .income-row,
+  .fine-print-section,
+  .note-row,
+  .client-fields
+) select {
+  padding-right: 30px;
+  background-image: var(--mm-icon-chevron-down);
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 15px;
 }
 
 .editor-panel :is(
@@ -446,7 +475,7 @@
   .fine-print-section,
   .client-fields
 ) .form-field:focus-within > span {
-  color: var(--fm-ink);
+  color: var(--fm-muted);
 }
 
 /* Positions are ledger line items: text begins left, money ends in one column. */
@@ -505,7 +534,7 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  height: 30px;
+  height: var(--mm-h-sm);
 }
 
 .editor-panel .position-row .form-field > span {
@@ -521,5 +550,26 @@
 .editor-panel .position-row .money-input {
   font-family: 'Public Sans', 'Segoe UI', sans-serif;
   font-variant-numeric: tabular-nums;
+  padding-right: var(--mm-input-px);
   text-align: right;
+}
+
+.editor-panel .note-row textarea {
+  height: auto;
+  min-height: 72px;
+}
+
+.editor-panel .checkbox-field input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  padding: 0;
+  border: 1px solid var(--mm-rule-heavy);
+  border-radius: var(--mm-radius-xs);
+  accent-color: var(--mm-ink);
+}
+
+.editor-panel .checkbox-field input:checked {
+  border-color: var(--mm-ink);
+  background: var(--mm-ink);
 }

@@ -37,7 +37,7 @@
   background: var(--mm-surface);
   color: var(--mm-ink);
   text-align: center;
-  box-shadow: 0 8px 30px rgb(28 36 34 / 0.16);
+  box-shadow: var(--mm-shadow-dialog);
 }
 
 .lock-card h2 {
@@ -61,7 +61,7 @@
   padding: 18px 20px;
   overflow: hidden;
   color: rgb(71 80 77 / 0.42);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--mm-font-mono);
   font-size: 12px;
   line-height: 1.45;
   letter-spacing: 0.02em;
@@ -111,7 +111,7 @@
   font-family: 'Public Sans', 'Segoe UI', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 2px 14px rgb(28 36 34 / 0.09);
+  box-shadow: var(--mm-shadow-toast);
   opacity: 0;
   transform: translateY(4px);
   transition:
