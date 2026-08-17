@@ -9,10 +9,10 @@
   align-items: center;
   gap: 2px;
   box-sizing: border-box;
-  border: 1px solid #dde1dc;
+  border: 1px solid var(--mm-rule);
   border-radius: 10px;
   padding: 4px;
-  background: #ffffff;
+  background: var(--mm-surface);
   /* Matches the adjacent .zoom-cluster shadow — a hairline alone disappears
      against the near-white map page. */
   box-shadow: 0 2px 9px rgb(28 36 34 / 14%);
@@ -29,7 +29,7 @@
   padding: 0 10px;
   background: transparent;
   box-shadow: none;
-  color: #1c2422;
+  color: var(--mm-ink);
   font-family: 'Public Sans', 'Segoe UI', sans-serif;
   font-size: 12px;
   font-weight: 600;
@@ -39,7 +39,7 @@
 
 .map-chrome .action-bench > button:hover:not(:disabled),
 .map-chrome .action-bench .shape-quick-add > button:hover:not(:disabled) {
-  background: #f4f6f2;
+  background: var(--mm-section);
 }
 
 .map-chrome .action-bench > button:disabled:hover {
@@ -48,13 +48,13 @@
 
 /* + Account is the one primary action on the bench. */
 .map-chrome .action-bench .shape-quick-add > button {
-  border-color: #1e7a4a;
-  background: #1e7a4a;
+  border-color: var(--mm-flow);
+  background: var(--mm-flow);
   color: #ffffff;
 }
 
 .map-chrome .action-bench .shape-quick-add > button:hover:not(:disabled) {
-  background: #1e7a4a;
+  background: var(--mm-flow);
   filter: brightness(0.92);
 }
 
@@ -63,7 +63,7 @@
   height: 18px;
   flex: 0 0 auto;
   margin: 0 4px;
-  background: #dde1dc;
+  background: var(--mm-rule);
 }
 
 .map-chrome .action-bench .bench-glyph {

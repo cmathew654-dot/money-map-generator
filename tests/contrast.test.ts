@@ -77,13 +77,25 @@ describe('palette contrast contract', () => {
 
 describe('ledger field boundary contrast', () => {
   const formCss: string = readFileSync('src/styles/form.css', 'utf8')
+  const tokensCss: string = readFileSync('src/styles/tokens.css', 'utf8')
 
+  // --fm-* tokens are aliases of the canonical --mm-* set; follow one level of
+  // var() indirection into tokens.css to reach the hex the browser resolves.
   function token(name: string): string {
-    const match = formCss.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, 'i'))
+    const match = formCss.match(
+      new RegExp(`--${name}:\\s*(#[0-9a-f]{6}|var\\(--([a-z0-9-]+)\\))`, 'i'),
+    )
     if (!match) {
       throw new Error(`Expected --${name} to be defined in form.css.`)
     }
-    return match[1]
+    if (!match[2]) return match[1]
+    const resolved = tokensCss.match(
+      new RegExp(`--${match[2]}:\\s*(#[0-9a-f]{6})`, 'i'),
+    )
+    if (!resolved) {
+      throw new Error(`Expected --${match[2]} to resolve to a hex in tokens.css.`)
+    }
+    return resolved[1]
   }
 
   // Sketch 003 eliminated the boxed treatment because its --fm-hairline input

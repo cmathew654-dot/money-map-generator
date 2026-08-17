@@ -1,13 +1,13 @@
 /* s51 T-FORM lane: Data panel facelift styles. Owned by T-FORM — no other lane edits this file. */
 
 .client-form {
-  --fm-ink: #1c2422;
-  --fm-muted: #47504d;
-  --fm-hairline: #dde1dc;
-  --fm-section: #f4f6f2;
-  --fm-surface: #ffffff;
-  --fm-flow: #1e7a4a;
-  --fm-need: #c03a2d;
+  --fm-ink: var(--mm-ink);
+  --fm-muted: var(--mm-muted);
+  --fm-hairline: var(--mm-rule);
+  --fm-section: var(--mm-section);
+  --fm-surface: var(--mm-surface);
+  --fm-flow: var(--mm-flow);
+  --fm-need: var(--mm-need);
 }
 
 /* ---------------------------------------------------------------- tools bar */
@@ -267,7 +267,7 @@
   padding: 8px 9px;
   border: 1px solid var(--fm-hairline);
   border-radius: 4px;
-  background: #fbfcfa;
+  background: var(--mm-on-ink);
 }
 
 .editor-panel .account-body .nested-list .stacked-row::before {

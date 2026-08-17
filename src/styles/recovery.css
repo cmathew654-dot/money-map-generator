@@ -7,13 +7,13 @@
 }
 
 .recovery-dialog-content {
-  color: #1c2422;
+  color: var(--mm-ink);
 }
 
 .recovery-intro {
   max-width: 65ch;
   margin: 0;
-  color: #47504d;
+  color: var(--mm-muted);
 }
 
 .recovery-details {
@@ -30,7 +30,7 @@
 
 .recovery-details dt,
 .recovery-code-label {
-  color: #47504d;
+  color: var(--mm-muted);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -55,8 +55,8 @@
   display: block;
   padding: 24px 16px;
   border-radius: 10px;
-  background: #f4f6f2;
-  color: #1c2422;
+  background: var(--mm-section);
+  color: var(--mm-ink);
   font: 600 24px/1.7 ui-monospace, 'Cascadia Mono', Consolas, monospace;
   letter-spacing: 0.08em;
   overflow-wrap: break-word;
@@ -75,7 +75,7 @@
 
 .recovery-dialog .recovery-secondary-action {
   border-color: #dde1dc;
-  background: #ffffff;
+  background: var(--mm-surface);
 }
 
 .recovery-dialog .recovery-secondary-action:hover {
@@ -87,7 +87,7 @@
   flex: 1 1 180px;
   min-height: 21px;
   margin: 0;
-  color: #47504d;
+  color: var(--mm-muted);
   font-size: 13px;
 }
 
@@ -99,8 +99,8 @@
   margin-top: 24px;
   padding: 16px;
   border-radius: 8px;
-  background: #f4f6f2;
-  color: #1c2422;
+  background: var(--mm-section);
+  color: var(--mm-ink);
   cursor: pointer;
   line-height: 1.5;
 }
@@ -109,7 +109,7 @@
   width: 18px;
   height: 18px;
   margin: 1px 0 0;
-  accent-color: #1e7a4a;
+  accent-color: var(--mm-flow);
 }
 
 .recovery-confirmation .dialog-actions {
@@ -156,7 +156,7 @@
     padding: 0;
     overflow: visible;
     border: 0;
-    background: #ffffff;
+    background: var(--mm-surface);
     box-shadow: none;
   }
 

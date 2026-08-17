@@ -15,7 +15,7 @@
     height: auto;
     min-height: 0;
     overflow: visible;
-    background: #ffffff;
+    background: var(--mm-surface);
   }
 
   .app-shell {
