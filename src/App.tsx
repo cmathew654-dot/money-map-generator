@@ -2869,6 +2869,7 @@ export default function App() {
             <div className="map-chrome">
               <div className="action-bench" role="group" aria-label="Map actions">
                 <button
+                  className="with-glyph"
                   disabled={!canMutate || !canTidyMap}
                   title={canTidyMap ? 'Rearrange items into the clean layout' : 'Already in the clean layout'}
                   type="button"

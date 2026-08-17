@@ -59,7 +59,9 @@ select {
 button,
 select,
 input {
-  height: var(--mm-h-md);
+  /* min-height, not height: multi-line buttons (e.g. the Contents flow list)
+     must grow past the 32px control tier instead of clipping. */
+  min-height: var(--mm-h-md);
   padding: var(--mm-input-py) var(--mm-input-px);
   border: 1px solid var(--mm-rule-heavy);
   border-radius: var(--mm-radius-control);
@@ -1907,7 +1909,7 @@ summary:focus-visible {
 
 /* A tick carries less optical weight than a glyph, so tick-bearing presets
    pull the leading inset to 10px; plain presets keep the base 11px. */
-.account-preset-button:has(.account-swatch) {
+.account-preset-button[class*='bucket-'] {
   padding-left: var(--mm-space-10);
 }
 

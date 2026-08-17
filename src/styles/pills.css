@@ -33,7 +33,7 @@
   white-space: nowrap;
 }
 
-.map-chrome .action-bench > button:has(.bench-glyph),
+.map-chrome .action-bench > button.with-glyph,
 .map-chrome .action-bench .shape-quick-add > button {
   padding-left: calc(var(--mm-btn-px-md) - var(--mm-space-2));
 }
