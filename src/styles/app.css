@@ -133,6 +133,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 0 var(--mm-btn-px-md) 0 calc(var(--mm-btn-px-md) - var(--mm-space-2));
   font-weight: 600;
   transition: background-color 120ms ease-out, border-color 120ms ease-out;
 }
@@ -267,7 +268,10 @@ summary:focus-visible {
 }
 
 .history-button {
+  display: inline-flex;
   width: var(--mm-h-md);
+  align-items: center;
+  justify-content: center;
   padding: 0;
   font-size: 17px;
   line-height: 1;
@@ -281,6 +285,11 @@ summary:focus-visible {
   font-size: 18px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.wordmark > span {
+  line-height: var(--mm-lh-flat);
+  transform: translateY(-1px);
 }
 
 .wordmark-glyph {
@@ -359,7 +368,7 @@ summary:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: var(--mm-btn-gap);
   white-space: nowrap;
 }
 
@@ -377,8 +386,15 @@ summary:focus-visible {
 }
 
 .menu-caret {
+  display: inline-flex;
+  width: var(--mm-icon-size);
+  height: var(--mm-icon-size);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
   color: var(--mm-muted);
-  font-size: 10px;
+  font-size: var(--mm-icon-size);
+  line-height: var(--mm-lh-flat);
 }
 
 .book-connection-summary {
@@ -747,9 +763,12 @@ summary:focus-visible {
   z-index: 2;
   top: 6px;
   right: 8px;
+  display: inline-flex;
   width: var(--mm-h-md);
   height: var(--mm-h-md);
   min-height: var(--mm-h-md);
+  align-items: center;
+  justify-content: center;
   padding: 0;
   border-color: transparent;
   background: transparent;
@@ -889,7 +908,7 @@ summary:focus-visible {
 }
 
 .map-inspector-heading strong {
-  max-width: 88px;
+  max-width: 150px;
   overflow: hidden;
   font-family: 'Literata', Georgia, serif;
   font-size: 13px;
@@ -1212,6 +1231,8 @@ summary:focus-visible {
   color: var(--mm-muted);
   font: var(--mm-fw-semibold) var(--mm-fs-base) / var(--mm-lh-flat) var(--mm-font-ui);
   font-variant-numeric: tabular-nums;
+  letter-spacing: var(--mm-track-figure);
+  text-align: center;
   place-items: center;
 }
 
@@ -1288,8 +1309,8 @@ summary:focus-visible {
   z-index: 4;
   display: flex;
   box-sizing: border-box;
-  width: 72px;
-  height: 30px;
+  width: 100px;
+  height: 36px;
   align-items: center;
   gap: var(--mm-space-4);
   border: 1px solid var(--mm-rule-heavy);
@@ -1313,12 +1334,16 @@ summary:focus-visible {
 }
 
 .map-text-size-controls button {
-  min-width: 0;
-  height: 22px;
-  flex: 1;
-  border: 0;
+  display: inline-flex;
+  width: var(--mm-h-sm);
+  min-width: var(--mm-h-sm);
+  height: var(--mm-h-sm);
+  flex: 0 0 var(--mm-h-sm);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--mm-rule-heavy);
   border-radius: var(--mm-radius-xs);
-  padding: 0 3px;
+  padding: 0;
   background: #eef7f1;
   color: var(--mm-flow);
   font: var(--mm-fw-semibold) var(--mm-fs-sm) / var(--mm-lh-flat) var(--mm-font-ui);
@@ -1368,8 +1393,9 @@ summary:focus-visible {
 
 .data-form-sections button.is-active,
 .data-form-sections button[aria-current='true'] {
-  border-color: var(--mm-flow);
+  border-color: transparent;
   background: var(--mm-flow-surface);
+  box-shadow: inset 0 -2px 0 var(--mm-flow);
   color: var(--mm-flow-deep);
 }
 
@@ -1887,11 +1913,12 @@ summary:focus-visible {
 
 .checkbox-field {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--mm-space-10);
   margin: 13px 0;
   color: var(--mm-muted);
   font: var(--mm-type-caption);
+  line-height: 20px;
 }
 
 .checkbox-field input {
@@ -2098,9 +2125,9 @@ summary:focus-visible {
   min-width: 0;
   padding: 8px 3px 6px;
   border: 0;
-  border-bottom: 2px solid transparent;
   border-radius: 0;
   background: transparent;
+  box-shadow: none;
   color: var(--mm-dim);
   font-size: 11px;
   line-height: 1.2;
@@ -2111,12 +2138,12 @@ summary:focus-visible {
 }
 
 .wizard-step-button.is-done {
-  border-bottom-color: var(--mm-rule-heavy);
+  box-shadow: inset 0 -2px 0 var(--mm-rule-heavy);
   color: var(--mm-muted);
 }
 
 .wizard-step-button.is-current {
-  border-bottom-color: var(--mm-ink);
+  box-shadow: inset 0 -2px 0 var(--mm-ink);
   color: var(--mm-ink);
   font-weight: var(--mm-fw-semibold);
 }
@@ -2461,7 +2488,10 @@ summary:focus-visible {
 }
 
 .zoom-cluster > button:nth-child(4) {
+  width: auto;
+  padding: 0 var(--mm-space-16);
   color: var(--mm-muted);
+  line-height: var(--mm-lh-flat);
 }
 
 .wizard-step-button {
