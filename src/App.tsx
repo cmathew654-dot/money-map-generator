@@ -40,6 +40,7 @@ import {
   storeBookFileDataKey,
   supportsFileStore,
   writeBookFile,
+  writePlainBookFile,
   clearStoredBookFileHandle,
   clearStoredBookDataKey,
   deleteStoredBookDataKey,
@@ -47,6 +48,7 @@ import {
   type FileReadResult,
   type FileStoreApi,
 } from './model/filestore'
+import { protectionEnabled } from './model/settings'
 import {
   deriveKey,
   envelopeVersion,
@@ -328,12 +330,22 @@ function isAbortError(error: unknown): boolean {
     error instanceof Error && isAbortError(error.cause)
 }
 
+/**
+ * Sentinel meaning is load-bearing: `null` (the ref itself) means NOT
+ * CONNECTED; `{ dek: null, wraps: [] }` means CONNECTED AND PLAIN. Every
+ * `!fileCrypto` guard keeps its original meaning after this widening.
+ */
+type FileCrypto = { dek: CryptoKey | null; wraps: Wrap[] }
+
 async function createFileCrypto(
   promptOfficePassword: () => Promise<string | null>,
 ): Promise<{
-  fileCrypto: { dek: CryptoKey; wraps: Wrap[] }
+  fileCrypto: FileCrypto
   recoveryCode: string | null
 }> {
+  if (!protectionEnabled()) {
+    return { fileCrypto: { dek: null, wraps: [] }, recoveryCode: null }
+  }
   const dek = await newDataKey()
   const identity = await readOfficeIdentity()
   if (identity) {
@@ -347,6 +359,21 @@ async function createFileCrypto(
   const setup = await setupOfficePassword(password)
   const wraps = await officeWraps(dek, setup.office, setup.recovery)
   return { fileCrypto: { dek, wraps }, recoveryCode: setup.recoveryCode }
+}
+
+/**
+ * The only place in the app that chooses a file format: encrypted when a
+ * dek is present, plain otherwise. Every connected-book disk write routes
+ * through this function.
+ */
+async function writeConnectedBook(
+  handle: BookFileHandle,
+  book: MoneyMapFile,
+  fileCrypto: FileCrypto,
+): Promise<string> {
+  return fileCrypto.dek
+    ? writeBookFile(handle, book, fileCrypto.dek, fileCrypto.wraps)
+    : writePlainBookFile(handle, book)
 }
 
 /**
@@ -559,7 +586,7 @@ export default function App() {
   const lockInFlightRef = useRef(false)
   const lastActivityRef = useRef(Date.now())
   const lockButtonRef = useRef<HTMLButtonElement>(null)
-  const fileCryptoRef = useRef<{ dek: CryptoKey; wraps: Wrap[] } | null>(null)
+  const fileCryptoRef = useRef<FileCrypto | null>(null)
   const [ceremony, setCeremony] = useState<{
     envelope: string
     fileName: string
@@ -929,7 +956,7 @@ export default function App() {
       .catch(() => undefined)
       .then(() => {
         fileWriteInFlightRef.current = true
-        return writeBookFile(handle, snapshotRef.current.book, fileCrypto.dek, fileCrypto.wraps)
+        return writeConnectedBook(handle, snapshotRef.current.book, fileCrypto)
       })
       .finally(() => {
         fileWriteInFlightRef.current = false
@@ -1166,7 +1193,7 @@ export default function App() {
       fileWriteInFlightRef.current = true
       const write = fileWriteQueue.current
         .catch(() => undefined)
-        .then(() => writeBookFile(connectedFile, book, fileCrypto.dek, fileCrypto.wraps))
+        .then(() => writeConnectedBook(connectedFile, book, fileCrypto))
         .finally(() => {
           fileWriteInFlightRef.current = false
         })
@@ -1305,7 +1332,7 @@ export default function App() {
       let result: FileReadResult
       let decryptAttempted = false
       let passphraseCancelled = false
-      let fileCrypto: { dek: CryptoKey; wraps: Wrap[] } | null = null
+      let fileCrypto: FileCrypto | null = null
       // Captured so the unseal ceremony can render the file's real bytes.
       let openedEnvelope: string | null = null
       // A file that was just sealed shows the seal ceremony, never both.
@@ -1448,7 +1475,7 @@ export default function App() {
         try {
           const created = await createFileCrypto(async () => passphrase.value)
           fileCrypto = created.fileCrypto
-          const envelope = await writeBookFile(handle, resolution.book, fileCrypto.dek, fileCrypto.wraps)
+          const envelope = await writeConnectedBook(handle, resolution.book, fileCrypto)
           if (created.recoveryCode) {
             await showRecoveryCode(created.recoveryCode, handle.name, true)
           }
@@ -1473,7 +1500,10 @@ export default function App() {
       rememberConnectedFile(handle)
       // The browser-local book copy is deliberately plaintext by owner decision;
       // caching the DEK here adds no exposure and removes repeat Hello prompts.
-      void storeBookFileDataKey(handle, fileCrypto.dek).catch(() => undefined)
+      // A plain (unencrypted) connected book has no dek to cache.
+      if (fileCrypto.dek) {
+        void storeBookFileDataKey(handle, fileCrypto.dek).catch(() => undefined)
+      }
       // The inverse of sealing: an encrypted file resolves out of its own
       // ciphertext. Plaintext files never had any, so they get nothing.
       if (openedEnvelope && !migrated) {
@@ -1561,12 +1591,7 @@ export default function App() {
         const passphrase = await promptForPassphrase('create', handle.name, true, 'office')
         return passphrase?.value ?? null
       })
-      const envelope = await writeBookFile(
-        handle,
-        snapshotRef.current.book,
-        created.fileCrypto.dek,
-        created.fileCrypto.wraps,
-      )
+      const envelope = await writeConnectedBook(handle, snapshotRef.current.book, created.fileCrypto)
       if (created.recoveryCode) {
         await showRecoveryCode(
           created.recoveryCode,
@@ -1576,8 +1601,12 @@ export default function App() {
       }
       fileCryptoRef.current = created.fileCrypto
       rememberConnectedFile(handle)
-      void storeBookFileDataKey(handle, created.fileCrypto.dek).catch(() => undefined)
-      setCeremony({ envelope, fileName: handle.name })
+      if (created.fileCrypto.dek) {
+        void storeBookFileDataKey(handle, created.fileCrypto.dek).catch(() => undefined)
+        setCeremony({ envelope, fileName: handle.name })
+      } else {
+        addToast('Changes will now save to this file')
+      }
     } catch (error) {
       fileCryptoRef.current = null
       if (isAbortError(error)) return
@@ -1587,7 +1616,7 @@ export default function App() {
 
   const handleAddWindowsHello = async () => {
     const fileCrypto = fileCryptoRef.current
-    if (!connectedFile || !fileCrypto) return
+    if (!connectedFile || !fileCrypto || !fileCrypto.dek) return
     if (fileCrypto.wraps.some((wrap) => wrap.type === 'webauthn')) {
       addToast('This file already opens with Windows Hello')
       return

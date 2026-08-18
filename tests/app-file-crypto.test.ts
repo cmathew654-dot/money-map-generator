@@ -18,7 +18,7 @@ describe('connected file encryption wiring', () => {
       /const fileCrypto = fileCryptoRef\.current/,
     )
     expect(connectedSaveEffect).toMatch(
-      /writeBookFile\(connectedFile, book, fileCrypto\.dek, fileCrypto\.wraps\)/,
+      /writeConnectedBook\(connectedFile, book, fileCrypto\)/,
     )
     expect(connectedSaveEffect).not.toContain('deriveKey(')
     expect(connectedSaveEffect).not.toContain('newDataKey(')
@@ -58,7 +58,7 @@ describe('connected file encryption wiring', () => {
       /if \(!fileCrypto\) \{[\s\S]*?promptForPassphrase\('create'/,
     )
     expect(replaceBookFromFile).toMatch(
-      /if \(!fileCrypto\) \{[\s\S]*?writeBookFile\(handle, resolution\.book, fileCrypto\.dek, fileCrypto\.wraps\)/,
+      /if \(!fileCrypto\) \{[\s\S]*?writeConnectedBook\(handle, resolution\.book, fileCrypto\)/,
     )
   })
 

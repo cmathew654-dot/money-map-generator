@@ -133,6 +133,21 @@ export async function writeBookFile(
   return envelope
 }
 
+/** Plain sibling of writeBookFile: same atomic-write shape, no seal step. */
+export async function writePlainBookFile(
+  handle: BookFileHandle,
+  book: MoneyMapFile,
+): Promise<string> {
+  const json = JSON.stringify(book, null, 2)
+  const writable = await handle.createWritable()
+  try {
+    await writable.write(json)
+  } finally {
+    await writable.close()
+  }
+  return json
+}
+
 export async function requestBookFilePermission(
   handle: BookFileHandle,
 ): Promise<boolean> {

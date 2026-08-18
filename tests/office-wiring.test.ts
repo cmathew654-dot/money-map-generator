@@ -96,3 +96,30 @@ describe('office key wiring into the create path (createFileCrypto)', () => {
     )
   })
 })
+
+describe('plain-by-default protection gate (Phase 2)', () => {
+  it("createFileCrypto's first statement is the protectionEnabled() gate, before any ceremony code runs", () => {
+    expect(createFileCryptoFn).not.toBe('')
+    const gateMatch = createFileCryptoFn.match(
+      /\{\s*\n\s*if \(!protectionEnabled\(\)\) \{\s*\n\s*return \{ fileCrypto: \{ dek: null, wraps: \[\] \}, recoveryCode: null \}\s*\n\s*\}/,
+    )
+    expect(gateMatch).not.toBeNull()
+    const gateEnd = gateMatch ? (gateMatch.index ?? 0) + gateMatch[0].length : -1
+    const bodyBeforeGate = createFileCryptoFn.slice(0, gateEnd)
+    for (const forbidden of [
+      'newDataKey(',
+      'readOfficeIdentity(',
+      'officeWraps(',
+      'setupOfficePassword(',
+      'promptOfficePassword(',
+    ]) {
+      expect(bodyBeforeGate).not.toContain(forbidden)
+    }
+  })
+
+  it("handleCreateConnectedFile routes its write through writeConnectedBook, never writeBookFile directly", () => {
+    expect(handleCreateConnectedFileFn).not.toBe('')
+    expect(handleCreateConnectedFileFn).toContain('writeConnectedBook(')
+    expect(handleCreateConnectedFileFn).not.toContain('writeBookFile(')
+  })
+})
