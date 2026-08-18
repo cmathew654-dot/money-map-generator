@@ -191,6 +191,19 @@ describe('legacy conversion fork drives the write-back decision (Phase 2)', () =
     expect(deleteIndex).toBeLessThan(toastIndex)
   })
 
+  it('the stale-key cleanup is non-fatal and sits outside the write try/catch — a converted file never reports "Nothing was changed"', () => {
+    expect(convertToPlainBranch).not.toBe('')
+    const failureToastIndex = convertToPlainBranch.indexOf("Couldn't save this file.")
+    const deleteIndex = convertToPlainBranch.indexOf('deleteStoredBookDataKey(')
+    expect(failureToastIndex).toBeGreaterThan(-1)
+    expect(deleteIndex).toBeGreaterThan(-1)
+    // The write's catch block (and its `return`) must be fully closed before
+    // the cache cleanup runs, or a failed IndexedDB delete would falsely claim
+    // the conversion did not happen and abort the connection.
+    expect(failureToastIndex).toBeLessThan(deleteIndex)
+    expect(convertToPlainBranch).toMatch(/deleteStoredBookDataKey\([^)]*\)\s*\.catch\(/)
+  })
+
   it("the 'connect-plain' branch performs no write and shows no toast — re-opening a plain book is a disk no-op", () => {
     expect(connectPlainBranch).not.toBe('')
     expect(connectPlainBranch).not.toContain('writePlainBookFile(')

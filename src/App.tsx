@@ -1478,15 +1478,18 @@ export default function App() {
       } else if (connectionFormat === 'convert-to-plain') {
         try {
           await writePlainBookFile(handle, resolution.book)
-          // Stale-DEK cleanup: without this the next open tries the cached
-          // key against plaintext.
-          await deleteStoredBookDataKey(handle)
-          fileCrypto = { dek: null, wraps: [] }
-          addToast('Saved without a password — this file no longer needs one to open.')
         } catch {
           addToast("Couldn't save this file. Nothing was changed — try again.")
           return
         }
+        // Stale-DEK cleanup: without this the next open tries the cached
+        // key against plaintext. Kept OUT of the write's try/catch — once the
+        // conversion has landed on disk, a failed cache delete must not report
+        // "Nothing was changed" nor abort the connection. Same non-fatal
+        // convention as storeBookFileDataKey below.
+        await deleteStoredBookDataKey(handle).catch(() => undefined)
+        fileCrypto = { dek: null, wraps: [] }
+        addToast('Saved without a password — this file no longer needs one to open.')
       } else {
         // Plaintext never calls getDataKey; v1 keys cannot be wrapped because
         // they are non-extractable. Migrate either format before connecting.
