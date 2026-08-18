@@ -3508,7 +3508,7 @@ export function MapSvg({
           {snapping.x && (
             <line
               data-map-alignment-guide="x"
-              stroke={MUTED}
+              stroke={FLOW_GREEN}
               strokeDasharray="4 4"
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"
@@ -3524,7 +3524,7 @@ export function MapSvg({
           {snapping.y && (
             <line
               data-map-alignment-guide="y"
-              stroke={MUTED}
+              stroke={FLOW_GREEN}
               strokeDasharray="4 4"
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"

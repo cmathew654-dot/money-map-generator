@@ -2492,8 +2492,13 @@ summary:focus-visible {
 .zoom-cluster > button:nth-child(4) {
   width: auto;
   padding: 0 var(--mm-space-16);
-  color: var(--mm-muted);
   line-height: var(--mm-lh-flat);
+}
+
+/* Source order matters: this sits after the alignment rule above so the
+   pressed state's on-ink text wins over the muted rest state. */
+.zoom-cluster > button:nth-child(4):not([aria-pressed='true']) {
+  color: var(--mm-muted);
 }
 
 .wizard-step-button {

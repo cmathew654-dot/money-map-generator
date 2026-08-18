@@ -935,28 +935,43 @@ export function parseBook(json: string): MoneyMapFile {
   try {
     value = JSON.parse(json)
   } catch {
-    throw new Error('The selected file is not valid JSON.')
+    throw new BookValidationError('The selected file is not valid JSON.')
   }
 
   if (!isRecord(value)) {
-    throw new Error('The selected file is not a Money Map book.')
+    throw new BookValidationError('The selected file is not a Money Map book.')
+  }
+  if (typeof value.ct === 'string' && typeof value.iv === 'string') {
+    throw new BookValidationError(
+      'This is an encrypted client file, not a plain backup. Use "Open client file" to open it — it never opens through the backup loader.',
+    )
   }
   if (value.fileType !== 'money-map-book') {
-    throw new Error('The selected file has the wrong file type.')
+    throw new BookValidationError('The selected file has the wrong file type.')
   }
-  if (value.version !== 1) {
-    throw new Error('This Money Map book version is not supported.')
+  // Every message below is written for the advisor, so surface it as a
+  // BookValidationError instead of letting the UI collapse it to a generic
+  // "could not be loaded".
+  try {
+    if (value.version !== 1) {
+      throw new Error('This Money Map book version is not supported.')
+    }
+    if (!Array.isArray(value.clients)) {
+      throw new Error('The Money Map book must contain a clients array.')
+    }
+    if (value.clients.length === 0) {
+      throw new Error('The Money Map book must contain at least one client.')
+    }
+    value.clients.forEach((client, index) => validateClient(client, index, true))
+    const book = value as unknown as MoneyMapFile
+    const clients = book.clients.map(migrateClient)
+    clients.forEach((client, index) => validateClient(client, index))
+    if (new Set(clients.map((client) => client.id)).size !== clients.length) throw new Error('The Money Map book contains duplicate client ids.')
+    return { ...book, clients }
+  } catch (error) {
+    if (error instanceof BookValidationError) throw error
+    throw new BookValidationError(
+      error instanceof Error ? error.message : String(error),
+    )
   }
-  if (!Array.isArray(value.clients)) {
-    throw new Error('The Money Map book must contain a clients array.')
-  }
-  if (value.clients.length === 0) {
-    throw new Error('The Money Map book must contain at least one client.')
-  }
-  value.clients.forEach((client, index) => validateClient(client, index, true))
-  const book = value as unknown as MoneyMapFile
-  const clients = book.clients.map(migrateClient)
-  clients.forEach((client, index) => validateClient(client, index))
-  if (new Set(clients.map((client) => client.id)).size !== clients.length) throw new Error('The Money Map book contains duplicate client ids.')
-  return { ...book, clients }
 }
