@@ -54,3 +54,45 @@ describe('office key wiring into the open path (getDataKey callback)', () => {
     )
   })
 })
+
+const createFileCryptoFn =
+  cleanSource.match(
+    /async function createFileCrypto\([\s\S]*?\r?\n\}\r?\n[\s\S]*?async function windowsHelloWrap/,
+  )?.[0] ?? ''
+
+const handleCreateConnectedFileFn =
+  cleanSource.match(
+    /const handleCreateConnectedFile = async \(\) => \{[\s\S]*?\r?\n {2}\}\r?\n\r?\n {2}const handleAddWindowsHello/,
+  )?.[0] ?? ''
+
+describe('office key wiring into the create path (createFileCrypto)', () => {
+  it('mints wraps from the cached office identity with no ceremony when one already exists', () => {
+    expect(createFileCryptoFn).not.toBe('')
+    expect(createFileCryptoFn).toContain('readOfficeIdentity()')
+    expect(createFileCryptoFn).toMatch(
+      /if \(identity\) \{\s*\n\s*const wraps = await officeWraps\(dek, identity, identity\.recovery\)\s*\n\s*return \{ fileCrypto: \{ dek, wraps \}, recoveryCode: null \}/,
+    )
+  })
+
+  it('runs the office setup ceremony and returns a recovery code on first run only', () => {
+    expect(createFileCryptoFn).toContain('await promptOfficePassword()')
+    expect(createFileCryptoFn).toContain('setupOfficePassword(password)')
+    expect(createFileCryptoFn).toContain('recoveryCode: setup.recoveryCode')
+  })
+
+  it('holds no biometric step and no per-book passphrase wrap construction', () => {
+    expect(createFileCryptoFn).not.toContain('windowsHelloWrap(dek)')
+    expect(createFileCryptoFn).not.toContain('enrollPrf')
+    expect(createFileCryptoFn).not.toMatch(/type: 'passphrase'/)
+    expect(createFileCryptoFn).not.toContain('helloFirst')
+  })
+
+  it('runs no ceremony and shows no recovery dialog when creating a second book', () => {
+    expect(handleCreateConnectedFileFn).not.toBe('')
+    expect(handleCreateConnectedFileFn).not.toContain('isPrfAvailable')
+    expect(handleCreateConnectedFileFn).not.toContain('promptForWindowsHello')
+    expect(handleCreateConnectedFileFn).toMatch(
+      /if \(created\.recoveryCode\) \{\s*\n\s*await showRecoveryCode\(/,
+    )
+  })
+})

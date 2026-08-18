@@ -74,11 +74,10 @@ describe('connected file encryption wiring', () => {
     expect(passphraseDialogSource).toContain('allowRecovery && !recovering')
   })
 
-  it('uses Hello plus recovery, without a passphrase, for Hello-first creation', () => {
-    expect(appSource).toMatch(/isPrfAvailable\(\)[\s\S]*?Lock this file with Windows Hello/)
-    expect(appSource).toMatch(/createFileCrypto\(null, true\)/)
-    expect(appSource).toMatch(/wraps = \[.*webauthn[\s\S]*?recovery/)
-    expect(appSource).not.toMatch(/helloCreate[\s\S]*?createFileCrypto\(passphrase\.value\)/)
+  it('creates a new book by minting office wraps, with no Hello step and no per-book passphrase wrap', () => {
+    expect(appSource).toMatch(/const created = await createFileCrypto\(async \(\) => \{/)
+    expect(appSource).not.toContain("label: 'Passphrase'")
+    expect(appSource).not.toMatch(/createFileCrypto\(null, true\)/)
   })
 
   it('tries the cached DEK before Hello and removes stale cache entries', () => {
@@ -97,8 +96,12 @@ describe('connected file encryption wiring', () => {
     expect(appSource).toMatch(/clearStoredBookDataKey\(\)/)
   })
 
-  it('lets the framing dialog fall back to the password flow', () => {
-    expect(appSource).toMatch(/Use a password instead/)
-    expect(appSource).toMatch(/promptForPassphrase\('create', handle\.name\)/)
+  it('shows no Windows Hello dialog on the book-creation path (Hello framing is open-path only)', () => {
+    const createConnectedFile = appSource.match(
+      /const handleCreateConnectedFile = async \(\) => \{[\s\S]*?\r?\n {2}\}\r?\n\r?\n {2}const handleAddWindowsHello/,
+    )?.[0] ?? ''
+    expect(createConnectedFile).not.toBe('')
+    expect(createConnectedFile).not.toContain('promptForWindowsHello')
+    expect(createConnectedFile).not.toContain('Use a password instead')
   })
 })

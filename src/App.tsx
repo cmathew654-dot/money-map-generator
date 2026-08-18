@@ -54,7 +54,6 @@ import {
   kekFromPrf,
   kekFromRecoveryCode,
   newDataKey,
-  newRecoveryCode,
   newSalt,
   openBook,
   readWraps,
@@ -64,8 +63,11 @@ import {
   type Wrap,
 } from './model/crypto'
 import {
+  officeWraps,
   officeWrapsOf,
+  readOfficeIdentity,
   resolveOfficeDataKey,
+  setupOfficePassword,
   unlockOfficeWithPassword,
   unlockOfficeWithRecoveryCode,
 } from './model/officeKey'
@@ -317,10 +319,6 @@ export function shouldAutoLock(state: {
     state.now - state.lastActivity >= AUTO_LOCK_MS
 }
 
-function bytesToBase64(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...bytes))
-}
-
 function bytesFromBase64(value: string): Uint8Array {
   return Uint8Array.from(atob(value), (character) => character.charCodeAt(0))
 }
@@ -330,36 +328,25 @@ function isAbortError(error: unknown): boolean {
     error instanceof Error && isAbortError(error.cause)
 }
 
-async function createFileCrypto(passphrase: string | null, helloFirst = false): Promise<{
+async function createFileCrypto(
+  promptOfficePassword: () => Promise<string | null>,
+): Promise<{
   fileCrypto: { dek: CryptoKey; wraps: Wrap[] }
-  recoveryCode: string
+  recoveryCode: string | null
 }> {
   const dek = await newDataKey()
-  const recoveryCode = newRecoveryCode()
-  const recoverySalt = newSalt()
-  const recoveryWrap = await wrapDataKey(dek, await kekFromRecoveryCode(recoveryCode, recoverySalt), {
-      type: 'recovery',
-      label: 'Recovery code',
-      salt: bytesToBase64(recoverySalt),
-    })
-  let wraps: Wrap[]
-  if (helloFirst) {
-    const webauthnWrap = await windowsHelloWrap(dek)
-    wraps = [webauthnWrap, recoveryWrap]
-  } else {
-    const passphraseSalt = newSalt()
-    wraps = [
-      await wrapDataKey(dek, await kekFromPassphrase(passphrase ?? '', passphraseSalt), {
-        type: 'passphrase',
-        label: 'Passphrase',
-        salt: bytesToBase64(passphraseSalt),
-        iter: 600_000,
-      }),
-      recoveryWrap,
-    ]
+  const identity = await readOfficeIdentity()
+  if (identity) {
+    const wraps = await officeWraps(dek, identity, identity.recovery)
+    return { fileCrypto: { dek, wraps }, recoveryCode: null }
   }
-
-  return { fileCrypto: { dek, wraps }, recoveryCode }
+  const password = await promptOfficePassword()
+  if (password === null) {
+    throw new DOMException('Office password ceremony cancelled.', 'AbortError')
+  }
+  const setup = await setupOfficePassword(password)
+  const wraps = await officeWraps(dek, setup.office, setup.recovery)
+  return { fileCrypto: { dek, wraps }, recoveryCode: setup.recoveryCode }
 }
 
 /**
@@ -1459,10 +1446,12 @@ export default function App() {
           : { factor: 'passphrase', value: migrationPassphrase } as const
         if (passphrase === null) return
         try {
-          const created = await createFileCrypto(passphrase.value)
+          const created = await createFileCrypto(async () => passphrase.value)
           fileCrypto = created.fileCrypto
           const envelope = await writeBookFile(handle, resolution.book, fileCrypto.dek, fileCrypto.wraps)
-          await showRecoveryCode(created.recoveryCode, handle.name, true)
+          if (created.recoveryCode) {
+            await showRecoveryCode(created.recoveryCode, handle.name, true)
+          }
           setCeremony({ envelope, fileName: handle.name, mode: 'seal' })
           migrated = true
         } catch {
@@ -1568,38 +1557,23 @@ export default function App() {
   const handleCreateConnectedFile = async () => {
     try {
       const handle = await chooseNewBookFile()
-      let created: Awaited<ReturnType<typeof createFileCrypto>>
-      while (true) {
-        const helloAvailable = await isPrfAvailable()
-        const choice = helloAvailable
-          ? await promptForWindowsHello('create', handle.name)
-          : 'password' as const
-        if (choice === null) return
-        const passphrase = choice === 'password'
-          ? await promptForPassphrase('create', handle.name)
-          : null
-        if (choice === 'password' && passphrase === null) return
-        try {
-          created = choice === 'continue'
-            ? await createFileCrypto(null, true)
-            : await createFileCrypto(passphrase!.value)
-          break
-        } catch (error) {
-          if (choice === 'continue' && isAbortError(error)) continue
-          throw error
-        }
-      }
+      const created = await createFileCrypto(async () => {
+        const passphrase = await promptForPassphrase('create', handle.name, true, 'office')
+        return passphrase?.value ?? null
+      })
       const envelope = await writeBookFile(
         handle,
         snapshotRef.current.book,
         created.fileCrypto.dek,
         created.fileCrypto.wraps,
       )
-      await showRecoveryCode(
-        created.recoveryCode,
-        handle.name,
-        created.fileCrypto.wraps.some((wrap) => wrap.type === 'passphrase'),
-      )
+      if (created.recoveryCode) {
+        await showRecoveryCode(
+          created.recoveryCode,
+          handle.name,
+          created.fileCrypto.wraps.some((wrap) => wrap.type === 'passphrase'),
+        )
+      }
       fileCryptoRef.current = created.fileCrypto
       rememberConnectedFile(handle)
       void storeBookFileDataKey(handle, created.fileCrypto.dek).catch(() => undefined)
