@@ -73,6 +73,20 @@ export function resolveFileConnection(
     : { book: localBook, connected: false, error: fileResult.error }
 }
 
+/**
+ * Pure decision function: what should happen to a just-opened book's format.
+ * Protection on always wins ('protect' — caller keeps its existing Phase 1
+ * behavior verbatim); protection off either carries a legacy encrypted file
+ * to plain or leaves an already-plain file untouched.
+ */
+export function resolveConnectionFormat(input: {
+  protectionOn: boolean
+  wasEncrypted: boolean
+}): 'convert-to-plain' | 'connect-plain' | 'protect' {
+  if (input.protectionOn) return 'protect'
+  return input.wasEncrypted ? 'convert-to-plain' : 'connect-plain'
+}
+
 function browserFileStoreApi(): FileStoreApi {
   return window as unknown as FileStoreApi
 }

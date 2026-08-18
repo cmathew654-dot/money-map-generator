@@ -35,6 +35,7 @@ import {
   getStoredBookDataKey,
   readBookFile,
   requestBookFilePermission,
+  resolveConnectionFormat,
   resolveFileConnection,
   storeBookFileHandle,
   storeBookFileDataKey,
@@ -1465,25 +1466,47 @@ export default function App() {
         return
       }
 
-      // Plaintext never calls getDataKey; v1 keys cannot be wrapped because
-      // they are non-extractable. Migrate either format before connecting.
-      if (!fileCrypto) {
-        const passphrase = migrationPassphrase === null
-          ? await promptForPassphrase('create', handle.name)
-          : { factor: 'passphrase', value: migrationPassphrase } as const
-        if (passphrase === null) return
+      const connectionFormat = resolveConnectionFormat({
+        protectionOn: protectionEnabled(),
+        wasEncrypted: openedEnvelope !== null,
+      })
+
+      if (connectionFormat === 'connect-plain') {
+        // Already plain; re-opening it must be a disk no-op.
+        fileCrypto = { dek: null, wraps: [] }
+      } else if (connectionFormat === 'convert-to-plain') {
         try {
-          const created = await createFileCrypto(async () => passphrase.value)
-          fileCrypto = created.fileCrypto
-          const envelope = await writeConnectedBook(handle, resolution.book, fileCrypto)
-          if (created.recoveryCode) {
-            await showRecoveryCode(created.recoveryCode, handle.name, true)
-          }
-          setCeremony({ envelope, fileName: handle.name, mode: 'seal' })
-          migrated = true
+          await writePlainBookFile(handle, resolution.book)
+          // Stale-DEK cleanup: without this the next open tries the cached
+          // key against plaintext.
+          await deleteStoredBookDataKey(handle)
+          fileCrypto = { dek: null, wraps: [] }
+          addToast('Saved without a password — this file no longer needs one to open.')
         } catch {
-          addToast(`Could not encrypt ${handle.name}; current book unchanged`)
+          addToast("Couldn't save this file. Nothing was changed — try again.")
           return
+        }
+      } else {
+        // Plaintext never calls getDataKey; v1 keys cannot be wrapped because
+        // they are non-extractable. Migrate either format before connecting.
+        if (!fileCrypto) {
+          const passphrase = migrationPassphrase === null
+            ? await promptForPassphrase('create', handle.name)
+            : { factor: 'passphrase', value: migrationPassphrase } as const
+          if (passphrase === null) return
+          try {
+            const created = await createFileCrypto(async () => passphrase.value)
+            fileCrypto = created.fileCrypto
+            const envelope = await writeConnectedBook(handle, resolution.book, fileCrypto)
+            if (created.recoveryCode) {
+              await showRecoveryCode(created.recoveryCode, handle.name, true)
+            }
+            setCeremony({ envelope, fileName: handle.name, mode: 'seal' })
+            migrated = true
+          } catch {
+            addToast(`Could not encrypt ${handle.name}; current book unchanged`)
+            return
+          }
         }
       }
 
@@ -1505,8 +1528,9 @@ export default function App() {
         void storeBookFileDataKey(handle, fileCrypto.dek).catch(() => undefined)
       }
       // The inverse of sealing: an encrypted file resolves out of its own
-      // ciphertext. Plaintext files never had any, so they get nothing.
-      if (openedEnvelope && !migrated) {
+      // ciphertext. Plaintext files never had any, so they get nothing. A
+      // converted-to-plain book has no data key, so it shows no ceremony.
+      if (openedEnvelope && !migrated && fileCrypto.dek) {
         setCeremony({ envelope: openedEnvelope, fileName: handle.name, mode: 'unseal' })
       }
       addToast(isReconnect ? 'Saving to this file again' : 'Changes will now save to this file')

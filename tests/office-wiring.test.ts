@@ -97,6 +97,13 @@ describe('office key wiring into the create path (createFileCrypto)', () => {
   })
 })
 
+describe('the unlock ladder is never gated on the protection toggle (Phase 2)', () => {
+  it('the getDataKey callback slice contains no reference to protectionEnabled', () => {
+    expect(dataKeyCallback).not.toBe('')
+    expect(dataKeyCallback).not.toContain('protectionEnabled')
+  })
+})
+
 describe('plain-by-default protection gate (Phase 2)', () => {
   it("createFileCrypto's first statement is the protectionEnabled() gate, before any ceremony code runs", () => {
     expect(createFileCryptoFn).not.toBe('')
@@ -148,6 +155,55 @@ const handleAddWindowsHelloFn =
   cleanSource.match(
     /const handleAddWindowsHello = async \(\) => \{[\s\S]*?\r?\n {2}\}\r?\n\r?\n {2}const handleOpenConnectedFile/,
   )?.[0] ?? ''
+
+const replaceBookFromFileFn =
+  cleanSource.match(
+    /const replaceBookFromFile = useCallback\(\r?\n\s*async \(handle: BookFileHandle, isReconnect: boolean\) => \{[\s\S]*?\r?\n\s*\},\r?\n\s*\[addToast, canMutate, closeMapTextEditor, commitSnapshot, locked, promptForPassphrase, promptForWindowsHello, rememberConnectedFile, resetWizard, showRecoveryCode\],\r?\n\s*\)/,
+  )?.[0] ?? ''
+
+const convertToPlainBranch =
+  replaceBookFromFileFn.match(
+    /\} else if \(connectionFormat === 'convert-to-plain'\) \{[\s\S]*?\r?\n\s*\} else \{/,
+  )?.[0] ?? ''
+
+const connectPlainBranch =
+  replaceBookFromFileFn.match(
+    /if \(connectionFormat === 'connect-plain'\) \{[\s\S]*?\r?\n\s*\} else if/,
+  )?.[0] ?? ''
+
+describe('legacy conversion fork drives the write-back decision (Phase 2)', () => {
+  it("replaceBookFromFile's body calls resolveConnectionFormat", () => {
+    expect(replaceBookFromFileFn).not.toBe('')
+    expect(replaceBookFromFileFn).toContain('resolveConnectionFormat(')
+  })
+
+  it("the 'convert-to-plain' branch writes plain, clears the stale cached key, then toasts, in order", () => {
+    expect(convertToPlainBranch).not.toBe('')
+    const writeIndex = convertToPlainBranch.indexOf('writePlainBookFile(')
+    const deleteIndex = convertToPlainBranch.indexOf('deleteStoredBookDataKey(')
+    const toastIndex = convertToPlainBranch.indexOf(
+      'Saved without a password — this file no longer needs one to open.',
+    )
+    expect(writeIndex).toBeGreaterThan(-1)
+    expect(deleteIndex).toBeGreaterThan(-1)
+    expect(toastIndex).toBeGreaterThan(-1)
+    expect(writeIndex).toBeLessThan(deleteIndex)
+    expect(deleteIndex).toBeLessThan(toastIndex)
+  })
+
+  it("the 'connect-plain' branch performs no write and shows no toast — re-opening a plain book is a disk no-op", () => {
+    expect(connectPlainBranch).not.toBe('')
+    expect(connectPlainBranch).not.toContain('writePlainBookFile(')
+    expect(connectPlainBranch).not.toContain('writeConnectedBook(')
+    expect(connectPlainBranch).not.toContain('addToast(')
+  })
+
+  it('the unseal ceremony additionally requires a data key, so a converted book shows no ceremony', () => {
+    expect(replaceBookFromFileFn).toContain(
+      'if (openedEnvelope && !migrated && fileCrypto.dek) {',
+    )
+  })
+})
 
 describe('nullable-dek sentinel routing for the remaining write and lock paths (Phase 2)', () => {
   it('flushConnectedFileSave routes through writeConnectedBook and keeps the not-connected guard', () => {

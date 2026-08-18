@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  resolveConnectionFormat,
   resolveFileConnection,
   supportsFileStore,
 } from '../src/model/filestore'
@@ -48,5 +49,31 @@ describe('file store decisions', () => {
     expect(
       resolveFileConnection(localBook, { status: 'failure', error }),
     ).toEqual({ book: localBook, connected: false, error })
+  })
+})
+
+describe('resolveConnectionFormat', () => {
+  it('converts a legacy encrypted book to plain when protection is off', () => {
+    expect(
+      resolveConnectionFormat({ protectionOn: false, wasEncrypted: true }),
+    ).toBe('convert-to-plain')
+  })
+
+  it('leaves an already-plain book untouched when protection is off', () => {
+    expect(
+      resolveConnectionFormat({ protectionOn: false, wasEncrypted: false }),
+    ).toBe('connect-plain')
+  })
+
+  it('keeps the Phase 1 protect behavior for an encrypted book when protection is on', () => {
+    expect(
+      resolveConnectionFormat({ protectionOn: true, wasEncrypted: true }),
+    ).toBe('protect')
+  })
+
+  it('keeps the Phase 1 protect behavior for a plain book when protection is on', () => {
+    expect(
+      resolveConnectionFormat({ protectionOn: true, wasEncrypted: false }),
+    ).toBe('protect')
   })
 })
