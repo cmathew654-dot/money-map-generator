@@ -5,6 +5,10 @@ export interface RecoveryCodeDialogProps {
   code: string
   fileName: string
   hasPassphraseWrap?: boolean
+  /** Term used for the details-list row above the printed date. Defaults to the per-book term. */
+  scopeLabel?: string
+  /** Intro sentence above the details list. Defaults to the per-book intro. */
+  introText?: string
   /**
    * Held by the parent rather than local state: this component is rendered as
    * a plain function in tests, so it cannot use hooks. The alternative it
@@ -28,6 +32,8 @@ export function RecoveryCodeDialog({
   code,
   fileName,
   hasPassphraseWrap = true,
+  scopeLabel = 'Client book',
+  introText = 'Store this code somewhere secure before continuing.',
   acknowledged,
   onAcknowledgedChange,
   onConfirm,
@@ -65,7 +71,7 @@ export function RecoveryCodeDialog({
       <h2 id="recovery-dialog-title">Save the recovery code</h2>
       <div className="dialog-message recovery-dialog-content">
         <p className="recovery-intro" id="recovery-dialog-intro">
-          Store this code somewhere secure before continuing.
+          {introText}
         </p>
         {!hasPassphraseWrap && (
           <p>
@@ -75,7 +81,7 @@ export function RecoveryCodeDialog({
 
         <dl className="recovery-details">
           <div>
-            <dt>Client book</dt>
+            <dt>{scopeLabel}</dt>
             <dd>{fileName}</dd>
           </div>
           <div className="recovery-print-date">
