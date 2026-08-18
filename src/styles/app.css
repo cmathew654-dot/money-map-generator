@@ -2764,6 +2764,15 @@ summary:focus-visible {
   min-width: 300px;
 }
 
+.menu-popover .checkbox-field {
+  margin: 4px 0;
+  padding: 0 var(--mm-btn-px-sm);
+}
+
+.menu-popover .checkbox-field input {
+  accent-color: var(--mm-flow);
+}
+
 /* Lane/lease: visible read-only indicator (writer-lease robustness slice) */
 .map-readonly-banner {
   position: absolute;

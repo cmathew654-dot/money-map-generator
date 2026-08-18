@@ -49,7 +49,7 @@ import {
   type FileReadResult,
   type FileStoreApi,
 } from './model/filestore'
-import { protectionEnabled } from './model/settings'
+import { protectionEnabled, setProtectionEnabled } from './model/settings'
 import {
   deriveKey,
   envelopeVersion,
@@ -578,6 +578,7 @@ export default function App() {
   const [fileStoreSupported] = useState(() =>
     DATA_MODE === 'real' && supportsFileStore(window as unknown as FileStoreApi),
   )
+  const [protectionOn, setProtectionOn] = useState(() => protectionEnabled())
   const focusRequestCounter = useRef(0)
   const toastCounter = useRef(0)
   const fileSaveRevision = useRef(0)
@@ -2559,6 +2560,22 @@ export default function App() {
                 </MenuItem>
               </>
             )}
+            <MenuSeparator />
+            <div className="menu-section-label">Settings</div>
+            <label
+              className="checkbox-field protection-toggle"
+              title="Adds a password so this file stays protected if it's emailed or synced elsewhere. Off is fine on office computers already secured by IT."
+            >
+              <input
+                checked={protectionOn}
+                type="checkbox"
+                onChange={(event) => {
+                  setProtectionEnabled(event.target.checked)
+                  setProtectionOn(event.target.checked)
+                }}
+              />
+              <span>Protect files with an office password</span>
+            </label>
             <MenuSeparator />
             <div className="menu-section-label">Map</div>
             <MenuItem disabled={!canMutate || !hasLayoutOverrides} onClick={() => setDialog({ kind: 'resetLayout' })}>Reset arrangement</MenuItem>
