@@ -20,3 +20,6 @@ repro*.mjs
 .env
 .planning/config.json
 docs/codex/
+
+# GSD planning artifacts are local-only (public repo boundary)
+.planning/
