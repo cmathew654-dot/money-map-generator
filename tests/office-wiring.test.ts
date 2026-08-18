@@ -123,3 +123,67 @@ describe('plain-by-default protection gate (Phase 2)', () => {
     expect(handleCreateConnectedFileFn).not.toContain('writeBookFile(')
   })
 })
+
+const flushConnectedFileSaveFn =
+  cleanSource.match(
+    /const flushConnectedFileSave = useCallback\(\(\) => \{[\s\S]*?\r?\n {2}\}, \[connectedFile\]\)/,
+  )?.[0] ?? ''
+
+const autosaveEffect =
+  cleanSource.match(
+    /useEffect\(\(\) => \{\r?\n\s*if \(!connectedFile[\s\S]*?\r?\n\s*\}, \[addToast, book, canMutate, connectedFile\]\)/,
+  )?.[0] ?? ''
+
+const lockConnectedFileFn =
+  cleanSource.match(
+    /const lockConnectedFile = useCallback\(async \(\) => \{[\s\S]*?\r?\n {2}\}, \[addToast, connectedFile, flushBrowserSave, flushConnectedFileSave, showHistory, showSnapshot\]\)/,
+  )?.[0] ?? ''
+
+const idleLockCheckFn =
+  cleanSource.match(
+    /const check = \(\) => \{[\s\S]*?\r?\n {4}\}/,
+  )?.[0] ?? ''
+
+const handleAddWindowsHelloFn =
+  cleanSource.match(
+    /const handleAddWindowsHello = async \(\) => \{[\s\S]*?\r?\n {2}\}\r?\n\r?\n {2}const handleOpenConnectedFile/,
+  )?.[0] ?? ''
+
+describe('nullable-dek sentinel routing for the remaining write and lock paths (Phase 2)', () => {
+  it('flushConnectedFileSave routes through writeConnectedBook and keeps the not-connected guard', () => {
+    expect(flushConnectedFileSaveFn).not.toBe('')
+    expect(flushConnectedFileSaveFn).toContain('writeConnectedBook(')
+    expect(flushConnectedFileSaveFn).not.toContain('writeBookFile(')
+    expect(flushConnectedFileSaveFn).toMatch(/if \(!handle \|\| !fileCrypto\) return/)
+  })
+
+  it('the autosave effect routes through writeConnectedBook and keeps the not-connected guard', () => {
+    expect(autosaveEffect).not.toBe('')
+    expect(autosaveEffect).toContain('writeConnectedBook(')
+    expect(autosaveEffect).not.toContain('writeBookFile(')
+    expect(autosaveEffect).toMatch(/if \(!fileCrypto\) return/)
+  })
+
+  it("lockConnectedFile's guard reads the dek, so an unprotected connected book is never auto-locked", () => {
+    expect(lockConnectedFileFn).not.toBe('')
+    expect(lockConnectedFileFn).toContain('fileCryptoRef.current?.dek')
+  })
+
+  it("shouldAutoLock's hasCrypto argument reads the dek, not just ref presence", () => {
+    expect(idleLockCheckFn).not.toBe('')
+    expect(idleLockCheckFn).toContain('hasCrypto: Boolean(fileCryptoRef.current?.dek)')
+  })
+
+  it('handleAddWindowsHello still short-circuits with no dek and keeps its direct writeBookFile call', () => {
+    expect(handleAddWindowsHelloFn).not.toBe('')
+    expect(handleAddWindowsHelloFn).toMatch(
+      /if \(!connectedFile \|\| !fileCrypto \|\| !fileCrypto\.dek\) return/,
+    )
+    expect(handleAddWindowsHelloFn).toContain('writeBookFile(')
+  })
+
+  it('no writeBookFile( call remains outside handleAddWindowsHello and the body of writeConnectedBook', () => {
+    const matches = [...cleanSource.matchAll(/writeBookFile\(/g)]
+    expect(matches.length).toBe(2)
+  })
+})

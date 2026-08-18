@@ -1516,7 +1516,7 @@ export default function App() {
 
   const lockConnectedFile = useCallback(async () => {
     const handle = connectedFile
-    if (!handle || !fileCryptoRef.current || lockInFlightRef.current) return
+    if (!handle || !fileCryptoRef.current?.dek || lockInFlightRef.current) return
     lockInFlightRef.current = true
     try {
       flushBrowserSave()
@@ -1560,7 +1560,7 @@ export default function App() {
         now: Date.now(),
         lastActivity: lastActivityRef.current,
         connected: Boolean(connectedFile),
-        hasCrypto: Boolean(fileCryptoRef.current),
+        hasCrypto: Boolean(fileCryptoRef.current?.dek),
         dialogOpen: Boolean(dialog),
         recoveryOpen: Boolean(recoveryCodePrompt),
         ceremonyPlaying: Boolean(ceremony),
