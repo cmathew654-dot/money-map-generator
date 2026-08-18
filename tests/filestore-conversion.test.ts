@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { newBook } from '../src/model/book'
+import { newDataKey, sealBook, type Wrap } from '../src/model/crypto'
 import {
   readBookFile,
   writePlainBookFile,
@@ -92,5 +93,44 @@ describe('writePlainBookFile', () => {
     handle.failCloseWith = new Error('handle revoked')
 
     await expect(writePlainBookFile(handle, newBook())).rejects.toThrow('handle revoked')
+  })
+
+  it('conversion round-trip: a v2-encrypted book, once decrypted, writes plain and reads back with no key requested', async () => {
+    const dek = await newDataKey()
+    const wraps: Wrap[] = []
+    const book = newBook()
+    const envelope = await sealBook(dek, JSON.stringify(book), wraps)
+    const handle = new FakeBookFileHandle(envelope)
+
+    await writePlainBookFile(handle, book)
+    const loaded = await readBookFile(handle, unexpectedGetDataKey)
+
+    expect(loaded).toEqual(book)
+  })
+
+  it('interrupted conversion: a v2 envelope survives byte-for-byte when the conversion write() rejects', async () => {
+    const dek = await newDataKey()
+    const wraps: Wrap[] = []
+    const book = newBook()
+    const envelope = await sealBook(dek, JSON.stringify(book), wraps)
+    const handle = new FakeBookFileHandle(envelope)
+    handle.failWriteWith = new Error('disk full')
+
+    await expect(writePlainBookFile(handle, book)).rejects.toThrow('disk full')
+    expect(handle.contents).toBe(envelope)
+  })
+
+  it('idempotency: converting the same book twice produces identical content and stays readable each time', async () => {
+    const handle = new FakeBookFileHandle()
+    const book = newBook()
+
+    const first = await writePlainBookFile(handle, book)
+    const firstLoad = await readBookFile(handle, unexpectedGetDataKey)
+    const second = await writePlainBookFile(handle, book)
+    const secondLoad = await readBookFile(handle, unexpectedGetDataKey)
+
+    expect(second).toBe(first)
+    expect(firstLoad).toEqual(book)
+    expect(secondLoad).toEqual(book)
   })
 })

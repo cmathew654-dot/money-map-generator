@@ -203,6 +203,22 @@ describe('legacy conversion fork drives the write-back decision (Phase 2)', () =
       'if (openedEnvelope && !migrated && fileCrypto.dek) {',
     )
   })
+
+  it("the 'convert-to-plain' catch shows the error toast and returns before commitSnapshot — a failed conversion never connects the book", () => {
+    expect(convertToPlainBranch).not.toBe('')
+    const catchMatch = convertToPlainBranch.match(/\} catch \{[\s\S]*?\r?\n\s*\}/)
+    expect(catchMatch).not.toBeNull()
+    const catchBody = catchMatch?.[0] ?? ''
+    expect(catchBody).toContain("Couldn't save this file. Nothing was changed — try again.")
+    expect(catchBody).toContain('return')
+    expect(catchBody).not.toContain('commitSnapshot(')
+  })
+
+  it("storeBookFileDataKey in replaceBookFromFile's tail is inside a data-key condition", () => {
+    expect(replaceBookFromFileFn).toMatch(
+      /if \(fileCrypto\.dek\) \{\s*\n\s*void storeBookFileDataKey\(handle, fileCrypto\.dek\)/,
+    )
+  })
 })
 
 describe('nullable-dek sentinel routing for the remaining write and lock paths (Phase 2)', () => {
