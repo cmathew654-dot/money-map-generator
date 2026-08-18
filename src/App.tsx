@@ -63,6 +63,12 @@ import {
   wrapDataKey,
   type Wrap,
 } from './model/crypto'
+import {
+  officeWrapsOf,
+  resolveOfficeDataKey,
+  unlockOfficeWithPassword,
+  unlockOfficeWithRecoveryCode,
+} from './model/officeKey'
 import { enrollPrf, isPrfAvailable, prfOutput } from './model/webauthn'
 import type { Bucket, MoneyMapData, MoneyMapFile } from './model/types'
 import { newId } from './model/types'
@@ -281,7 +287,7 @@ type AppDialog =
   | { kind: 'delete'; clientId: string; name: string }
   | { kind: 'error'; title: string; message: string }
   | { kind: 'loadBook'; book: MoneyMapFile }
-  | { kind: 'passphrase'; mode: 'create' | 'open'; fileName: string; allowRecovery: boolean }
+  | { kind: 'passphrase'; mode: 'create' | 'open'; fileName: string; allowRecovery: boolean; scope: 'file' | 'office' }
   | { kind: 'windowsHello'; mode: 'create' | 'open'; fileName: string }
   | { kind: 'resetLayout' }
   | { kind: 'resetTextPositions' }
@@ -866,10 +872,10 @@ export default function App() {
   }, [])
 
   const promptForPassphrase = useCallback(
-    (mode: 'create' | 'open', fileName: string, allowRecovery = true) =>
+    (mode: 'create' | 'open', fileName: string, allowRecovery = true, scope: 'file' | 'office' = 'file') =>
       new Promise<FileFactor | null>((resolve) => {
         passphraseResolveRef.current = resolve
-        setDialog({ kind: 'passphrase', mode, fileName, allowRecovery })
+        setDialog({ kind: 'passphrase', mode, fileName, allowRecovery, scope })
       }),
     [],
   )
@@ -1348,6 +1354,11 @@ export default function App() {
                 await deleteStoredBookDataKey(handle).catch(() => undefined)
               }
             }
+            const officeDek = await resolveOfficeDataKey(envelope)
+            if (officeDek) {
+              fileCrypto = { dek: officeDek, wraps }
+              return officeDek
+            }
             const webauthnWrap = wraps.find((wrap) => wrap.type === 'webauthn')
             if (webauthnWrap?.credentialId && webauthnWrap.prfSalt) {
               try {
@@ -1376,7 +1387,28 @@ export default function App() {
               }
             }
 
+            const officeWrapPresent = officeWrapsOf(wraps).length > 0
             while (true) {
+              if (officeWrapPresent) {
+                const passphrase = await promptForPassphrase('open', handle.name, true, 'office')
+                if (passphrase === null) {
+                  passphraseCancelled = true
+                  throw new DOMException('Passphrase prompt cancelled.', 'AbortError')
+                }
+                decryptAttempted = true
+                try {
+                  const dek = passphrase.factor === 'recovery'
+                    ? await unlockOfficeWithRecoveryCode(envelope, passphrase.value)
+                    : await unlockOfficeWithPassword(envelope, passphrase.value)
+                  if (dek) {
+                    fileCrypto = { dek, wraps }
+                    return dek
+                  }
+                } catch {
+                  // A too-short office password fails validation before derivation; treat as a wrong attempt.
+                }
+                continue
+              }
               const passphrase = await promptForPassphrase('open', handle.name)
               if (passphrase === null) {
                 passphraseCancelled = true
@@ -2989,6 +3021,7 @@ export default function App() {
           allowRecovery={dialog.allowRecovery}
           fileName={dialog.fileName}
           mode={dialog.mode}
+          scope={dialog.scope}
           onCancel={() => finishPassphrasePrompt(null)}
           onSubmit={finishPassphrasePrompt}
         />
