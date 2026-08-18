@@ -1221,6 +1221,10 @@ summary:focus-visible {
   font-weight: var(--mm-fw-semibold);
 }
 
+.zoom-cluster button[aria-pressed='true']:hover:not(:disabled) {
+  background: var(--mm-flow-deep);
+}
+
 .zoom-cluster button:disabled {
   background: var(--mm-section);
   color: var(--mm-dim);
