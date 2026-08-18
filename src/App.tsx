@@ -2693,7 +2693,6 @@ export default function App() {
       </header>
       <div className="visually-hidden" role="status">{leaseAnnouncement(DATA_MODE, canMutate, writerTakeoverPending)}</div>
       {!presentMode && <div className="app-status-stack" aria-live="polite">
-        {DATA_MODE === 'demo' && <section className="app-status-banner is-demo"><strong>Public demo</strong><span>Changes disappear when you close this tab. Do not enter real client information. Best in Chrome or Edge.</span></section>}
         {recovery && (
           <section className="app-status-banner is-danger">
             <strong>Saved copy needs recovery</strong>
