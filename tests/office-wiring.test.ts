@@ -259,3 +259,52 @@ describe('nullable-dek sentinel routing for the remaining write and lock paths (
     expect(matches.length).toBe(2)
   })
 })
+
+const protectionToggleBlock =
+  cleanSource.match(
+    /<div className="menu-section-label">Settings<\/div>[\s\S]*?<\/label>/,
+  )?.[0] ?? ''
+
+const protectionToggleOnChange =
+  protectionToggleBlock.match(/onChange=\{\(event\) => \{[\s\S]*?\r?\n\s*\}\}/)?.[0] ?? ''
+
+describe('protection-toggle menu row (Phase 2)', () => {
+  it('the Settings section label is immediately followed by a single checkbox-field row', () => {
+    expect(protectionToggleBlock).not.toBe('')
+    expect(protectionToggleBlock).toContain('className="checkbox-field protection-toggle"')
+  })
+
+  it('the label and title copy match the UI-SPEC Copywriting Contract verbatim', () => {
+    expect(protectionToggleBlock).toContain('<span>Protect files with an office password</span>')
+    expect(protectionToggleBlock).toContain(
+      "title=\"Adds a password so this file stays protected if it's emailed or synced elsewhere. Off is fine on office computers already secured by IT.\"",
+    )
+  })
+
+  it('the checkbox reads the preference from component state, not from storage inline during render', () => {
+    expect(protectionToggleBlock).toContain('checked={protectionOn}')
+    expect(protectionToggleBlock).not.toContain('checked={protectionEnabled()}')
+  })
+
+  it("the row's onChange writes the setting and mirrors local state, with no dialog, ceremony, or prompt call", () => {
+    expect(protectionToggleOnChange).not.toBe('')
+    expect(protectionToggleOnChange).toContain('setProtectionEnabled(event.target.checked)')
+    expect(protectionToggleOnChange).toContain('setProtectionOn(event.target.checked)')
+    for (const forbidden of [
+      'setDialog(',
+      'setCeremony(',
+      'showRecoveryCode(',
+      'promptForPassphrase(',
+    ]) {
+      expect(protectionToggleOnChange).not.toContain(forbidden)
+    }
+  })
+
+  it('protectionEnabled() is called from exactly three places: the state initializer, createFileCrypto, and the replaceBookFromFile format fork', () => {
+    const matches = [...cleanSource.matchAll(/protectionEnabled\(\)/g)]
+    expect(matches.length).toBe(3)
+    expect(createFileCryptoFn).toContain('protectionEnabled()')
+    expect(replaceBookFromFileFn).toContain('protectionOn: protectionEnabled()')
+    expect(cleanSource).toContain('useState(() => protectionEnabled())')
+  })
+})
