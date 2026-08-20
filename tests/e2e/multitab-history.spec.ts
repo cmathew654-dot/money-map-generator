@@ -91,7 +91,7 @@ test('focused money draft keeps its local undo and redo behavior', async ({ page
   await field.fill('92000')
   await field.press('ControlOrMeta+z')
   // Owner ruling 2026-08-05: the restored draft shows the formatted value.
-  await expect(field).toHaveValue(`$${Number(focusedOriginal).toLocaleString('en-US')}`)
+  await expect(field).toHaveValue(`$${Number(focusedOriginal.replace(/[^0-9.-]/g, '')).toLocaleString('en-US')}`)
   await field.press('ControlOrMeta+Shift+z')
   await expect(field).toHaveValue(/92,?000|\$92,?000/)
 })
