@@ -23,3 +23,6 @@ docs/codex/
 
 # GSD planning artifacts are local-only (public repo boundary)
 .planning/
+
+# GSD dispatch state is local-only
+.gsd/
