@@ -23,6 +23,8 @@ export interface Position {
 }
 
 export interface SubAccount {
+  /** Backfilled on load; lets a sleeve be a flow endpoint. */
+  id?: string
   label: string
   caption?: string
   value: number | null

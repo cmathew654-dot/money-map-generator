@@ -48,6 +48,7 @@ export const SAMPLE_WHITFIELD: MoneyMapData = {
       value: 2450000,
       subAccounts: [
         {
+          id: 'sleeve-managed-ira-jordan-short-term-funds',
           label: 'Short-Term Funds',
           caption: 'Target ~$160,000 — Annual RMDs',
           value: 240000,
@@ -145,7 +146,7 @@ export const SAMPLE_CALLOWAY: MoneyMapData = {
       label: 'IRA — Marcus',
       caption: 'Most Aggressive Allocation',
       value: 2650000,
-      subAccounts: [{ label: 'Short-Term Account', value: 110000 }],
+      subAccounts: [{ id: 'sleeve-calloway-ira-marcus-short-term-account', label: 'Short-Term Account', value: 110000 }],
     },
     {
       id: 'calloway-life-insurance',

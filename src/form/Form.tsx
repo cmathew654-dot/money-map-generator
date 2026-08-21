@@ -839,7 +839,7 @@ function SubAccountRows({
           requestFocus(() => labelInputs.current[index])
           onChange([
             ...subAccounts,
-            { label: '', caption: '', value: null },
+            { id: newId('sleeve'), label: '', caption: '', value: null },
           ])
         }}
       >

@@ -148,6 +148,19 @@ function uniqueMigratedFlowId(
 export function migrateClient(data: MoneyMapData): MoneyMapData {
   const incomeSources = data.incomeSources.map((source) => ({ ...source, id: typeof source.id === 'string' && source.id ? source.id : newId('income') }))
   const footnotes = data.footnotes.map((footnote) => ({ ...footnote, id: typeof footnote.id === 'string' && footnote.id ? footnote.id : newId('footnote') }))
+  const accounts = data.accounts.map((account) => ({
+    ...account,
+    ...(account.subAccounts
+      ? {
+          subAccounts: account.subAccounts.map((subAccount) => ({
+            ...subAccount,
+            id: typeof subAccount.id === 'string' && subAccount.id
+              ? subAccount.id
+              : newId('sleeve'),
+          })),
+        }
+      : {}),
+  }))
   const existingArrows = data.customArrows ?? []
   const normalizedArrows = existingArrows.map((arrow) =>
     arrow.style === undefined
@@ -162,8 +175,8 @@ export function migrateClient(data: MoneyMapData): MoneyMapData {
     return normalizedArrows.some(
       (arrow, index) => arrow !== existingArrows[index],
     )
-      ? { ...data, incomeSources, footnotes, customArrows: normalizedArrows }
-      : { ...data, incomeSources, footnotes }
+      ? { ...data, incomeSources, footnotes, accounts, customArrows: normalizedArrows }
+      : { ...data, incomeSources, footnotes, accounts }
   }
 
   const chain = LEGACY_WATERFALL_ORDER.flatMap((bucket) =>
@@ -199,7 +212,7 @@ export function migrateClient(data: MoneyMapData): MoneyMapData {
     ...data,
     incomeSources,
     footnotes,
-    accounts: data.accounts.map((account) => ({
+    accounts: accounts.map((account) => ({
       ...account,
       inWaterfall: false,
     })),
@@ -329,7 +342,26 @@ function withFreshIds(data: MoneyMapData): MoneyMapData {
   const incomes = new Map<string, string>()
   const footnotes = new Map<string, string>()
   const arrows = new Map<string, string>()
-  copy.accounts = copy.accounts.map((item) => { const id = newId('account'); accounts.set(item.id, id); return { ...item, id } })
+  const sleeves = new Map<string, string>()
+  copy.accounts = copy.accounts.map((item) => {
+    const id = newId('account')
+    accounts.set(item.id, id)
+    return {
+      ...item,
+      id,
+      ...(item.subAccounts
+        ? {
+            subAccounts: item.subAccounts.map((subAccount) => {
+              const subAccountId = newId('sleeve')
+              if (typeof subAccount.id === 'string' && subAccount.id && !sleeves.has(subAccount.id)) {
+                sleeves.set(subAccount.id, subAccountId)
+              }
+              return { ...subAccount, id: subAccountId }
+            }),
+          }
+        : {}),
+    }
+  })
   copy.incomeSources = copy.incomeSources.map((item) => { const id = newId('income'); incomes.set(item.id, id); return { ...item, id } })
   copy.footnotes = copy.footnotes.map((item) => { const id = newId('footnote'); footnotes.set(item.id, id); return { ...item, id } })
   copy.customArrows?.forEach((item) => arrows.set(item.id, newId('arrow')))
@@ -344,7 +376,7 @@ function withFreshIds(data: MoneyMapData): MoneyMapData {
     return key
   }
   if (copy.layoutOverrides) copy.layoutOverrides = Object.fromEntries(Object.entries(copy.layoutOverrides).map(([key, value]) => [remapKey(key), value]))
-  if (copy.customArrows) copy.customArrows = copy.customArrows.map((item) => ({ ...item, id: arrows.get(item.id)!, sourceId: accounts.get(item.sourceId) ?? item.sourceId, targetId: accounts.get(item.targetId) ?? item.targetId }))
+  if (copy.customArrows) copy.customArrows = copy.customArrows.map((item) => ({ ...item, id: arrows.get(item.id)!, sourceId: accounts.get(item.sourceId) ?? sleeves.get(item.sourceId) ?? item.sourceId, targetId: accounts.get(item.targetId) ?? sleeves.get(item.targetId) ?? item.targetId }))
   if (copy.notes) copy.notes = copy.notes.map((item) => ({ ...item, id: newId('note') }))
   return copy
 }
@@ -808,7 +840,7 @@ function validateClient(value: unknown, index: number, allowMissingItemIds = fal
       !isRecord(position) || typeof position.label !== 'string' || !isMoneyValue(position.value)
     ))) throw new Error(`Client ${index + 1} has invalid account positions.`)
     if (account.subAccounts !== undefined && (!Array.isArray(account.subAccounts) || account.subAccounts.some((subAccount) =>
-      !isRecord(subAccount) || typeof subAccount.label !== 'string' || !isOptionalString(subAccount.caption) || !isMoneyValue(subAccount.value)
+      !isRecord(subAccount) || typeof subAccount.label !== 'string' || !isOptionalString(subAccount.caption) || !isMoneyValue(subAccount.value) || (!allowMissingItemIds && (typeof subAccount.id !== 'string' || subAccount.id.length === 0))
     ))) throw new Error(`Client ${index + 1} has invalid subaccounts.`)
     if (
       account.inWaterfall !== undefined &&
@@ -852,7 +884,21 @@ function validateClient(value: unknown, index: number, allowMissingItemIds = fal
     }
     const arrows = value.customArrows as unknown[]
     uniqueIds(arrows, index, 'custom arrow')
-    const endpoints = new Set(['income', 'need', ...accountIds])
+    const sleeves = accounts.flatMap((account) =>
+      isRecord(account) && Array.isArray(account.subAccounts)
+        ? account.subAccounts
+        : [],
+    )
+    const endpoints = new Set([
+      'income',
+      'need',
+      ...accountIds,
+      ...sleeves.flatMap((sleeve) =>
+        isRecord(sleeve) && typeof sleeve.id === 'string' && sleeve.id
+          ? [sleeve.id]
+          : [],
+      ),
+    ])
     if (arrows.some((arrow) => isRecord(arrow) && (!endpoints.has(String(arrow.sourceId)) || !endpoints.has(String(arrow.targetId))))) {
       throw new BookValidationError(`${details.title} has a flow connected to an item that is no longer in the map. This book was not opened, and your current work was not changed.`)
     }
@@ -862,8 +908,14 @@ function validateClient(value: unknown, index: number, allowMissingItemIds = fal
       const account = accounts.find(
         (candidate) => isRecord(candidate) && candidate.id === id,
       )
-      return isRecord(account) && typeof account.label === 'string'
-        ? account.label
+      const sleeve = sleeves.find(
+        (candidate) => isRecord(candidate) && candidate.id === id,
+      )
+      if (isRecord(account) && typeof account.label === 'string') {
+        return account.label
+      }
+      return isRecord(sleeve) && typeof sleeve.label === 'string'
+        ? sleeve.label
         : 'Unknown item'
     }
     const connections = new Set<string>()

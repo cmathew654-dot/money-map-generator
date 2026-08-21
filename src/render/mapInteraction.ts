@@ -538,6 +538,13 @@ export function duplicateMapAccount(
   if (!account) return null
   const placed = duplicatePlacement(sourceRect, blockedRects, bounds)
   const copyId = newId('account')
+  const copy = structuredClone(account)
+  if (copy.subAccounts) {
+    copy.subAccounts = copy.subAccounts.map((subAccount) => ({
+      ...subAccount,
+      id: newId('sleeve'),
+    }))
+  }
   const sourceOverride = data.layoutOverrides?.[id] ?? {}
   const visualOverride = { ...sourceOverride }
   delete visualOverride.dx
@@ -556,7 +563,7 @@ export function duplicateMapAccount(
       ...data,
       accounts: data.accounts.flatMap((candidate) =>
         candidate.id === id
-          ? [candidate, { ...structuredClone(candidate), id: copyId }]
+          ? [candidate, { ...copy, id: copyId }]
           : [candidate],
       ),
       layoutOverrides,
