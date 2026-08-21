@@ -790,6 +790,15 @@ export function snapRotation(
     : normalized
 }
 
+export const BOW_SNAP_THRESHOLD = 6
+
+export function snapBow(
+  bow: number,
+  threshold = BOW_SNAP_THRESHOLD,
+): number {
+  return Math.abs(bow) <= threshold ? 0 : bow
+}
+
 export function clampRectToBounds(
   rect: Rect,
   bounds: RectBounds,

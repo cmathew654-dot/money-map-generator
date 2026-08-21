@@ -640,6 +640,7 @@ export function MapInspector({
             <InspectorGroup label="Curve">
               <button aria-label="Decrease curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow - 12 }))}>−</button>
               <button aria-label="Increase curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow + 12 }))}>+</button>
+              <button aria-label="Straighten" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: 0 }))}>Straighten</button>
             </InspectorGroup>
             <InspectorGroup label="Over shapes">
               <button

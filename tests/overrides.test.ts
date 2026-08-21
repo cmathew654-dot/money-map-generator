@@ -206,6 +206,17 @@ describe('map interaction helpers', () => {
     )
   })
 
+  it('round-trips an explicit zero arrow bow', () => {
+    const book = newBook()
+    book.clients[0].layoutOverrides = { 'arrow:income': { bow: 0 } }
+
+    expect(
+      parseBook(JSON.stringify(book)).clients[0].layoutOverrides?.[
+        'arrow:income'
+      ],
+    ).toEqual({ bow: 0 })
+  })
+
   it('round-trips a note color override', () => {
     const book = newBook()
     book.clients[0].notes = [{ id: 'colored-note', text: 'Keep', x: 500, y: 400 }]

@@ -86,6 +86,7 @@ import {
   reorderMapItem,
   retargetCustomArrow,
   snapRectToAlignment,
+  snapBow,
   snapRotation,
   screenDeltaToArtboard,
   screenPointToArtboard,
@@ -2690,10 +2691,11 @@ export function MapSvg({
         },
       )
       patch = {
-        bow:
+        bow: snapBow(
           (session.initialOverride.bow ??
             session.startArrow.bow) +
-          perpendicularDelta * 2,
+            perpendicularDelta * 2,
+        ),
       }
     } else if (
       (session.mode === 'arrowStart' ||
