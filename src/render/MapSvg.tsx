@@ -1802,6 +1802,11 @@ function Cylinder({
   )
 }
 
+function arrowOverrideKey(arrow: Arrow): string {
+  return arrow.kind === 'custom'
+    ? 'arrow:custom:' + arrow.id
+    : 'arrow:' + arrow.kind
+}
 function ArrowPath({
   arrow,
   customMarkerIds,
@@ -2857,6 +2862,77 @@ export function MapSvg({
         ]
       : sortedMapItems
 
+  const indexedArrows = layout.arrows.map((arrow, index) => ({ arrow, index }))
+  const standardArrows = indexedArrows.filter(
+    ({ arrow }) =>
+      (displayData.layoutOverrides?.[arrowOverrideKey(arrow)]?.z ?? 0) <= 0,
+  )
+  const overArrows = indexedArrows.filter(
+    ({ arrow }) =>
+      (displayData.layoutOverrides?.[arrowOverrideKey(arrow)]?.z ?? 0) > 0,
+  )
+  const renderArrow = (arrow: Arrow, index: number) => {
+    if (!onChange) {
+      return (
+        <g key={`${arrow.kind}-${arrow.id ?? index}`}>
+          <ArrowPath
+            arrow={arrow}
+            customMarkerIds={customMarkerIds}
+            markerId={markerId}
+          />
+        </g>
+      )
+    }
+    const key = arrowOverrideKey(arrow)
+    const source =
+      arrow.kind === 'custom'
+        ? outlineForId(arrow.sourceId)
+        : arrow.kind === 'income'
+          ? layout.income
+          : layout.accounts.find(
+              (placed) =>
+                placed.account.id === arrow.sourceId,
+            )
+    const target =
+      arrow.kind === 'custom'
+        ? outlineForId(arrow.targetId)
+        : arrow.kind === 'income' || arrow.kind === 'asNeeded'
+          ? layout.need
+          : layout.accounts.find(
+              (placed) =>
+                placed.account.id === arrow.targetId,
+            )
+    return (
+      <ArrowEditor
+        accessibleName={
+          arrow.kind === 'custom'
+            ? `Adjust flow from ${endpointLabelForId(arrow.sourceId)} to ${endpointLabelForId(arrow.targetId)}`
+            : `Adjust ${arrow.kind === 'asNeeded' ? 'account withdrawal' : arrow.kind} flow`
+        }
+        key={`${arrow.kind}-${arrow.id ?? index}`}
+        arrow={arrow}
+        customMarkerIds={customMarkerIds}
+        markerId={markerId}
+        onSelect={(event) => {
+          if (shouldFocusSelect(event.currentTarget)) {
+            onSelectionEvent?.({ type: 'focus/reveal', key })
+          }
+        }}
+        onBeginDrag={(mode) =>
+          beginDrag(
+            key,
+            mode,
+            undefined,
+            arrow,
+            mode === 'arrowStart' ? source : target,
+          )
+        }
+        selected={selectedTargetKey === key}
+        targetKey={key}
+      />
+    )
+  }
+
   return (
     <svg
       data-selected-target={
@@ -2953,8 +3029,10 @@ export function MapSvg({
         }
         const arrowNode = target.closest('.map-arrow-editor')
         if (arrowNode && event.ctrlKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
-          const index = Array.from(event.currentTarget.querySelectorAll('.map-arrow-editor')).indexOf(arrowNode)
-          const arrow = layout.arrows[index]
+          const targetKey = arrowNode.getAttribute('data-map-target')
+          const arrow = layout.arrows.find(
+            (candidate) => arrowOverrideKey(candidate) === targetKey,
+          )
           if (arrow?.kind !== 'custom' || !arrow.id) return
           const field = event.key === 'ArrowLeft' ? 'sourceId' : 'targetId'
           const other = field === 'sourceId' ? arrow.targetId : arrow.sourceId
@@ -3063,70 +3141,7 @@ export function MapSvg({
       </defs>
 
       <g aria-label="Money flow" role="group">
-        {layout.arrows.map((arrow, index) => {
-          if (!onChange) {
-            return (
-              <g key={`${arrow.kind}-${arrow.id ?? index}`}>
-                <ArrowPath
-                  arrow={arrow}
-                  customMarkerIds={customMarkerIds}
-                  markerId={markerId}
-                />
-              </g>
-            )
-          }
-          const key =
-            arrow.kind === 'custom'
-              ? `arrow:custom:${arrow.id}`
-              : `arrow:${arrow.kind}`
-          const source =
-            arrow.kind === 'custom'
-              ? outlineForId(arrow.sourceId)
-              : arrow.kind === 'income'
-                ? layout.income
-                : layout.accounts.find(
-                    (placed) =>
-                      placed.account.id === arrow.sourceId,
-                  )
-          const target =
-            arrow.kind === 'custom'
-              ? outlineForId(arrow.targetId)
-              : arrow.kind === 'income' || arrow.kind === 'asNeeded'
-                ? layout.need
-                : layout.accounts.find(
-                    (placed) =>
-                      placed.account.id === arrow.targetId,
-                  )
-          return (
-            <ArrowEditor
-              accessibleName={
-                arrow.kind === 'custom'
-                  ? `Adjust flow from ${endpointLabelForId(arrow.sourceId)} to ${endpointLabelForId(arrow.targetId)}`
-                  : `Adjust ${arrow.kind === 'asNeeded' ? 'account withdrawal' : arrow.kind} flow`
-              }
-              key={`${arrow.kind}-${arrow.id ?? index}`}
-              arrow={arrow}
-              customMarkerIds={customMarkerIds}
-              markerId={markerId}
-              onSelect={(event) => {
-                if (shouldFocusSelect(event.currentTarget)) {
-                  onSelectionEvent?.({ type: 'focus/reveal', key })
-                }
-              }}
-              onBeginDrag={(mode) =>
-                beginDrag(
-                  key,
-                  mode,
-                  undefined,
-                  arrow,
-                  mode === 'arrowStart' ? source : target,
-                )
-              }
-              selected={selectedTargetKey === key}
-              targetKey={key}
-            />
-          )
-        })}
+        {standardArrows.map(({ arrow, index }) => renderArrow(arrow, index))}
       </g>
       <Masthead
         data={displayData}
@@ -3403,6 +3418,11 @@ export function MapSvg({
         })}
       </g>
 
+      {overArrows.length > 0 && (
+        <g aria-label="Money flow over shapes" role="group">
+          {overArrows.map(({ arrow, index }) => renderArrow(arrow, index))}
+        </g>
+      )}
       {/* Painted after the accounts layer so cylinders never cover a label. */}
       <g aria-label="Flow labels" role="group">
         {layout.arrows.map((arrow, index) => (

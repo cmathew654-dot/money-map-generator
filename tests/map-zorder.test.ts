@@ -86,3 +86,58 @@ describe('manual map z-order', () => {
     expect(undone.snapshot?.book.clients[0].layoutOverrides?.['cash-at-bank']?.z).toBeUndefined()
   })
 })
+
+describe('arrow z persistence', () => {
+  it('preserves a custom arrow z override through parseBook', () => {
+    const key = 'arrow:custom:' + SAMPLE_WHITFIELD.customArrows![0].id
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: { [key]: { z: 1 } },
+    }
+    const parsed = parseBook(JSON.stringify({
+      fileType: 'money-map-book' as const,
+      version: 1 as const,
+      clients: [data],
+    }))
+
+    expect(parsed.clients[0].layoutOverrides?.[key]?.z).toBe(1)
+  })
+
+  it('preserves a generated arrow z override through parseBook', () => {
+    const data = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: { 'arrow:income': { z: 1 } },
+    }
+    const parsed = parseBook(JSON.stringify({
+      fileType: 'money-map-book' as const,
+      version: 1 as const,
+      clients: [data],
+    }))
+
+    expect(parsed.clients[0].layoutOverrides?.['arrow:income']?.z).toBe(1)
+  })
+
+  it('rejects non-finite and nonnumeric arrow z overrides', () => {
+    const finite = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: { 'arrow:income': { z: 0 } },
+    }
+    const nonFinite = JSON.stringify({
+      fileType: 'money-map-book' as const,
+      version: 1 as const,
+      clients: [finite],
+    }).replace('"z":0', '"z":1e999')
+
+    expect(() => parseBook(nonFinite)).toThrow()
+
+    const nonNumeric = {
+      ...SAMPLE_WHITFIELD,
+      layoutOverrides: { 'arrow:income': { z: 'front' } },
+    }
+    expect(() => parseBook(JSON.stringify({
+      fileType: 'money-map-book' as const,
+      version: 1 as const,
+      clients: [nonNumeric],
+    }))).toThrow()
+  })
+})

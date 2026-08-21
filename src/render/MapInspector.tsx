@@ -4,9 +4,11 @@ import {
   layoutMap,
   layoutOverrideRect,
   nudgeLayoutOverride,
+  pointOnOutline,
   NOTE_WIDTH,
   OVERRIDE_BOUNDS,
   rotatedBounds,
+  topOutlineT,
 } from '../layout/layout'
 import type {
   AccountShape,
@@ -68,6 +70,7 @@ interface MapInspectorProps {
 }
 
 const FLOW_COLOR_POPOVER_ID = 'map-inspector-flow-colors'
+const OVER_BOW_FRACTION = 0.4
 
 const SHAPE_LABELS: Record<AccountShape, string> = {
   card: 'Card',
@@ -217,6 +220,11 @@ export function MapInspector({
           : candidate.kind === generatedKind,
       )
     : undefined
+  const arrowOverride = arrowKey
+    ? data.layoutOverrides?.[arrowKey]
+    : undefined
+  const overCaptureKey = arrowKey ? arrowKey + ':over' : null
+  const overShapes = (arrowOverride?.z ?? 0) > 0
   const resolvedArrowColor =
     arrow?.color ??
     (arrow?.kind === 'custom' && arrow.style === 'solid' ? 'ink' : 'green')
@@ -239,6 +247,12 @@ export function MapInspector({
     isRotatableTextKey(data, selectedTargetKey)
       ? selectedTargetKey
       : null
+  const arrowEndpoint = (id: string | undefined) =>
+    id === 'income'
+      ? layout.income
+      : id === 'need'
+        ? layout.need
+        : layout.accounts.find((placed) => placed.account.id === id)
   const endpoints = [
     { id: 'income', label: 'Income sources' },
     { id: 'need', label: 'Monthly need' },
@@ -407,6 +421,55 @@ export function MapInspector({
       arrowKey,
       patch.style ? { ...patch, color: resolvedArrowColor } : patch,
     ))
+  }
+  const toggleOverShapes = () => {
+    if (!arrow || !arrowKey || !overCaptureKey) return
+    const capture = data.layoutOverrides?.[overCaptureKey]
+    if (overShapes) {
+      let next = withOverride(data, arrowKey, {
+        z: capture?.z,
+        bow: capture?.bow,
+        startT: capture?.startT,
+        endT: capture?.endT,
+        startAt: capture?.startAt,
+        endAt: capture?.endAt,
+      })
+      if (Object.keys(next.layoutOverrides?.[arrowKey] ?? {}).length === 0) {
+        next = withoutOverride(next, arrowKey)
+      }
+      onChange(withoutOverride(next, overCaptureKey))
+      return
+    }
+
+    const source = arrowEndpoint(arrow.sourceId)
+    const target = arrowEndpoint(arrow.targetId)
+    if (!source || !target) return
+    const startT = topOutlineT(source)
+    const endT = topOutlineT(target)
+    const start = pointOnOutline(source, startT)
+    const end = pointOnOutline(target, endT)
+    const chordLength = Math.hypot(
+      arrow.end.x - arrow.start.x,
+      arrow.end.y - arrow.start.y,
+    )
+    const bow = (end.x - start.x <= 0 ? 1 : -1) *
+      chordLength * OVER_BOW_FRACTION
+    const next = withOverride(data, arrowKey, {
+      z: 1,
+      bow,
+      startT,
+      endT,
+      startAt: undefined,
+      endAt: undefined,
+    })
+    onChange(withOverride(next, overCaptureKey, {
+      z: arrowOverride?.z,
+      bow: arrowOverride?.bow,
+      startT: arrowOverride?.startT,
+      endT: arrowOverride?.endT,
+      startAt: arrowOverride?.startAt,
+      endAt: arrowOverride?.endAt,
+    }))
   }
   const title = multiSelection
     ? `${compatibleSelectionKeys.length} map items selected`
@@ -577,6 +640,16 @@ export function MapInspector({
             <InspectorGroup label="Curve">
               <button aria-label="Decrease curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow - 12 }))}>−</button>
               <button aria-label="Increase curve" type="button" onClick={() => onChange(withOverride(data, arrowKey, { bow: arrow.bow + 12 }))}>+</button>
+            </InspectorGroup>
+            <InspectorGroup label="Over shapes">
+              <button
+                aria-label="Route flow over shapes"
+                aria-pressed={overShapes}
+                type="button"
+                onClick={toggleOverShapes}
+              >
+                Over
+              </button>
             </InspectorGroup>
             {customArrow && (
               <>

@@ -1465,6 +1465,12 @@ export function nearestOutlineT(
   return bestT
 }
 
+/** Derived from the rendered outline because pointOnRoundedRect uses arc-length distribution. */
+export function topOutlineT(element: OutlineElement): number {
+  const center = centerOf(element)
+  return nearestOutlineT(element, { x: center.x, y: element.y })
+}
+
 function topCapT(xFraction = 0.35): number {
   const angle = Math.acos(xFraction * 2 - 1)
   return (Math.PI * 2 - angle - Math.PI) / (Math.PI * 4)
@@ -1582,7 +1588,7 @@ function boundedBow(
   constrain(
     midpoint.y,
     normal.y,
-    Math.max(OVERRIDE_BOUNDS.top, minimumY),
+    minimumY,
     OVERRIDE_BOUNDS.bottom,
   )
   return clamp(requested, minimum, maximum)
@@ -1651,11 +1657,17 @@ function routedArrow({
       ? 1
       : -1
     : -1
+  const bowMinimumY =
+    (override?.z ?? 0) > 0
+      ? 0
+      : preferAbove
+        ? minimumY
+        : OVERRIDE_BOUNDS.top
   const bow = boundedBow(
     start,
     end,
     override?.bow ?? preferredSign * baseMagnitude,
-    preferAbove ? minimumY : OVERRIDE_BOUNDS.top,
+    bowMinimumY,
   )
   const control = controlForBow(start, end, bow)
   const startCenter = centerOf(source)
