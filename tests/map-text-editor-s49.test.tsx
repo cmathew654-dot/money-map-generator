@@ -39,7 +39,7 @@ const RECT = { left: 100, top: 200, width: 120, height: 20 }
 describe('s49 editor: size-only pill honesty', () => {
   it('labels the pill so a size-only target does not look like a text field', () => {
     const markup = render({
-      target: { kind: 'needLabel' },
+      target: { kind: 'accountRows', accountId: 'a1' },
       rect: RECT,
       rawValue: '',
       fontSize: TYPE.needLabel,
@@ -55,6 +55,47 @@ describe('s49 editor: size-only pill honesty', () => {
       rect: RECT,
       rawValue: '$4,000',
       fontSize: TYPE.needValue,
+      fontSizeMax: 24,
+    })
+    expect(markup).toContain('<input')
+    expect(markup).not.toContain('Text size')
+  })
+})
+
+describe('s49 editor: promoted need label', () => {
+  it('renders a text editor rather than a size-only pill', () => {
+    const markup = render({
+      target: { kind: 'needLabel' },
+      rect: RECT,
+      rawValue: 'MONTHLY INCOME NEED',
+      fontSize: TYPE.needLabel,
+      fontSizeMax: 24,
+    })
+    expect(markup).toMatch(/<(input|textarea)/)
+    expect(markup).not.toContain('Text size')
+  })
+})
+
+describe('s49 editor: promoted label text controls', () => {
+  it.each([
+    [{ kind: 'incomeTotalLabel' }, 'After-Tax Income', TYPE.incomeTotalLabel],
+    [{ kind: 'needLabel' }, 'MONTHLY INCOME NEED', TYPE.needLabel],
+    [{ kind: 'asNeededLabel' }, 'As needed', TYPE.arrowLabel],
+    [
+      { kind: 'needCaption' },
+      'Approximately covered by income and account withdrawals.',
+      TYPE.mathNote,
+    ],
+  ] as const)('renders %s as an input rather than a size-only pill', (
+    target,
+    rawValue,
+    fontSize,
+  ) => {
+    const markup = render({
+      target,
+      rect: { ...RECT, height: 16 },
+      rawValue,
+      fontSize,
       fontSizeMax: 24,
     })
     expect(markup).toContain('<input')

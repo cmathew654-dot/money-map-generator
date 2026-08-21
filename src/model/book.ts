@@ -796,6 +796,16 @@ function validateClient(value: unknown, index: number, allowMissingItemIds = fal
   if (value.needTag !== undefined && typeof value.needTag !== 'string') {
     throw new Error(`Client ${index + 1} has an invalid need tag.`)
   }
+  for (const field of [
+    'incomeTotalLabel',
+    'needLabel',
+    'asNeededLabel',
+    'needCaption',
+  ] as const) {
+    if (value[field] !== undefined && typeof value[field] !== 'string') {
+      throw new Error(`Client ${index + 1} has an invalid ${field}.`)
+    }
+  }
   for (const field of ['afterTaxIncome', 'monthlyNeed', 'asNeededAmount'] as const) {
     if (!isMoneyValue(value[field])) throw new Error(`Client ${index + 1} has an invalid money value.`)
   }

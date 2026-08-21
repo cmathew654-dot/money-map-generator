@@ -63,13 +63,16 @@ import type {
 } from '../model/types'
 import {
   CUSTOM_ARROW_COLORS,
+  DEFAULT_AS_NEEDED_LABEL,
   DEFAULT_CUSTOM_ARROW_WIDTH,
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
   accountShape,
   accountTextOverrideKey,
+  asNeededLabelText,
   mapItemTextOverrideKey,
   mapTextOverrideKey,
+  needCaptionText,
 } from '../model/types'
 import type {
   MapTextEditRect,
@@ -431,11 +434,17 @@ function fixedTextOverrideKey(target: MapTextEditTarget): string | null {
         ? mapItemTextOverrideKey('income', 'row', target.incomeId)
         : mapTextOverrideKey('income', 'row')
     case 'afterTaxIncome':
+    case 'incomeTotalLabel':
       return mapTextOverrideKey('income', 'total')
     case 'needLabel':
       return mapTextOverrideKey('need', 'label')
+    case 'needCaption':
+      return mapTextOverrideKey('need', 'supporting')
     case 'monthlyNeed':
       return mapTextOverrideKey('need', 'value')
+    case 'asNeededAmount':
+    case 'asNeededLabel':
+      return mapTextOverrideKey('asNeeded', 'amount')
     case 'footnoteText':
       return target.footnoteId
         ? mapItemTextOverrideKey('footnotes', 'line', target.footnoteId)
@@ -627,6 +636,7 @@ function IncomePanel({
     INCOME_HEADER_TRACKING,
   )
   const totalEdit = { kind: 'afterTaxIncome' } as const
+  const totalLabelEdit = { kind: 'incomeTotalLabel' } as const
   const totalOffset = mapTextOffset(data, 'income', 'total', {
     x: placed.x + 12,
     y: dividerY + 7,
@@ -785,8 +795,16 @@ function IncomePanel({
           fontFamily={FONT_SANS}
           fontSize={sizes.totalLabel}
           fontWeight={600}
-          aria-label={totalText.label.exact}
-          {...editableLineTextProps(totalEdit, onElementClick)}
+          {...editableTextProps(
+            totalLabelEdit,
+            onElementClick,
+            onTextPointerDown?.(totalLabelEdit),
+          )}
+          aria-label={
+            onElementClick
+              ? `Edit ${mapTextEditorTargetLabel(totalLabelEdit)}: ${totalText.label.exact}`
+              : totalText.label.exact
+          }
         >
           {totalText.label.display}
         </text>
@@ -866,6 +884,7 @@ function NeedCard({
     valueFs,
   )
   const supportingKey = mapTextOverrideKey('need', 'supporting')
+  const supportingEdit = { kind: 'needCaption' } as const
   const supportingOffset = mapTextOffset(data, 'need', 'supporting', {
     x: placed.x + 12,
     y: placed.y + 120,
@@ -955,6 +974,11 @@ function NeedCard({
       {mathLine && fitted.supporting.display ? (
         <g transform={`translate(${supportingOffset.dx} ${supportingOffset.dy})`}>
           <text
+            {...editableTextProps(
+              supportingEdit,
+              onElementClick,
+              onSupportingPointerDown,
+            )}
             aria-label={`Adjust coverage note: ${fitted.supporting.exact}`}
             className="map-calculated-text"
             data-layout-key={supportingKey}
@@ -965,8 +989,8 @@ function NeedCard({
             fontSize={fitted.supporting.fontSize}
             onFocus={onSupportingFocus}
             onPointerDown={onSupportingPointerDown}
-            role={onSupportingPointerDown ? 'button' : undefined}
-            tabIndex={onSupportingPointerDown ? 0 : undefined}
+            role={onElementClick || onSupportingPointerDown ? 'button' : undefined}
+            tabIndex={onElementClick || onSupportingPointerDown ? 0 : undefined}
             textAnchor="middle"
             x={placed.x + placed.w / 2}
             y={placed.y + 139}
@@ -1994,6 +2018,7 @@ function rotateTransform(
 export function AsNeededLabel({
   arrow,
   amount,
+  label = DEFAULT_AS_NEEDED_LABEL,
   fontSize = TYPE.arrowLabel,
   onElementClick,
   onTextPointerDown,
@@ -2001,6 +2026,7 @@ export function AsNeededLabel({
 }: {
   arrow: Arrow
   amount: number | null
+  label?: string
   fontSize?: number
   onElementClick?: (target: MapElementTarget) => void
   onTextPointerDown?: (event: PointerEvent<SVGElement>) => void
@@ -2008,9 +2034,11 @@ export function AsNeededLabel({
 }) {
   if (!arrow.labelAt) return null
   const amountText = mapMoney(amount, 10)
+  const labelEdit = { kind: 'asNeededLabel' } as const
   const scale = fontSize / TYPE.arrowLabel
-  const accessibleLabel =
-    'Monthly income drawn as needed ' + amountText.exact
+  const accessibleLabel = label === DEFAULT_AS_NEEDED_LABEL
+    ? 'Monthly income drawn as needed ' + amountText.exact
+    : label + ' ' + amountText.exact
   return (
     <g
       aria-label={accessibleLabel}
@@ -2043,7 +2071,14 @@ export function AsNeededLabel({
           onElementClick,
         )}
       >
-        As needed
+        {onElementClick ? (
+          <tspan
+            pointerEvents='all'
+            {...editableTextProps(labelEdit, onElementClick, onTextPointerDown)}
+          >
+            {label}
+          </tspan>
+        ) : label}
         <tspan
           dx={7 * scale}
           fontFamily={FONT_SERIF}
@@ -3222,11 +3257,14 @@ export function MapSvg({
       >
         <NeedCard
           data={displayData}
-          mathLine={gapLine(
-            displayData.monthlyNeed,
-            displayData.afterTaxIncome,
-            displayData.asNeededAmount,
-            displayData.showMath !== false,
+          mathLine={needCaptionText(
+            displayData,
+            gapLine(
+              displayData.monthlyNeed,
+              displayData.afterTaxIncome,
+              displayData.asNeededAmount,
+              displayData.showMath !== false,
+            ),
           )}
           onElementClick={onElementClick}
           onSupportingFocus={(event) => {
@@ -3481,6 +3519,7 @@ export function MapSvg({
           <AsNeededLabel
             arrow={asNeeded}
             amount={displayData.asNeededAmount}
+            label={asNeededLabelText(displayData)}
             fontSize={asNeededChipFontSize(displayData)}
             onElementClick={onElementClick}
             onTextPointerDown={

@@ -202,10 +202,18 @@ export interface MoneyMapData {
   }
   incomeSources: IncomeSource[]
   afterTaxIncome: number | null // the income box total line
+  /** advisor override for `After-Tax Income` */
+  incomeTotalLabel?: string
   monthlyNeed: number | null // the red number
+  /** advisor override for `MONTHLY INCOME NEED` */
+  needLabel?: string
+  /** advisor override for the calculated caption under the need value */
+  needCaption?: string
   /** short qualifier rendered beside the monthly need */
   needTag?: string
   asNeededAmount: number | null // "Monthly Income as Needed" arrow label
+  /** advisor override for `As needed` */
+  asNeededLabel?: string
   accounts: Account[]
   footnotes: Footnote[]
   /** advisor-drawn connections; omitted in legacy books */
@@ -215,6 +223,37 @@ export interface MoneyMapData {
   /** free text annotations in artboard coordinates; omitted in legacy books */
   notes?: MapNote[]
   layoutOverrides?: Record<string, LayoutOverride>
+}
+
+export const DEFAULT_INCOME_TOTAL_LABEL = 'After-Tax Income'
+export const DEFAULT_NEED_LABEL = 'MONTHLY INCOME NEED'
+export const DEFAULT_AS_NEEDED_LABEL = 'As needed'
+
+function resolvedMapLabel(value: string | undefined, fallback: string): string {
+  return value?.trim() || fallback
+}
+
+export function incomeTotalLabelText(
+  data: Pick<MoneyMapData, 'incomeTotalLabel'>,
+): string {
+  return resolvedMapLabel(data.incomeTotalLabel, DEFAULT_INCOME_TOTAL_LABEL)
+}
+
+export function needLabelText(data: Pick<MoneyMapData, 'needLabel'>): string {
+  return resolvedMapLabel(data.needLabel, DEFAULT_NEED_LABEL)
+}
+
+export function asNeededLabelText(
+  data: Pick<MoneyMapData, 'asNeededLabel'>,
+): string {
+  return resolvedMapLabel(data.asNeededLabel, DEFAULT_AS_NEEDED_LABEL)
+}
+
+export function needCaptionText(
+  data: Pick<MoneyMapData, 'needCaption'>,
+  fallback: string | null,
+): string | null {
+  return data.needCaption?.trim() || fallback
 }
 
 /** The whole practice in one file. */

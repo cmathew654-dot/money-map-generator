@@ -12,14 +12,19 @@ import {
 import { NOTE_LEADING } from '../layout/layout'
 import { textWidth } from '../layout/textfit'
 import { money, parseMoneyInput } from '../model/format'
+import { gapLine } from '../model/math'
 import type { AccountTextRole, MoneyMapData } from '../model/types'
 import {
   accountTextOverrideKey,
+  asNeededLabelText,
+  incomeTotalLabelText,
   MAX_ACCOUNT_TEXT_FONT_SIZE,
   MAX_MAP_TEXT_FONT_SIZE,
   MIN_MAP_TEXT_FONT_SIZE,
   mapItemTextOverrideKey,
   mapTextOverrideKey,
+  needCaptionText,
+  needLabelText,
 } from '../model/types'
 import { addMapNote } from '../render/mapInteraction'
 import {
@@ -48,11 +53,14 @@ export type MapTextEditTarget =
   | { kind: 'incomeAmount'; incomeIndex: number; incomeId?: string }
   | { kind: 'incomeRowLabel'; incomeIndex: number; incomeId?: string }
   | { kind: 'afterTaxIncome' }
+  | { kind: 'incomeTotalLabel' }
   | { kind: 'needLabel' }
+  | { kind: 'needCaption' }
   | { kind: 'monthlyNeed' }
   | { kind: 'mastheadLabel' }
   | { kind: 'footnoteText'; footnoteId?: string }
   | { kind: 'asNeededAmount' }
+  | { kind: 'asNeededLabel' }
   | { kind: 'flowLabel'; arrowId: string }
   | { kind: 'noteText'; noteId: string; x?: number; y?: number }
 
@@ -219,8 +227,14 @@ const MAP_TEXT_EDITOR_STYLES: Record<
   afterTaxIncome: {
     color: FLOW_GREEN, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'right',
   },
+  incomeTotalLabel: {
+    color: INK, fontFamily: FONT_SANS, fontWeight: 600, textAlign: 'left',
+  },
   asNeededAmount: {
     color: INK, fontFamily: FONT_SERIF, fontWeight: 600, textAlign: 'left',
+  },
+  asNeededLabel: {
+    color: FLOW_GREEN, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'center',
   },
   flowLabel: {
     color: INK, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'center',
@@ -249,6 +263,9 @@ const MAP_TEXT_EDITOR_STYLES: Record<
     color: INK, fontFamily: FONT_SANS, fontWeight: 700,
     letterSpacing: 1.8, textAlign: 'center', textTransform: 'uppercase',
   },
+  needCaption: {
+    color: MUTED, fontFamily: FONT_SANS, fontWeight: 400, textAlign: 'center',
+  },
   noteText: {
     color: MUTED, fontFamily: FONT_SERIF, fontWeight: 400, textAlign: 'left',
   },
@@ -266,7 +283,9 @@ const MAP_TEXT_EDITOR_FONT_SIZES: Record<MapTextEditKind, number> = {
   accountSubValue: TYPE.subValue,
   accountValue: TYPE.value,
   afterTaxIncome: TYPE.incomeTotalValue,
+  incomeTotalLabel: TYPE.incomeTotalLabel,
   asNeededAmount: TYPE.arrowLabel,
+  asNeededLabel: TYPE.arrowLabel,
   flowLabel: TYPE.arrowLabel,
   footnoteText: TYPE.footnote,
   incomeAmount: TYPE.incomeValue,
@@ -275,6 +294,7 @@ const MAP_TEXT_EDITOR_FONT_SIZES: Record<MapTextEditKind, number> = {
   mastheadLabel: TYPE.mastheadLabel,
   monthlyNeed: TYPE.needValue,
   needLabel: TYPE.needLabel,
+  needCaption: TYPE.mathNote,
   noteText: TYPE.note,
 }
 
@@ -295,7 +315,6 @@ type SizeOnlyMapTextEditTarget = Extract<
       | 'accountRows'
       | 'accountSub'
       | 'incomeHeader'
-      | 'needLabel'
       | 'footnoteText'
   }
 >
@@ -307,7 +326,6 @@ function isSizeOnlyTarget(
     target.kind === 'accountRows' ||
     target.kind === 'accountSub' ||
     target.kind === 'incomeHeader' ||
-    target.kind === 'needLabel' ||
     target.kind === 'footnoteText'
   )
 }
@@ -370,6 +388,7 @@ export function mapTextEditFsInfo(
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
     case 'asNeededAmount':
+    case 'asNeededLabel':
       return {
         key: mapTextOverrideKey('asNeeded', 'amount'),
         fallback: TYPE.arrowLabel,
@@ -383,6 +402,7 @@ export function mapTextEditFsInfo(
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
     case 'afterTaxIncome':
+    case 'incomeTotalLabel':
       return {
         key: mapTextOverrideKey('income', 'total'),
         fallback: TYPE.incomeTotalValue,
@@ -392,6 +412,12 @@ export function mapTextEditFsInfo(
       return {
         key: mapTextOverrideKey('need', 'label'),
         fallback: TYPE.needLabel,
+        max: MAX_MAP_TEXT_FONT_SIZE,
+      }
+    case 'needCaption':
+      return {
+        key: mapTextOverrideKey('need', 'supporting'),
+        fallback: TYPE.mathNote,
         max: MAX_MAP_TEXT_FONT_SIZE,
       }
     case 'monthlyNeed':
@@ -538,10 +564,26 @@ export function mapTextEditRawValue(
       return data.incomeSources[target.incomeIndex]?.label ?? ''
     case 'afterTaxIncome':
       return money(data.afterTaxIncome)
+    case 'incomeTotalLabel':
+      return incomeTotalLabelText(data)
+    case 'needLabel':
+      return needLabelText(data)
+    case 'needCaption':
+      return needCaptionText(
+        data,
+        gapLine(
+          data.monthlyNeed,
+          data.afterTaxIncome,
+          data.asNeededAmount,
+          data.showMath !== false,
+        ),
+      ) ?? ''
     case 'monthlyNeed':
       return money(data.monthlyNeed)
     case 'asNeededAmount':
       return money(data.asNeededAmount)
+    case 'asNeededLabel':
+      return asNeededLabelText(data)
     case 'flowLabel':
       return (
         data.customArrows?.find((arrow) => arrow.id === target.arrowId)
@@ -552,7 +594,6 @@ export function mapTextEditRawValue(
     case 'noteText':
       return data.notes?.find((note) => note.id === target.noteId)?.text ?? ''
     case 'incomeHeader':
-    case 'needLabel':
     case 'footnoteText':
     case 'accountRows':
     case 'accountSub':
@@ -657,6 +698,32 @@ export function applyMapTextEdit(
     if (mastheadLabel) client.mastheadLabel = mastheadLabel
     else delete client.mastheadLabel
     return { ...data, client }
+  }
+  if (
+    target.kind === 'incomeTotalLabel' ||
+    target.kind === 'needLabel' ||
+    target.kind === 'asNeededLabel' ||
+    target.kind === 'needCaption'
+  ) {
+    const field =
+      target.kind === 'incomeTotalLabel'
+        ? 'incomeTotalLabel'
+        : target.kind === 'needLabel'
+          ? 'needLabel'
+          : target.kind === 'asNeededLabel'
+            ? 'asNeededLabel'
+            : 'needCaption'
+    const text = rawValue.trim()
+    if (
+      text === mapTextEditRawValue(data, target) ||
+      (!text && data[field] === undefined)
+    ) {
+      return data
+    }
+    const next = { ...data }
+    if (text) next[field] = text
+    else delete next[field]
+    return next
   }
   if (target.kind === 'noteText') {
     const existing = data.notes?.some((note) => note.id === target.noteId)
@@ -767,10 +834,13 @@ export function mapTextEditorTargetLabel(target: MapTextEditTarget): string {
   if (target.kind === 'incomeAmount') return 'income source amount'
   if (target.kind === 'incomeRowLabel') return 'income source name'
   if (target.kind === 'afterTaxIncome') return 'after-tax income'
+  if (target.kind === 'incomeTotalLabel') return 'after-tax income label'
   if (target.kind === 'needLabel') return 'monthly amount needed heading'
+  if (target.kind === 'needCaption') return 'coverage note'
   if (target.kind === 'monthlyNeed') return 'monthly amount needed'
   if (target.kind === 'footnoteText') return 'fine print'
   if (target.kind === 'asNeededAmount') return 'monthly account withdrawal'
+  if (target.kind === 'asNeededLabel') return 'as-needed label'
   if (target.kind === 'flowLabel') return 'transfer description'
   if (target.kind === 'noteText') return 'map note'
   return 'account value'
@@ -981,6 +1051,10 @@ export function MapTextEditor({
     edit.target.kind === 'accountSubLabel' ||
     edit.target.kind === 'accountSubCaption' ||
     edit.target.kind === 'mastheadLabel' ||
+    edit.target.kind === 'incomeTotalLabel' ||
+    edit.target.kind === 'needLabel' ||
+    edit.target.kind === 'needCaption' ||
+    edit.target.kind === 'asNeededLabel' ||
     edit.target.kind === 'flowLabel' ||
     edit.target.kind === 'noteText'
       ? 'text'

@@ -21,6 +21,7 @@ import type {
   MoneyMapData,
   SubAccount,
 } from '../model/types'
+import { incomeTotalLabelText, needLabelText } from '../model/types'
 import {
   ACCOUNT_TEXT_ROLES,
   accountShape,
@@ -387,8 +388,9 @@ export function incomePanelMetrics(
   const headerWidth =
     textWidth('INCOME SOURCES', headerFontSize) +
     Math.max(0, 'INCOME SOURCES'.length - 1) * 1.7
+  const totalLabel = incomeTotalLabelText(data)
   const totalWidth =
-    textWidth('After-Tax Income', sizes.totalLabel) +
+    textWidth(totalLabel, sizes.totalLabel) +
     16 +
     textWidth(money(data.afterTaxIncome), totalFontSize)
   const minWidth = Math.min(
@@ -444,7 +446,7 @@ export function incomeTotalTextLayout(
 ) {
   const sizes = incomeTextSizes(data)
   const available = Math.max(1, placed.w - 56)
-  const labelText = 'After-Tax Income'
+  const labelText = incomeTotalLabelText(data)
   const valueText = money(data.afterTaxIncome)
   const labelWidth = textWidth(labelText, sizes.totalLabel)
   const valueWidth = textWidth(valueText, sizes.totalValue)
@@ -483,7 +485,7 @@ export function needTextLayout(
     MAX_MAP_TEXT_FONT_SIZE,
   )
   return {
-    label: fittedTextLine('MONTHLY INCOME NEED', width, labelSize),
+    label: fittedTextLine(needLabelText(data), width, labelSize),
     value: fittedTextLine(money(data.monthlyNeed), width, valueSize),
     supporting: fittedCalculatedTextLine(
       supporting ?? '',
@@ -2599,6 +2601,7 @@ function baseLayout(data: MoneyMapData): MapLayout {
     MIN_MAP_TEXT_FONT_SIZE,
     MAX_MAP_TEXT_FONT_SIZE,
   )
+  const needLabel = needLabelText(data)
   const need: Placed = {
     x: 48,
     y: Math.max(700, income.y + income.h + 24),
@@ -2606,7 +2609,7 @@ function baseLayout(data: MoneyMapData): MapLayout {
       OVERRIDE_BOUNDS.right - OVERRIDE_BOUNDS.left,
       Math.max(
         250,
-        textWidth('MONTHLY INCOME NEED', needLabelSize) + 40,
+        textWidth(needLabel, needLabelSize) + 40,
         Math.min(
           480,
           textWidth(

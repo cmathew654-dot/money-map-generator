@@ -258,6 +258,10 @@ describe('book operations', () => {
     source.client.postNoteLabel = 'April 2026'
     source.showMath = false
     source.needTag = 'goal'
+    source.incomeTotalLabel = 'GROSS INCOME'
+    source.needLabel = 'MONTHLY EXCESS'
+    source.needCaption = 'Surplus supports long-term investments.'
+    source.asNeededLabel = 'Invest monthly'
     source.notes = [
       { id: 'clear-me', text: 'Remove with client data.', x: 500, y: 500 },
     ]
@@ -519,9 +523,13 @@ describe('parseBook', () => {
     expect(parseBook(JSON.stringify(book))).toEqual(book)
   })
 
-  it('round-trips an optional masthead label', () => {
+  it('round-trips optional masthead and advisor label overrides', () => {
     const book = newBook()
     book.clients[0].client.mastheadLabel = 'Retirement Roadmap'
+    book.clients[0].incomeTotalLabel = 'GROSS INCOME'
+    book.clients[0].needLabel = 'MONTHLY EXCESS'
+    book.clients[0].needCaption = 'Surplus supports long-term investments.'
+    book.clients[0].asNeededLabel = 'Invest monthly'
 
     expect(parseBook(JSON.stringify(book))).toEqual(book)
   })

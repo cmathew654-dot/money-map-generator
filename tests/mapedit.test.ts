@@ -537,7 +537,6 @@ describe('applyMapTextEdit', () => {
 
   it.each([
     { kind: 'incomeHeader' },
-    { kind: 'needLabel' },
     { kind: 'footnoteText' },
     { kind: 'accountRows', accountId },
     { kind: 'accountSub', accountId },
@@ -550,6 +549,25 @@ describe('applyMapTextEdit', () => {
       )
     },
   )
+
+  it('edits a trimmed need label and restores its default when blank', () => {
+    expect(
+      mapTextEditRawValue(SAMPLE_WHITFIELD, { kind: 'needLabel' }),
+    ).toBe('MONTHLY INCOME NEED')
+
+    const custom = applyMapTextEdit(
+      SAMPLE_WHITFIELD,
+      { kind: 'needLabel' },
+      '  Monthly lifestyle need  ',
+    )
+    const restored = applyMapTextEdit(custom, { kind: 'needLabel' }, '   ')
+
+    expect(custom.needLabel).toBe('Monthly lifestyle need')
+    expect(restored.needLabel).toBeUndefined()
+    expect(mapTextEditRawValue(restored, { kind: 'needLabel' })).toBe(
+      'MONTHLY INCOME NEED',
+    )
+  })
 
   it('commits a trimmed flow label and clears it with blank text', () => {
     const arrowId = SAMPLE_WHITFIELD.customArrows![0].id
