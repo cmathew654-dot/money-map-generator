@@ -8,6 +8,7 @@ import {
   NOTE_WIDTH,
   OVERRIDE_BOUNDS,
   rotatedBounds,
+  subAccountRect,
   topOutlineT,
 } from '../layout/layout'
 import type {
@@ -247,16 +248,34 @@ export function MapInspector({
     isRotatableTextKey(data, selectedTargetKey)
       ? selectedTargetKey
       : null
-  const arrowEndpoint = (id: string | undefined) =>
-    id === 'income'
-      ? layout.income
-      : id === 'need'
-        ? layout.need
-        : layout.accounts.find((placed) => placed.account.id === id)
+  const arrowEndpoint = (id: string | undefined) => {
+    if (!id) return undefined
+    if (id === 'income') return layout.income
+    if (id === 'need') return layout.need
+    const account = layout.accounts.find((placed) => placed.account.id === id)
+    if (account) return account
+    for (const placed of layout.accounts) {
+      const subLayout = placed.subAccountLayouts.find(
+        (candidate) => candidate.subAccount.id === id,
+      )
+      if (subLayout) return subAccountRect(placed, subLayout)
+    }
+    return undefined
+  }
   const endpoints = [
     { id: 'income', label: 'Income sources' },
     { id: 'need', label: 'Monthly need' },
-    ...data.accounts.map((candidate) => ({ id: candidate.id, label: candidate.label })),
+    ...data.accounts.flatMap((candidate) => [
+      { id: candidate.id, label: candidate.label },
+      ...(candidate.subAccounts ?? []).flatMap((subAccount) =>
+        subAccount.id
+          ? [{
+              id: subAccount.id,
+              label: `${subAccount.label} \u2014 ${candidate.label}`,
+            }]
+          : [],
+      ),
+    ]),
   ]
   const endpointLabel = (id: string) =>
     endpoints.find((endpoint) => endpoint.id === id)?.label ?? 'Map item'

@@ -242,6 +242,8 @@ const COLUMNS: Column[] = [
 
 const SUB_ACCOUNT_GAP = 8
 const SUB_ACCOUNT_CAP_RY = 10
+const SUB_ACCOUNT_INSET_FRACTION = 0.14
+const SUB_ACCOUNT_WIDTH_FRACTION = 0.72
 const TEXT_DESCENT = 0.22
 const DETAIL_GAP = 12
 const VALUE_GAP = 16
@@ -998,7 +1000,7 @@ function accountSizing(
     previousBaseline = runwayY ?? valueY
     previousLineHeight = runwayY === undefined ? valueFontSize : TYPE.runway
 
-    const subWidth = width * 0.72
+    const subWidth = width * SUB_ACCOUNT_WIDTH_FRACTION
     const rawSubAccountLayouts = (account.subAccounts ?? []).map(
       (subAccount) =>
         subAccountLayout(subAccount, subWidth, subFontSize, textBudget),
@@ -1188,6 +1190,18 @@ function coordinate(value: number): string {
 
 type Point = { x: number; y: number }
 export type OutlineElement = Placed | PlacedAccount
+
+export function subAccountRect(
+  placed: PlacedAccount,
+  subLayout: SubAccountLayout,
+): Placed {
+  return {
+    x: placed.x + placed.w * SUB_ACCOUNT_INSET_FRACTION,
+    y: placed.y + subLayout.y,
+    w: placed.w * SUB_ACCOUNT_WIDTH_FRACTION,
+    h: subLayout.h,
+  }
+}
 
 export function hexagonInset(width: number, height: number): number {
   return Math.min(height * 0.22, 34, width / 2)
@@ -1727,6 +1741,14 @@ function customArrowLayouts(
       (placed) => [placed.account.id, placed] as [string, OutlineElement],
     ),
   ])
+  for (const placed of accounts) {
+    for (const subLayout of placed.subAccountLayouts) {
+      const id = subLayout.subAccount.id
+      if (id && !elements.has(id)) {
+        elements.set(id, subAccountRect(placed, subLayout))
+      }
+    }
+  }
   const migratedAccountIds = new Set(
     (customArrows ?? []).flatMap((record) =>
       isMigratedFlowId(record.id)

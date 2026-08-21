@@ -293,7 +293,10 @@ function isArrowEndpoint(data: MoneyMapData, id: string): boolean {
   return (
     id === 'income' ||
     id === 'need' ||
-    data.accounts.some((account) => account.id === id)
+    data.accounts.some((account) =>
+      account.id === id ||
+      account.subAccounts?.some((subAccount) => subAccount.id === id) === true,
+    )
   )
 }
 

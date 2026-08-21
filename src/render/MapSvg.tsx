@@ -30,6 +30,7 @@ import {
   nudgeLayoutOverride,
   OVERRIDE_BOUNDS,
   sortMapItemsByZ,
+  subAccountRect,
   usableTextWidth,
 } from '../layout/layout'
 import { textWidth } from '../layout/textfit'
@@ -1629,6 +1630,7 @@ function AccountContent({
         </text>
       ) : null}
       {subAccountLayouts.map((layout, index) => {
+        const rect = subAccountRect(placed, layout)
         return (
           <SubAccountDrum
             accountId={account.id}
@@ -1636,9 +1638,9 @@ function AccountContent({
             layout={layout}
             onElementClick={onElementClick}
             onTextPointerDown={onTextPointerDown}
-            x={x + w * 0.14}
-            y={y + layout.y}
-            w={w * 0.72}
+            x={rect.x}
+            y={rect.y}
+            w={rect.w}
             fill={style.tint}
             stroke={style.stroke}
             subAccountIndex={index}
@@ -2327,19 +2329,30 @@ export function MapSvg({
       candidate.key === key || !candidate.rect ? [] : [candidate.rect],
     )
   }
-  const outlineForId = (endpointId: string | undefined) =>
-    endpointId === 'income'
-      ? layout.income
-      : endpointId === 'need'
-        ? layout.need
-        : layout.accounts.find(
-            (placed) => placed.account.id === endpointId,
-          )
+  const outlineForId = (endpointId: string | undefined) => {
+    if (endpointId === 'income') return layout.income
+    if (endpointId === 'need') return layout.need
+    const account = layout.accounts.find(
+      (placed) => placed.account.id === endpointId,
+    )
+    if (account) return account
+    for (const placed of layout.accounts) {
+      const subLayout = placed.subAccountLayouts.find(
+        (candidate) => candidate.subAccount.id === endpointId,
+      )
+      if (subLayout) return subAccountRect(placed, subLayout)
+    }
+    return undefined
+  }
   const endpointLabelForId = (endpointId: string | undefined) => {
     if (endpointId === 'income') return 'Income sources'
     if (endpointId === 'need') return 'Monthly need'
     const account = data.accounts.find((candidate) => candidate.id === endpointId)
-    return account ? accountDisplayName(account) : 'Map item'
+    if (account) return accountDisplayName(account)
+    const sleeve = data.accounts
+      .flatMap((candidate) => candidate.subAccounts ?? [])
+      .find((candidate) => candidate.id === endpointId)
+    return sleeve?.label ?? 'Map item'
   }
 
   const connectorSourceId =
