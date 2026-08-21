@@ -45,6 +45,8 @@ export interface Account {
   positions?: Position[]
   /** nested earmarked pool drawn as an inset cylinder — e.g. RMD short-term funds */
   subAccounts?: SubAccount[]
+  /** opt-in cue that makes this shape's sleeve stack read as layered; absent is off */
+  showSleeveRisk?: boolean
   /** accepted for legacy book migration; ignored after load */
   inWaterfall?: boolean
 }

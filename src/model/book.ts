@@ -858,6 +858,12 @@ function validateClient(value: unknown, index: number, allowMissingItemIds = fal
     ) {
       throw new Error(`Client ${index + 1} has an invalid legacy flow flag.`)
     }
+    if (
+      account.showSleeveRisk !== undefined &&
+      typeof account.showSleeveRisk !== 'boolean'
+    ) {
+      throw new Error(`Client ${index + 1} has an invalid sleeve risk flag.`)
+    }
   }
   if (value.customArrows !== undefined) {
     if (

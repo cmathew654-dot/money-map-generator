@@ -581,6 +581,28 @@ export function MapInspector({
               rot={layout.accounts.find((candidate) => candidate.account.id === account.id)?.rot ?? 0}
               apply={(rot) => onChange(withOverride(data, account.id, { rot }))}
             />
+            {account.subAccounts?.length ? (
+              <InspectorGroup label="Sleeve layering">
+                <button
+                  aria-label="Sleeve layering cue"
+                  aria-pressed={Boolean(account.showSleeveRisk)}
+                  type="button"
+                  onClick={() => onChange({
+                    ...data,
+                    accounts: data.accounts.map((candidate) =>
+                      candidate.id === account.id
+                        ? {
+                            ...candidate,
+                            showSleeveRisk: !candidate.showSleeveRisk,
+                          }
+                        : candidate,
+                    ),
+                  })}
+                >
+                  {account.showSleeveRisk ? 'On' : 'Off'}
+                </button>
+              </InspectorGroup>
+            ) : null}
           </>
         )}
 

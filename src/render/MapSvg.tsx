@@ -1030,6 +1030,8 @@ function SubAccountDrum({
   fill,
   stroke,
   subAccountIndex,
+  showSleeveRisk,
+  subAccountCount,
 }: {
   accountId: string
   layout: SubAccountLayout
@@ -1044,6 +1046,8 @@ function SubAccountDrum({
   fill: string
   stroke: string
   subAccountIndex: number
+  showSleeveRisk?: boolean
+  subAccountCount: number
 }) {
   const capRy = 10
   const { subAccount } = layout
@@ -1051,6 +1055,21 @@ function SubAccountDrum({
 
   return (
     <g>
+      {showSleeveRisk ? (
+        <line
+          role="img"
+          aria-label={`Sleeve ${subAccountIndex + 1} of ${subAccountCount} layering cue`}
+          x1={x - 8}
+          x2={x - 8}
+          y1={y + capRy}
+          y2={y + layout.h - capRy}
+          stroke={MUTED}
+          strokeWidth={
+            1 + (2 * subAccountIndex) / Math.max(subAccountCount - 1, 1)
+          }
+          pointerEvents="none"
+        />
+      ) : null}
       <path
         d={cylinderBody(x, y, w, layout.h, capRy)}
         fill={fill}
@@ -1668,6 +1687,8 @@ function AccountContent({
             fill={style.tint}
             stroke={style.stroke}
             subAccountIndex={index}
+            showSleeveRisk={account.showSleeveRisk}
+            subAccountCount={subAccountLayouts.length}
           />
         )
       })}
