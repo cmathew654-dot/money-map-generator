@@ -22,6 +22,7 @@ import os
 
 import bpy
 
+from . import palette as P
 from . import util as U
 
 # surfaces worth spending texture memory on
@@ -229,6 +230,67 @@ def bake_lightmaps(size=1024, samples=128, out_dir="export/lightmaps"):
     return written
 
 
+# Representative flat colours for shaders whose Base Color is node-driven.
+# glTF cannot carry a node graph, so without these the exporter falls back to
+# white -- and these happen to be the largest surfaces in the room.
+FALLBACK_COLOR = {
+    "Desk Wood": P.DESK_WOOD,
+    "Floor Wood": P.FLOOR_WOOD,
+    "Brick": P.BRICK,
+    "Monstera Leaf": P.FOLIAGE,
+    "Pothos Leaf": P.FOLIAGE_LIGHT,
+    "Speckle Glaze": P.CERAMIC_SPECKLE,
+}
+
+
+def flatten_procedural_colors(default="#9A9182"):
+    """Give every node-driven Base Color a flat value the exporter can carry.
+
+    Run before export whenever the albedo bake has not been applied. Without
+    it the desk, floor, brick and foliage all arrive pure white.
+    """
+    fixed = []
+    for mat in bpy.data.materials:
+        if not mat.use_nodes:
+            continue
+        bsdf = next((n for n in mat.node_tree.nodes
+                     if n.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None:
+            continue
+        socket = bsdf.inputs["Base Color"]
+        if not socket.is_linked:
+            continue
+        hex_code = FALLBACK_COLOR.get(mat.name)
+        if hex_code is None:
+            for key, value in FALLBACK_COLOR.items():
+                if key.split()[0] in mat.name:
+                    hex_code = value
+                    break
+        colour = P.srgb(hex_code or default)
+        for link in list(socket.links):
+            mat.node_tree.links.remove(link)
+        socket.default_value = colour
+        fixed.append(mat.name)
+    return fixed
+
+
+def tame_emission(cap=2.5):
+    """Clamp emission strengths for a realtime runtime.
+
+    Cycles happily takes a bulb at 40; in a renderer with no GI that is just a
+    blown white blob, so cap it and let the runtime's own lights do the work.
+    """
+    tamed = 0
+    for mat in bpy.data.materials:
+        if not mat.use_nodes:
+            continue
+        for node in mat.node_tree.nodes:
+            if node.type == "EMISSION" and node.inputs["Strength"].default_value > cap:
+                node.inputs["Strength"].default_value = cap
+                tamed += 1
+    return tamed
+
+
 def bake_material_albedo(size=1024, out_dir="export/albedo"):
     """Flatten the procedural shaders to base-colour textures.
 
@@ -291,11 +353,18 @@ def decimate(ratio=0.6, min_polys=400):
     return reduced
 
 
-def export_glb(path, draco=True, draco_level=6):
+def export_glb(path, draco=True, draco_level=6, lights=False):
+    """Write a GLB.
+
+    Lights default to OFF. Blender's lamps convert to glTF punctual lights in
+    physical units -- a sun exports at ~5300 lux and a task lamp at ~6400
+    candela -- which drown any hand-tuned realtime lighting and render the
+    whole scene white. A runtime that bakes or relights wants none of them.
+    """
     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
     kwargs = dict(
         filepath=os.path.abspath(path), export_format="GLB",
-        export_apply=True, export_cameras=True, export_lights=True,
+        export_apply=True, export_cameras=True, export_lights=lights,
         export_yup=True, export_texcoords=True, export_normals=True,
         export_materials="EXPORT",
     )
@@ -319,6 +388,8 @@ def run(out_dir="export", lightmap_size=1024, vertex_samples=64,
     report["converted"] = convert_text_and_curves()
     report["modifiers"] = apply_modifiers()
     report["screen_face"] = split_screen_face().name
+    report["flattened"] = flatten_procedural_colors()
+    report["emission_tamed"] = tame_emission()
     if do_lightmaps:
         report["lightmap_uvs"] = len(add_lightmap_uvs())
     if do_albedo:
