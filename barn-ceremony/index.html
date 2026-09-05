@@ -1,11 +1,13 @@
 <title>Candlelit Barn Ceremony</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@400;500&display=swap">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@400;500&display=swap');
-:root { color-scheme: light dark; }
+/* One committed visual world: a warm, dark room. Painted explicitly so the
+   page holds on either host ground rather than borrowing the viewer's theme. */
+:root { --ground: #0a0705; --ink: #c9b189; }
 * { box-sizing: border-box; }
-body { margin: 0; background: #0a0705; display: flex; min-height: 100vh;
-       align-items: center; justify-content: center; }
-:root[data-theme="light"] body { background: #0a0705; }
+body { margin: 0; background: var(--ground); color: var(--ink);
+       display: flex; align-items: center; justify-content: center;
+       min-height: 100vh; }
 main { width: 100%; max-width: 1456px; }
 svg { display: block; width: 100%; height: auto; }
 </style>
