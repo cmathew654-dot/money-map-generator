@@ -133,11 +133,13 @@ def split_screen_face(name="CRT_ScreenFace"):
         loop[uv].uv = coord
     obj = U.mesh_object(name, bm, col)
 
+    # Parent without a parent-inverse: the face must inherit the monitor's
+    # placement on the desk, not sit at the world origin.
     crt_root = bpy.data.objects.get("CRT_Root")
     if crt_root:
         obj.parent = crt_root
-        obj.matrix_parent_inverse = crt_root.matrix_world.inverted()
     obj.location = (0.0, CRT.GLASS_EDGE_Y + 0.004, CRT.SCREEN_CZ)
+    bpy.context.view_layer.update()
     return obj
 
 

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=640">
+<title>Clover &amp; Co.</title>
+<style>
+  :root{--navy:#1E2F56;--red:#D93B2B;--mustard:#EFB01F;--cream:#F1EADC;--ink:#3A4252}
+  *{box-sizing:border-box}
+  body{margin:0;font:13px/1.5 Arial,Helvetica,sans-serif;background:#FBFAF6;color:var(--ink);width:640px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #D8D3C6}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--navy);font-size:15px}
+  .mark{width:14px;height:14px;background:var(--red);position:relative}
+  .mark::after{content:"";position:absolute;inset:3px;background:#FBFAF6}
+  nav a{color:#5C6472;text-decoration:none;margin-left:16px;font-size:11px}
+  nav a:hover{color:var(--red)}
+  .hero{display:flex;gap:16px;padding:16px 14px 0}
+  .eyebrow{color:var(--red);font-weight:700;font-size:9px;letter-spacing:2px;margin-bottom:8px}
+  h1{margin:0;font-size:30px;line-height:1.08;color:var(--navy);letter-spacing:-.5px}
+  h1 em{font-style:normal;background:var(--red);color:#fff;padding:0 7px;display:inline-block}
+  .sub{color:#6B7280;font-size:11px;margin-top:6px}
+  .note{margin:14px 0;padding:10px 12px;background:var(--cream);border-left:4px solid var(--navy);font-size:11px;max-width:290px}
+  .cta{display:inline-block;margin-top:4px;padding:9px 18px;background:var(--mustard);color:var(--navy);
+       font-weight:700;text-decoration:none;font-size:12px;box-shadow:3px 3px 0 var(--navy);cursor:pointer;border:0}
+  .cta:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--navy)}
+  .art{position:relative;flex:0 0 210px;height:180px}
+  .grid{position:absolute;inset:0;background:var(--mustard);
+        background-image:linear-gradient(#C89A16 1px,transparent 1px),linear-gradient(90deg,#C89A16 1px,transparent 1px);
+        background-size:26px 26px;box-shadow:6px 6px 0 #E4DCCB}
+  .plate{position:absolute;right:-14px;bottom:-14px;width:78px;height:78px;background:var(--navy);transform:rotate(30deg)}
+  .donut{position:absolute;right:-2px;bottom:14px;width:58px;height:58px;border:11px solid var(--red);border-radius:50%}
+  .band{height:14px;background:var(--red);transform:skewY(-1.6deg);margin:18px 0 0}
+  section{padding:16px 14px}
+  h2{color:var(--red);font-size:19px;margin:0 0 8px;letter-spacing:.4px}
+  .tiles{display:flex;gap:8px;margin-top:16px}
+  .tile{flex:1;background:var(--cream);border-top:4px solid;padding:10px}
+  .tile:nth-child(1){border-color:var(--red)}.tile:nth-child(2){border-color:var(--navy)}.tile:nth-child(3){border-color:var(--mustard)}
+  .tile b{display:block;font-size:11px;margin-bottom:4px}
+  .tile span{color:var(--navy);font-weight:700;font-size:13px}
+  footer{background:var(--navy);color:var(--cream);padding:12px 14px;display:flex;justify-content:space-between;font-size:11px}
+  footer b{font-weight:700}
+  #hits{color:var(--mustard)}
+</style></head><body>
+<header>
+  <div class="logo"><span class="mark"></span>Clover &amp; Co.</div>
+  <nav><a href="#work">Work</a><a href="#studio">Studio</a><a href="#contact">Contact</a></nav>
+</header>
+<div class="hero">
+  <div style="flex:1">
+    <div class="eyebrow">CLOVER &amp; CO. / WEB DESIGN STUDIO</div>
+    <h1>WE <em>BUILD</em> SITES<br>PEOPLE STARE<br>AT</h1>
+    <div class="sub">( and then actually read )</div>
+    <div class="note">Custom websites for forward-thinking studios. Clear design, real results.</div>
+    <button class="cta" onclick="bump()">Let's Build &rarr;</button>
+  </div>
+  <div class="art"><div class="grid"></div><div class="plate"></div><div class="donut"></div></div>
+</div>
+<div class="band"></div>
+<section>
+  <h2>WHAT CHANGES</h2>
+  <p style="font-size:11px;margin:0">A great website does more than look good. It helps people find you,
+  understand what you do, and take the next step. We design and build sites that make that happen.</p>
+  <div class="tiles">
+    <div class="tile"><b>01</b><span>Design</span></div>
+    <div class="tile"><b>02</b><span>Build</span></div>
+    <div class="tile"><b>03</b><span>Iterate</span></div>
+  </div>
+</section>
+<footer><b>Clover &amp; Co. — Web Design Studio</b><span>clicks: <span id="hits">0</span></span></footer>
+<script>
+  let n=0;
+  function bump(){ n++; document.getElementById('hits').textContent=n;
+    document.body.style.transition='background .15s'; document.body.style.background='#FFF6DF';
+    setTimeout(()=>document.body.style.background='#FBFAF6',150); }
+</script>
+</body></html>
