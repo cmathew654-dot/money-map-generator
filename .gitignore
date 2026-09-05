@@ -1,3 +1,5 @@
+renders/*_linear.exr
+export/*.glb
+export/*.gltf
 __pycache__/
 *.pyc
-renders/*_linear.exr
