@@ -26,8 +26,10 @@ ROOT = os.path.dirname(HERE)
 EXPORT = os.path.join(ROOT, "export")
 NODE_BIN = os.path.join(HERE, "node_modules", ".bin")
 
-GLB_RAW = os.path.join(EXPORT, "clover-studio-baked.glb")
-GLB_PACKED = os.path.join(EXPORT, "clover-studio-packed.glb")
+NAME = "clover-studio"                      # binds every <name> in docs/PIPELINE.md
+GLB_RAW = os.path.join(EXPORT, NAME + "-baked.glb")
+GLB_PACKED = os.path.join(EXPORT, NAME + "-packed.glb")
+WORK = os.path.join(EXPORT, "work.blend")
 BUNDLE = os.path.join(EXPORT, "app.bundle.js")
 SITE = os.path.join(HERE, "site", "index.html")
 SHELL = os.path.join(HERE, "shell.html")
@@ -52,23 +54,37 @@ def run(cmd):
     subprocess.run(cmd, check=True)
 
 
-def export_scene(python):
-    """Rebuild the scene and export the baked GLB via the scene package."""
-    script = (
-        "import sys, os, bpy; sys.path.insert(0, %r)\n"
-        "from scene import build, webexport as W\n"
-        "work = os.path.join(%r, 'work.blend')\n"
-        "if os.path.exists(work):\n"
-        "    bpy.ops.wm.open_mainfile(filepath=work)\n"
-        "else:\n"
-        "    build.build_scene()\n"
-        "    W.convert_text_and_curves(); W.apply_modifiers()\n"
-        "    W.flatten_procedural_colors(); W.tame_emission()\n"
-        "    W.split_screen_face(); W.add_lightmap_uvs()\n"
-        "    W.apply_lightmaps(in_dir=os.path.join(%r, 'lightmaps'))\n"
-        "W.export_glb(%r, vertex_colors=False)\n"
-        % (ROOT, EXPORT, EXPORT, GLB_RAW)
-    )
+def check_bpy(python):
+    """Fail early and clearly if the interpreter cannot import bpy."""
+    probe = subprocess.run([python, "-c", "import bpy"], capture_output=True)
+    if probe.returncode != 0:
+        sys.exit("%s cannot import bpy. Run build.py with the interpreter that "
+                 "has it, or pass --python <that interpreter>." % python)
+
+
+def export_scene(python, rebuild=False):
+    """Export the baked GLB.
+
+    Resumes from export/work.blend when present -- that file holds the
+    prepared, lightmapped scene and makes this stage take seconds. A stale
+    work.blend silently wins over source changes, so --rebuild ignores it and
+    runs scene.webexport.run(), the canonical bake sequence.
+    """
+    check_bpy(python)
+    if os.path.exists(WORK) and not rebuild:
+        script = (
+            "import sys, bpy; sys.path.insert(0, %r)\n"
+            "from scene import webexport as W\n"
+            "bpy.ops.wm.open_mainfile(filepath=%r)\n"
+            "W.export_glb(%r, vertex_colors=False)\n" % (ROOT, WORK, GLB_RAW))
+    else:
+        script = (
+            "import sys; sys.path.insert(0, %r)\n"
+            "from scene import build, webexport as W\n"
+            "build.build_scene()\n"
+            "r = W.run(out_dir=%r, work_blend=%r)\n"
+            "print('[run]', {k: (len(v) if isinstance(v, list) else v) "
+            "for k, v in r.items()})\n" % (ROOT, EXPORT, WORK))
     run([python, "-c", script])
 
 
@@ -112,9 +128,11 @@ def assemble(out, standalone):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=os.path.join(HERE, "dist", "clover-studio.html"))
+    ap.add_argument("--out", default=os.path.join(HERE, "dist", NAME + ".html"))
     ap.add_argument("--python", default=sys.executable,
                     help="interpreter with bpy installed (default: this one)")
+    ap.add_argument("--rebuild", action="store_true",
+                    help="ignore export/work.blend and re-run the full bake sequence")
     ap.add_argument("--skip-export", action="store_true")
     ap.add_argument("--skip-pack", action="store_true")
     ap.add_argument("--fragment", action="store_true",
@@ -122,7 +140,7 @@ def main():
     args = ap.parse_args()
 
     if not args.skip_export or not os.path.exists(GLB_RAW):
-        print("[1/4] export"); export_scene(args.python)
+        print("[1/4] export"); export_scene(args.python, rebuild=args.rebuild)
     if not args.skip_pack or not os.path.exists(GLB_PACKED):
         print("[2/4] pack"); pack()
     print("[3/4] bundle"); bundle()

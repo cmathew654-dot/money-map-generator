@@ -519,3 +519,22 @@ def run(out_dir="export", lightmap_size=768, lightmap_samples=48,
     report["glb"] = export_glb(os.path.join(out_dir, "clover-studio-baked.glb"),
                                vertex_colors=False)
     return report
+
+
+if __name__ == "__main__":
+    # python -m scene.webexport [--time-budget 380] [--vertex]
+    # Repeat until it reports nothing remaining; every stage is resumable.
+    import argparse
+    ap = argparse.ArgumentParser(description="Bake and export for the web")
+    ap.add_argument("--out-dir", default="export")
+    ap.add_argument("--time-budget", type=float, default=None,
+                    help="seconds; stop cleanly and resume on the next run")
+    ap.add_argument("--vertex", action="store_true", help="also vertex-bake props")
+    ap.add_argument("--work-blend", default="export/work.blend")
+    args = ap.parse_args()
+    from . import build as _build
+    _build.build_scene()
+    result = run(out_dir=args.out_dir, time_budget=args.time_budget,
+                 do_vertex=args.vertex, work_blend=args.work_blend)
+    for key, value in result.items():
+        print("%-14s %s" % (key, len(value) if isinstance(value, list) else value))

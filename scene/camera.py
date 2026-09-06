@@ -8,8 +8,8 @@ from mathutils import Vector
 from . import util as U
 
 
-def build(parent_collection, location=(0.02, -0.86, 1.135),
-          target=(0.03, 0.86, 1.045), focal=32.0, fstop=2.2,
+def build(parent_collection, location=(0.030, -0.860, 1.052),
+          target=(0.035, 0.900, 1.012), focal=24.0, fstop=3.4,
           focus_target=None, sensor=36.0, shift=(0.0, 0.0)):
     col = U.collection("Camera", parent_collection)
     data = bpy.data.cameras.new("Camera")

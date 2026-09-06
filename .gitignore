@@ -9,3 +9,4 @@ __pycache__/
 *.pyc
 node_modules/
 web/artifact.html
+web/verify-*.png

@@ -35,13 +35,16 @@ the exact faces on any platform.
 ### The browser walkthrough
 
 ```bash
-cd web && npm install && python ../.venv/bin/python build.py
+cd web && npm install && ../.venv/bin/python build.py   # the interpreter with bpy
 # -> web/dist/clover-studio.html, one self-contained page
 python3 -m http.server 8777 --directory dist
 ```
 
 `build.py` runs export → gltfpack → esbuild → assemble, skipping stages whose
-output exists. Pass `--fragment` to produce the headless form the Claude
+output exists. Run it with the interpreter that has `bpy`, or pass
+`--python <path-to-that-interpreter>`. `--rebuild` ignores a stale
+`export/work.blend`. `../.venv/bin/python verify.py` then loads the built page
+headlessly and prints `G1 PASS` or `G1 FAIL`. Pass `--fragment` to produce the headless form the Claude
 artifact wrapper expects. See `docs/REVIEW-2026-09-06.md` for what a second
 model found when it tried to rebuild this from a clone, and what was fixed.
 

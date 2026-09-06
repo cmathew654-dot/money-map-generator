@@ -42,6 +42,18 @@ day on this project; it is the specific failure this document exists to prevent.
 **Progress rule.** Each phase ends with a gate. Do not enter the next phase until the current
 gate passes. When a gate fails, fix the cause; do not route around it.
 
+**Environment failure is a task, not a block.** A missing interpreter, package, node module or
+font is yours to fix (§2). "Blocked on environment" is not an exit unless the fix needs a
+credential you do not have. Likewise a command in this document that fails is a bug in this
+document: fix the command, note it in your status, continue.
+
+**Gates are commands, not impressions.** Every box in §14 names a command and the string it
+must print. "Looks right" is not evidence. If a gate has no command, that is a defect in this
+document — add one before ticking it.
+
+This manual is invocable as the `/studio-pipeline` skill
+(`.claude/skills/studio-pipeline/SKILL.md`), which carries the same contract.
+
 ---
 
 ## 1 · What the pipeline is
@@ -67,23 +79,49 @@ the WebGL canvas. Clickable, scrollable, live DOM.
 
 ## 2 · Environment
 
+Setup, in this order, from the repo root:
+
+```bash
+python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt   # bpy, numpy, playwright
+(cd web && npm install)                                                  # esbuild, gltfpack, three
+```
+
+**Every `python` in this document means `.venv/bin/python`** — the interpreter that can
+`import bpy`. `web/build.py` refuses any other with a one-line message; pass
+`--python .venv/bin/python` if you must run it from elsewhere. `<name>` throughout is
+`clover-studio`, bound once as `NAME` in `web/build.py`.
+
 | Need | Fact |
 |---|---|
 | Blender | **Not required as a binary.** `pip install bpy==5.2.1` is a complete headless Blender. Python **3.13 exactly** — the 5.x wheels are cp313 only. (bpy 4.x needs 3.11.) |
 | Network | On a locked-down box `download.blender.org` may be blocked while PyPI is allowed. Check `curl -sS "$HTTPS_PROXY/__agentproxy/status"` before assuming. |
 | Node | esbuild 0.28.x, gltfpack 1.2.x, three 0.169.0 — pinned in `web/package.json`. `npm install` in `web/`. |
 | Fonts | Liberation Sans on Linux; Arial on Windows/mac (metric-compatible, layout holds). `CLOVER_FONT_DIR` pins exact faces. A fallback to Blender's Bfont *warns* — if you see the warning, text will silently change shape. |
-| Headless verification | Playwright + a Chromium binary. Software GL: `--use-gl=angle --use-angle=swiftshader`. Screenshots at DPR 1 — DPR 3 under SwiftShader times out. |
+| Headless verification | Playwright (in requirements) + a Chromium binary — `CHROMIUM` env, default `/opt/pw-browsers/chromium`. Software GL args: `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --no-sandbox --disable-dev-shm-usage`. DPR 1 — DPR 3 under SwiftShader times out. All of this is encoded in `web/verify.py`; you should not need to retype it. |
 | GPU | None assumed. Blender 5's compositor needs one; post-processing is numpy on the linear EXR instead (§5). |
 
-**Gate 2:** `python -c "import bpy; print(bpy.app.version_string)"` prints 5.2.x, and
-`web/node_modules/.bin/gltfpack -h` prints a version.
+**Gate 2:**
+```
+.venv/bin/python -c "import bpy; print(bpy.app.version_string)"   → 5.2.1 LTS
+web/node_modules/.bin/gltfpack -h | head -1                        → gltfpack 1.2
+```
 
 ---
 
 ## 3 · Phase A — Read the reference, solve the camera
 
 Do this on paper before any geometry. Composition errors found after modelling cost hours.
+
+The reference is committed at `reference/studio-reference.jpg` (1712×963). For a new project,
+commit yours at `reference/<name>.jpg` first — a scene without its reference in the repo
+cannot have Gates B or C checked by anyone else.
+
+**Measuring procedure.** Open the image in anything that shows pixel coordinates. Record the
+left and right x of the hero, the left and right x of a second object at a clearly different
+depth, and the top and bottom y of a feature on the far plane. Divide by image width (or
+height) for fractions. Worked: monitor x 575–1085 → 510 px → **29.8%**; keyboard x ~475–1090 →
+**36%**; doorway y 35–600 of 963 → **58.7%**. Those three numbers plus known object sizes
+(monitor 0.42 m, keyboard 0.44 m, door 2.2 m) are the whole input to the solve.
 
 1. **Identify the hero.** The object the camera is about. Here: the CRT.
 2. **Measure fractions of frame.** Hero width / frame width. A second object at a known
@@ -138,6 +176,11 @@ image is reproducible from source.
   monitor into a pillow. `bevel()` must not touch `use_smooth`.
 - **Iterate at 800×450, 28 samples.** ~35s a render. Do not tune composition at final quality.
 
+**Preview command:**
+```
+.venv/bin/python -m scene.build --out renders/preview.png --width 800 --height 450 --samples 28
+```
+
 **Gate B:** a preview render whose composition matches the reference on: hero size, wordmark
 placement, doorway position, foreground props at frame edges. Check every named element is
 *in frame* — the first three attempts each had something just outside it.
@@ -155,7 +198,13 @@ placement, doorway position, foreground props at frame edges. Check every named 
 - Committed still: 1600×900, 96 samples, ~9.5 min on 4 CPU cores. 1080p/200spp was ~35 min and
   never needed.
 
-**Gate C:** `renders/<name>.png` exists, and you have *looked at it* against the reference.
+**Command:**
+```
+.venv/bin/python -m scene.build --out renders/clover-studio.png --width 1600 --height 900 --samples 96
+```
+
+**Gate C:** `renders/clover-studio.png` exists, and you have *looked at it* against
+`reference/studio-reference.jpg`.
 
 ---
 
@@ -169,18 +218,29 @@ placement, doorway position, foreground props at frame edges. Check every named 
 | Everything else (props) | **Runtime lights** for now; vertex AO-multiply next | see D5 |
 | Procedural materials | **Albedo texture** | glTF cannot carry a node graph |
 
-**D1 — Select by exact name, never by prefix.** `LIGHTMAP_NAMES` is a frozenset. A prefix
+**D1 — Select by exact name, never by prefix.** `LIGHTMAP_NAMES` is a frozenset at the top of
+`scene/webexport.py`. A prefix
 `"Back_"` meant for three walls matched 54 props and set the baker grinding megapixel
 lightmaps for plant soil for an hour before dying.
 
 **D2 — Order:** `convert_text_and_curves → apply_modifiers → bake_material_albedo →
 flatten_procedural_colors → tame_emission → split_screen_face → add_lightmap_uvs →
 bake_lightmaps → apply_lightmaps → export`. **Albedo before flatten** — flatten severs the Base
-Color links the albedo bake reads. `webexport.run()` encodes this order; use it.
+Color links the albedo bake reads. `webexport.run()` encodes this order. Invoke it as:
+```
+.venv/bin/python -m scene.webexport --time-budget 380      # repeat until lightmaps 0 / remaining 0
+.venv/bin/python -m scene.webexport --time-budget 380 --vertex   # only if you want the prop pass
+```
+Each run resumes; committed lightmaps are skipped, so on this repo the first run bakes only the
+albedo (~3 min) and exports.
 
 **D3 — Every long job is resumable.** Write each output as it lands, skip what exists, stop
 cleanly on a `time_budget`. Run it repeatedly in the foreground until nothing remains. Vertex
-bakes checkpoint into `export/work.blend` (see G3 for why this is non-negotiable).
+bakes checkpoint into `export/work.blend` (see G4 for why this is non-negotiable).
+
+**`export/work.blend` is also what `web/build.py` resumes from, and a stale one silently wins
+over any change to `scene/`.** After editing the scene: `python build.py --rebuild`, or delete
+the file. If your change is not showing up in the browser, this is why.
 
 **D4 — Settings that worked:** 768px, 48 samples for lightmaps (~50s each on 4 cores, 15 in two
 7-minute chunks). Vertex: 20 samples, ~0.7s per object, 954 in ~8 minutes.
@@ -196,8 +256,11 @@ in `work.blend` for reference.
 drifts from the still (back room blows out). Fix: bake to float or apply exposure before saving.
 Open.
 
-**Gate D:** `export/lightmaps/` holds one PNG per name in `LIGHTMAP_NAMES`, and
-`apply_lightmaps()` reports the same count.
+**Gate D:**
+```
+ls export/lightmaps | wc -l        → 15   (== len(LIGHTMAP_NAMES))
+```
+and the `--time-budget` run above ends with `applied 15`.
 
 ---
 
@@ -221,17 +284,31 @@ scar:
   monitor's transform and parked the screen at the world origin; the camera flew under the desk.
 - **Blender +Y is three.js −Z.** The first spawn point stood inside the back wall.
 
-**Gate E:** open the GLB's JSON chunk. `images` are all `image/jpeg`; `extensionsUsed` has no
-`KHR_lights_punctual`; the node `CRT_ScreenFace` exists; count materials whose
-`baseColorFactor` is pure white and be able to name each one.
+**Gate E** — on `export/clover-studio-packed.glb` (the shipped file; `-baked.glb` is pre-pack):
+```python
+import json, struct
+f = open("export/clover-studio-packed.glb", "rb"); f.read(12)
+n, _ = struct.unpack("<II", f.read(8)); g = json.loads(f.read(n))
+print({i["mimeType"] for i in g["images"]}, len(g["images"]))          # {'image/jpeg'} 15
+print("KHR_lights_punctual" in g.get("extensionsUsed", []))             # False
+print(any(nd.get("name") == "CRT_ScreenFace" for nd in g["nodes"]))    # True
+w = [m["name"] for m in g["materials"]
+     if all(v > .95 for v in m.get("pbrMetallicRoughness", {}).get("baseColorFactor", [1,1,1])[:3])]
+print(len(w))                                                          # 17
+```
+The 17 white materials are the 15 `Baked_*` (their colour is the lightmap) plus
+`Back_Pinboard#FFFFFF` and `UI #1E2F56 0.00`. Any other name in that list is a regression.
 
 ---
 
 ## 8 · Phase F — Web build
 
-`cd web && npm install && python build.py` — export → gltfpack → esbuild → assemble. Each
-stage skips if its output exists. `--fragment` for the artifact wrapper (which supplies
-doctype/charset/viewport); default is a standalone document.
+```
+cd web && ../.venv/bin/python build.py            # export → gltfpack → esbuild → assemble
+```
+Each stage skips if its output exists; `--rebuild` ignores a stale `work.blend`. The default
+output is a **standalone** document — that is what Gate F and §14 mean. `--fragment` omits
+doctype/charset/viewport and exists only for the Claude artifact wrapper, which supplies them.
 
 **gltfpack:** `-cc -vp 16 -vt 14 -vn 10 -si 0.92 -kn -km -ke`. 16-bit positions keep the bezel
 and card text crisp (14 gave a 7% error warning); `-si 0.92` keeps book spines legible (0.85 ate
@@ -259,23 +336,33 @@ a COMBINED bake lights already-lit pixels twice. Runtime lights stay only for pr
 point light **well away** from surfaces — a "CRT spill" at 30cm behaved like 18× its nominal
 and turned every beige object mint.
 
-**Gate F:** `web/dist/<name>.html` exists, under the publishing limit (16 MB artifact / 30 MB
-transfer), and §9 passes on it.
+**Gate F:**
+```
+ls -l web/dist/clover-studio.html      → exists, ~3.5 MB (limit: 16 MB artifact, 30 MB transfer)
+```
 
 ---
 
 ## 9 · Phase G — Verify (mandatory, every build)
 
-**G1 — Headless harness** (pattern in `docs/REVIEW-2026-09-06.md` history; keep one in
-`web/verify.py`): load with `?debug`, wait for the loader to remove itself, then assert:
-- telemetry: triangle count in expected range; `baked` reads the lightmap count
-- `window.__dbg.lights()` returns only the runtime set at sane intensities
-- press `E`, locate the iframe frame, click its button, read back the counter → clicks landed
-- `document.compatMode === "CSS1Compat"`, `characterSet === "UTF-8"` (standalone only)
+**G1 — Headless harness:** `web/verify.py`, committed. Run:
+```
+cd web && ../.venv/bin/python verify.py --serve        → G1 PASS
+```
+It loads `dist/clover-studio.html?debug`, waits for `#load` to clear, then asserts — baselines
+from the shipped build, tolerances deliberate:
+- `#tris` between 300,000 and 340,000 (shipped: 318,222)
+- `#baked` starts `15 surf`
+- `window.__dbg.lights()` has exactly 5 entries, none above intensity 10 (an exported Blender
+  light shows as thousands)
+- `document.compatMode == "CSS1Compat"`, `characterSet == "UTF-8"`
+- after `KeyE`, exactly one iframe; clicking `button.cta` in it twice makes `#hits` read `2`
 - zero `pageerror`
+It writes `verify-desktop.png` and `verify-phone.png` (390×844, touch). The selectors live in
+`web/shell.html` and `web/site/index.html`; change them there and here together.
 
-**G2 — Look at it.** Take the screenshot and view it. Then a second at phone dimensions
-(390×844, `has_touch`). The harness passed on a page with an invisible main button and a
+**G2 — Look at it.** View both screenshots `verify.py` wrote. The phone one is Chromium with a
+touch context, not WebKit — it validates layout and input wiring, not Safari; say so in status. The harness passed on a page with an invisible main button and a
 camera inside a wall; a human question ("how do I walk on iOS?") caught both.
 
 **G3 — Interrogate before you reason.** When something looks wrong, ask the live scene:
@@ -288,7 +375,8 @@ Reporting "still grinding" from a file count while the process was dead cost an 
 runs in foreground chunks under 10 minutes, resumable (D3). Check `ps` before believing a job
 is alive.
 
-**Gate G:** G1 output pasted, G2 screenshots viewed and described, any G3 probe results noted.
+**Gate G:** `verify.py` printed `G1 PASS` (paste it); both screenshots viewed and described in
+one line each; any G3 probe results noted.
 
 ---
 
@@ -307,8 +395,13 @@ is alive.
   working system to harden." It found the web build was unreproducible from a clone — the
   one failure that costs the next person a day.
 
-**Gate H:** a fresh clone reproduces the page with the README commands, verified by running
-them, not by reading them.
+**Gate H** — in a scratch directory, not the working tree:
+```
+git clone -b claude/clover-studio-scene <repo-url> fresh && cd fresh
+python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt
+cd web && npm install && ../.venv/bin/python build.py && ../.venv/bin/python verify.py --serve
+```
+→ `wrote .../dist/clover-studio.html (3.46 MB)` then `G1 PASS`. Run it; do not read it.
 
 ---
 
@@ -354,9 +447,14 @@ Each is a rule; the parenthetical is the receipt.
 
 ## 13 · Adapting to a new reference
 
-**Changes:** the camera solve (§3); `palette.py`; the object modules (which objects, their
-sizes, their placement in `build.py`); `screen.py` content; `LIGHTMAP_NAMES`; `SITE_URL`;
-spawn point and clamps in `app.js`.
+**Changes:** the reference photo (`reference/<name>.jpg`, first); the camera solve (§3) —
+values go in `scene/build.py`'s `CAM.build(...)` call *and* `scene/camera.py` defaults;
+`palette.py`; the object modules (which objects, sizes, placement in `build.py`); `screen.py`
+content; `LIGHTMAP_NAMES` in `scene/webexport.py`; `NAME` in `web/build.py`; and in
+`web/src/app.js`: `SITE_URL`, `EYE`, the spawn `camera.position.set(...)`, the x/z clamps in
+`update()`, `IFRAME_W/H` (the page's authored aspect), and the plate-hiding radii (0.26 m
+sphere, 0.24 m from anchor) if the monitor's size changes. Then delete `export/work.blend` or
+build with `--rebuild`, or the old scene ships.
 
 **Does not change:** the phase order, every gate, `util.py`, `materials.py` recipes,
 `webexport.py` sequence, `build.py`, the CSS3D hole-punch, the verify harness, §11.
@@ -369,19 +467,22 @@ verification ~30 min. The first time through took about a week; that difference 
 
 ## 14 · Definition of Done
 
-Check with evidence. All of them.
+Check with evidence: run the command, get the string. All of them.
 
-- [ ] **Gate 2** — `bpy` 5.2.x and gltfpack respond
-- [ ] **Gate A** — camera spec written with derivation
-- [ ] **Gate B** — preview composition matches reference; every named element in frame (viewed)
-- [ ] **Gate C** — still rendered and viewed against reference
-- [ ] **Gate D** — lightmap count == `LIGHTMAP_NAMES`; applied count matches
-- [ ] **Gate E** — GLB: JPEG images, no punctual lights, `CRT_ScreenFace` present, white materials enumerated
-- [ ] **Gate F** — page built under size limit
-- [ ] **Gate G** — harness output pasted; desktop + phone screenshots viewed; probes noted
-- [ ] **Gate H** — fresh-clone rebuild executed and passed
-- [ ] Everything not regenerable in seconds is committed and pushed
-- [ ] Status report separates *verified* from *believed*, names anything skipped
-- [ ] Second-model review run and folded in, or explicitly deferred with reason
+| Gate | Command | Must print |
+|---|---|---|
+| 2 | `.venv/bin/python -c "import bpy;print(bpy.app.version_string)"` | `5.2.1 LTS` |
+| 2 | `web/node_modules/.bin/gltfpack -h \| head -1` | `gltfpack 1.2` |
+| A | your status | focal, position, target, and the two-object derivation |
+| B | `ls renders/preview.png` + you viewed it | exists; every named element in frame |
+| C | `ls renders/clover-studio.png` + you viewed it against `reference/` | exists |
+| D | `ls export/lightmaps \| wc -l` | `15` |
+| E | the §7 snippet on `export/clover-studio-packed.glb` | `{'image/jpeg'} 15` / `False` / `True` / `17` |
+| F | `ls -l web/dist/clover-studio.html` | exists, ≈3.5 MB |
+| G | `cd web && ../.venv/bin/python verify.py --serve` | `G1 PASS`, and both PNGs viewed |
+| H | the §10 fresh-clone block, executed | `G1 PASS` in the fresh clone |
+| — | `git status --short` after committing everything not regenerable in seconds | empty |
+| — | your final status | *verified* and *believed* in separate lists; anything skipped named |
+| — | second-model review | run and folded in, or deferred with a stated reason |
 
-If any box is unchecked and you are not blocked (§0), you are not done. Continue.
+If any row is unmet and you are not blocked (§0), you are not done. Continue.

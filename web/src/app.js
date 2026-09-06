@@ -246,7 +246,7 @@ $("btn-hole").onclick = () => {
    keys do; the right half of the screen stays free for looking around. */
 const stick = { active: false, x: 0, y: 0, id: null };
 const pad = $("stick"), nub = $("nub");
-const TOUCH = matchMedia("(pointer: coarse)").matches;
+const TOUCH = matchMedia("(pointer: coarse)").matches && navigator.maxTouchPoints > 0;
 if (TOUCH) {
   document.body.classList.add("touch");
   pad.hidden = false;
