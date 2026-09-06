@@ -1,0 +1,14 @@
+{
+  "name": "clover-studio-web",
+  "private": true,
+  "description": "Browser walkthrough of the Clover & Co. studio. `npm run build` produces dist/clover-studio.html, a single self-contained page.",
+  "scripts": {
+    "build": "python build.py",
+    "serve": "python3 -m http.server 8777 --directory dist"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "gltfpack": "^1.2.0",
+    "three": "0.169.0"
+  }
+}

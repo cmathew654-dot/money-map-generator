@@ -1,9 +1,10 @@
 renders/*_linear.exr
-export/*.glb
-export/*.gltf
-export/work.blend*
-web/*.glb
-web/artifact.html
+export/clover-studio-raw.glb
+export/clover-studio-baked.glb
+export/app.bundle.js
+export/work.blend1
+web/dist/
+web/node_modules/
 __pycache__/
 *.pyc
 node_modules/

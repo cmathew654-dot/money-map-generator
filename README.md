@@ -7,19 +7,41 @@ network, so the whole image is reproducible from this directory alone.
 
 ![The rendered scene](renders/clover-studio.png)
 
+Live walkthrough: https://claude.ai/code/artifact/d5244569-42da-450b-9509-a368ea5a6457
+
 ## Running it
 
-The scene targets Blender 4.2+ and is written against the `bpy` API, so it runs
-either from a Blender binary or from the `bpy` pip module.
+The scene is written against the `bpy` API and was built with Blender 5.2 via
+the pip module — no Blender install required. `renders/clover-studio.blend`
+is a 5.2 file and will not open in 4.x.
 
 ```bash
-# from a Blender install
-blender -b -P blender/run.py -- --samples 256 --out renders/studio.png
+# headless via pip (Python 3.13 -- bpy 5.x wheels are cp313 only)
+python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-# or headless via pip (python 3.11 for bpy 4.x, 3.13 for bpy 5.x)
-python -m venv .venv && .venv/bin/pip install bpy
-cd blender && ../.venv/bin/python -m scene.build --samples 256
+# the committed still: 1600x900, 96 samples, ~9 min on 4 CPU cores
+.venv/bin/python -m scene.build --samples 96 --width 1600 --height 900
+
+# or from a Blender 5.x binary
+blender -b -P run.py -- --samples 96 --width 1600 --height 900
 ```
+
+Text objects use Liberation Sans (Linux) or Arial (Windows/mac); the two are
+metric-compatible. Set `CLOVER_FONT_DIR` to a folder of Liberation TTFs to pin
+the exact faces on any platform.
+
+### The browser walkthrough
+
+```bash
+cd web && npm install && python ../.venv/bin/python build.py
+# -> web/dist/clover-studio.html, one self-contained page
+python3 -m http.server 8777 --directory dist
+```
+
+`build.py` runs export → gltfpack → esbuild → assemble, skipping stages whose
+output exists. Pass `--fragment` to produce the headless form the Claude
+artifact wrapper expects. See `docs/REVIEW-2026-09-06.md` for what a second
+model found when it tried to rebuild this from a clone, and what was fixed.
 
 Useful flags:
 

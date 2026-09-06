@@ -337,7 +337,7 @@ def tame_emission(cap=2.5):
     return tamed
 
 
-def apply_lightmaps(in_dir="export/lightmaps", as_jpeg=True, quality=88):
+def apply_lightmaps(in_dir="export/lightmaps"):
     """Wire the baked lightmaps back in as each surface's colour.
 
     These are COMBINED bakes, so the texture already carries albedo, direct
@@ -353,14 +353,6 @@ def apply_lightmaps(in_dir="export/lightmaps", as_jpeg=True, quality=88):
         if not os.path.exists(path):
             continue
         img = bpy.data.images.load(os.path.abspath(path), check_existing=True)
-        if as_jpeg:
-            # PNG lightmaps dominate the payload; JPEG is fine for smooth
-            # lighting gradients and roughly a fifth of the bytes.
-            img.file_format = "JPEG"
-            try:
-                bpy.context.scene.render.image_settings.quality = quality
-            except AttributeError:
-                pass
 
         mat = bpy.data.materials.new("Baked_" + obj.name)
         mat.use_nodes = True
@@ -452,14 +444,24 @@ def decimate(ratio=0.6, min_polys=400):
     return reduced
 
 
-def export_glb(path, draco=True, draco_level=6, lights=False,
-               vertex_colors=False):
+def export_glb(path, lights=False, vertex_colors=False, image_format="JPEG",
+               draco=False, draco_level=6):
     """Write a GLB.
 
     Lights default to OFF. Blender's lamps convert to glTF punctual lights in
     physical units -- a sun exports at ~5300 lux and a task lamp at ~6400
     candela -- which drown any hand-tuned realtime lighting and render the
     whole scene white. A runtime that bakes or relights wants none of them.
+
+    Vertex colours default to OFF: GLTFLoader enables material.vertexColors
+    whenever COLOR_0 is present, so shipping the attribute multiplies it into
+    every albedo whether the runtime asks for it or not.
+
+    image_format="JPEG" is what actually shrinks the lightmaps -- setting
+    Image.file_format on the datablock does nothing at export time.
+
+    Draco is off: the pip `bpy` build has no encoder, so the flag was a silent
+    no-op, and gltfpack (the next stage) cannot read draco input anyway.
     """
     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
     kwargs = dict(
@@ -468,6 +470,7 @@ def export_glb(path, draco=True, draco_level=6, lights=False,
         export_yup=True, export_texcoords=True, export_normals=True,
         export_materials="EXPORT",
         export_vertex_color="ACTIVE" if vertex_colors else "NONE",
+        export_image_format=image_format,
     )
     if draco:
         kwargs.update(export_draco_mesh_compression_enable=True,
@@ -481,30 +484,38 @@ def export_glb(path, draco=True, draco_level=6, lights=False,
     return os.path.abspath(path)
 
 
-def run(out_dir="export", lightmap_size=1024, vertex_samples=64,
-        lightmap_samples=128, do_vertex=True, do_lightmaps=True,
-        do_albedo=True, mobile_ratio=None):
-    """Full pipeline: prep, bake, export."""
+def run(out_dir="export", lightmap_size=768, lightmap_samples=48,
+        time_budget=None, do_albedo=True, do_vertex=False, vertex_samples=20,
+        work_blend=None):
+    """The pipeline that produced the shipped assets, in the order that works.
+
+    Order matters: the albedo bake must run BEFORE flatten_procedural_colors,
+    which severs the Base Color links it needs. Lightmaps are baked and then
+    applied. The vertex pass is off by default -- see the handoff for why.
+
+    Pass `time_budget` (seconds) to bake in resumable chunks: outputs already
+    on disk are skipped, so call this repeatedly until nothing is left.
+    """
     report = {}
     report["converted"] = convert_text_and_curves()
     report["modifiers"] = apply_modifiers()
-    report["screen_face"] = split_screen_face().name
-    report["flattened"] = flatten_procedural_colors()
-    report["emission_tamed"] = tame_emission()
-    if do_lightmaps:
-        report["lightmap_uvs"] = len(add_lightmap_uvs())
     if do_albedo:
         report["albedo"] = bake_material_albedo(
             out_dir=os.path.join(out_dir, "albedo"))
-    if do_lightmaps:
-        report["lightmaps"] = bake_lightmaps(
-            size=lightmap_size, samples=lightmap_samples,
-            out_dir=os.path.join(out_dir, "lightmaps"))
+    report["flattened"] = flatten_procedural_colors()
+    report["emission_tamed"] = tame_emission()
+    report["screen_face"] = split_screen_face().name
+    report["lightmap_uvs"] = len(add_lightmap_uvs())
+    report["lightmaps"] = bake_lightmaps(
+        size=lightmap_size, samples=lightmap_samples,
+        out_dir=os.path.join(out_dir, "lightmaps"), time_budget=time_budget)
+    report["applied"] = apply_lightmaps(in_dir=os.path.join(out_dir, "lightmaps"))
     if do_vertex:
-        report["vertex_baked"] = bake_vertex_lighting(samples=vertex_samples)
-    report["glb"] = export_glb(os.path.join(out_dir, "clover-studio.glb"))
-    if mobile_ratio:
-        report["decimated"] = decimate(ratio=mobile_ratio)
-        report["glb_mobile"] = export_glb(
-            os.path.join(out_dir, "clover-studio-mobile.glb"))
+        report["vertex"] = bake_vertex_lighting(
+            samples=vertex_samples, time_budget=time_budget,
+            blend_path=work_blend)
+    if work_blend:
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(work_blend))
+    report["glb"] = export_glb(os.path.join(out_dir, "clover-studio-baked.glb"),
+                               vertex_colors=False)
     return report

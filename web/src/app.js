@@ -12,6 +12,12 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
 
 const SCREEN_NODE = "CRT_ScreenFace";
 const USE_VERTEX_COLORS = false;
+/* Point the monitor at a real site by setting SITE_URL. Left empty, the page
+   falls back to the bundled stub in window.__SITE__ via srcdoc. A real URL
+   only works when this page is self-hosted (the artifact sandbox blocks it),
+   and only if that site does not send X-Frame-Options / frame-ancestors. */
+const SITE_URL = "";
+const DEBUG = /[?&]debug\b/.test(location.search);
 const IFRAME_W = 640, IFRAME_H = 480;
 const EYE = 1.60;
 const $ = (id) => document.getElementById(id);
@@ -57,7 +63,8 @@ hole.renderOrder = -1;
 scene.add(hole);
 
 const iframe = document.createElement("iframe");
-iframe.setAttribute("srcdoc", window.__SITE__);
+if (SITE_URL) iframe.src = SITE_URL;
+else iframe.setAttribute("srcdoc", window.__SITE__);
 iframe.style.cssText = `width:${IFRAME_W}px;height:${IFRAME_H}px;border:0;background:#FBFAF6`;
 const screenObj = new CSS3DObject(iframe);
 scene.add(screenObj);
@@ -219,7 +226,9 @@ function toggle() {
   const on = mode === "screen";
   gl.domElement.classList.toggle("passthrough", on);
   $("btn-sit").dataset.on = on ? "1" : "";
-  $("btn-sit").innerHTML = on ? 'Step back <kbd>Esc</kbd>' : 'Use the computer <kbd>E</kbd>';
+  $("btn-sit").innerHTML = on
+    ? 'Step back <kbd class="desktop-only">Esc</kbd>'
+    : 'Use the computer <kbd class="desktop-only">E</kbd>';
   $("legend").style.opacity = on ? "0.25" : "1";
 }
 $("btn-sit").onclick = toggle;
@@ -312,8 +321,8 @@ function frame() {
 }
 frame();
 
-/* debug handle so the headless harness can interrogate the live scene */
-window.__dbg = {
+/* Debug handle for the headless harness. Only mounted with ?debug in the URL. */
+if (DEBUG) window.__dbg = {
   scene, camera, gl,
   lights: () => { const L=[]; scene.traverse(o=>{ if(o.isLight) L.push({t:o.type,i:o.intensity}); }); return L; },
   killLights: () => { scene.traverse(o=>{ if(o.isLight) o.intensity=0; }); },

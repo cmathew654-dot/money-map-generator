@@ -1,0 +1,134 @@
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Clover &amp; Co. Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* A walkthrough viewer commits to one dark world on purpose: the room is
+     the page, and chrome that flipped to a light ground would fight it.
+     Every colour is painted explicitly so it holds on either host ground. */
+  :root{
+    --void:#14120F; --void-2:#1D1A15;
+    --navy:#1E2F56; --red:#D93B2B; --mustard:#EFB01F; --cream:#F1EADC;
+    --haze:#94897A; --edge:rgba(241,234,220,.14);
+    --plate:rgba(20,18,15,.80);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--void);
+    color:var(--cream);font-family:Archivo,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  #css3d{position:fixed;inset:0;z-index:0}
+  #gl{position:fixed;inset:0;z-index:1;display:block;touch-action:none}
+  #gl.passthrough{pointer-events:none}
+
+  .plate{position:fixed;z-index:3;background:var(--plate);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border:1px solid var(--edge);border-radius:3px;padding:11px 14px}
+
+  #ident{left:18px;top:18px;display:flex;align-items:center;gap:10px;
+    padding:10px 15px 10px 12px}
+  #ident .mark{width:15px;height:15px;background:var(--red);position:relative;flex:none}
+  #ident .mark::after{content:"";position:absolute;inset:4px;background:var(--void)}
+  #ident b{font-weight:800;font-size:14px;letter-spacing:-.2px;display:block;line-height:1.15}
+  #ident span{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9px;
+    letter-spacing:.18em;color:var(--haze);text-transform:uppercase}
+
+  #tele{right:18px;top:18px;font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:10.5px;line-height:1.85;color:var(--haze);
+    font-variant-numeric:tabular-nums;padding:10px 13px}
+  #tele i{font-style:normal;color:var(--cream)}
+  #tele u{text-decoration:none;color:var(--mustard)}
+
+  #legend{left:18px;bottom:18px;max-width:322px;transition:opacity .35s}
+  #legend h2{margin:0 0 7px;font-size:12.5px;font-weight:600;letter-spacing:.01em}
+  #legend p{margin:0;font-size:12px;line-height:1.55;color:var(--haze)}
+  #legend em{font-style:normal;color:var(--mustard)}
+  kbd{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;
+    background:#2A2620;border:1px solid #3D372E;border-bottom-width:2px;
+    border-radius:3px;padding:1px 5px;color:var(--cream);margin:0 1px}
+
+  #modes{position:fixed;z-index:3;right:18px;bottom:18px;display:flex;gap:8px;
+    background:none;border:0;padding:0}
+  button{font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;
+    background:var(--plate);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    color:var(--cream);border:1px solid var(--edge);border-radius:3px;padding:10px 14px;
+    transition:border-color .15s,color .15s,background .15s}
+  button:hover{border-color:var(--mustard);color:var(--mustard)}
+  button:focus-visible{outline:2px solid var(--mustard);outline-offset:2px}
+  button[data-on="1"]{background:var(--mustard);color:var(--navy);border-color:var(--mustard)}
+  button[data-on="1"] kbd{background:rgba(30,47,86,.18);border-color:rgba(30,47,86,.3);color:var(--navy)}
+
+  #load{position:fixed;inset:0;z-index:9;display:grid;place-content:center;
+    justify-items:center;gap:16px;background:var(--void);transition:opacity .6s}
+  #load .wm{font-weight:800;font-size:26px;letter-spacing:-.6px}
+  #load .sub{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9.5px;
+    letter-spacing:.24em;color:var(--haze);text-transform:uppercase;margin-top:-10px}
+  #bar{width:240px;height:2px;background:#2A2620;overflow:hidden}
+  #barf{height:100%;width:8%;background:var(--mustard);transition:width .4s ease}
+  #lmsg{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;color:var(--haze)}
+  .rule{width:52px;height:3px;background:var(--red)}
+
+  /* thumbstick: touch only */
+  #stick{position:fixed;z-index:4;left:20px;bottom:20px;width:118px;height:118px;
+    border-radius:50%;background:rgba(20,18,15,.62);border:1px solid var(--edge);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    touch-action:none;display:grid;place-items:center}
+  #nub{width:50px;height:50px;border-radius:50%;background:var(--mustard);
+    opacity:.92;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+  #stick::after{content:"MOVE";position:absolute;bottom:-17px;left:0;right:0;
+    text-align:center;font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:8.5px;letter-spacing:.2em;color:var(--haze)}
+  body.touch #legend .desktop-only{display:none}
+  body:not(.touch) #legend .touch-only{display:none}
+
+  @media (max-width:720px){
+    #legend{max-width:none;right:18px}
+    #tele{display:none}
+    #modes{right:14px;left:auto;bottom:24px;flex-direction:column;align-items:stretch;gap:7px}
+    #modes button{padding:11px 13px;font-size:11.5px}
+    #legend{left:14px;right:14px;bottom:auto;top:70px;max-width:none;padding:10px 13px}
+    #legend h2{font-size:12px}
+    #legend p{font-size:11.5px}
+    #ident{left:14px;top:14px}
+    #stick{left:16px;bottom:24px;width:104px;height:104px}
+    #nub{width:44px;height:44px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div id="css3d"></div>
+<div id="load">
+  <div class="wm">Clover &amp; Co.</div>
+  <div class="sub">Web Design Studio</div>
+  <div class="rule"></div>
+  <div id="bar"><div id="barf"></div></div>
+  <div id="lmsg">loading studio&hellip;</div>
+</div>
+
+<div class="plate" id="ident">
+  <span class="mark"></span>
+  <span><b>Clover &amp; Co.</b><span>Studio walkthrough</span></span>
+</div>
+
+<div class="plate" id="tele">
+  <div>triangles <i id="tris">—</i></div>
+  <div>fps <i id="fps">—</i></div>
+  <div>baked <i id="baked">&mdash;</i></div>
+  <div>screen <u>live DOM</u></div>
+</div>
+
+<div class="plate" id="legend">
+  <h2>Walk the studio</h2>
+  <p class="desktop-only"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move, drag to look,
+  <kbd>Shift</kbd> to run. Step up to the monitor and press <kbd>E</kbd> &mdash;
+  <em>the screen is a real web page</em>, not a texture. Click the button on it.</p>
+  <p class="touch-only">Drag the yellow stick to walk, swipe anywhere else to look.
+  Or just tap <em>Use the computer</em> to sit down &mdash; <em>the screen is a real web page</em>,
+  not a texture. Tap the button on it.</p>
+</div>
+
+<div id="stick" hidden><div id="nub"></div></div>
+
+<div id="modes">
+  <button id="btn-sit">Use the computer <kbd class="desktop-only">E</kbd></button>
+  <button id="btn-hole" data-on="1">Live page</button>
+</div>

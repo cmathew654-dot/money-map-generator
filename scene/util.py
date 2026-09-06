@@ -341,23 +341,37 @@ def box_project(obj, scale=1.0):
 # text
 # --------------------------------------------------------------------------
 
+# Liberation Sans is metric-compatible with Arial, so the Windows and mac
+# fallbacks keep every layout measurement intact. Set CLOVER_FONT_DIR to a
+# directory holding the Liberation TTFs to pin the exact faces anywhere.
+_FONT_DIR = __import__("os").environ.get("CLOVER_FONT_DIR", "")
 _FONT_PATHS = {
     "bold": [
+        _FONT_DIR + "/LiberationSans-Bold.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "C:/Windows/Fonts/arialbd.ttf",
+        "/Library/Fonts/Arial Bold.ttf",
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
     ],
     "regular": [
+        _FONT_DIR + "/LiberationSans-Regular.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "C:/Windows/Fonts/arial.ttf",
+        "/Library/Fonts/Arial.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
     ],
     "serif": [
+        _FONT_DIR + "/LiberationSerif-Bold.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
+        "C:/Windows/Fonts/timesbd.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
     ],
     "mono": [
+        _FONT_DIR + "/LiberationMono-Bold.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf",
+        "C:/Windows/Fonts/courbd.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
     ],
 }
@@ -373,7 +387,10 @@ def font(kind="bold"):
         if os.path.exists(path):
             _font_cache[kind] = bpy.data.fonts.load(path)
             return _font_cache[kind]
-    _font_cache[kind] = None          # Blender's built-in Bfont
+    import sys
+    print("[fonts] no %s face found; falling back to Blender's built-in Bfont "
+          "-- set CLOVER_FONT_DIR to fix" % kind, file=sys.stderr)
+    _font_cache[kind] = None
     return None
 
 

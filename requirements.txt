@@ -1,0 +1,5 @@
+# Python 3.13 -- bpy 5.x wheels are cp313 only. (bpy 4.x needs 3.11.)
+bpy==5.2.1
+numpy>=2.0
+# headless verification only
+playwright>=1.45
