@@ -11,6 +11,7 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
    truly in front still writes depth, and still occludes. */
 
 const SCREEN_NODE = "CRT_ScreenFace";
+const USE_VERTEX_COLORS = false;
 const IFRAME_W = 640, IFRAME_H = 480;
 const EYE = 1.60;
 const $ = (id) => document.getElementById(id);
@@ -102,11 +103,30 @@ setTimeout(() => {
     gltf.scene.traverse((o) => { if (o.isLight) strays.push(o); });
     strays.forEach((l) => l.removeFromParent());
     scene.add(gltf.scene);
-    let tris = 0, baked = 0;
+    let tris = 0, baked = 0, vbaked = 0;
     gltf.scene.traverse((o) => {
       if (!o.isMesh) return;
       if (o.geometry?.index) tris += o.geometry.index.count / 3;
       const m = o.material;
+      /* Props carry their lighting in COLOR_0 from the vertex bake. Same
+         rule as the lightmapped surfaces: draw them unlit, or the runtime
+         lights the already-lit a second time. */
+      /* Disabled: a COMBINED bake at 20 samples across a prop with a handful
+         of vertices carries almost no signal, and gltfpack's simplification
+         and 8-bit colour quantisation finish it off -- the red wall wedge is
+         one triangle, and came back black. The COLOR_0 data still ships for
+         a future pass that subdivides first and skips decimation. */
+      if (USE_VERTEX_COLORS && m && o.geometry && o.geometry.attributes.color) {
+        const vc = new THREE.MeshBasicMaterial({
+          vertexColors: true, color: 0xffffff,
+          transparent: m.transparent, opacity: m.opacity,
+          depthWrite: m.depthWrite, side: m.side,
+        });
+        vc.name = m.name;
+        o.material = vc;
+        vbaked++;
+        return;
+      }
       /* A COMBINED bake already contains albedo, direct light and bounce, so
          these surfaces must be drawn unlit -- a lit material would light
          already-lit pixels a second time. */
@@ -144,15 +164,17 @@ setTimeout(() => {
       }
     }
     $("tris").textContent = Math.round(tris).toLocaleString();
-    $("baked").textContent = baked ? baked + " surfaces" : "none";
+    $("baked").textContent = baked + " surf / " + vbaked + " props";
     // The room's big surfaces carry their own light now; the remaining lamps
     // only need to shape the props.
-    if (baked) {
-      // The room lights itself now; these only shape the props on the desk.
-      sun.intensity = 1.05;
-      hemi.intensity = 0.42;
-      fill.intensity = 1.5;
-      lamp.intensity = 8.0;
+    /* With both passes applied the whole room carries its own light, so the
+       runtime lamps come out entirely -- no realtime lighting at all. */
+    if (baked && vbaked > 100) {
+      [sun, hemi, fill, lamp, glowCRT].forEach((l) => { l.intensity = 0; });
+      gl.toneMappingExposure = 1.0;
+    } else if (baked) {  // lightmapped room, runtime-lit props
+      sun.intensity = 1.05; hemi.intensity = 0.42;
+      fill.intensity = 1.5; lamp.intensity = 8.0;
       gl.toneMappingExposure = 1.12;
     }
     ready = true;

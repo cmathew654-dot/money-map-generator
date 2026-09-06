@@ -1,6 +1,7 @@
 renders/*_linear.exr
 export/*.glb
 export/*.gltf
+export/work.blend*
 web/*.glb
 web/artifact.html
 __pycache__/

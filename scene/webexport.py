@@ -169,31 +169,53 @@ def _bake_settings(samples=96, margin=6, use_color=True):
     return scene
 
 
-def bake_vertex_lighting(samples=64, limit=None):
-    """Bake full lighting into a vertex colour layer on the small props."""
+def bake_vertex_lighting(samples=24, time_budget=None, blend_path=None,
+                         attr="Baked"):
+    """Bake full lighting into a vertex colour layer on the small props.
+
+    Resumable like the lightmap pass, but the results live in the .blend
+    rather than in files, so progress is checkpointed by saving the file and
+    skipping any object that already carries the attribute.
+    """
+    import time as _time
+    started = _time.time()
     _bake_settings(samples=samples)
-    targets = [o for o in _mesh_objects()
-               if not wants_lightmap(o) and len(o.data.vertices) > 3]
-    if limit:
-        targets = targets[:limit]
-    done, failed = 0, 0
+    targets, done, failed, skipped = [], 0, 0, 0
+    for obj in _mesh_objects():
+        if wants_lightmap(obj) or len(obj.data.vertices) < 4:
+            continue
+        if attr in obj.data.color_attributes:
+            skipped += 1
+            continue
+        targets.append(obj)
+
     for obj in targets:
-        if "Baked" not in obj.data.color_attributes:
-            try:
-                obj.data.color_attributes.new(
-                    name="Baked", type="FLOAT_COLOR", domain="CORNER")
-            except RuntimeError:
-                failed += 1
-                continue
-        obj.data.color_attributes.active_color = \
-            obj.data.color_attributes["Baked"]
+        if time_budget and _time.time() - started > time_budget:
+            break
+        try:
+            obj.data.color_attributes.new(name=attr, type="FLOAT_COLOR",
+                                          domain="CORNER")
+        except RuntimeError:
+            failed += 1
+            continue
+        obj.data.color_attributes.active_color = obj.data.color_attributes[attr]
         _select_only([obj])
         try:
             bpy.ops.object.bake(type="COMBINED", target="VERTEX_COLORS")
             done += 1
         except RuntimeError:
             failed += 1
-    return done, failed
+        if done and done % 40 == 0:
+            print("      %d baked (%.0fs)" % (done, _time.time() - started),
+                  flush=True)
+            if blend_path:
+                bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(blend_path))
+
+    if blend_path:
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(blend_path))
+    remaining = max(0, len(targets) - done - failed)
+    return {"baked": done, "failed": failed, "already": skipped,
+            "remaining": remaining}
 
 
 def bake_lightmaps(size=1024, samples=128, out_dir="export/lightmaps",
@@ -430,7 +452,8 @@ def decimate(ratio=0.6, min_polys=400):
     return reduced
 
 
-def export_glb(path, draco=True, draco_level=6, lights=False):
+def export_glb(path, draco=True, draco_level=6, lights=False,
+               vertex_colors=False):
     """Write a GLB.
 
     Lights default to OFF. Blender's lamps convert to glTF punctual lights in
@@ -444,6 +467,7 @@ def export_glb(path, draco=True, draco_level=6, lights=False):
         export_apply=True, export_cameras=True, export_lights=lights,
         export_yup=True, export_texcoords=True, export_normals=True,
         export_materials="EXPORT",
+        export_vertex_color="ACTIVE" if vertex_colors else "NONE",
     )
     if draco:
         kwargs.update(export_draco_mesh_compression_enable=True,
