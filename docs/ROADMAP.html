@@ -1,0 +1,331 @@
+<title>Clover &amp; Co. Roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#F7F3EA; --panel:#FFFFFF; --sunk:#EFE8DA;
+    --ink:#1A1A1F; --ink-2:#5E5A52; --ink-3:#8A8378;
+    --navy:#1E2F56; --red:#D93B2B; --mustard:#EFB01F; --line:#DED5C4;
+    --ok:#2F6F4F; --warn:#9A6414; --dead:#8C3A32; --now:#1E2F56;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#141317; --panel:#1C1B20; --sunk:#232128;
+      --ink:#F0EBE0; --ink-2:#A9A296; --ink-3:#777066;
+      --navy:#8FA6D8; --red:#F0705F; --mustard:#EFB01F; --line:#2E2B33;
+      --ok:#6FBF8F; --warn:#E0A44A; --dead:#E2796C; --now:#8FA6D8;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#141317; --panel:#1C1B20; --sunk:#232128;
+    --ink:#F0EBE0; --ink-2:#A9A296; --ink-3:#777066;
+    --navy:#8FA6D8; --red:#F0705F; --mustard:#EFB01F; --line:#2E2B33;
+    --ok:#6FBF8F; --warn:#E0A44A; --dead:#E2796C; --now:#8FA6D8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);
+    font:15px/1.62 Archivo,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:44px 22px 96px}
+  header{display:flex;align-items:flex-start;gap:14px;padding-bottom:22px;
+    border-bottom:3px solid var(--navy);margin-bottom:30px}
+  .mark{width:26px;height:26px;background:var(--red);position:relative;flex:none;margin-top:5px}
+  .mark::after{content:"";position:absolute;inset:7px;background:var(--ground)}
+  h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.6px;line-height:1.1}
+  .kicker{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);margin-top:5px}
+  h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin:46px 0 14px;font-weight:600}
+  p{margin:0 0 13px;max-width:68ch;color:var(--ink-2)}
+  p strong,li strong{color:var(--ink);font-weight:600}
+  a{color:var(--navy);text-decoration-thickness:1px;text-underline-offset:2px}
+  ul{margin:0 0 12px;padding-left:19px;max-width:68ch;color:var(--ink-2)}
+  li{margin-bottom:5px}
+  code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;background:var(--sunk);padding:1.5px 5px;border-radius:3px;color:var(--ink)}
+  .lede{font-size:17px;color:var(--ink);max-width:66ch}
+
+  /* the pipeline strip */
+  .pipe{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;margin:0 0 8px}
+  .pipe .st{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:9px 12px;
+    font-size:12.5px;color:var(--ink);font-weight:500;display:flex;flex-direction:column;justify-content:center;min-width:120px}
+  .pipe .st small{display:block;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9.5px;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+  .pipe .arr{align-self:center;color:var(--ink-3);font-size:14px;padding:0 1px}
+
+  /* state timeline */
+  .tl{position:relative;margin:8px 0 0;padding-left:30px}
+  .tl::before{content:"";position:absolute;left:9px;top:8px;bottom:10px;width:2px;background:var(--line)}
+  .state{position:relative;margin-bottom:30px}
+  .state::before{content:"";position:absolute;left:-26px;top:7px;width:12px;height:12px;border-radius:50%;
+    background:var(--ground);border:2px solid var(--ink-3)}
+  .state.done::before{background:var(--ok);border-color:var(--ok)}
+  .state.now::before{background:var(--mustard);border-color:var(--mustard);box-shadow:0 0 0 4px color-mix(in srgb,var(--mustard) 25%,transparent)}
+  .state.next::before{border-color:var(--navy);border-style:dashed}
+  .state h3{margin:0 0 3px;font-size:18px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .state h3 .tag{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;font-weight:500;padding:2px 7px;border-radius:3px}
+  .t-done{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+  .t-now{background:var(--mustard);color:#1E2F56}
+  .t-next{background:color-mix(in srgb,var(--navy) 14%,transparent);color:var(--navy)}
+  .state .what{color:var(--ink);margin-bottom:9px}
+  .row{display:grid;grid-template-columns:96px 1fr;gap:6px 14px;margin:0 0 4px;font-size:14px}
+  .row .k{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-3);padding-top:4px}
+  .row ul{margin:0 0 4px}
+  .row p{margin:0 0 4px}
+  @media (max-width:560px){.row{grid-template-columns:1fr}.row .k{padding-top:0}}
+
+  .grid{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-bottom:8px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:13px 15px}
+  .card .h{font-weight:600;font-size:13px;margin-bottom:4px;color:var(--ink)}
+  .card p{font-size:13px;margin:0}
+  .card.bad{border-left:3px solid var(--red)}
+  .card.good{border-left:3px solid var(--ok)}
+
+  table{width:100%;border-collapse:collapse;margin:0 0 15px;font-size:14px}
+  th{text-align:left;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding:0 10px 7px 0;border-bottom:1px solid var(--line)}
+  td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2)}
+  td:first-child{color:var(--ink);font-weight:500;white-space:nowrap}
+  .scroll{overflow-x:auto}
+
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0 0 15px;max-width:68ch}
+  ol.steps>li{counter-increment:s;position:relative;padding-left:34px;margin-bottom:13px;color:var(--ink-2)}
+  ol.steps>li::before{content:counter(s);position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;
+    background:var(--navy);color:#fff;font:600 11px/22px "IBM Plex Mono",monospace;text-align:center}
+  footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="mark"></span>
+  <div>
+    <h1>Clover &amp; Co. — Roadmap</h1>
+    <div class="kicker">How we got here &middot; where we are &middot; where it ends &middot; 6 Sep 2026</div>
+  </div>
+</header>
+
+<p class="lede">One reference photo in, a walkable browser studio out. This is the route in
+states — what each one is, the recipe that produced it, and what we learned that changed the
+recipe for the next one. Companion to the
+<a href="https://claude.ai/code/artifact/3b3e68ab-722e-4747-8d52-a5ce471a6fe1">handoff doc</a>,
+which has the deliverables and PC setup.</p>
+
+<h2>The pipeline, distilled</h2>
+<p>This is the recipe as it stands after everything below. Each box is a stage a fresh engineer
+runs in order; each arrow is a file format crossing a boundary.</p>
+<div class="pipe">
+  <div class="st">Reference photo<small>jpg</small></div><span class="arr">→</span>
+  <div class="st">Procedural scene<small>python · bpy</small></div><span class="arr">→</span>
+  <div class="st">Cycles render<small>lookdev target</small></div><span class="arr">→</span>
+  <div class="st">Bake<small>lightmaps · albedo</small></div><span class="arr">→</span>
+  <div class="st">glTF<small>lights off · vcol off</small></div><span class="arr">→</span>
+  <div class="st">gltfpack<small>meshopt</small></div><span class="arr">→</span>
+  <div class="st">three.js<small>esbuild · CSS3D</small></div><span class="arr">→</span>
+  <div class="st">Single HTML<small>3.46 MB · base64 glb</small></div>
+</div>
+<p>Reproducible from a clone: <code>cd web &amp;&amp; npm install &amp;&amp; python build.py</code>
+rebuilds the page in 4 seconds from <code>export/work.blend</code>. That was not true until the
+review below — every build step had lived in a session scratchpad.</p>
+<p>The two ideas that make it work: <strong>the Cycles render is the lookdev target</strong>, and
+everything downstream exists to reproduce it in a browser at 60fps; and <strong>light is baked,
+not simulated</strong>, so the runtime draws unlit surfaces and needs no lights of its own.</p>
+
+<h2>States</h2>
+<div class="tl">
+
+<div class="state done">
+  <h3>S0 · Reference <span class="tag t-done">start</span></h3>
+  <p class="what">One photograph: a CRT on a dark desk, a design studio behind it, golden-hour light.
+  The brief was 1:1 fidelity in Blender.</p>
+</div>
+
+<div class="state done">
+  <h3>S1 · Procedural Blender scene <span class="tag t-done">done</span></h3>
+  <p class="what">4,774 lines of Python that generate every mesh and every material. No downloaded
+  assets, no image textures. Renders in Cycles to a 1600×900 still.</p>
+  <div class="row"><div class="k">How</div><div>
+    <ul>
+      <li>No Blender binary — <code>download.blender.org</code> was blocked by the session's network
+      policy, but PyPI wasn't. <code>pip install bpy==5.2.1</code> gave a full headless Blender.</li>
+      <li>The CRT is lofted from superellipse cross-sections: that's what gives a real tube its boxy
+      face, straight sides and hard taper. A rounded cube never reads right.</li>
+      <li>The screen is ~400 emissive plates and text objects on a virtual 640×480 raster, so the
+      interface lights the desk. Not a texture.</li>
+      <li>Camera matched by measuring the monitor and doorway as fractions of the reference frame
+      and solving for focal length and distance: 24mm, 0.86m back, near desk height.</li>
+    </ul></div></div>
+  <div class="row"><div class="k">Learned</div><div>
+    <ul>
+      <li><strong>Linearise emission colours.</strong> Feeding sRGB straight into emission made
+      navy glow like white. Once linearised, the screen had real contrast.</li>
+      <li><strong>Blender 5's compositor needs a GPU.</strong> Bloom and vignette moved to a numpy
+      pass on the linear EXR, which is a better place for them anyway.</li>
+      <li>A helper that force-smoothed every face turned the monitor into a pillow. Shading flags
+      are per-surface decisions.</li>
+      <li><strong>Khronos PBR Neutral over AgX</strong> for this brief — AgX desaturates emissive
+      highlights, and the reference is saturated.</li>
+    </ul></div></div>
+</div>
+
+<div class="state done">
+  <h3>S2 · Walkable browser scene, live page in the CRT <span class="tag t-done">done</span></h3>
+  <p class="what">The scene exported to glTF and running in three.js: WASD and touch controls,
+  and the monitor showing a real, clickable <code>&lt;iframe&gt;</code>. Published as a single 6.85 MB
+  HTML page.</p>
+  <div class="row"><div class="k">How</div><div>
+    <ul>
+      <li><code>CSS3DRenderer</code> puts a DOM element in the same 3D space as WebGL; a depth-only
+      plane on the screen's transform punches a hole in a transparent canvas so the DOM shows through
+      and the bezel still occludes. Decade-old technique, verified here by clicking inside the iframe
+      headlessly.</li>
+      <li>Artifacts can't fetch external files, so three.js is esbuild-bundled (577 KB) and the GLB
+      is meshopt-compressed by gltfpack (11 MB → 1.6 MB) and base64-inlined.</li>
+      <li><code>CRT_ScreenFace</code> is split out of the monitor as a named, unit-UV plane — the
+      anchor the runtime positions the iframe against.</li>
+    </ul></div></div>
+  <div class="row"><div class="k">Learned</div><div>
+    <ul>
+      <li><strong>Never export Blender's lights to glTF.</strong> They arrive in physical units — sun
+      at 5,327 lux, lamp at 6,413 cd — and rendered the whole room white. I blamed software rendering
+      twice before exposing a debug handle and asking the live scene what lights it had.</li>
+      <li><strong>glTF can't carry a node graph.</strong> Seven procedural materials — desk, floor,
+      brick, plants — exported as white. Flat fallback colours now, baked albedo is the real fix.</li>
+      <li><code>movementX</code> is empty for touch pointers; three.js <code>fov</code> is vertical so
+      portrait crops to a sliver; Blender +Y is three.js −Z. All found by testing at iPhone size.</li>
+      <li><strong>A passing automated test is not a usable page.</strong> Playwright clicked a button
+      that was invisible to humans because <code>#modes</code> lacked <code>position:fixed</code>.
+      "How do I walk on iOS" caught it.</li>
+    </ul></div></div>
+</div>
+
+<div class="state now">
+  <h3>S3 · Baked lighting <span class="tag t-now">current</span></h3>
+  <p class="what">The 15 large surfaces — floor, ceiling, every wall, the desk — carry Cycles
+  COMBINED bakes on a second UV channel and draw unlit. Props are lit by five hand-placed runtime
+  lights. This is what's live at the link now.</p>
+  <div class="row"><div class="k">How</div><div>
+    <ul>
+      <li>Lightmap UVs via smart-project on exact-named surfaces; Cycles bakes at 768px/48spp;
+      textures saved as JPEG; each material becomes a flat lookup of its bake through the
+      <code>Lightmap</code> UV; runtime swaps to <code>MeshBasicMaterial</code>.</li>
+      <li>All 954 props were also vertex-baked (COMBINED into a <code>Baked</code> colour attribute)
+      and the data is in <code>export/work.blend</code>.</li>
+    </ul></div></div>
+  <div class="row"><div class="k">Learned</div><div>
+    <ul>
+      <li><strong>This container suspends background processes when the session idles.</strong> Two
+      bakes died within minutes of the conversation going quiet — not OOM, not a crash. Long jobs
+      must be resumable: write per-item, skip finished, stop on a time budget. Both bakes then
+      completed in foreground chunks with zero failures.</li>
+      <li>A <code>"Back_"</code> prefix meant for three walls caught 54 props. Match on exact names.</li>
+      <li><strong>The vertex bake is a regression and is switched off.</strong> A 20-sample COMBINED
+      bake on a prop with a handful of vertices carries almost no signal; gltfpack's simplification
+      and 8-bit colour quantisation finish it. The wall wedge is one triangle and came back black.</li>
+      <li><code>GLTFLoader</code> enables <code>vertexColors</code> whenever <code>COLOR_0</code> is
+      present, so merely shipping the attribute darkens every albedo. Export it off by default.</li>
+      <li>A cyan "screen spill" light 30cm from the keyboard behaved like 18× its nominal value and
+      tinted every beige surface mint. Inverse-square is unforgiving up close.</li>
+    </ul></div></div>
+</div>
+
+<div class="state next">
+  <h3>S4 · The demo as intended <span class="tag t-next">next</span></h3>
+  <p class="what">Approach from the street, walk in, sit at the desk, see the client's real website
+  on the CRT. Works on an iPhone.</p>
+  <div class="row"><div class="k">Build</div><div>
+    <ol class="steps">
+      <li><strong>Exterior.</strong> Street, storefront, door, and a walk-in path. Nothing exists yet
+      and it's the framing device for the whole piece. Real modelling, in <code>scene/</code>, same
+      procedural approach.</li>
+      <li><strong>Real site in the CRT.</strong> Change the iframe URL. Confirm the site doesn't send
+      <code>X-Frame-Options: DENY</code> or a tight <code>frame-ancestors</code> CSP.</li>
+      <li><strong>Hybrid screen, refined.</strong> A screenshot texture of the site at distance;
+      when seated the camera is locked, so a <em>plain 2D iframe positioned over the screen
+      rect</em> works identically to the CSS3D one — and removes the only iOS-fragile dependency
+      (a 3D-transformed iframe) instead of testing for it. Reviewer's idea; better than mine.</li>
+      <li><strong>Fix the lightmap grade.</strong> Bakes are 8-bit PNG with no view transform, so
+      highlights clip and the room drifts from the still. Bake to float, or apply exposure before
+      saving. Then KTX2/Basis for iOS memory.</li>
+      <li><strong>Host it on the marketing site</strong>, not as a Claude artifact. Serve the GLB and
+      textures as separate cached files rather than base64 in the HTML — the inlining exists only
+      because the artifact sandbox can't fetch. Self-hosting also dissolves the cross-origin
+      question for the client's own site.</li>
+      <li><strong>Physical iPhone test.</strong> Everything mobile so far ran in Chromium with an
+      iPhone user agent, not WebKit. Thirty seconds on a real device.</li>
+    </ol></div></div>
+</div>
+
+<div class="state next">
+  <h3>S5 · End state <span class="tag t-next">goal</span></h3>
+  <p class="what">A polished, walkable studio on the client's website. Visitors arrive on the
+  pavement, cross the threshold, and end up at a 1997 desk looking at the client's current site
+  inside a CRT. Loads in under 5 seconds on cellular, holds 60fps on a laptop and 30+ on a phone,
+  and reads as a portfolio piece in its own right.</p>
+  <div class="row"><div class="k">Optional</div><div>
+    <ul>
+      <li>Hotspots on props — books, posters, the mug — that open real work.</li>
+      <li>USDZ export → AR Quick Look on iOS, for free from the same Blender scene.</li>
+      <li>Redo the vertex bake properly (subdivide, more samples, no decimation) or lightmap the
+      largest props individually; either removes the last five runtime lights.</li>
+    </ul></div></div>
+</div>
+
+</div>
+
+<h2>Is the handoff pointed the right way?</h2>
+<p>A second model reviewed the repo and both docs adversarially before this was finalised, with
+one instruction: treat it as a working system to harden, not a proposal to tear down. Its
+answers, in order of how much they mattered:</p>
+<ul>
+  <li><strong>Architecture — yes.</strong> "three.js + CSS3D is the right stack; nothing in the end
+  goal needs another engine." No re-platforming. Two refinements, both adopted above: the flat
+  iframe when seated, and separate cached asset files for real hosting.</li>
+  <li><strong>Rebuildability — no, and now fixed.</strong> The still was reproducible; the baked GLB
+  and the web page were not, because the actual sequence lived outside the repo and
+  <code>webexport.run()</code> did something different and broken. Both now rebuild from a clone,
+  verified.</li>
+  <li><strong>Honesty of the handoff — mostly, with corrections.</strong> It said "change
+  <code>iframe.src</code>" (it was <code>srcdoc</code>); said "cap lightmaps at 1024²" (they were
+  768, and the real issue is 8-bit clipping); and presented Chromium-with-a-UA screenshots as iOS.
+  All three corrected. The acknowledged gaps — vertex bake off, exterior missing, artifact-vs-hosting
+  — were confirmed accurate.</li>
+  <li><strong>Fragilities worth knowing</strong> (open, documented): screen-plate hiding is a
+  geometric heuristic; camera clamps and fog are interior-only constants that the exterior will
+  break; the GLB decodes synchronously at load.</li>
+</ul>
+<p>Net: the direction was right, the code was mostly right, and the handoff was overstating
+reproducibility. That last one is the failure mode that costs the next person a day, and it's
+the one a second pair of eyes is for.</p>
+
+<h2>Decisions that held, decisions that flipped</h2>
+<div class="grid">
+  <div class="card good"><div class="h">Procedural over assets</div>
+    <p>Held. A parametric scene is a set generator, not a prop. Every fix so far was a code change,
+    not a remodel.</p></div>
+  <div class="card good"><div class="h">Bake, don't simulate</div>
+    <p>Held. The room lights itself in the browser with zero realtime lights on the statics. The
+    props are the only holdout.</p></div>
+  <div class="card good"><div class="h">three.js over Unreal</div>
+    <p>Held, and strengthened once the goal became "in the browser". Unreal in a browser is pixel
+    streaming — a GPU per visitor.</p></div>
+  <div class="card bad"><div class="h">Vertex-bake the props</div>
+    <p>Flipped. Baked successfully, looked worse, switched off. Needs subdivision first.</p></div>
+  <div class="card bad"><div class="h">Export lights and vertex colours</div>
+    <p>Flipped to off-by-default. Both silently wrecked the render when present.</p></div>
+  <div class="card bad"><div class="h">Background jobs</div>
+    <p>Flipped. Nothing long runs unattended here. Everything long is now resumable.</p></div>
+</div>
+
+<h2>Where the work lives</h2>
+<div class="scroll"><table>
+<tr><th>Thing</th><th>Location</th></tr>
+<tr><td>Source of truth</td><td>branch <code>claude/clover-studio-scene</code> on <code>cmathew654-dot/money-map-generator</code></td></tr>
+<tr><td>Walkthrough</td><td><a href="https://claude.ai/code/artifact/d5244569-42da-450b-9509-a368ea5a6457">claude.ai/code/artifact/d524…</a></td></tr>
+<tr><td>Handoff doc</td><td><a href="https://claude.ai/code/artifact/3b3e68ab-722e-4747-8d52-a5ce471a6fe1">claude.ai/code/artifact/3b3e…</a></td></tr>
+<tr><td>Second-model review</td><td><code>docs/REVIEW-2026-09-06.md</code> in the repo</td></tr>
+<tr><td>Local copies you downloaded</td><td><code>clover-studio-backup.tar.gz</code>, <code>clover-walkthrough.tar.gz</code></td></tr>
+</table></div>
+<p>The branch sits on an unrelated repo because that's the only durable target this session could
+push to. It should move to its own repository once one exists; nothing in it depends on the
+money-map code.</p>
+
+<footer>Companion to the handoff doc · branch <code>claude/clover-studio-scene</code> · generated with Claude Code</footer>
+</div>

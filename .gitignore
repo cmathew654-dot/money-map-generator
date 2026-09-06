@@ -8,3 +8,4 @@ web/node_modules/
 __pycache__/
 *.pyc
 node_modules/
+web/artifact.html

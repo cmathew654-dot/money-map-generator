@@ -8,6 +8,8 @@ network, so the whole image is reproducible from this directory alone.
 ![The rendered scene](renders/clover-studio.png)
 
 Live walkthrough: https://claude.ai/code/artifact/d5244569-42da-450b-9509-a368ea5a6457
+Handoff: https://claude.ai/code/artifact/3b3e68ab-722e-4747-8d52-a5ce471a6fe1 (`docs/HANDOFF.html`)
+Roadmap: https://claude.ai/code/artifact/dc358818-dc5c-42ec-bbf9-e089986660ab (`docs/ROADMAP.html`)
 
 ## Running it
 
