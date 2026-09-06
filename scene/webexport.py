@@ -25,11 +25,16 @@ import bpy
 from . import palette as P
 from . import util as U
 
-# surfaces worth spending texture memory on
-LIGHTMAP_PREFIXES = (
-    "Floor", "Ceiling", "BackWall", "Left_", "RightWall", "Back_",
-    "Desk_Top", "Desk_Batten", "Wall_", "Win_Reveal",
-)
+# Surfaces worth spending texture memory on: large, flat and static.
+# Match on exact names, not prefixes -- "Back_" once caught all 54 props in
+# the meeting room and set the baker grinding 1024px lightmaps for plant soil.
+LIGHTMAP_NAMES = frozenset((
+    "Floor", "Ceiling", "RightWall",
+    "BackWall_0", "BackWall_1", "BackWall_Header",
+    "Left_Below", "Left_Above", "Left_Front", "Left_Back",
+    "Back_LeftWall", "Back_RightWall", "Back_EndWall",
+    "Desk_Top", "Desk_Batten",
+))
 
 # materials whose look lives in a node graph rather than a flat colour
 PROCEDURAL_MATERIALS = (
@@ -52,7 +57,8 @@ def _select_only(objs):
 
 
 def wants_lightmap(obj):
-    return any(obj.name.startswith(p) for p in LIGHTMAP_PREFIXES)
+    """Blender appends .001/.002 to duplicate names; compare on the stem."""
+    return obj.name.split(".")[0] in LIGHTMAP_NAMES
 
 
 # --------------------------------------------------------------------------
@@ -190,13 +196,28 @@ def bake_vertex_lighting(samples=64, limit=None):
     return done, failed
 
 
-def bake_lightmaps(size=1024, samples=128, out_dir="export/lightmaps"):
-    """Bake full lighting into a texture per large surface."""
+def bake_lightmaps(size=1024, samples=128, out_dir="export/lightmaps",
+                   time_budget=None, skip_existing=True):
+    """Bake full lighting into a texture per large surface.
+
+    Resumable on purpose. A long bake cannot rely on outliving the session
+    that started it, so each surface is written as it finishes, existing
+    outputs are skipped, and `time_budget` stops the run cleanly part-way
+    through for the next invocation to pick up.
+    """
+    import time as _time
+    started = _time.time()
     _bake_settings(samples=samples)
     os.makedirs(out_dir, exist_ok=True)
-    written = []
+    written, remaining = [], 0
     for obj in _mesh_objects():
         if not wants_lightmap(obj) or "Lightmap" not in obj.data.uv_layers:
+            continue
+        dest = os.path.join(out_dir, "LM_%s.png" % obj.name)
+        if skip_existing and os.path.exists(dest):
+            continue
+        if time_budget and _time.time() - started > time_budget:
+            remaining += 1
             continue
         img = bpy.data.images.new("LM_" + obj.name, size, size,
                                   float_buffer=False)
@@ -216,17 +237,20 @@ def bake_lightmaps(size=1024, samples=128, out_dir="export/lightmaps"):
         _select_only([obj])
         try:
             bpy.ops.object.bake(type="COMBINED")
-            path = os.path.join(out_dir, "LM_%s.png" % obj.name)
-            img.filepath_raw = os.path.abspath(path)
+            img.filepath_raw = os.path.abspath(dest)
             img.file_format = "PNG"
             img.save()
-            written.append(path)
-        except RuntimeError:
-            pass
+            written.append(dest)
+            print("      baked %s (%.0fs)" % (obj.name, _time.time() - started),
+                  flush=True)
+        except RuntimeError as err:
+            print("      FAILED %s: %s" % (obj.name, err), flush=True)
         for mat, node in nodes_added:
             mat.node_tree.nodes.remove(node)
         obj.data.uv_layers.active = obj.data.uv_layers[0]
         bpy.data.images.remove(img)
+    if remaining:
+        print("      %d left for the next run" % remaining, flush=True)
     return written
 
 
@@ -289,6 +313,59 @@ def tame_emission(cap=2.5):
                 node.inputs["Strength"].default_value = cap
                 tamed += 1
     return tamed
+
+
+def apply_lightmaps(in_dir="export/lightmaps", as_jpeg=True, quality=88):
+    """Wire the baked lightmaps back in as each surface's colour.
+
+    These are COMBINED bakes, so the texture already carries albedo, direct
+    light and bounce together. The material becomes a flat unlit lookup of it,
+    sampled through the Lightmap UV channel; the runtime then draws these
+    surfaces with no lighting at all and gets the Cycles result for free.
+    """
+    applied = []
+    for obj in _mesh_objects():
+        if not wants_lightmap(obj):
+            continue
+        path = os.path.join(in_dir, "LM_%s.png" % obj.name)
+        if not os.path.exists(path):
+            continue
+        img = bpy.data.images.load(os.path.abspath(path), check_existing=True)
+        if as_jpeg:
+            # PNG lightmaps dominate the payload; JPEG is fine for smooth
+            # lighting gradients and roughly a fifth of the bytes.
+            img.file_format = "JPEG"
+            try:
+                bpy.context.scene.render.image_settings.quality = quality
+            except AttributeError:
+                pass
+
+        mat = bpy.data.materials.new("Baked_" + obj.name)
+        mat.use_nodes = True
+        nt = mat.node_tree
+        nt.nodes.clear()
+        out = nt.nodes.new("ShaderNodeOutputMaterial")
+        out.location = (400, 0)
+        bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+        bsdf.location = (120, 0)
+        bsdf.inputs["Roughness"].default_value = 1.0
+        bsdf.inputs["Metallic"].default_value = 0.0
+        if "Specular IOR Level" in bsdf.inputs:
+            bsdf.inputs["Specular IOR Level"].default_value = 0.0
+        tex = nt.nodes.new("ShaderNodeTexImage")
+        tex.location = (-200, 0)
+        tex.image = img
+        uv = nt.nodes.new("ShaderNodeUVMap")
+        uv.location = (-420, 0)
+        uv.uv_map = "Lightmap"
+        nt.links.new(uv.outputs["UV"], tex.inputs["Vector"])
+        nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+        nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+
+        obj.data.materials.clear()
+        obj.data.materials.append(mat)
+        applied.append(obj.name)
+    return applied
 
 
 def bake_material_albedo(size=1024, out_dir="export/albedo"):

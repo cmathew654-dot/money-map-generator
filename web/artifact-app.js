@@ -35,17 +35,18 @@ css.setSize(innerWidth, innerHeight);
 $("css3d").appendChild(css.domElement);
 
 /* Stand-in for the Cycles bake: a warm window key, a lamp pool, a cool fill. */
-scene.add(new THREE.HemisphereLight(0xffeed4, 0x3b2f24, 0.70));
+const hemi = new THREE.HemisphereLight(0xffeed4, 0x3b2f24, 0.70);
+scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffd49a, 1.9);
 sun.position.set(-4.6, 3.2, -2.4);
 scene.add(sun);
-const lamp = new THREE.PointLight(0xffc27a, 6.5, 4.2, 2);
+const lamp = new THREE.PointLight(0xffc98a, 6.5, 4.4, 2);
 lamp.position.set(0.84, 1.28, -0.47);
 scene.add(lamp);
 const fill = new THREE.PointLight(0x9fb8e8, 2.2, 10, 2);
 fill.position.set(0.1, 2.3, 0.9);
 scene.add(fill);
-const glowCRT = new THREE.PointLight(0x7fd4d8, 1.6, 1.6, 2);
+const glowCRT = new THREE.PointLight(0xa9dee2, 0.45, 1.15, 2);
 glowCRT.position.set(0.02, 1.03, 0.10);
 scene.add(glowCRT);
 
@@ -101,11 +102,22 @@ setTimeout(() => {
     gltf.scene.traverse((o) => { if (o.isLight) strays.push(o); });
     strays.forEach((l) => l.removeFromParent());
     scene.add(gltf.scene);
-    let tris = 0;
+    let tris = 0, baked = 0;
     gltf.scene.traverse((o) => {
       if (!o.isMesh) return;
       if (o.geometry?.index) tris += o.geometry.index.count / 3;
       const m = o.material;
+      /* A COMBINED bake already contains albedo, direct light and bounce, so
+         these surfaces must be drawn unlit -- a lit material would light
+         already-lit pixels a second time. */
+      if (m && m.name && m.name.startsWith("Baked_") && m.map) {
+        const flat = new THREE.MeshBasicMaterial({ map: m.map });
+        flat.map.channel = 1;              // sampled through the Lightmap UVs
+        flat.name = m.name;
+        o.material = flat;
+        baked++;
+        return;
+      }
       if (m) {
         if (m.transmission > 0) {
           m.transmission = 0; m.transparent = true;
@@ -132,6 +144,17 @@ setTimeout(() => {
       }
     }
     $("tris").textContent = Math.round(tris).toLocaleString();
+    $("baked").textContent = baked ? baked + " surfaces" : "none";
+    // The room's big surfaces carry their own light now; the remaining lamps
+    // only need to shape the props.
+    if (baked) {
+      // The room lights itself now; these only shape the props on the desk.
+      sun.intensity = 1.05;
+      hemi.intensity = 0.42;
+      fill.intensity = 1.5;
+      lamp.intensity = 8.0;
+      gl.toneMappingExposure = 1.12;
+    }
     ready = true;
     $("barf").style.width = "100%";
     const l = $("load");
@@ -273,7 +296,15 @@ window.__dbg = {
   lights: () => { const L=[]; scene.traverse(o=>{ if(o.isLight) L.push({t:o.type,i:o.intensity}); }); return L; },
   killLights: () => { scene.traverse(o=>{ if(o.isLight) o.intensity=0; }); },
   emissive: () => { const E=[]; scene.traverse(o=>{ const m=o.material; if(m&&m.emissive){ const s=(m.emissive.r+m.emissive.g+m.emissive.b)*(m.emissiveIntensity||1); if(s>0.05) E.push({n:o.name,s:+s.toFixed(2)}); } }); return E.sort((a,b)=>b.s-a.s).slice(0,10); },
-  exposure: (v) => { gl.toneMappingExposure = v; }
+  exposure: (v) => { gl.toneMappingExposure = v; },
+  matInfo: (frag) => { const R=[]; scene.traverse(o=>{ const m=o.material;
+      if(m && m.name && m.name.toLowerCase().includes(frag)){
+        R.push({mat:m.name, type:m.type,
+                color:m.color?[+m.color.r.toFixed(3),+m.color.g.toFixed(3),+m.color.b.toFixed(3)]:null,
+                vcol:!!m.vertexColors, hasVertexAttr:!!(o.geometry&&o.geometry.attributes.color),
+                sheen:m.sheen, sheenColor:m.sheenColor?[+m.sheenColor.r.toFixed(2),+m.sheenColor.g.toFixed(2),+m.sheenColor.b.toFixed(2)]:null,
+                trans:m.transmission, opacity:m.opacity});}});
+      return R.slice(0,4); }
 };
 
 /* three.js fov is vertical, so a portrait phone would crop the room to a
