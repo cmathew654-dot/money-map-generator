@@ -79,15 +79,17 @@ def parse_meta(text, tool_name):
             if re.search(r"(^|\n)\s*" + re.escape(c) + r"\s*(\n|$)", low):
                 cta = c; break
         plats = [p for p in ("Facebook","Instagram","Messenger","Audience Network","Threads") if p in ch[:600]]
-        out["ads"].append({"start": start, "matched_page": matched, "advertiser": adv, "cta": cta, "platforms": plats})
+        gm = re.search(r"(\d+) ads use this creative", ch)
+        weight = int(gm.group(1)) if gm else 1
+        out["ads"].append({"start": start, "matched_page": matched, "advertiser": adv, "cta": cta, "platforms": plats, "weight": weight})
     return out
 
 def summarize_meta(parsed, page_mode=False):
     ads = parsed["ads"]
     sel = ads if page_mode else [a for a in ads if a["matched_page"]]
     dated = [a for a in sel if a["start"]]
-    d60 = sum(1 for a in dated if (TODAY - a["start"]).days >= 60)
-    d120 = sum(1 for a in dated if (TODAY - a["start"]).days >= 120)
+    d60 = sum(a.get("weight", 1) for a in dated if (TODAY - a["start"]).days >= 60)
+    d120 = sum(a.get("weight", 1) for a in dated if (TODAY - a["start"]).days >= 120)
     oldest = min((a["start"] for a in dated), default=None)
     plats = sorted({p for a in sel for p in a["platforms"]})
     ctas = {}
@@ -95,14 +97,14 @@ def summarize_meta(parsed, page_mode=False):
         if a["cta"]: ctas[a["cta"]] = ctas.get(a["cta"], 0) + 1
     advs = {}
     for a in ads: advs[a["advertiser"] or "?"] = advs.get(a["advertiser"] or "?", 0) + 1
-    n_active = len(sel)
+    n_active = sum(a.get("weight", 1) for a in sel)
     if page_mode and parsed["result_count"] is not None: n_active = max(n_active, parsed["result_count"])
     return {
         "meta_active_ads": n_active, "meta_ads_60d": d60, "meta_ads_120d": d120,
         "meta_oldest_start": oldest.isoformat() if oldest else "",
         "meta_platforms": "|".join(plats), "meta_cta": "|".join(f"{k}:{v}" for k, v in sorted(ctas.items(), key=lambda kv: -kv[1])),
         "meta_result_count": parsed["result_count"] if parsed["result_count"] is not None else "",
-        "meta_matched_page_ads": len(sel),
+        "meta_matched_page_ads": sum(a.get("weight", 1) for a in sel),
         "meta_all_ads_seen": len(ads),
         "meta_advertisers_seen": "|".join(f"{k}:{v}" for k, v in sorted(advs.items(), key=lambda kv: -kv[1])[:8]),
     }
@@ -188,55 +190,77 @@ def dismiss_cookies(page):
             if b.count(): b.first.click(timeout=2000); return
         except Exception: pass
 
-def meta_pick_page(page, tool):
-    """Type the tool name in the Ad Library search box and click the matching Page suggestion.
-    Returns True when the results URL is a page search (view_all_page_id)."""
+def try_click_matches(page, tool, locators, tag):
+    """Click the first element among `locators` whose text matches the tool name; return True if URL became a page view."""
+    for loc in locators:
+        try: n = min(loc.count(), 15)
+        except Exception: continue
+        for i in range(n):
+            try:
+                t = loc.nth(i).inner_text(timeout=800).strip().split("\n")[0]
+            except Exception: continue
+            if name_match(t, tool):
+                try:
+                    loc.nth(i).click(timeout=3000); time.sleep(3)
+                except Exception: continue
+                if "view_all_page_id" in page.url: return True
+    return False
+
+def meta_pick_page(page, tool, row, args):
+    """Type the tool name in the Ad Library search box and click the matching Page suggestion."""
     try:
         box = page.get_by_placeholder(re.compile("Search by keyword or advertiser", re.I))
         if not box.count(): box = page.locator('input[type="search"], input[placeholder*="Search"]')
-        box.first.click(timeout=5000); box.first.fill(tool); time.sleep(3)
-        # suggestions render as a list; try role=option, then any clickable element whose text equals the name
-        cands = page.get_by_role("option")
-        if not cands.count():
-            cands = page.locator('[role="listbox"] [role="button"], [role="listbox"] a, [role="listbox"] div')
-        n = min(cands.count(), 12)
-        for i in range(n):
-            try:
-                t = cands.nth(i).inner_text(timeout=1000).split("\n")[0]
-            except Exception: continue
-            if name_match(t, tool):
-                cands.nth(i).click(timeout=3000); time.sleep(3)
-                if "view_all_page_id" in page.url: return True
+        box.first.click(timeout=5000); box.first.fill(""); box.first.type(tool, delay=60); time.sleep(3.5)
+        dump(page, f"{row['niche_id']}_{tool}_meta_typeahead")  # always: shows what the suggestion list looked like
+        locs = [page.get_by_role("option"), page.locator('[role="listbox"] [role="option"], [role="listbox"] li, [role="listbox"] a, [role="listbox"] div[role="button"]'),
+                page.get_by_text(re.compile(r"^\s*" + re.escape(tool) + r"\s*$", re.I)),
+                page.locator("ul li, div[role='menuitem'], a").filter(has_text=re.compile(re.escape(tool), re.I))]
+        if try_click_matches(page, tool, locs, "typeahead"): return True
+        # last resort: first suggestion via keyboard
+        box.first.press("ArrowDown"); time.sleep(0.5); box.first.press("Enter"); time.sleep(3)
         return "view_all_page_id" in page.url
     except Exception as e:
         print(f"    meta typeahead failed: {e}"); return False
 
+def meta_click_advertiser(page, name):
+    """On a keyword-results page, click the advertiser name inside a card to open that Page's ad list."""
+    loc = page.get_by_text(name, exact=True)
+    try: n = min(loc.count(), 4)
+    except Exception: return False
+    for i in range(n):
+        try:
+            loc.nth(i).click(timeout=3000); time.sleep(3)
+            if "view_all_page_id" in page.url: return True
+            page.go_back(timeout=10000); time.sleep(2)
+        except Exception: continue
+    return False
+
 def do_meta(page, row, tool, args):
     if not goto(page, META_BASE): return {"meta_status": "nav_error"}
     sleep(1, 2); dismiss_cookies(page)
-    page_mode = meta_pick_page(page, tool)
-    mode = "page"
-    if not page_mode:
-        mode = "keyword_exact_phrase"
-        url = META_BASE + "&q=" + urllib.parse.quote(tool) + "&search_type=keyword_exact_phrase"
-        if not goto(page, url): return {"meta_status": "nav_error", "meta_match_mode": mode}
-        sleep(1, 2)
-    text = body_text(page)
-    parsed = parse_meta(text, tool)
-    # scroll until parsed count reaches the reported result count (cap)
+    mode = "page_typeahead" if meta_pick_page(page, tool, row, args) else None
+    if mode is None:
+        url = META_BASE + "&q=" + urllib.parse.quote(tool) + "&search_type=keyword_unordered"
+        if not goto(page, url): return {"meta_status": "nav_error", "meta_match_mode": "keyword_unordered"}
+        sleep(1.5, 2.5); dismiss_cookies(page)
+        parsed0 = parse_meta(body_text(page), tool)
+        advs = [a["advertiser"] for a in parsed0["ads"] if a["matched_page"] and a["advertiser"]]
+        if advs and meta_click_advertiser(page, advs[0]): mode = "page_via_card_click"
+        elif parsed0["ads"]: mode = "keyword_unordered_filtered_by_advertiser"
+        else: mode = "keyword_unordered_no_results"
+    page_mode = mode.startswith("page")
+    text = body_text(page); parsed = parse_meta(text, tool)
     for _ in range(args.scrolls * 3):
         if parsed["result_count"] is None or len(parsed["ads"]) >= min(parsed["result_count"], args.meta_max_ads): break
         scroll(page, times=1); text = body_text(page); parsed = parse_meta(text, tool)
     s = summarize_meta(parsed, page_mode=page_mode)
     s["meta_match_mode"] = mode
     s["meta_results_url"] = page.url
-    if parsed["no_ads"] or (parsed["result_count"] == 0):
-        status = "ok_no_ads"
-    elif parsed["ads"]:
-        status = "ok" if (page_mode or s["meta_matched_page_ads"]) else "ok_no_matching_advertiser"
-    else:
-        status = "no_ads_parsed"
-    if status in ("no_ads_parsed",) or args.debug_all: dump(page, f"{row['niche_id']}_{tool}_meta")
+    if parsed["no_ads"] or parsed["result_count"] == 0: status = "ok_no_ads"
+    elif parsed["ads"]: status = "ok" if (page_mode or s["meta_matched_page_ads"]) else "ok_no_matching_advertiser"
+    else: status = "no_ads_parsed"
+    if status == "no_ads_parsed" or args.debug_all: dump(page, f"{row['niche_id']}_{tool}_meta")
     s["meta_status"] = status
     return s
 
@@ -257,6 +281,31 @@ def with_params(url, **kw):
     u = urllib.parse.urlsplit(url); q = dict(urllib.parse.parse_qsl(u.query)); q.update(kw)
     return urllib.parse.urlunsplit((u.scheme, u.netloc, u.path, urllib.parse.urlencode(q), ""))
 
+ADV_ID = re.compile(r"/advertiser/(AR[0-9A-Za-z]+)")
+
+def google_find_advertiser_url(page, ids):
+    if "/advertiser/" in page.url: return page.url
+    for h in ids.values():
+        m = ADV_ID.search(h)
+        if m: return f"https://adstransparency.google.com/advertiser/{m.group(1)}?region=US"
+    # open the first creative, use the breadcrumb / "See more ads by this advertiser" link
+    for h in list(ids.values())[:1]:
+        if goto(page, h):
+            sleep(0.8, 1.5)
+            for loc in (page.get_by_text(re.compile("See more ads by this advertiser", re.I)), page.locator('a[href*="/advertiser/"]')):
+                try:
+                    if loc.count():
+                        loc.first.click(timeout=4000); page.wait_for_load_state("networkidle", timeout=15000); time.sleep(1.5)
+                        if "/advertiser/" in page.url: return page.url
+                except Exception: pass
+    try:
+        loc = page.locator('a[href*="/advertiser/"]')
+        if loc.count():
+            loc.first.click(timeout=4000); page.wait_for_load_state("networkidle", timeout=15000); time.sleep(1.5)
+            if "/advertiser/" in page.url: return page.url
+    except Exception: pass
+    return ""
+
 def do_google(page, row, tool, args):
     if not goto(page, row["google_lookup_url"]): return {"google_status": "nav_error"}
     sleep(1, 2); scroll(page, times=2)
@@ -264,29 +313,28 @@ def do_google(page, row, tool, args):
     if "No ads found" in text or re.search(r"\b0 ads\b", text):
         return {"google_status": "ok_no_ads", "google_ad_count": 0, "google_overlap_90d_pass": 0, "google_formats": "",
                 "google_creatives_checked": 0, "google_overlap_method": "domain_zero"}
-    # domain page may list several advertiser accounts; take the first advertiser page
-    if page.locator('a[href*="/creative/"]').count() == 0 and page.locator('a[href*="/advertiser/"]').count() > 0:
-        try:
-            page.locator('a[href*="/advertiser/"]').first.click(timeout=5000)
-            page.wait_for_load_state("networkidle", timeout=15000); sleep(1, 2)
-            text = body_text(page)
-        except Exception: pass
-    adv_url = page.url if "/advertiser/" in page.url else ""
+    domain_listing = parse_google_listing(text)
+    ids_domain = creative_ids(page, scrolls=1)
+    adv_url = google_find_advertiser_url(page, ids_domain)
+    if adv_url:
+        adv_url = with_params(adv_url, region="US")
+        goto(page, adv_url); sleep(1, 2)
+        text = body_text(page)
     listing = parse_google_listing(text)
-    ids_all = creative_ids(page, scrolls=3)
+    if listing["ad_count"] is None: listing = domain_listing
+    ids_all = creative_ids(page, scrolls=5)
     base = adv_url or row["google_lookup_url"]
     old_s, old_e = (TODAY - dt.timedelta(days=180)).isoformat(), (TODAY - dt.timedelta(days=90)).isoformat()
     rec_s, rec_e = (TODAY - dt.timedelta(days=7)).isoformat(), TODAY.isoformat()
     ids_old = ids_rec = {}
     if goto(page, with_params(base, **{"start-date": old_s, "end-date": old_e})):
-        sleep(1, 2); ids_old = creative_ids(page, scrolls=3); old_text = body_text(page)
+        sleep(1, 2); ids_old = creative_ids(page, scrolls=5)
     if goto(page, with_params(base, **{"start-date": rec_s, "end-date": rec_e})):
-        sleep(1, 2); ids_rec = creative_ids(page, scrolls=3)
+        sleep(1, 2); ids_rec = creative_ids(page, scrolls=5)
     overlap = sorted(set(ids_old) & set(ids_rec))
-    method = "date_window_overlap"
-    if ids_all and set(ids_old) == set(ids_all) == set(ids_rec):
-        method = "filter_ignored_unverified"  # date params had no effect; cannot trust overlap
-    # sample creative detail pages for last-shown / format
+    method = "date_window_overlap" if adv_url else "date_window_overlap_domain_page_only"
+    if len(ids_all) >= 20 and set(ids_old) == set(ids_all) == set(ids_rec):
+        method = "filter_ignored_unverified"
     creatives = []
     for cid, h in list(ids_all.items())[: args.google_creatives]:
         if not goto(page, h): continue
@@ -297,70 +345,112 @@ def do_google(page, row, tool, args):
     if status != "ok" or args.debug_all: dump(page, f"{row['niche_id']}_{tool}_google")
     return {
         "google_status": status,
-        "google_advertiser_page_url": adv_url or row.get("google_advertiser_page_url", ""),
+        "google_advertiser_page_url": adv_url or "",
         "google_ad_count": listing["ad_count"] if listing["ad_count"] is not None else len(ids_all),
         "google_formats": "|".join(fmts),
         "google_creatives_checked": len(creatives),
-        "google_overlap_90d_pass": len(overlap) if method == "date_window_overlap" else "",
+        "google_overlap_90d_pass": len(overlap) if method != "filter_ignored_unverified" else "",
         "google_overlap_method": method,
         "google_ids_all": len(ids_all), "google_ids_old_window": len(ids_old), "google_ids_recent_window": len(ids_rec),
         "google_last_shown_max": max(lasts).isoformat() if lasts else "",
         "google_creatives_json": json.dumps([{"last": str(c["last"]), "format": c["format"]} for c in creatives]),
     }
 
-def linkedin_by_advertiser(page, tool):
+def linkedin_by_advertiser(page, tool, row):
     try:
         if not goto(page, "https://www.linkedin.com/ad-library/home"): return False
         sleep(1, 2)
         box = page.get_by_placeholder(re.compile("Company or advertiser", re.I))
         if not box.count(): box = page.get_by_label(re.compile("Company or advertiser", re.I))
-        if not box.count(): return False
-        box.first.click(timeout=5000); box.first.fill(tool); time.sleep(3)
-        opts = page.get_by_role("option")
+        if not box.count(): box = page.locator("input").first
+        box.first.click(timeout=5000); box.first.type(tool, delay=60); time.sleep(3.5)
+        dump(page, f"{row['niche_id']}_{tool}_linkedin_typeahead")
+        locs = [page.get_by_role("option"), page.locator('[role="listbox"] *').filter(has_text=re.compile(re.escape(tool), re.I)),
+                page.locator("li, a, button").filter(has_text=re.compile(re.escape(tool), re.I))]
         picked = False
-        for i in range(min(opts.count(), 10)):
-            try: t = opts.nth(i).inner_text(timeout=1000).split("\n")[0]
+        for loc in locs:
+            try: n = min(loc.count(), 10)
             except Exception: continue
-            if name_match(t, tool): opts.nth(i).click(timeout=3000); picked = True; break
+            for i in range(n):
+                try: t = loc.nth(i).inner_text(timeout=800).strip().split("\n")[0]
+                except Exception: continue
+                if name_match(t, tool):
+                    try: loc.nth(i).click(timeout=3000); picked = True; break
+                    except Exception: continue
+            if picked: break
         if not picked: return False
+        time.sleep(1)
         page.get_by_role("button", name=re.compile("^Search$", re.I)).first.click(timeout=5000)
         page.wait_for_load_state("networkidle", timeout=15000); sleep(1, 2)
-        return True
+        return "companyIds" in page.url or "advertiser" in page.url.lower() or "No results found" in body_text(page) or page.locator('a[href*="/ad-library/detail/"]').count() > 0
     except Exception as e:
         print(f"    linkedin advertiser lookup failed: {e}"); return False
 
-def do_linkedin(page, row, tool, args):
-    method = "advertiser"
-    if not linkedin_by_advertiser(page, tool):
-        method = "keyword"
-        if not goto(page, row["linkedin_lookup_url"]): return {"linkedin_status": "nav_error", "linkedin_method": method}
-    sleep(1, 2); scroll(page, times=3)
-    text = body_text(page)
-    links = []
-    for a in page.locator('a[href*="/ad-library/detail/"]').all()[: args.linkedin_details]:
+def linkedin_detail_links(page, cap):
+    for _ in range(4):
+        n = page.locator('a[href*="/ad-library/detail/"]').count()
+        if n >= cap: break
+        scroll(page, times=1)
+    out = []
+    for a in page.locator('a[href*="/ad-library/detail/"]').all()[:cap]:
         try:
             h = a.get_attribute("href")
-            if h: links.append(urllib.parse.urljoin("https://www.linkedin.com/", h))
+            if h: out.append(urllib.parse.urljoin("https://www.linkedin.com/", h))
         except Exception: pass
-    p = parse_linkedin(text)
-    ranges = []
-    for h in dict.fromkeys(links):
+    return list(dict.fromkeys(out))
+
+def parse_linkedin_detail(text):
+    m = re.search(r"^Advertiser\s+(.+?)\s*$", text, re.M)
+    adv = m.group(1).strip() if m else ""
+    return {"advertiser": adv, "ranges": parse_linkedin(text)["ranges"]}
+
+def do_linkedin(page, row, tool, args):
+    method = "advertiser_typeahead" if linkedin_by_advertiser(page, tool, row) else "keyword"
+    if method == "keyword":
+        if not goto(page, row["linkedin_lookup_url"]): return {"linkedin_status": "nav_error", "linkedin_method": method}
+    sleep(1, 2)
+    text = body_text(page)
+    if "No results found" in text:
+        return {"linkedin_status": "ok_no_ads", "linkedin_method": method, "linkedin_present": "no", "linkedin_ad_count": 0,
+                "linkedin_currently_running": "", "linkedin_date_ranges": ""}
+    links = linkedin_detail_links(page, args.linkedin_details * 3)
+    details = []
+    for h in links[: args.linkedin_details * 2]:
         if not goto(page, h): continue
-        sleep(0.8, 1.6); ranges += parse_linkedin(body_text(page))["ranges"]
-    if ranges: p["ranges"] = ranges
-    s = summarize_linkedin(p)
-    if "No results found" in text: status = "ok_no_ads"
-    elif p["ad_count"] is not None or p["ranges"] or links: status = "ok"
-    else: status = "no_ads_parsed"
-    if "sign in" in text.lower()[:1500] and status == "no_ads_parsed": status = "login_wall"
-    if status in ("no_ads_parsed", "login_wall") or args.debug_all: dump(page, f"{row['niche_id']}_{tool}_linkedin")
-    s["linkedin_status"] = status; s["linkedin_method"] = method
+        sleep(0.7, 1.4); d = parse_linkedin_detail(body_text(page)); d["url"] = h; details.append(d)
+        if method == "keyword" and name_match(d["advertiser"], tool):
+            # jump to this advertiser's full list via the Advertiser link on the detail page
+            try:
+                loc = page.locator('a[href*="companyIds"], a[href*="/ad-library/search"]')
+                if loc.count():
+                    loc.first.click(timeout=4000); page.wait_for_load_state("networkidle", timeout=15000); sleep(1, 2)
+                    if page.locator('a[href*="/ad-library/detail/"]').count():
+                        method = "advertiser_via_detail_link"
+                        links = linkedin_detail_links(page, args.linkedin_details * 3)
+                        details = []
+                        for h2 in links[: args.linkedin_details]:
+                            if goto(page, h2):
+                                sleep(0.7, 1.4); d2 = parse_linkedin_detail(body_text(page)); d2["url"] = h2; details.append(d2)
+                        break
+            except Exception as e:
+                print(f"    linkedin advertiser link failed: {e}")
+    if method == "keyword":
+        mine = [d for d in details if name_match(d["advertiser"], tool)]
+        count = len(mine); ranges = [r for d in mine for r in d["ranges"]]
+        method = "keyword_filtered_by_advertiser"
+    else:
+        count = len(links); ranges = [r for d in details for r in d["ranges"]]
+    s = summarize_linkedin({"ad_count": count, "ranges": ranges})
+    s["linkedin_present"] = "yes" if count else "no"
+    s["linkedin_advertisers_seen"] = "|".join(sorted({d["advertiser"] for d in details if d["advertiser"]})[:8])
+    s["linkedin_status"] = "ok"; s["linkedin_method"] = method
+    if args.debug_all: dump(page, f"{row['niche_id']}_{tool}_linkedin")
     return s
 
 EXTRA_COLS = ["scrape_status","scraped_at",
               "meta_status","meta_match_mode","meta_results_url","meta_result_count","meta_matched_page_ads","meta_all_ads_seen","meta_advertisers_seen","meta_oldest_start",
               "google_status","google_overlap_method","google_ids_all","google_ids_old_window","google_ids_recent_window","google_creatives_checked","google_last_shown_max","google_creatives_json",
-              "linkedin_status","linkedin_method","linkedin_ad_count","linkedin_currently_running"]
+              "linkedin_status","linkedin_method","linkedin_advertisers_seen","linkedin_ad_count","linkedin_currently_running"]
 
 def main():
     ap = argparse.ArgumentParser()
