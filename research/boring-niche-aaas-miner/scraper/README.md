@@ -34,17 +34,22 @@ If `Activate.ps1` is refused ("running scripts is disabled"), run once:
 
 ## Run
 
-1. **Smoke test on 3 tools with a visible browser.** If Meta or LinkedIn shows a login wall, log in once in that window; the profile is saved in `pw-profile/` and reused.
+1. **Self-test first.** Runs two known heavy advertisers (ServiceTitan, Jobber) through all three platforms and prints PASS/FAIL per check, plus the raw numbers. Meta data now comes from the page's own JSON responses (page IDs, start timestamps, CTA types), with screen-reading as fallback.
+   ```bash
+   python ad_audit_scraper.py --selftest --headed
+   ```
+   `SELFTEST PASS` means run the full scrape. `FAIL` means commit the `debug/` folder (`git add -f debug`) and push; it contains screenshots, page text and the raw JSON so the fix is one round.
+2. **Smoke test on 3 tools with a visible browser.** If Meta or LinkedIn shows a login wall, log in once in that window; the profile is saved in `pw-profile/` and reused.
    ```bash
    python ad_audit_scraper.py --sample 3 --headed
    ```
    Check the printed counts and look in `debug/`. If any platform reports `no_ads_parsed`, commit the `debug/*.png` and `debug/*.txt` files and the selectors get fixed from those.
-2. **Full run** (214 search-verified tools, deduplicated across niches, roughly 1.5–3 hours with the built-in delays). It resumes automatically if interrupted.
+3. **Full run** (214 search-verified tools, deduplicated across niches, roughly 1.5–3 hours with the built-in delays). It resumes automatically if interrupted.
    ```bash
    python ad_audit_scraper.py
    ```
    Useful flags: `--niches 32,31,33` to do a few niches first; `--skip linkedin` if LinkedIn keeps walling; `--all` to include the unverified candidate tools; `--google-creatives 40` to check more Google creatives per advertiser.
-3. **Score and commit.**
+4. **Score and commit.**
    ```bash
    python score_ad_audit.py
    git add ../ad_audit_filled.csv ../ad_audit_scored.csv ../niche_pass.csv

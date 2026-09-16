@@ -164,6 +164,14 @@ def dump(page, tag):
     except Exception as e:
         print(f"    debug dump failed: {e}")
 
+def save_json(tag, bodies):
+    DEBUG.mkdir(exist_ok=True)
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "_", tag)[:120]
+    try:
+        with open(DEBUG / f"{safe}.json.txt", "w", encoding="utf-8") as f:
+            for u, b in bodies: f.write(u + "\n" + b[:200000] + "\n\n====\n\n")
+    except Exception as e: print(f"    json dump failed: {e}")
+
 def body_text(page):
     try: return page.inner_text("body")
     except Exception: return ""
@@ -180,6 +188,81 @@ def goto(page, url, wait="networkidle", timeout=45000):
         return True
     except Exception as e:
         print(f"    navigation failed: {e}"); return False
+
+class Capture:
+    """Collects JSON bodies of XHR responses whose URL matches any of the given substrings."""
+    def __init__(self, page, needles):
+        self.items = []; self.needles = needles
+        page.on("response", self._on)
+    def _on(self, resp):
+        try:
+            u = resp.url
+            if any(n in u for n in self.needles):
+                body = resp.text()
+                self.items.append((u, body))
+        except Exception: pass
+    def take(self):
+        out, self.items = self.items, []
+        return out
+
+def fb_json(body):
+    """Facebook prefixes JSON with 'for (;;);'."""
+    b = body.strip()
+    if b.startswith("for (;;);"): b = b[len("for (;;);"):]
+    try: return json.loads(b)
+    except Exception: return None
+
+def walk(obj):
+    """Yield every dict inside a nested JSON structure."""
+    if isinstance(obj, dict):
+        yield obj
+        for v in obj.values(): yield from walk(v)
+    elif isinstance(obj, list):
+        for v in obj: yield from walk(v)
+
+def meta_pages_from_typeahead(bodies):
+    pages = []
+    for u, body in bodies:
+        if "typeahead" not in u: continue
+        j = fb_json(body)
+        if not j: continue
+        for d in walk(j):
+            if isinstance(d.get("id"), (str, int)) and isinstance(d.get("name"), str) and ("category" in d or "likes" in d or "verification" in d or "image_uri" in d):
+                pages.append({"id": str(d["id"]), "name": d["name"], "category": d.get("category", ""), "likes": d.get("likes", "")})
+    seen = set(); out = []
+    for p_ in pages:
+        if p_["id"] in seen: continue
+        seen.add(p_["id"]); out.append(p_)
+    return out
+
+def meta_ads_from_json(bodies):
+    """Extract ads from search_ads JSON responses: start date, page name, platforms, CTA."""
+    ads = []
+    for u, body in bodies:
+        if "search_ads" not in u and "ads/library/async" not in u: continue
+        j = fb_json(body)
+        if not j: continue
+        for d in walk(j):
+            sd = d.get("startDate", d.get("start_date"))
+            pn = d.get("pageName", d.get("page_name"))
+            if sd is None or pn is None: continue
+            try: start = dt.date.fromtimestamp(int(sd))
+            except Exception:
+                start = parse_date(str(sd))
+            snap = d.get("snapshot") or {}
+            cta = (snap.get("cta_text") or snap.get("cta_type") or d.get("cta_text") or d.get("cta_type") or "")
+            plats = d.get("publisherPlatform") or d.get("publisher_platform") or []
+            if isinstance(plats, str): plats = [plats]
+            coll = d.get("collationCount") or d.get("collation_count") or 1
+            ads.append({"id": str(d.get("adArchiveID", d.get("ad_archive_id", ""))), "start": start, "advertiser": pn,
+                        "cta": str(cta).replace("_", " ").lower(), "platforms": [str(x).title() for x in plats], "weight": int(coll) if str(coll).isdigit() else 1,
+                        "page_id": str(d.get("pageID", d.get("page_id", "")))})
+    seen = set(); out = []
+    for a in ads:
+        k = a["id"] or (a["advertiser"], str(a["start"]))
+        if k in seen: continue
+        seen.add(k); out.append(a)
+    return out
 
 META_BASE = "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&media_type=all"
 
@@ -258,49 +341,71 @@ def meta_click_advertiser(page, name):
     return False
 
 def do_meta(page, row, tool, args):
+    cap = Capture(page, ["search_typeahead", "search_ads", "ads/library/async"])
     if not goto(page, META_BASE): return {"meta_status": "nav_error"}
     sleep(1, 2); dismiss_cookies(page)
-    mode = "page_typeahead" if meta_pick_page(page, tool, row, args) else None
-    if mode is None:
-        url = META_BASE + "&q=" + urllib.parse.quote(tool) + "&search_type=keyword_unordered"
-        if not goto(page, url): return {"meta_status": "nav_error", "meta_match_mode": "keyword_unordered"}
-        sleep(1.5, 2.5); dismiss_cookies(page)
-        parsed0 = parse_meta(body_text(page), tool)
-        advs = [a["advertiser"] for a in parsed0["ads"] if a["matched_page"] and a["advertiser"]]
-        if advs and meta_click_advertiser(page, advs[0]): mode = "page_via_card_click"
-        elif parsed0["ads"]: mode = "keyword_unordered_filtered_by_advertiser"
-        else: mode = "keyword_unordered_no_results"
+    mode = None; page_id = ""; page_name = ""
+    # 1) typeahead JSON -> page id (robust) ; DOM click only as fallback
+    try:
+        if focus_search_box(page, re.compile("Search by keyword or advertiser", re.I), re.compile("country", re.I)):
+            page.keyboard.type(tool, delay=70); time.sleep(3.5)
+            bodies = cap.take()
+            if args.debug_all: dump(page, f"{row['niche_id']}_{tool}_meta_typeahead"); save_json(f"{row['niche_id']}_{tool}_meta_typeahead", bodies)
+            pages = meta_pages_from_typeahead(bodies)
+            for p_ in pages:
+                if name_match(p_["name"], tool): page_id, page_name = p_["id"], p_["name"]; break
+            if not page_id and pages and args.meta_accept_first_suggestion: page_id, page_name = pages[0]["id"], pages[0]["name"]
+    except Exception as e:
+        print(f"    meta typeahead error: {e}")
+    if page_id:
+        mode = "page_id_from_typeahead_json"
+        goto(page, META_BASE + f"&search_type=page&view_all_page_id={page_id}")
+    else:
+        # DOM fallback: click a matching suggestion, else keyword search + click advertiser link in a card
+        if meta_pick_page(page, tool, row, args): mode = "page_typeahead_dom"
+        else:
+            url = META_BASE + "&q=" + urllib.parse.quote(tool) + "&search_type=keyword_unordered"
+            if not goto(page, url): return {"meta_status": "nav_error", "meta_match_mode": "keyword_unordered"}
+            sleep(1.5, 2.5); dismiss_cookies(page)
+            parsed0 = parse_meta(body_text(page), tool)
+            advs = [a["advertiser"] for a in parsed0["ads"] if a["matched_page"] and a["advertiser"]]
+            if advs and meta_click_advertiser(page, advs[0]): mode = "page_via_card_click"
+            elif parsed0["ads"]: mode = "keyword_unordered_filtered_by_advertiser"
+            else: mode = "keyword_unordered_no_results"
     page_mode = mode.startswith("page")
+    sleep(1.5, 2.5)
+    # 2) collect ads: JSON responses while scrolling (primary), DOM regex (fallback)
+    json_ads = meta_ads_from_json(cap.take())
     text = body_text(page); parsed = parse_meta(text, tool)
     for _ in range(args.scrolls * 3):
-        if parsed["result_count"] is None or len(parsed["ads"]) >= min(parsed["result_count"], args.meta_max_ads): break
-        scroll(page, times=1); text = body_text(page); parsed = parse_meta(text, tool)
+        target = parsed["result_count"] if parsed["result_count"] is not None else None
+        have = max(len(json_ads), len(parsed["ads"]))
+        if target is not None and have >= min(target, args.meta_max_ads): break
+        if target is None and _ >= args.scrolls: break
+        scroll(page, times=1); json_ads += meta_ads_from_json(cap.take()); text = body_text(page); parsed = parse_meta(text, tool)
+    # de-dup json ads
+    seen = set(); ja = []
+    for a in json_ads:
+        k = a["id"] or (a["advertiser"], str(a["start"]))
+        if k in seen: continue
+        seen.add(k); ja.append(a)
+    source = "dom"
+    if ja:
+        source = "json"
+        for a in ja:
+            a["matched_page"] = (page_id and a.get("page_id") == page_id) or name_match(a["advertiser"], tool) or name_match(a["advertiser"], page_name or tool)
+        parsed = {"result_count": parsed["result_count"], "ads": ja, "no_ads": parsed["no_ads"]}
     s = summarize_meta(parsed, page_mode=page_mode)
-    s["meta_match_mode"] = mode
+    s["meta_match_mode"] = mode; s["meta_data_source"] = source; s["meta_page_id"] = page_id; s["meta_page_name"] = page_name
     s["meta_results_url"] = page.url
     if parsed["no_ads"] or parsed["result_count"] == 0: status = "ok_no_ads"
     elif parsed["ads"]: status = "ok" if (page_mode or s["meta_matched_page_ads"]) else "ok_no_matching_advertiser"
     else: status = "no_ads_parsed"
     if status == "no_ads_parsed" or args.debug_all: dump(page, f"{row['niche_id']}_{tool}_meta")
     s["meta_status"] = status
+    try: page.remove_listener("response", cap._on)
+    except Exception: pass
     return s
-
-CREATIVE_ID = re.compile(r"/creative/(CR[0-9A-Za-z]+)")
-
-def creative_ids(page, scrolls=2):
-    scroll(page, times=scrolls)
-    ids = []
-    for a in page.locator('a[href*="/creative/"]').all():
-        try:
-            h = a.get_attribute("href") or ""
-            m = CREATIVE_ID.search(h)
-            if m: ids.append((m.group(1), urllib.parse.urljoin("https://adstransparency.google.com/", h)))
-        except Exception: pass
-    return dict(ids)
-
-def with_params(url, **kw):
-    u = urllib.parse.urlsplit(url); q = dict(urllib.parse.parse_qsl(u.query)); q.update(kw)
-    return urllib.parse.urlunsplit((u.scheme, u.netloc, u.path, urllib.parse.urlencode(q), ""))
 
 ADV_ID = re.compile(r"/advertiser/(AR[0-9A-Za-z]+)")
 
@@ -328,6 +433,14 @@ def google_find_advertiser_url(page, ids):
     return ""
 
 def do_google(page, row, tool, args):
+    cap = Capture(page, ["/anji/_/rpc/", "SearchService", "LookupService"])
+    try: return _do_google(page, row, tool, args, cap)
+    finally:
+        if args.debug_all: save_json(f"{row['niche_id']}_{tool}_google_rpc", cap.take())
+        try: page.remove_listener("response", cap._on)
+        except Exception: pass
+
+def _do_google(page, row, tool, args, cap):
     if not goto(page, row["google_lookup_url"]): return {"google_status": "nav_error"}
     sleep(1, 2); scroll(page, times=2)
     text = body_text(page)
@@ -467,8 +580,59 @@ def do_linkedin(page, row, tool, args):
     if args.debug_all: dump(page, f"{row['niche_id']}_{tool}_linkedin")
     return s
 
+SELFTEST_ROWS = [
+    {"niche_id": "0", "tool": "ServiceTitan", "domain": "servicetitan.com"},
+    {"niche_id": "0", "tool": "Jobber", "domain": "getjobber.com"},
+]
+
+def lookup_urls(tool, domain):
+    q = urllib.parse.quote(tool)
+    return {"meta_lookup_url": f"https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&q={q}&search_type=keyword_unordered&media_type=all",
+            "google_lookup_url": f"https://adstransparency.google.com/?region=US&domain={domain}",
+            "linkedin_lookup_url": f"https://www.linkedin.com/ad-library/search?keyword={q}"}
+
+def selftest(args):
+    from playwright.sync_api import sync_playwright
+    args.debug_all = True
+    ok_all = True
+    with sync_playwright() as p:
+        launch_kw = {}
+        if os.environ.get("PW_CHROMIUM_PATH"): launch_kw["executable_path"] = os.environ["PW_CHROMIUM_PATH"]
+        ctx = p.chromium.launch_persistent_context(args.profile, headless=not args.headed, **launch_kw,
+                viewport={"width": 1366, "height": 900}, locale="en-US")
+        page = ctx.new_page()
+        for r in SELFTEST_ROWS:
+            r = dict(r, **lookup_urls(r["tool"], r["domain"]))
+            print(f"SELFTEST {r['tool']}")
+            res = {}
+            for plat, fn in (("meta", do_meta), ("google", do_google), ("linkedin", do_linkedin)):
+                try: res.update(fn(page, r, r["tool"], args))
+                except Exception as e: res[f"{plat}_status"] = f"error: {e}"[:200]
+                sleep(1, 2)
+            checks = [
+                ("meta page resolved", str(res.get("meta_match_mode", "")).startswith("page")),
+                ("meta ads >= 5", num_(res.get("meta_active_ads")) >= 5),
+                ("meta ads >= 60 days >= 1", num_(res.get("meta_ads_60d")) >= 1),
+                ("meta data from json", res.get("meta_data_source") == "json"),
+                ("google advertiser page reached", bool(res.get("google_advertiser_page_url"))),
+                ("google ads >= 10", num_(res.get("google_ad_count")) >= 10),
+                ("google overlap computed", res.get("google_overlap_90d_pass") not in ("", None)),
+                ("linkedin resolved (advertiser mode or filtered)", str(res.get("linkedin_method", "")).startswith("advertiser") or res.get("linkedin_status") in ("ok", "ok_no_ads")),
+            ]
+            for name, ok in checks:
+                print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+                ok_all &= ok
+            print("  raw:", {k: res.get(k) for k in ("meta_match_mode","meta_data_source","meta_active_ads","meta_ads_60d","meta_ads_120d","meta_oldest_start","google_ad_count","google_ids_all","google_overlap_90d_pass","google_overlap_method","linkedin_method","linkedin_ad_count")})
+        ctx.close()
+    print("\nSELFTEST", "PASS - run the full scrape: python ad_audit_scraper.py" if ok_all else "FAIL - commit the debug/ folder (git add -f debug) and push")
+    return 0 if ok_all else 1
+
+def num_(v):
+    try: return int(str(v).replace(",", ""))
+    except Exception: return 0
+
 EXTRA_COLS = ["scrape_status","scraped_at",
-              "meta_status","meta_match_mode","meta_results_url","meta_result_count","meta_matched_page_ads","meta_all_ads_seen","meta_advertisers_seen","meta_oldest_start",
+              "meta_status","meta_match_mode","meta_data_source","meta_page_id","meta_page_name","meta_results_url","meta_result_count","meta_matched_page_ads","meta_all_ads_seen","meta_advertisers_seen","meta_oldest_start",
               "google_status","google_overlap_method","google_ids_all","google_ids_old_window","google_ids_recent_window","google_creatives_checked","google_last_shown_max","google_creatives_json",
               "linkedin_status","linkedin_method","linkedin_advertisers_seen","linkedin_ad_count","linkedin_currently_running"]
 
@@ -487,11 +651,14 @@ def main():
     ap.add_argument("--skip", default="", help="comma list of platforms to skip: meta,google,linkedin")
     ap.add_argument("--debug-all", action="store_true", help="save a screenshot + visible-text dump for every page")
     ap.add_argument("--force", action="store_true", help="re-scrape rows already marked ok")
+    ap.add_argument("--meta-accept-first-suggestion", action="store_true", help="if no suggestion name-matches, take the first one (use with care)")
+    ap.add_argument("--selftest", action="store_true", help="run two known heavy advertisers and print PASS/FAIL instead of scraping the CSV")
     args = ap.parse_args()
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         sys.exit("pip install playwright && python -m playwright install chromium")
+    if args.selftest: sys.exit(selftest(args))
 
     rows = list(csv.DictReader(open(IN_CSV, newline="", encoding="utf-8")))
     cols = list(rows[0].keys()) + [c for c in EXTRA_COLS if c not in rows[0]]
