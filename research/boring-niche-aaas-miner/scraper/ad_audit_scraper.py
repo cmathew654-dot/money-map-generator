@@ -33,7 +33,7 @@ DIRECT_RESPONSE_CTAS = {
     "get quote","get started","try for free","start now","schedule demo","get offer","apply now",
     "download","install now","subscribe","book now","contact us","get access","start trial","try now",
 }
-BRAND_CTAS = {"learn more","watch more","see more","like page","follow"}
+BRAND_CTAS = {"learn more","watch more","see more","like page","follow","listen now","watch now","shop now","send message","get directions","play game","open link"}
 
 # ---------------------------------------------------------------- pure parsers (unit-tested offline)
 def parse_date(s):
