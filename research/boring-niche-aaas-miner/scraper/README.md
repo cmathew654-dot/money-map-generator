@@ -12,6 +12,26 @@ pip install -r requirements.txt
 python -m playwright install chromium
 ```
 
+## Setup on Windows (PowerShell)
+
+PowerShell has no `&&` and no `source`; run one line at a time. Clone first if you don't have the repo yet.
+
+```powershell
+cd C:\Users\Cyril\Projects
+git clone https://github.com/cmathew654-dot/money-map-generator.git
+cd money-map-generator
+git checkout claude/boring-niche-aaas-miner-4ptuvl
+cd research\boring-niche-aaas-miner\scraper
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m playwright install chromium
+python ad_audit_scraper.py --sample 3 --headed
+```
+
+If `Activate.ps1` is refused ("running scripts is disabled"), run once:
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` and retry, or skip activation and prefix commands with `.\.venv\Scripts\python.exe` instead of `python`.
+
 ## Run
 
 1. **Smoke test on 3 tools with a visible browser.** If Meta or LinkedIn shows a login wall, log in once in that window; the profile is saved in `pw-profile/` and reused.
