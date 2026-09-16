@@ -137,7 +137,8 @@ def dump(page, tag):
     safe = re.sub(r"[^A-Za-z0-9_.-]", "_", tag)[:120]
     try:
         page.screenshot(path=str(DEBUG / f"{safe}.png"), full_page=True)
-        (DEBUG / f"{safe}.html").write_text(page.content(), encoding="utf-8")
+        # visible text only: raw HTML can carry session tokens / account details, text cannot
+        (DEBUG / f"{safe}.txt").write_text(body_text(page), encoding="utf-8")
     except Exception as e:
         print(f"    debug dump failed: {e}")
 
@@ -262,7 +263,8 @@ def main():
     ap.add_argument("--google-creatives", type=int, default=25)
     ap.add_argument("--linkedin-details", type=int, default=8)
     ap.add_argument("--skip", default="", help="comma list of platforms to skip: meta,google,linkedin")
-    ap.add_argument("--debug-all", action="store_true")
+    ap.add_argument("--debug-all", action="store_true", help="save a screenshot + visible-text dump for every page")
+    ap.add_argument("--force", action="store_true", help="re-scrape rows already marked ok")
     args = ap.parse_args()
     try:
         from playwright.sync_api import sync_playwright
@@ -280,7 +282,7 @@ def main():
     for r in rows:
         if not args.all and not r.get("verification_status", "").startswith("search"): continue
         if want and r["niche_id"] not in want: continue
-        if done.get((r["niche_id"], r["tool"]), {}).get("scrape_status") == "ok": continue
+        if not args.force and done.get((r["niche_id"], r["tool"]), {}).get("scrape_status") == "ok": continue
         todo.append(r)
     seen = set(); dedup = []
     for r in todo:  # same tool across niches: scrape once, copy later

@@ -38,7 +38,7 @@ If `Activate.ps1` is refused ("running scripts is disabled"), run once:
    ```bash
    python ad_audit_scraper.py --sample 3 --headed
    ```
-   Check the printed counts and look in `debug/`. If any platform reports `no_ads_parsed`, commit the `debug/*.png` and `debug/*.html` files and the selectors get fixed from those.
+   Check the printed counts and look in `debug/`. If any platform reports `no_ads_parsed`, commit the `debug/*.png` and `debug/*.txt` files and the selectors get fixed from those.
 2. **Full run** (214 search-verified tools, deduplicated across niches, roughly 1.5–3 hours with the built-in delays). It resumes automatically if interrupted.
    ```bash
    python ad_audit_scraper.py
