@@ -206,19 +206,40 @@ def try_click_matches(page, tool, locators, tag):
                 if "view_all_page_id" in page.url: return True
     return False
 
+def focus_search_box(page, label_re, exclude_re):
+    """Focus the main search input. Tries the visible label text first, then visible inputs not matching exclude_re."""
+    try:
+        lab = page.get_by_text(label_re).first
+        if lab.count():
+            lab.click(timeout=3000); time.sleep(0.5); return True
+    except Exception: pass
+    try:
+        inputs = page.locator("input:visible")
+        for i in range(min(inputs.count(), 10)):
+            el = inputs.nth(i)
+            meta = " ".join(filter(None, [el.get_attribute("placeholder") or "", el.get_attribute("aria-label") or "", el.get_attribute("type") or ""]))
+            if exclude_re.search(meta): continue
+            if (el.get_attribute("type") or "text") not in ("text", "search", ""): continue
+            el.click(timeout=3000); time.sleep(0.5); return True
+    except Exception: pass
+    try:
+        cb = page.get_by_role("combobox").first
+        if cb.count(): cb.click(timeout=3000); time.sleep(0.5); return True
+    except Exception: pass
+    return False
+
 def meta_pick_page(page, tool, row, args):
     """Type the tool name in the Ad Library search box and click the matching Page suggestion."""
     try:
-        box = page.get_by_placeholder(re.compile("Search by keyword or advertiser", re.I))
-        if not box.count(): box = page.locator('input[type="search"], input[placeholder*="Search"]')
-        box.first.click(timeout=5000); box.first.fill(""); box.first.type(tool, delay=60); time.sleep(3.5)
+        if not focus_search_box(page, re.compile("Search by keyword or advertiser", re.I), re.compile("country", re.I)):
+            print("    meta: search box not found"); dump(page, f"{row['niche_id']}_{tool}_meta_nobox"); return False
+        page.keyboard.type(tool, delay=70); time.sleep(3.5)
         dump(page, f"{row['niche_id']}_{tool}_meta_typeahead")  # always: shows what the suggestion list looked like
         locs = [page.get_by_role("option"), page.locator('[role="listbox"] [role="option"], [role="listbox"] li, [role="listbox"] a, [role="listbox"] div[role="button"]'),
                 page.get_by_text(re.compile(r"^\s*" + re.escape(tool) + r"\s*$", re.I)),
                 page.locator("ul li, div[role='menuitem'], a").filter(has_text=re.compile(re.escape(tool), re.I))]
         if try_click_matches(page, tool, locs, "typeahead"): return True
-        # last resort: first suggestion via keyboard
-        box.first.press("ArrowDown"); time.sleep(0.5); box.first.press("Enter"); time.sleep(3)
+        page.keyboard.press("ArrowDown"); time.sleep(0.5); page.keyboard.press("Enter"); time.sleep(3)
         return "view_all_page_id" in page.url
     except Exception as e:
         print(f"    meta typeahead failed: {e}"); return False
@@ -360,10 +381,9 @@ def linkedin_by_advertiser(page, tool, row):
     try:
         if not goto(page, "https://www.linkedin.com/ad-library/home"): return False
         sleep(1, 2)
-        box = page.get_by_placeholder(re.compile("Company or advertiser", re.I))
-        if not box.count(): box = page.get_by_label(re.compile("Company or advertiser", re.I))
-        if not box.count(): box = page.locator("input").first
-        box.first.click(timeout=5000); box.first.type(tool, delay=60); time.sleep(3.5)
+        if not focus_search_box(page, re.compile("^Company or advertiser", re.I), re.compile("keyword|payer|country|date", re.I)):
+            print("    linkedin: advertiser box not found"); return False
+        page.keyboard.type(tool, delay=70); time.sleep(3.5)
         dump(page, f"{row['niche_id']}_{tool}_linkedin_typeahead")
         locs = [page.get_by_role("option"), page.locator('[role="listbox"] *').filter(has_text=re.compile(re.escape(tool), re.I)),
                 page.locator("li, a, button").filter(has_text=re.compile(re.escape(tool), re.I))]
