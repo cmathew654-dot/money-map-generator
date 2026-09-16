@@ -190,27 +190,38 @@ def goto(page, url, wait="networkidle", timeout=45000):
         print(f"    navigation failed: {e}"); return False
 
 class Capture:
-    """Collects JSON bodies of XHR responses whose URL matches any of the given substrings."""
+    """Records XHR responses whose URL matches any needle; bodies are read later in take() (never inside the handler)."""
     def __init__(self, page, needles):
-        self.items = []; self.needles = needles
+        self.resps = []; self.needles = needles; self.page = page
         page.on("response", self._on)
     def _on(self, resp):
         try:
-            u = resp.url
-            if any(n in u for n in self.needles):
-                body = resp.text()
-                self.items.append((u, body))
+            if any(n in resp.url for n in self.needles): self.resps.append(resp)
         except Exception: pass
     def take(self):
-        out, self.items = self.items, []
+        out = []
+        for r in self.resps:
+            try: out.append((r.url, r.text()))
+            except Exception: pass
+        self.resps = []
         return out
+    def close(self):
+        try: self.page.remove_listener("response", self._on)
+        except Exception: pass
 
 def fb_json(body):
-    """Facebook prefixes JSON with 'for (;;);'."""
+    """Facebook responses: optional 'for (;;);' prefix, and GraphQL may return several JSON objects on separate lines."""
     b = body.strip()
     if b.startswith("for (;;);"): b = b[len("for (;;);"):]
     try: return json.loads(b)
-    except Exception: return None
+    except Exception: pass
+    objs = []
+    for line in b.splitlines():
+        line = line.strip()
+        if not line: continue
+        try: objs.append(json.loads(line))
+        except Exception: continue
+    return objs or None
 
 def walk(obj):
     """Yield every dict inside a nested JSON structure."""
@@ -223,12 +234,13 @@ def walk(obj):
 def meta_pages_from_typeahead(bodies):
     pages = []
     for u, body in bodies:
-        if "typeahead" not in u: continue
         j = fb_json(body)
         if not j: continue
         for d in walk(j):
-            if isinstance(d.get("id"), (str, int)) and isinstance(d.get("name"), str) and ("category" in d or "likes" in d or "verification" in d or "image_uri" in d):
-                pages.append({"id": str(d["id"]), "name": d["name"], "category": d.get("category", ""), "likes": d.get("likes", "")})
+            pid = d.get("page_id", d.get("id"))
+            nm = d.get("name", d.get("page_name"))
+            if isinstance(pid, (str, int)) and isinstance(nm, str) and str(pid).isdigit() and ("category" in d or "likes" in d or "verification" in d or "image_uri" in d or "page_alias" in d or "ig_username" in d):
+                pages.append({"id": str(pid), "name": nm, "category": d.get("category", ""), "likes": d.get("likes", "")})
     seen = set(); out = []
     for p_ in pages:
         if p_["id"] in seen: continue
@@ -239,7 +251,6 @@ def meta_ads_from_json(bodies):
     """Extract ads from search_ads JSON responses: start date, page name, platforms, CTA."""
     ads = []
     for u, body in bodies:
-        if "search_ads" not in u and "ads/library/async" not in u: continue
         j = fb_json(body)
         if not j: continue
         for d in walk(j):
@@ -343,7 +354,7 @@ def meta_click_advertiser(page, name):
     return False
 
 def do_meta(page, row, tool, args):
-    cap = Capture(page, ["search_typeahead", "search_ads", "ads/library/async"])
+    cap = Capture(page, ["search_typeahead", "search_ads", "ads/library/async", "/api/graphql"])
     if not goto(page, META_BASE): return {"meta_status": "nav_error"}
     sleep(1, 2); dismiss_cookies(page)
     mode = None; page_id = ""; page_name = ""
@@ -352,8 +363,10 @@ def do_meta(page, row, tool, args):
         if focus_search_box(page, re.compile("Search by keyword or advertiser", re.I), re.compile("country", re.I)):
             page.keyboard.type(tool, delay=70); time.sleep(3.5)
             bodies = cap.take()
-            if args.debug_all: dump(page, f"{row['niche_id']}_{tool}_meta_typeahead"); save_json(f"{row['niche_id']}_{tool}_meta_typeahead", bodies)
             pages = meta_pages_from_typeahead(bodies)
+            if args.debug_all or not pages:
+                dump(page, f"{row['niche_id']}_{tool}_meta_typeahead"); save_json(f"{row['niche_id']}_{tool}_meta_typeahead", bodies)
+            print(f"    meta typeahead: {len(bodies)} responses captured, {len(pages)} pages parsed: {[p_['name'] for p_ in pages][:5]}")
             for p_ in pages:
                 if name_match(p_["name"], tool): page_id, page_name = p_["id"], p_["name"]; break
             if not page_id and pages and args.meta_accept_first_suggestion: page_id, page_name = pages[0]["id"], pages[0]["name"]
@@ -405,8 +418,7 @@ def do_meta(page, row, tool, args):
     else: status = "no_ads_parsed"
     if status == "no_ads_parsed" or args.debug_all: dump(page, f"{row['niche_id']}_{tool}_meta")
     s["meta_status"] = status
-    try: page.remove_listener("response", cap._on)
-    except Exception: pass
+    cap.close()
     return s
 
 ADV_ID = re.compile(r"/advertiser/(AR[0-9A-Za-z]+)")
@@ -439,8 +451,7 @@ def do_google(page, row, tool, args):
     try: return _do_google(page, row, tool, args, cap)
     finally:
         if args.debug_all: save_json(f"{row['niche_id']}_{tool}_google_rpc", cap.take())
-        try: page.remove_listener("response", cap._on)
-        except Exception: pass
+        cap.close()
 
 def _do_google(page, row, tool, args, cap):
     if not goto(page, row["google_lookup_url"]): return {"google_status": "nav_error"}
@@ -609,8 +620,11 @@ def selftest(args):
             res = {}
             for plat, fn in (("meta", do_meta), ("google", do_google), ("linkedin", do_linkedin)):
                 try: res.update(fn(page, r, r["tool"], args))
-                except Exception as e: res[f"{plat}_status"] = f"error: {e}"[:200]
+                except Exception as e:
+                    import traceback; res[f"{plat}_status"] = f"error: {e}"[:200]
+                    print(f"  {plat} EXCEPTION:"); traceback.print_exc()
                 sleep(1, 2)
+            print("  statuses:", {k: res.get(k) for k in ("meta_status","google_status","linkedin_status")})
             checks = [
                 ("meta page resolved", str(res.get("meta_match_mode", "")).startswith("page")),
                 ("meta ads >= 5", num_(res.get("meta_active_ads")) >= 5),
