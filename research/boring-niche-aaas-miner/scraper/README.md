@@ -63,8 +63,8 @@ If `Activate.ps1` is refused ("running scripts is disabled"), run once:
 | meta_active_ads, meta_ads_60d, meta_ads_120d | Meta Ad Library (active, US) | ads whose page name matches the tool; counts with "Started running on" ≥60 / ≥120 days ago |
 | meta_platforms, meta_cta, meta_oldest_start | same | platforms seen, CTA button counts, oldest start date |
 | meta_match_mode, meta_advertisers_seen | same | `page` = searched by advertiser Page (all results are the vendor's); `keyword_exact_phrase` = fallback, only cards whose advertiser name matches the tool are counted. `meta_advertisers_seen` lists who actually ran the ads on the page |
-| google_ad_count, google_formats | Google Ads Transparency Center, domain search → advertiser page | ad count on the advertiser page |
-| google_overlap_90d_pass, google_overlap_method | advertiser page loaded with two date windows (180–90 days ago, and last 7 days) | creative IDs present in both windows, i.e. the brief's overlap test. `filter_ignored_unverified` means the date parameters had no effect and the value is left blank |
+| google_ad_count, google_formats, google_advertiser_name | Google Ads Transparency Center: the page's own SearchCreatives feed, captured while the domain page loads and scrolls | ad count from the page text; creatives (40 per page, up to `--google-pages` extra pages) grouped by advertiser; formats are Google's raw codes (3 = video/HTML5 preview) |
+| google_overlap_90d_pass, google_first_shown_min, google_ads_first_shown_180d_plus | first-shown / last-shown timestamps in the same feed | creatives first shown ≥90 days ago and still shown within the last 14 days. This is the brief's overlap test computed from exact dates rather than by comparing two filtered listings |
 | linkedin_present, linkedin_date_ranges, linkedin_currently_running | LinkedIn Ad Library | presence and run dates |
 | *_status, scrape_status | scraper | `ok`, `no_ads_parsed`, `login_wall`, `nav_error`; anything not `ok` gets a debug dump |
 
