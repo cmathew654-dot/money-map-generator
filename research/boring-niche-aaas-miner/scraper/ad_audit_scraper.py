@@ -59,8 +59,15 @@ def advertiser_of(chunk):
     return ""
 
 def name_match(a, b):
-    a, b = norm(a), norm(b)
-    return bool(a and b) and (a == b or a in b or b in a)
+    """True when one name is the other, or one starts with the other at a word boundary.
+    'ServiceTitan Inc' ~ 'ServiceTitan'; 'Service Autopilot by Xplor' ~ 'Service Autopilot'; 'Jobberman' !~ 'Jobber'."""
+    if not a or not b: return False
+    a_, b_ = a.strip(), b.strip()
+    if norm(a_) == norm(b_): return True
+    def starts(long, short):
+        pat = r"^\W*" + r"\W*".join(re.escape(ch) for ch in re.sub(r"\W", "", short)) + r"(?=\W|$)"
+        return re.match(pat, long, re.I) is not None
+    return starts(a_, b_) or starts(b_, a_)
 
 def parse_meta(text, tool_name):
     """Meta Ad Library results page text -> dict. Ads are chunked on 'Library ID'."""
