@@ -275,13 +275,16 @@ def dismiss_cookies(page):
 
 def try_click_matches(page, tool, locators, tag):
     """Click the first element among `locators` whose text matches the tool name; return True if URL became a page view."""
+    deadline = time.time() + 25
     for loc in locators:
-        try: n = min(loc.count(), 15)
+        if time.time() > deadline: break
+        try: n = min(loc.count(), 8)
         except Exception: continue
         for i in range(n):
             try:
                 t = loc.nth(i).inner_text(timeout=800).strip().split("\n")[0]
             except Exception: continue
+            if time.time() > deadline: break
             if name_match(t, tool):
                 try:
                     loc.nth(i).click(timeout=3000); time.sleep(3)
@@ -319,8 +322,7 @@ def meta_pick_page(page, tool, row, args):
         page.keyboard.type(tool, delay=70); time.sleep(3.5)
         dump(page, f"{row['niche_id']}_{tool}_meta_typeahead")  # always: shows what the suggestion list looked like
         locs = [page.get_by_role("option"), page.locator('[role="listbox"] [role="option"], [role="listbox"] li, [role="listbox"] a, [role="listbox"] div[role="button"]'),
-                page.get_by_text(re.compile(r"^\s*" + re.escape(tool) + r"\s*$", re.I)),
-                page.locator("ul li, div[role='menuitem'], a").filter(has_text=re.compile(re.escape(tool), re.I))]
+                page.get_by_text(re.compile(r"^\s*" + re.escape(tool) + r"\s*$", re.I))]
         if try_click_matches(page, tool, locs, "typeahead"): return True
         page.keyboard.press("ArrowDown"); time.sleep(0.5); page.keyboard.press("Enter"); time.sleep(3)
         return "view_all_page_id" in page.url
@@ -330,7 +332,7 @@ def meta_pick_page(page, tool, row, args):
 def meta_click_advertiser(page, name):
     """On a keyword-results page, click the advertiser name inside a card to open that Page's ad list."""
     loc = page.get_by_text(name, exact=True)
-    try: n = min(loc.count(), 4)
+    try: n = min(loc.count(), 2)
     except Exception: return False
     for i in range(n):
         try:
@@ -498,8 +500,8 @@ def linkedin_by_advertiser(page, tool, row):
             print("    linkedin: advertiser box not found"); return False
         page.keyboard.type(tool, delay=70); time.sleep(3.5)
         dump(page, f"{row['niche_id']}_{tool}_linkedin_typeahead")
-        locs = [page.get_by_role("option"), page.locator('[role="listbox"] *').filter(has_text=re.compile(re.escape(tool), re.I)),
-                page.locator("li, a, button").filter(has_text=re.compile(re.escape(tool), re.I))]
+        locs = [page.get_by_role("option"), page.locator('[role="listbox"] [role="option"], [role="listbox"] li'),
+                page.get_by_text(re.compile(r"^\s*" + re.escape(tool) + r"\s*$", re.I))]
         picked = False
         for loc in locs:
             try: n = min(loc.count(), 10)
@@ -600,7 +602,7 @@ def selftest(args):
         if os.environ.get("PW_CHROMIUM_PATH"): launch_kw["executable_path"] = os.environ["PW_CHROMIUM_PATH"]
         ctx = p.chromium.launch_persistent_context(args.profile, headless=not args.headed, **launch_kw,
                 viewport={"width": 1366, "height": 900}, locale="en-US")
-        page = ctx.new_page()
+        page = ctx.new_page(); page.set_default_timeout(8000); page.set_default_navigation_timeout(45000)
         for r in SELFTEST_ROWS:
             r = dict(r, **lookup_urls(r["tool"], r["domain"]))
             print(f"SELFTEST {r['tool']}")
@@ -691,7 +693,7 @@ def main():
                 viewport={"width": 1366, "height": 900},
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36",
                 locale="en-US")
-        page = ctx.new_page()
+        page = ctx.new_page(); page.set_default_timeout(8000); page.set_default_navigation_timeout(45000)
         for i, r in enumerate(dedup, 1):
             tool = r["tool"]; print(f"[{i}/{len(dedup)}] {tool} ({r['domain']})")
             res = {}
