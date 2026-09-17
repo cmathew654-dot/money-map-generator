@@ -1,6 +1,7 @@
 AceWatt CRM
 AlayaCare
 Alora Health
+Ascend TMS
 AscendTMS
 Avatar DriverHub
 Axele
@@ -45,7 +46,10 @@ NotaryCentral
 NotaryDash
 NotaryGadget
 OnCall Air
+PaintForce Painting Estimator
 PaintPricing
+Painting Contractor Estimates (iOS app)
+Pipe-Pro (Professional Estimating Systems)
 Pressure Washing Calculator (Hero Softwash)
 RouteGenie
 RoutingBox

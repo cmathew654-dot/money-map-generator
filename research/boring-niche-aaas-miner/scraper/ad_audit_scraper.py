@@ -60,14 +60,26 @@ def advertiser_of(chunk):
 
 def name_match(a, b):
     """True when one name is the other, or one starts with the other at a word boundary.
+    The shorter side must be substantial (>=8 letters or >=2 words) so 'Garage' cannot stand in for 'Garage Door OS'.
     'ServiceTitan Inc' ~ 'ServiceTitan'; 'Service Autopilot by Xplor' ~ 'Service Autopilot'; 'Jobberman' !~ 'Jobber'."""
     if not a or not b: return False
     a_, b_ = a.strip(), b.strip()
     if norm(a_) == norm(b_): return True
+    def substantial(x): return len(norm(x)) >= 8 or len(re.findall(r"[A-Za-z0-9]+", x)) >= 2
     def starts(long, short):
+        if not substantial(short): return False
         pat = r"^\W*" + r"\W*".join(re.escape(ch) for ch in re.sub(r"\W", "", short)) + r"(?=\W|$)"
         return re.match(pat, long, re.I) is not None
     return starts(a_, b_) or starts(b_, a_)
+
+def best_match(names, tool):
+    """Pick the best candidate name for a tool: exact normalized match first, then a name that starts with the tool, then the reverse."""
+    exact = [n for n in names if norm(n) == norm(tool)]
+    if exact: return exact[0]
+    fwd = [n for n in names if name_match(n, tool) and norm(n).startswith(norm(tool))]
+    if fwd: return fwd[0]
+    rest = [n for n in names if name_match(n, tool)]
+    return rest[0] if rest else None
 
 def parse_meta(text, tool_name):
     """Meta Ad Library results page text -> dict. Ads are chunked on 'Library ID'."""
@@ -400,7 +412,8 @@ def _do_meta(page, row, tool, args, cap):
     page_id = ""; page_name = ""; mode = None
     cands = collections.Counter((a.get("page_id", ""), a["advertiser"]) for a in ads_kw if a.get("page_id") and name_match(a["advertiser"], tool))
     if cands:
-        (page_id, page_name), _ = cands.most_common(1)[0]; mode = "page_id_from_keyword_results_json"
+        bm = best_match([k[1] for k in cands], tool)
+        (page_id, page_name) = next(k for k in cands if k[1] == bm); mode = "page_id_from_keyword_results_json"
     # 2) typeahead on the results page (the search box exists here, unlike the landing page)
     if not page_id:
         try:
@@ -410,8 +423,9 @@ def _do_meta(page, row, tool, args, cap):
                 if args.debug_all or not pages:
                     dump(page, f"{row['niche_id']}_{tool}_meta_typeahead"); save_json(f"{row['niche_id']}_{tool}_meta_typeahead", bodies)
                 print(f"    meta typeahead: {len(bodies)} responses, {len(pages)} pages parsed: {[p_['name'] for p_ in pages][:5]}")
-                for p_ in pages:
-                    if name_match(p_["name"], tool): page_id, page_name = p_["id"], p_["name"]; mode = "page_id_from_typeahead_json"; break
+                bm = best_match([p_["name"] for p_ in pages], tool)
+                if bm:
+                    p_ = next(x for x in pages if x["name"] == bm); page_id, page_name = p_["id"], p_["name"]; mode = "page_id_from_typeahead_json"
                 if not page_id and pages and args.meta_accept_first_suggestion:
                     page_id, page_name = pages[0]["id"], pages[0]["name"]; mode = "page_id_first_suggestion"
         except Exception as e:
