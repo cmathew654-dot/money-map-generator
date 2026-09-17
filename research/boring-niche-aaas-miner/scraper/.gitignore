@@ -3,3 +3,5 @@ debug/
 .venv/
 *.tmp
 __pycache__/
+shard*.log
+shard*.err

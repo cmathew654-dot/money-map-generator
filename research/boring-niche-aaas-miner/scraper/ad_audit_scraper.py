@@ -665,6 +665,7 @@ def main():
     ap.add_argument("--all", action="store_true", help="include candidate (unverified) tool rows too")
     ap.add_argument("--niches", default="", help="comma-separated niche ids to include")
     ap.add_argument("--tools", default="", help="semicolon-separated tool names to include (exact, case-insensitive)")
+    ap.add_argument("--tools-file", default="", help="file with one tool name per line (avoids shell quoting)")
     ap.add_argument("--headed", action="store_true", help="show the browser (log in to Meta/LinkedIn once if walled)")
     ap.add_argument("--profile", default=str(HERE / "pw-profile"), help="persistent browser profile dir")
     ap.add_argument("--scrolls", type=int, default=6)
@@ -703,6 +704,9 @@ def main():
             done[(r["niche_id"], r["tool"])] = r
     want = set(x.strip() for x in args.niches.split(",") if x.strip())
     want_tools = set(norm(x) for x in args.tools.split(";") if x.strip())
+    if args.tools_file:
+        want_tools |= set(norm(x) for x in open(args.tools_file, encoding="utf-8").read().splitlines() if x.strip())
+    if (args.tools or args.tools_file) and not want_tools: sys.exit("tool filter given but empty")
     todo = []
     for r in rows:
         if not args.all and not r.get("verification_status", "").startswith("search"): continue
