@@ -44,7 +44,13 @@ If `Activate.ps1` is refused ("running scripts is disabled"), run once:
    python ad_audit_scraper.py --sample 3 --headed
    ```
    Check the printed counts and look in `debug/`. If any platform reports `no_ads_parsed`, commit the `debug/*.png` and `debug/*.txt` files and the selectors get fixed from those.
-3. **Full run** (214 search-verified tools, deduplicated across niches, roughly 1.5–3 hours with the built-in delays). It resumes automatically if interrupted.
+3. **Full run, parallel (recommended).** Five shards in fast mode finish the 214 tools in roughly 20–40 minutes:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File run_parallel.ps1 -N 5
+   ```
+   Each shard writes `ad_audit_filled.part<i>.csv`; the launcher merges them into `ad_audit_filled.csv` and scores. Re-running the same command resumes.
+
+   **Full run, single process** (214 search-verified tools, deduplicated across niches, roughly 1.5–3 hours with the built-in delays). It resumes automatically if interrupted.
    ```bash
    python ad_audit_scraper.py
    ```

@@ -159,7 +159,10 @@ def summarize_linkedin(p):
     }
 
 # ---------------------------------------------------------------- browser helpers
-def sleep(a=2.5, b=6.0): time.sleep(random.uniform(a, b))
+FAST = False
+def sleep(a=2.5, b=6.0):
+    if FAST: a, b = min(a, 0.4), min(b, 1.0)
+    time.sleep(random.uniform(a, b))
 
 def dump(page, tag):
     DEBUG.mkdir(exist_ok=True)
@@ -184,6 +187,7 @@ def body_text(page):
     except Exception: return ""
 
 def scroll(page, times=6, pause=1.2):
+    if FAST: pause = min(pause, 0.6)
     for _ in range(times):
         page.mouse.wheel(0, 4000); time.sleep(pause)
 
@@ -369,7 +373,7 @@ def meta_collect(page, cap, tool, args, parsed_text_first=True):
         have = max(len(json_ads), len(parsed["ads"]))
         if target is not None and have >= min(target, args.meta_max_ads): break
         if target is None and i >= args.scrolls: break
-        scroll(page, times=1); time.sleep(1.2)
+        scroll(page, times=1); time.sleep(0.6 if FAST else 1.2)
         json_ads += meta_ads_from_json(cap.take()); text = body_text(page); parsed = parse_meta(text, tool)
     seen = set(); ja = []
     for a in json_ads:
@@ -667,7 +671,19 @@ def main():
     ap.add_argument("--force", action="store_true", help="re-scrape rows already marked ok")
     ap.add_argument("--meta-accept-first-suggestion", action="store_true", help="if no suggestion name-matches, take the first one (use with care)")
     ap.add_argument("--selftest", action="store_true", help="run two known heavy advertisers and print PASS/FAIL instead of scraping the CSV")
+    ap.add_argument("--fast", action="store_true", help="short waits, 40 Google creatives, 60 Meta ads, 4 LinkedIn details")
+    ap.add_argument("--shard", default="", help="i/N: process every N-th tool starting at i (0-based); use with --out")
+    ap.add_argument("--out", default="", help="output CSV path (default ../ad_audit_filled.csv; shards should use ../ad_audit_filled.part<i>.csv)")
     args = ap.parse_args()
+    global FAST, OUT_CSV
+    if args.fast:
+        FAST = True; args.google_pages = 0; args.meta_max_ads = 60; args.linkedin_details = 4; args.scrolls = min(args.scrolls, 3)
+    shard_i, shard_n = 0, 1
+    if args.shard:
+        shard_i, shard_n = (int(x) for x in args.shard.split("/"))
+        if not args.out: args.out = str(HERE.parent / f"ad_audit_filled.part{shard_i}.csv")
+        if args.profile == str(HERE / "pw-profile"): args.profile = str(HERE / f"pw-profile-{shard_i}")
+    if args.out: OUT_CSV = Path(args.out)
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -692,6 +708,7 @@ def main():
         k = norm(r["tool"]); 
         if k in seen: continue
         seen.add(k); dedup.append(r)
+    dedup = dedup[shard_i::shard_n]
     if args.sample: dedup = dedup[: args.sample]
     if args.limit: dedup = dedup[: args.limit]
     skip = set(args.skip.split(",")) if args.skip else set()
