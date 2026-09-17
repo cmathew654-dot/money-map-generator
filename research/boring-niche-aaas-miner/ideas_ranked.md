@@ -1,8 +1,8 @@
 # ideas_ranked.md — Boring-Niche Ad-Validated Idea Miner (US)
 
-## Status: Step 3 ad audit completed for all 134 search-verified tools (run on a local machine, 2026-09-16)
+## Status: all 160 niches researched (Step 2); Step 3 ad audit run on a local machine for every search-verified tool (last scrape 2026-09-16)
 
-**Qualified niches by the method's definition (≥2 search-verified tools scoring ≥5): 22.** Provisional (would qualify counting tools whose membership in the niche came from prior knowledge, not search): 1. Niches 61–160 were never searched for tools (session search cap), so most of them cannot qualify yet; see README for the rerun plan.
+**Qualified niches by the method's definition (≥2 search-verified tools scoring ≥5): 20.** Provisional (would qualify counting tools whose membership in the niche came from prior knowledge, not search): 1. All 160 niches were searched for tools; niches with fewer than 3 URL-cited tools are listed in dead_ends.md under Filter 2.
 
 How the numbers were obtained: Meta Ad Library (active ads, US, resolved to the vendor's Page; start dates from Meta's own data feed), Google Ads Transparency Center (creatives with first-shown and last-shown dates from Google's own feed; a creative passes the 90-day test when first shown ≥90 days ago and still shown within 14 days), LinkedIn Ad Library (presence and run dates, advertiser-verified). Scoring follows the brief: Meta +3 (≥5 active and ≥3 running ≥60 days), Google +3 (≥5 ads and ≥3 passing 90 days), LinkedIn +1, bootstrapped/<50 staff +2, direct-response CTA +1. Tool passes at ≥5.
 
@@ -12,7 +12,7 @@ Known limits, stated plainly:
 - Meta for the 571 tools audited in the final run (2026-09-16 21:00+) is **unverified**: Meta throttled that run into empty results. Their scores rest on Google, LinkedIn and headcount only, so they can only rise. A slow Meta-only rerun is queued for the tools where +3 would change the verdict.
 - Meta sampling: fast mode read the first 30–60 ads of each Page, newest first. Big advertisers can be undercounted on the "≥3 ads running ≥60 days" test. Tools affected are flagged `undersampled` on their card and a targeted rescrape is queued.
 - Three tools with generic names resolved to the wrong Meta Page (Essential, GoPave, Contractor+). Their Meta points are zeroed; five more are flagged ambiguous.
-- Fragmentation scores are still conservative: gatekeeper and concentration searches never ran, so no niche got the "no gatekeeper" point.
+- Fragmentation: gatekeeper and concentration checks ran only for the 13 originally qualified niches (franchise mandates found bind franchisees only); elsewhere the score is conservative because those checks never ran.
 - Horizontal tools (Jobber, Housecall Pro, ServiceTitan, Service Fusion, FieldPulse) advertise to all home-service trades; a niche that qualifies only through them is marked `horizontal-only`, meaning the category converts but no vertical incumbent proves the niche on its own.
 
 ---
@@ -39,29 +39,29 @@ Known limits, stated plainly:
 | 16 | Deck & patio builders | QUALIFIED | 5 | Builder Prime, Houzz Pro | 6.0 | 4 | 10.0 |
 | 17 | Independent used car dealers | QUALIFIED | 7 | AutoRaptor CRM, Wayne Reaves Software | 5.0 | 5 | 10.0 |
 | 18 | Small residential property managers | QUALIFIED | 9 | Innago, Rentec Direct | 5.0 | 5 | 10.0 |
-| 19 | Carpet & upholstery cleaning | QUALIFIED (horizontal-only) | 8 | Housecall Pro, Jobber | 7.5 | 2 | 9.5 |
-| 20 | Foundation repair & basement waterproofing contractors | QUALIFIED | 3 | Builder Prime, Contractor Accelerator | 6.0 | 3 | 9.0 |
-| 21 | Fire sprinkler contractors | QUALIFIED | 5 | Inspect Point, BuildOps, ServiceTrade | 5.5 | 3 | 8.5 |
-| 22 | Glass & glazing contractors | QUALIFIED | 4 | FieldPulse, Smart Glazier Software | 7.5 | 1 | 8.5 |
-| 23 | Trailer dealers | audited, not passing | 7 | Blackpurl | 4.5 | 5 | 9.5 |
-| 24 | Self-storage facilities | audited, not passing | 7 | Storeganise | 4.5 | 5 | 9.5 |
-| 25 | Music schools & private music teachers | audited, not passing | 11 | Opus1.io | 4.5 | 5 | 9.5 |
-| 26 | Driving schools | audited, not passing | 8 | DrivingSchoolSoftware.com (DrivingSchool.Software) | 4.5 | 5 | 9.5 |
-| 27 | Tutoring centers | audited, not passing | 8 | Teachworks | 4.5 | 5 | 9.5 |
-| 28 | Snow removal contractors | audited, not passing | 4 | Aspire | 5.0 | 4 | 9.0 |
-| 29 | Independent auto repair shops | audited, not passing | 8 | - | 4.0 | 5 | 9.0 |
-| 30 | Independent tire shops | audited, not passing | 10 | - | 4.0 | 5 | 9.0 |
-| 31 | Boutique fitness & yoga studios | audited, not passing | 9 | - | 4.0 | 5 | 9.0 |
-| 32 | Medical billing companies | audited, not passing | 6 | - | 4.0 | 5 | 9.0 |
-| 33 | Courier & last-mile delivery companies | audited, not passing | 9 | Shipday | 5.0 | 4 | 9.0 |
-| 34 | Boat dealers & marinas | audited, not passing | 12 | - | 4.0 | 5 | 9.0 |
-| 35 | Laundromats | audited, not passing | 6 | CleanCloud | 4.0 | 5 | 9.0 |
-| 36 | Pet grooming salons & mobile groomers | audited, not passing | 11 | - | 4.0 | 5 | 9.0 |
-| 37 | Tattoo studios | audited, not passing | 8 | Porter | 4.0 | 5 | 9.0 |
-| 38 | Martial arts schools | audited, not passing | 5 | Kicksite | 4.0 | 5 | 9.0 |
-| 39 | Lawn fertilization & weed control route businesses | audited, not passing | 5 | HindSite Software / FieldCentral | 4.5 | 4 | 8.5 |
-| 40 | Low-voltage, alarm & security camera installers | audited, not passing (horizontal-only) | 6 | ServiceTitan | 5.5 | 3 | 8.5 |
-| 41 | Gutter installation & cleaning contractors | audited, not passing | 4 | RoofSnap | 6.5 | 2 | 8.5 |
+| 19 | Foundation repair & basement waterproofing contractors | QUALIFIED | 3 | Builder Prime, Contractor Accelerator | 6.0 | 3 | 9.0 |
+| 20 | Fire sprinkler contractors | QUALIFIED | 5 | Inspect Point, BuildOps, ServiceTrade | 5.5 | 3 | 8.5 |
+| 21 | Carpet & upholstery cleaning | passes ad test; fragmentation below 3 (Filter 4) (horizontal-only) | 8 | Housecall Pro, Jobber | 7.5 | 2 | 9.5 |
+| 22 | Trailer dealers | audited, not passing | 7 | Blackpurl | 4.5 | 5 | 9.5 |
+| 23 | Self-storage facilities | audited, not passing | 7 | Storeganise | 4.5 | 5 | 9.5 |
+| 24 | Music schools & private music teachers | audited, not passing | 11 | Opus1.io | 4.5 | 5 | 9.5 |
+| 25 | Driving schools | audited, not passing | 8 | DrivingSchoolSoftware.com (DrivingSchool.Software) | 4.5 | 5 | 9.5 |
+| 26 | Tutoring centers | audited, not passing | 8 | Teachworks | 4.5 | 5 | 9.5 |
+| 27 | Snow removal contractors | audited, not passing | 4 | Aspire | 5.0 | 4 | 9.0 |
+| 28 | Independent auto repair shops | audited, not passing | 8 | - | 4.0 | 5 | 9.0 |
+| 29 | Independent tire shops | audited, not passing | 10 | - | 4.0 | 5 | 9.0 |
+| 30 | Boutique fitness & yoga studios | audited, not passing | 9 | - | 4.0 | 5 | 9.0 |
+| 31 | Medical billing companies | audited, not passing | 6 | - | 4.0 | 5 | 9.0 |
+| 32 | Courier & last-mile delivery companies | audited, not passing | 9 | Shipday | 5.0 | 4 | 9.0 |
+| 33 | Boat dealers & marinas | audited, not passing | 12 | - | 4.0 | 5 | 9.0 |
+| 34 | Laundromats | audited, not passing | 6 | CleanCloud | 4.0 | 5 | 9.0 |
+| 35 | Pet grooming salons & mobile groomers | audited, not passing | 11 | - | 4.0 | 5 | 9.0 |
+| 36 | Tattoo studios | audited, not passing | 8 | Porter | 4.0 | 5 | 9.0 |
+| 37 | Martial arts schools | audited, not passing | 5 | Kicksite | 4.0 | 5 | 9.0 |
+| 38 | Lawn fertilization & weed control route businesses | audited, not passing | 5 | HindSite Software / FieldCentral | 4.5 | 4 | 8.5 |
+| 39 | Low-voltage, alarm & security camera installers | audited, not passing (horizontal-only) | 6 | ServiceTitan | 5.5 | 3 | 8.5 |
+| 40 | Gutter installation & cleaning contractors | audited, not passing | 4 | RoofSnap | 6.5 | 2 | 8.5 |
+| 41 | Glass & glazing contractors | passes ad test; fragmentation below 3 (Filter 4) | 4 | FieldPulse, Smart Glazier Software | 7.5 | 1 | 8.5 |
 | 42 | Campgrounds & RV parks | audited, not passing | 10 | - | 3.5 | 5 | 8.5 |
 | 43 | Photographers & photo booth operators | audited, not passing | 7 | - | 3.5 | 5 | 8.5 |
 | 44 | Artificial turf & sports court installers | audited, not passing | 6 | - | 3.5 | 5 | 8.5 |
@@ -1579,76 +1579,7 @@ Known limits, stated plainly:
 
 ---
 
-## 19. Carpet & upholstery cleaning  (NAICS 561740)
-
-- **Status:** QUALIFIED — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 9.5 = ad score 7.5 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** Housecall Pro, Jobber.
-- **Boring test:** 3/3 — Room-count quoting, route scheduling, reminders.
-- **US establishments:** 41611 (2026, https://www.ibisworld.com/united-states/number-of-businesses/carpet-cleaning/1498/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
-| Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
-| ServiceMonster | yes | 3 | no | 0 / 0 / 0 (-) | ServiceMonster | no | 6 / 5 (2023-05-15) | no 0 | 0 |  |
-| Fieldd | yes | 0 | no | 0 / 0 / 0 (-) | Fieldd - Software for Services | no | 53 / 0 (2025-06-16) | no 0 | 0 | horizontal |
-| ManageMart | yes | 0 | no | 0 / 0 / 0 (-) | Managemart | no | 0 / 0 (-) | no 0 | 0 |  |
-| ScheduleDrop | yes | 0 | no | 0 / 0 / 0 (-) | ScheduleDrop | no | 0 / 0 (-) | no 0 | 0 |  |
-| ServGrow | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 8 / 0 (2025-12-03) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Carpet & upholstery cleaning
-> - Core jobs: job booking, quoting, technician assignment, invoicing/payments, marketing/reminders for repeat cleanings (ServiceMonster claims >75% client retention), tips/payout tracking (Fieldd).
-> - Eight tools with dedicated carpet landing pages found (ServiceMonster, ScheduleDrop, ServGrow, ManageMart, Fieldd, GorillaDesk, Housecall Pro, Jobber); ServiceMonster is the 20-year vertical incumbent.
-> - Agent wedge: reactivation/repeat-booking agent (12-month re-clean cadence outreach + instant quote) for solo truck-mount operators; retention is the metric incumbents already sell on.
-> - Weakest link: zero prices captured despite most of these tools publishing them; franchisor influence (Chem-Dry, Stanley Steemer) unverified.
-> - Vertical-tool follow-up (2026-09-17): Carpet & upholstery cleaning Found: ServiceMonster (servicemonster.com, "#1 Trusted Software for Carpet Cleaners", "originally built just for carpet cleaners", founded 2004 Spokane WA, from $59/mo, ~5,000+ customers), ScheduleDrop carpet-cleaning CRM page, GorillaDesk and fieldd carpet pages (horizontal). Confidence: ServiceMonster is high-confidence vertical (carpet-cleaning origin, now broader cleaning/restoration). ScheduleDrop medium-low (page only). GorillaDesk/fieldd low (multi-niche).
-
-**The agent version** [hypothesis]: Room-count quote → route slot → reminders → invoice → 6-month rebook. Needs: SMS, calendar, payments.
-
-**Wedge** [hypothesis]: Rebooking agent for carpet cleaners.
-
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~2 hrs/week.
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (solo/small truck-mount operators). Public-price incumbents: 0. Gatekeeper: franchise-only (independents unconstrained: yes) — Chem-Dry FDD: franchisees are required to use Chem-Dry's web-based Customer Management System (CRM fee $100-$450/mo plus up to $500 data import) and OnTrack scheduling/billing suite. Stanley Steemer locations use Powermagic proprietary software (https://franzy.com/franchises/stanley-steemer). Binds franchisees only.. Top-4 share: unverified; statement: IBISWorld: Carpet Cleaning in the US has low market share concentration, largest is Stanley Steemer International; concentration is low because services are provided by many small companies and buyers.
-
-**Evidence URLs (25):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/carpet-cleaning/1498/
-  - https://fieldd.co/industries/carpet-cleaning-software
-  - https://gorilladesk.com/industries/carpet-cleaning-software/
-  - https://www.housecallpro.com/industries/carpet-cleaning-software/
-  - https://www.getjobber.com/industries/carpet-cleaning-software/
-  - https://www.managemart.com/carpet-cleaning-software
-  - https://scheduledrop.com/carpet-cleaning
-  - https://www.servgrow.com/carpet-cleaning-software
-  - https://www.servicemonster.com/carpet-cleaning-software
-  - https://www.franchisechatter.com/2018/02/27/considering-a-chem-dry-franchise-dont-overlook-these-25-important-franchise-fees/
-  - https://www.ibisworld.com/united-states/industry/carpet-cleaning/1498/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=108336860499717
-  - https://adstransparency.google.com/advertiser/AR12022871354345783297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=387445444655938
-  - https://adstransparency.google.com/advertiser/AR10520026520397807617?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
-  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
-  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=104187944871222
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=596784700193438
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ServGrow&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://adstransparency.google.com/advertiser/AR03495879061392064513?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=10150114657650624
-  - https://adstransparency.google.com/advertiser/AR08781699796525121537?region=US
-
-**Confidence:** medium-low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
-## 20. Foundation repair & basement waterproofing contractors  (NAICS 238190)
+## 19. Foundation repair & basement waterproofing contractors  (NAICS 238190)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 9.0 = ad score 6.0 (mean of best two verified tools) + fragmentation 3/5.
@@ -1697,7 +1628,7 @@ Known limits, stated plainly:
 
 ---
 
-## 21. Fire sprinkler contractors  (NAICS 238220)
+## 20. Fire sprinkler contractors  (NAICS 238220)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 3/5.
@@ -1767,58 +1698,76 @@ Known limits, stated plainly:
 
 ---
 
-## 22. Glass & glazing contractors  (NAICS 238150)
+## 21. Carpet & upholstery cleaning  (NAICS 561740)
 
-- **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 8.5 = ad score 7.5 (mean of best two verified tools) + fragmentation 1/5.
-- **Passing tools:** FieldPulse, Smart Glazier Software.
-- **Boring test:** 3/3 — Measure, order, install cycles; commercial storefront bids.
-- **US establishments:** 1,317 companies verified active (siccode); 60,592 employees (n.d., https://siccode.com/naics-code/238150/glass-glazing-contractors); share <20 employees: unverified.
+- **Status:** passes ad test; fragmentation below 3 (Filter 4) — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
+- **Method score:** 9.5 = ad score 7.5 (mean of best two verified tools) + fragmentation 2/5.
+- **Passing tools:** Housecall Pro, Jobber.
+- **Boring test:** 3/3 — Room-count quoting, route scheduling, reminders.
+- **US establishments:** 41611 (2026, https://www.ibisworld.com/united-states/number-of-businesses/carpet-cleaning/1498/); share <20 employees: unverified.
 
 **Ad audit (Step 3):**
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| FieldPulse | yes | 8 | yes | 120 / 41 / 0 (2026-06-24) | FieldPulse | yes | 200 / 18 (2023-11-16) | yes 10 | 0 | horizontal |
-| Smart Glazier Software | yes | 7 | yes | 8 / 3 / 0 (2026-06-22) | Smart Glazier Software | yes | 30 / 9 (2024-06-01) | no 0 | 0 |  |
-| GlassManager | yes | 3 | no | 3 / 0 / 0 (2026-09-10) | GlassManager | no | 19 / 3 (2023-06-30) | no 0 | 0 |  |
-| GlasPacLX (GTS Services) | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
+| Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
+| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
+| ServiceMonster | yes | 3 | no | 0 / 0 / 0 (-) | ServiceMonster | no | 6 / 5 (2023-05-15) | no 0 | 0 |  |
+| Fieldd | yes | 0 | no | 0 / 0 / 0 (-) | Fieldd - Software for Services | no | 53 / 0 (2025-06-16) | no 0 | 0 | horizontal |
+| ManageMart | yes | 0 | no | 0 / 0 / 0 (-) | Managemart | no | 0 / 0 (-) | no 0 | 0 |  |
+| ScheduleDrop | yes | 0 | no | 0 / 0 / 0 (-) | ScheduleDrop | no | 0 / 0 (-) | no 0 | 0 |  |
+| ServGrow | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 8 / 0 (2025-12-03) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
-> Glass & glazing contractors (238150)
-> - Core jobs: glass-specific quoting (sq-ft calcs, material imports), POS and shop management, scheduling, inventory, invoicing (GlasPacLX/GTS, GlassManager, Smart Glazier, Accentis).
-> - Wedge: quote turnaround for custom flat glass (shower doors, storefront) where each quote needs measurements and material lookup; an agent building quotes from a photo/measurement sheet fits small shops on generic tools.
-> - Weakest link: establishment count (siccode 1,317) is implausibly low vs its own employee figure; no vendor details captured; auto-glass insurer networks may be a gatekeeper (unverified).
+> Carpet & upholstery cleaning
+> - Core jobs: job booking, quoting, technician assignment, invoicing/payments, marketing/reminders for repeat cleanings (ServiceMonster claims >75% client retention), tips/payout tracking (Fieldd).
+> - Eight tools with dedicated carpet landing pages found (ServiceMonster, ScheduleDrop, ServGrow, ManageMart, Fieldd, GorillaDesk, Housecall Pro, Jobber); ServiceMonster is the 20-year vertical incumbent.
+> - Agent wedge: reactivation/repeat-booking agent (12-month re-clean cadence outreach + instant quote) for solo truck-mount operators; retention is the metric incumbents already sell on.
+> - Weakest link: zero prices captured despite most of these tools publishing them; franchisor influence (Chem-Dry, Stanley Steemer) unverified.
+> - Vertical-tool follow-up (2026-09-17): Carpet & upholstery cleaning Found: ServiceMonster (servicemonster.com, "#1 Trusted Software for Carpet Cleaners", "originally built just for carpet cleaners", founded 2004 Spokane WA, from $59/mo, ~5,000+ customers), ScheduleDrop carpet-cleaning CRM page, GorillaDesk and fieldd carpet pages (horizontal). Confidence: ServiceMonster is high-confidence vertical (carpet-cleaning origin, now broader cleaning/restoration). ScheduleDrop medium-low (page only). GorillaDesk/fieldd low (multi-niche).
 
-**The agent version** [hypothesis]: Measure/order/install cycle tracking → supplier orders → install appointment. Needs: supplier portals, calendar.
+**The agent version** [hypothesis]: Room-count quote → route slot → reminders → invoice → 6-month rebook. Needs: SMS, calendar, payments.
 
-**Wedge** [hypothesis]: Order-tracking and install-scheduling agent for glaziers.
+**Wedge** [hypothesis]: Rebooking agent for carpet cleaners.
 
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~3 hrs/week.
+**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~2 hrs/week.
 
-**Fragmentation (Step 4):** 1/5. Check signer: owner-operator (glass shops); auto-glass side has insurer/network billing gatekeepers (not verified). Public-price incumbents: 0. Gatekeeper: unverified (independents unconstrained: yes) — Glass Doctor (Neighborly) marketing cites state-of-the-art software and tech tools but no result named a mandated CRM/FSM or technology fee in the Glass Doctor FDD (https://franchise.neighborly.com/glass-doctor/the-investment); sibling Neighborly brands mandate ServiceTitan but that was not confirmed for Glass Doctor. No distributor or association man. Top-4 share: unverified; statement: IBISWorld: Glass & Glazing Contractors industry has a low level of market share concentration; top four companies are Apogee Enterprises, Enclos, Walters & Wolf and W&W Glass; 28,387 businesses; $25.2.
+**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (solo/small truck-mount operators). Public-price incumbents: 0. Gatekeeper: franchise-only (independents unconstrained: yes) — Chem-Dry FDD: franchisees are required to use Chem-Dry's web-based Customer Management System (CRM fee $100-$450/mo plus up to $500 data import) and OnTrack scheduling/billing suite. Stanley Steemer locations use Powermagic proprietary software (https://franzy.com/franchises/stanley-steemer). Binds franchisees only.. Top-4 share: unverified; statement: IBISWorld: Carpet Cleaning in the US has low market share concentration, largest is Stanley Steemer International; concentration is low because services are provided by many small companies and buyers.
 
-**Evidence URLs (13):**
-  - https://siccode.com/naics-code/238150/glass-glazing-contractors
-  - https://www.fieldpulse.com/resources/blog/glass-business-software
-  - https://www.gtsservices.com/
-  - https://glassmanager.com/
-  - https://smartglazier.com/en/
-  - https://www.ibisworld.com/united-states/industry/glass-glazing-contractors/205/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1740011049620778
-  - https://adstransparency.google.com/advertiser/AR12871690310899466241?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=GlasPacLX%20(GTS%20Services)&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=889952997834349
-  - https://adstransparency.google.com/advertiser/AR06951622993432805377?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101746263202830
-  - https://adstransparency.google.com/advertiser/AR18165100940439322625?region=US
+**Evidence URLs (25):**
+  - https://www.ibisworld.com/united-states/number-of-businesses/carpet-cleaning/1498/
+  - https://fieldd.co/industries/carpet-cleaning-software
+  - https://gorilladesk.com/industries/carpet-cleaning-software/
+  - https://www.housecallpro.com/industries/carpet-cleaning-software/
+  - https://www.getjobber.com/industries/carpet-cleaning-software/
+  - https://www.managemart.com/carpet-cleaning-software
+  - https://scheduledrop.com/carpet-cleaning
+  - https://www.servgrow.com/carpet-cleaning-software
+  - https://www.servicemonster.com/carpet-cleaning-software
+  - https://www.franchisechatter.com/2018/02/27/considering-a-chem-dry-franchise-dont-overlook-these-25-important-franchise-fees/
+  - https://www.ibisworld.com/united-states/industry/carpet-cleaning/1498/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=108336860499717
+  - https://adstransparency.google.com/advertiser/AR12022871354345783297?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=387445444655938
+  - https://adstransparency.google.com/advertiser/AR10520026520397807617?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
+  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
+  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=104187944871222
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=596784700193438
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ServGrow&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR03495879061392064513?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=10150114657650624
+  - https://adstransparency.google.com/advertiser/AR08781699796525121537?region=US
 
-**Confidence:** medium. Weakest link: gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed.
+**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
 
 ---
 
-## 23. Trailer dealers  (NAICS 441229)
+## 22. Trailer dealers  (NAICS 441229)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice4).
 - **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
@@ -1902,7 +1851,7 @@ Known limits, stated plainly:
 
 ---
 
-## 24. Self-storage facilities  (NAICS 531130)
+## 23. Self-storage facilities  (NAICS 531130)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice0).
 - **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
@@ -1982,7 +1931,7 @@ Known limits, stated plainly:
 
 ---
 
-## 25. Music schools & private music teachers  (NAICS 611610)
+## 24. Music schools & private music teachers  (NAICS 611610)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice3).
 - **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
@@ -2077,7 +2026,7 @@ Known limits, stated plainly:
 
 ---
 
-## 26. Driving schools  (NAICS 611692)
+## 25. Driving schools  (NAICS 611692)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice4).
 - **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
@@ -2158,7 +2107,7 @@ Known limits, stated plainly:
 
 ---
 
-## 27. Tutoring centers  (NAICS 611691)
+## 26. Tutoring centers  (NAICS 611691)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice0).
 - **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
@@ -2242,7 +2191,7 @@ Known limits, stated plainly:
 
 ---
 
-## 28. Snow removal contractors  (NAICS 561790)
+## 27. Snow removal contractors  (NAICS 561790)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 9.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 4/5.
@@ -2305,7 +2254,7 @@ Known limits, stated plainly:
 
 ---
 
-## 29. Independent auto repair shops  (NAICS 811111)
+## 28. Independent auto repair shops  (NAICS 811111)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice6).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -2382,7 +2331,7 @@ Known limits, stated plainly:
 
 ---
 
-## 30. Independent tire shops  (NAICS 441320)
+## 29. Independent tire shops  (NAICS 441320)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice3).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -2464,7 +2413,7 @@ Known limits, stated plainly:
 
 ---
 
-## 31. Boutique fitness & yoga studios  (NAICS 713940)
+## 30. Boutique fitness & yoga studios  (NAICS 713940)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice6).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -2548,7 +2497,7 @@ Known limits, stated plainly:
 
 ---
 
-## 32. Medical billing companies  (NAICS 541219)
+## 31. Medical billing companies  (NAICS 541219)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice4).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -2621,7 +2570,7 @@ Known limits, stated plainly:
 
 ---
 
-## 33. Courier & last-mile delivery companies  (NAICS 492210)
+## 32. Courier & last-mile delivery companies  (NAICS 492210)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice3).
 - **Method score:** 9.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 4/5.
@@ -2708,7 +2657,7 @@ Known limits, stated plainly:
 
 ---
 
-## 34. Boat dealers & marinas  (NAICS 441222)
+## 33. Boat dealers & marinas  (NAICS 441222)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice3).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -2803,7 +2752,7 @@ Known limits, stated plainly:
 
 ---
 
-## 35. Laundromats  (NAICS 812310)
+## 34. Laundromats  (NAICS 812310)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice1).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -2872,7 +2821,7 @@ Known limits, stated plainly:
 
 ---
 
-## 36. Pet grooming salons & mobile groomers  (NAICS 812910)
+## 35. Pet grooming salons & mobile groomers  (NAICS 812910)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice3).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -2968,7 +2917,7 @@ Known limits, stated plainly:
 
 ---
 
-## 37. Tattoo studios  (NAICS 812199)
+## 36. Tattoo studios  (NAICS 812199)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice2).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -3046,7 +2995,7 @@ Known limits, stated plainly:
 
 ---
 
-## 38. Martial arts schools  (NAICS 611620)
+## 37. Martial arts schools  (NAICS 611620)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice1).
 - **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
@@ -3111,7 +3060,7 @@ Known limits, stated plainly:
 
 ---
 
-## 39. Lawn fertilization & weed control route businesses  (NAICS 561730)
+## 38. Lawn fertilization & weed control route businesses  (NAICS 561730)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 4/5.
@@ -3181,7 +3130,7 @@ Known limits, stated plainly:
 
 ---
 
-## 40. Low-voltage, alarm & security camera installers  (NAICS 238210)
+## 39. Low-voltage, alarm & security camera installers  (NAICS 238210)
 
 - **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 3/5.
@@ -3245,7 +3194,7 @@ Known limits, stated plainly:
 
 ---
 
-## 41. Gutter installation & cleaning contractors  (NAICS 238170)
+## 40. Gutter installation & cleaning contractors  (NAICS 238170)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 6.5 (mean of best two verified tools) + fragmentation 2/5.
@@ -3302,6 +3251,57 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR03019457469031120897?region=US
 
 **Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 41. Glass & glazing contractors  (NAICS 238150)
+
+- **Status:** passes ad test; fragmentation below 3 (Filter 4). Research: searched (partial: search budget exhausted mid-batch).
+- **Method score:** 8.5 = ad score 7.5 (mean of best two verified tools) + fragmentation 1/5.
+- **Passing tools:** FieldPulse, Smart Glazier Software.
+- **Boring test:** 3/3 — Measure, order, install cycles; commercial storefront bids.
+- **US establishments:** 1,317 companies verified active (siccode); 60,592 employees (n.d., https://siccode.com/naics-code/238150/glass-glazing-contractors); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| FieldPulse | yes | 8 | yes | 120 / 41 / 0 (2026-06-24) | FieldPulse | yes | 200 / 18 (2023-11-16) | yes 10 | 0 | horizontal |
+| Smart Glazier Software | yes | 7 | yes | 8 / 3 / 0 (2026-06-22) | Smart Glazier Software | yes | 30 / 9 (2024-06-01) | no 0 | 0 |  |
+| GlassManager | yes | 3 | no | 3 / 0 / 0 (2026-09-10) | GlassManager | no | 19 / 3 (2023-06-30) | no 0 | 0 |  |
+| GlasPacLX (GTS Services) | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Glass & glazing contractors (238150)
+> - Core jobs: glass-specific quoting (sq-ft calcs, material imports), POS and shop management, scheduling, inventory, invoicing (GlasPacLX/GTS, GlassManager, Smart Glazier, Accentis).
+> - Wedge: quote turnaround for custom flat glass (shower doors, storefront) where each quote needs measurements and material lookup; an agent building quotes from a photo/measurement sheet fits small shops on generic tools.
+> - Weakest link: establishment count (siccode 1,317) is implausibly low vs its own employee figure; no vendor details captured; auto-glass insurer networks may be a gatekeeper (unverified).
+
+**The agent version** [hypothesis]: Measure/order/install cycle tracking → supplier orders → install appointment. Needs: supplier portals, calendar.
+
+**Wedge** [hypothesis]: Order-tracking and install-scheduling agent for glaziers.
+
+**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~3 hrs/week.
+
+**Fragmentation (Step 4):** 1/5. Check signer: owner-operator (glass shops); auto-glass side has insurer/network billing gatekeepers (not verified). Public-price incumbents: 0. Gatekeeper: unverified (independents unconstrained: yes) — Glass Doctor (Neighborly) marketing cites state-of-the-art software and tech tools but no result named a mandated CRM/FSM or technology fee in the Glass Doctor FDD (https://franchise.neighborly.com/glass-doctor/the-investment); sibling Neighborly brands mandate ServiceTitan but that was not confirmed for Glass Doctor. No distributor or association man. Top-4 share: unverified; statement: IBISWorld: Glass & Glazing Contractors industry has a low level of market share concentration; top four companies are Apogee Enterprises, Enclos, Walters & Wolf and W&W Glass; 28,387 businesses; $25.2.
+
+**Evidence URLs (13):**
+  - https://siccode.com/naics-code/238150/glass-glazing-contractors
+  - https://www.fieldpulse.com/resources/blog/glass-business-software
+  - https://www.gtsservices.com/
+  - https://glassmanager.com/
+  - https://smartglazier.com/en/
+  - https://www.ibisworld.com/united-states/industry/glass-glazing-contractors/205/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1740011049620778
+  - https://adstransparency.google.com/advertiser/AR12871690310899466241?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=GlasPacLX%20(GTS%20Services)&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=889952997834349
+  - https://adstransparency.google.com/advertiser/AR06951622993432805377?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101746263202830
+  - https://adstransparency.google.com/advertiser/AR18165100940439322625?region=US
+
+**Confidence:** low. Weakest link: fragmentation below the brief's 3/5 floor.
 
 ---
 

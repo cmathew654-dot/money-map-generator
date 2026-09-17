@@ -15,6 +15,7 @@ All 160 niches have been searched (Step 2). `killed_by` reflects the current evi
 | 13 | Low-voltage, alarm & security camera installers | 6 | 6 | 1 | 3 | Filter 3 (fewer than 2 tools score >=5) | best tools: ServiceTitan, FieldForce Tracker, ReachOut Suite |
 | 14 | Pool builders | 6 | 6 | 1 | 2 | Filter 3 (fewer than 2 tools score >=5) | best tools: Houzz Pro, ProDBX, 123worx |
 | 16 | Flooring & tile contractors | 9 | 9 | 1 | 2 | Filter 3 (fewer than 2 tools score >=5) | best tools: Builder Prime, Floorzap, Projul |
+| 17 | Glass & glazing contractors | 4 | 4 | 2 | 1 | Filter 4 (fragmentation < 3) | unverified (independents unconstrained: yes) — Glass Doctor (Neighborly) marketing cites state-of-the-art software and t |
 | 19 | Hardscape & retaining wall contractors | 5 | 5 | 0 | 2 | Filter 3 (fewer than 2 tools score >=5) | best tools: Projul, Eano, Outdoor Estimates |
 | 20 | Window treatment (blinds & shades) installers | 6 | 6 | 0 | 1 | Filter 3 (fewer than 2 tools score >=5) | best tools: BlindMatrix, Blinds Portal, BlindsBook |
 | 25 | Handyman services | 1 | 1 | 0 | 1 | Filter 2 (fewer than 3 URL-cited tools) | re-run Step 2 with more searches or accept as thin |
@@ -32,6 +33,7 @@ All 160 niches have been searched (Step 2). `killed_by` reflects the current evi
 | 40 | Chimney sweeps & chimney repair | 2 | 2 | 1 | 2 | Filter 2 (fewer than 3 URL-cited tools) | re-run Step 2 with more searches or accept as thin |
 | 41 | Residential cleaning & maid services | 7 | 7 | 1 | 2 | Filter 3 (fewer than 2 tools score >=5) | best tools: Housecall Pro, ZenMaid, MaidCentral |
 | 42 | Commercial janitorial companies | 2 | 2 | 0 | 2 | Filter 2 (fewer than 3 URL-cited tools) | re-run Step 2 with more searches or accept as thin |
+| 43 | Carpet & upholstery cleaning | 8 | 8 | 2 | 2 | Filter 4 (fragmentation < 3) | franchise-only (independents unconstrained: yes) — Chem-Dry FDD: franchisees are required to use Chem-Dry's web-based Cu |
 | 44 | Pest control operators | 1 | 1 | 0 | 2 | Filter 2 (fewer than 3 URL-cited tools) | re-run Step 2 with more searches or accept as thin |
 | 45 | Wildlife removal & nuisance animal control | 4 | 5 | 0 | 5 | Filter 3 (fewer than 2 tools score >=5) | best tools: GorillaDesk, QuoteIQ, FieldRoutes |
 | 46 | Mosquito & bird control services | 9 | 9 | 0 | 5 | Filter 3 (fewer than 2 tools score >=5) | best tools: Briostack, GorillaDesk, PestPac (WorkWave) |

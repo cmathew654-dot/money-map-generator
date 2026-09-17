@@ -2,7 +2,7 @@
 
 ## Outcome in one paragraph
 
-**Update:** Step 3 was completed afterwards by running `scraper/` on a local machine (all 134 search-verified tools audited on Meta, Google and LinkedIn from the platforms' own data feeds). `ideas_ranked.md` now ranks by real ad scores: 22 niches qualify on the method's definition, 1 provisionally. All 160 niches researched; 897 tools audited on Google and LinkedIn. Meta data for the 571 tools audited in the final run is unverified (Meta throttled that run), so a slow Meta-only rerun of 207 tools whose verdict it could change is queued in `scraper/rescrape_tools.txt`.
+**Update (2026-09-17):** Step 2 is complete for all 160 niches (seven follow-up sessions plus batch 17). Step 3 was run by `scraper/` on a local machine, reading the platforms' own data feeds: 893 tools audited on Google Ads Transparency and LinkedIn, 307 on Meta before Meta throttled the scraping IP (571 tools carry `unverified` Meta fields; 207 of them could flip a verdict and are listed in `scraper/rescrape_tools.txt`). `ideas_ranked.md` ranks by real ad scores: **20 niches qualify** (two or more URL-cited tools scoring ≥5 and fragmentation ≥3), 1 provisionally; two more (carpet cleaning, glass & glazing) pass the ad test but sit below the brief's fragmentation floor and are listed under Filter 4 in `dead_ends.md`. All 50 cards carry an agent version and wedge. `report.pdf` (built by `scraper/build_report.py`) is the executive summary of the whole run.
 
 Original run (2026-09-15): the four-filter method was run as far as the remote environment allowed. **Step 3 (ad longevity), the core filter, could not be executed there**, so at that point 0 of the 50 carded ideas were qualified. What is delivered instead is a fully structured, URL-cited pre-audit pipeline: 160 niche candidates, 550 tool rows (214 search-verified with cited URLs, 336 flagged as unverified candidates), prebuilt Meta / Google / LinkedIn lookup URLs for every tool, fragmentation scores where evidence exists, and 50 idea cards ranked by a provisional evidence score. No ad count, date, price, headcount or establishment figure was estimated; every number carries a URL or reads `unverified`.
 
@@ -18,13 +18,14 @@ Original run (2026-09-15): the four-filter method was run as far as the remote e
 | File | Rows | What it is |
 |---|---|---|
 | `niches.csv` | 160 | Step 1 output plus per-niche aggregates: NAICS, why boring, boring score (0–3), US establishments with source URL where found, tool counts, fragmentation score, provisional evidence score, research status |
-| `tools.csv` | 550 | Step 2 output. `verification_status` = `search-verified (URL-cited)` or `candidate (prior knowledge; not search-verified)`. Treat candidate rows as a worklist, never as findings |
-| `ad_audit.csv` | 550 | Step 3 scaffold. Lookup URLs prebuilt per tool; all Meta/Google/LinkedIn counts `unverified (host blocked)`; `headcount_bonus` (0/2) is the only scored signal; `verified_score` = headcount bonus only |
+| `tools.csv` | 1,109 | Step 2 output. `verification_status` = `search-verified (URL-cited)` or `candidate (prior knowledge; not search-verified)`. Treat candidate rows as a worklist, never as findings |
+| `ad_audit.csv` | 1,115 | Step 3 scaffold. Lookup URLs prebuilt per tool; all Meta/Google/LinkedIn counts `unverified (host blocked)`; `headcount_bonus` (0/2) is the only scored signal; `verified_score` = headcount bonus only |
 | `fragmentation.csv` | 160 | Step 4 output. Scores 0–5 where searched; `unverified` where not. Gatekeeper/concentration checks were unrun everywhere, so scores are capped at 4 in practice |
+| `report.pdf` | 61 pages | Executive summary, table of contents, method, leaderboard, full cards for qualified and near-miss niches, dead ends, data quality, next steps. Rebuild with `python3 scraper/build_report.py` |
 | `ideas_ranked.md` | 50 cards | Step 5. Ranked by method score (ad score + fragmentation) now that Step 3 has run; formula in the file header. Each card: incumbent jobs, agent version, wedge, price ceiling from cited prices, evidence URLs, confidence, and an audit checklist of exact ad-library URLs |
-| `ad_audit_filled.csv`, `ad_audit_scored.csv`, `niche_pass.csv` | 550 / 550 / 160 | Step 3 results from the local scraper run: raw platform data, per-tool score breakdown, per-niche pass/fail |
+| `ad_audit_filled.csv`, `ad_audit_scored.csv`, `niche_pass.csv` | 1,115 / 1,115 / 160 | Step 3 results from the local scraper run: raw platform data, per-tool score breakdown, per-niche pass/fail |
 | `aaas_angles.json`, `batch_notes.json` | | Inputs for `scraper/generate_ranked.py` (agent-version/wedge text per niche; per-niche research notes from the batch agents) |
-| `dead_ends.md` | 110 | Every non-carded niche with the filter or blocker that stopped it and what to run next |
+| `dead_ends.md` | 140 | Every non-carded niche with the filter or blocker that stopped it and what to run next |
 
 ## How to finish the run (estimated effort)
 

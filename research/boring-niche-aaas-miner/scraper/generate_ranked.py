@@ -30,7 +30,7 @@ def niche_stats(i):
     frag = N[i]["fragmentation_score"]; fragn = int(frag) if frag.isdigit() else 0
     unv_pass = [a for a in rows if a["tool_passes"] == "yes" and not ver.get((i, a["tool"]), False)]
     vertical_pass = [a for a in passing if a["tool"] not in HORIZONTAL]
-    status = "QUALIFIED" if len(passing) >= 2 else ("provisional (passes only with unverified-membership tools)" if len(passing) + len(unv_pass) >= 2 else ("audited, not passing" if vrows else "not audited"))
+    status = ("QUALIFIED" if fragn >= 3 else "passes ad test; fragmentation below 3 (Filter 4)") if len(passing) >= 2 else ("provisional (passes only with unverified-membership tools)" if len(passing) + len(unv_pass) >= 2 else ("audited, not passing" if vrows else "not audited"))
     return dict(rows=rows, vrows=vrows, passing=passing, unv_pass=unv_pass, ad_score=ad_score, frag=fragn, method=ad_score + fragn, status=status,
                 horizontal_only=(bool(passing) and not vertical_pass), audited=len(vrows), undersampled=[a["tool"] for a in vrows if (num(a["meta_active_ads"]) or 0) >= 10 and (num(a["meta_ads_60d"]) or 0) < 3 and (num(a["meta_all_ads_seen"]) or 0) < (num(a["meta_active_ads"]) or 0) and not a.get("meta_page_flag")])
 ST = {i: niche_stats(i) for i in N}
@@ -39,9 +39,9 @@ qualified = [i for i in order if ST[i]["status"] == "QUALIFIED"]
 provisional = [i for i in order if ST[i]["status"].startswith("provisional")]
 sel = order[:50]
 L = ["# ideas_ranked.md — Boring-Niche Ad-Validated Idea Miner (US)\n"]
-L.append(f"""## Status: Step 3 ad audit completed for all 134 search-verified tools (run on a local machine, {max(a['scraped_at'] for a in A if a.get('scraped_at'))[:10]})
+L.append(f"""## Status: all 160 niches researched (Step 2); Step 3 ad audit run on a local machine for every search-verified tool (last scrape {max(a['scraped_at'] for a in A if a.get('scraped_at'))[:10]})
 
-**Qualified niches by the method's definition (≥2 search-verified tools scoring ≥5): {len(qualified)}.** Provisional (would qualify counting tools whose membership in the niche came from prior knowledge, not search): {len(provisional)}. Niches 61–160 were never searched for tools (session search cap), so most of them cannot qualify yet; see README for the rerun plan.
+**Qualified niches by the method's definition (≥2 search-verified tools scoring ≥5): {len(qualified)}.** Provisional (would qualify counting tools whose membership in the niche came from prior knowledge, not search): {len(provisional)}. All 160 niches were searched for tools; niches with fewer than 3 URL-cited tools are listed in dead_ends.md under Filter 2.
 
 How the numbers were obtained: Meta Ad Library (active ads, US, resolved to the vendor's Page; start dates from Meta's own data feed), Google Ads Transparency Center (creatives with first-shown and last-shown dates from Google's own feed; a creative passes the 90-day test when first shown ≥90 days ago and still shown within 14 days), LinkedIn Ad Library (presence and run dates, advertiser-verified). Scoring follows the brief: Meta +3 (≥5 active and ≥3 running ≥60 days), Google +3 (≥5 ads and ≥3 passing 90 days), LinkedIn +1, bootstrapped/<50 staff +2, direct-response CTA +1. Tool passes at ≥5.
 
@@ -51,7 +51,7 @@ Known limits, stated plainly:
 - Meta for the 571 tools audited in the final run (2026-09-16 21:00+) is **unverified**: Meta throttled that run into empty results. Their scores rest on Google, LinkedIn and headcount only, so they can only rise. A slow Meta-only rerun is queued for the tools where +3 would change the verdict.
 - Meta sampling: fast mode read the first 30–60 ads of each Page, newest first. Big advertisers can be undercounted on the "≥3 ads running ≥60 days" test. Tools affected are flagged `undersampled` on their card and a targeted rescrape is queued.
 - Three tools with generic names resolved to the wrong Meta Page (Essential, GoPave, Contractor+). Their Meta points are zeroed; five more are flagged ambiguous.
-- Fragmentation scores are still conservative: gatekeeper and concentration searches never ran, so no niche got the "no gatekeeper" point.
+- Fragmentation: gatekeeper and concentration checks ran only for the 13 originally qualified niches (franchise mandates found bind franchisees only); elsewhere the score is conservative because those checks never ran.
 - Horizontal tools (Jobber, Housecall Pro, ServiceTitan, Service Fusion, FieldPulse) advertise to all home-service trades; a niche that qualifies only through them is marked `horizontal-only`, meaning the category converts but no vertical incumbent proves the niche on its own.
 
 ---
@@ -130,7 +130,7 @@ for k, i in enumerate(sel, 1):
     L.append(f"**Evidence URLs ({len(u)}):**")
     for x in u: L.append(f"  - {x}")
     conf = "medium" if st["status"] == "QUALIFIED" and not st["horizontal_only"] and not st["undersampled"] else ("medium-low" if st["status"] == "QUALIFIED" else "low")
-    weakest = ("no vertical incumbent passes; qualification rests on horizontal tools" if st["horizontal_only"] else ("Meta undersampled for a large advertiser; rescrape pending" if st["undersampled"] else ("fewer than 2 verified tools pass the ad test" if st["status"] != "QUALIFIED" else "gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed")))
+    weakest = ("no vertical incumbent passes; qualification rests on horizontal tools" if st["horizontal_only"] else ("Meta undersampled for a large advertiser; rescrape pending" if st["undersampled"] else (("fragmentation below the brief's 3/5 floor" if st["status"].startswith("passes ad test") else "fewer than 2 verified tools pass the ad test") if st["status"] != "QUALIFIED" else "gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed")))
     L.append(f"\n**Confidence:** {conf}. Weakest link: {weakest}.\n\n---\n")
 (D / "ideas_ranked.md").write_text("\n".join(L), encoding="utf-8")
 # ---- dead_ends.md: every niche not qualified, with the filter that stops it today
