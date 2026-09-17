@@ -131,8 +131,10 @@ def summarize_meta(parsed, page_mode=False):
 def parse_google_listing(text):
     """Advertiser/domain listing text -> ad count + formats."""
     out = {"ad_count": None, "formats": []}
-    m = re.search(r"([\d,]+)\s+ads?\b", text)
-    if m: out["ad_count"] = int(m.group(1).replace(",", ""))
+    m = re.search(r"(\d[\d,]*)\s+ads?\b", text)
+    if m:
+        try: out["ad_count"] = int(m.group(1).replace(",", ""))
+        except ValueError: pass
     for f in ("Text", "Image", "Video"):
         if re.search(r"\b" + f + r"\b", text): out["formats"].append(f.lower())
     return out
@@ -153,8 +155,10 @@ def google_pass_90d(cr):
 
 def parse_linkedin(text):
     out = {"ad_count": None, "ranges": []}
-    m = re.search(r"([\d,]+)\s+(?:ads?|results?)\b", text)
-    if m: out["ad_count"] = int(m.group(1).replace(",", ""))
+    m = re.search(r"(\d[\d,]*)\s+(?:ads?|results?)\b", text)
+    if m:
+        try: out["ad_count"] = int(m.group(1).replace(",", ""))
+        except ValueError: pass
     for m in re.finditer(r"[Rr]an (?:from|on)\s+" + DATE_RE + r"(?:\s*(?:to|-|–)\s*" + DATE_RE + r")?", text):
         a = parse_date(m.group(0))
         b = parse_date(m.group(0)[m.group(0).find(" to ") + 4:]) if " to " in m.group(0) else None
@@ -743,6 +747,7 @@ def main():
     print(f"{len(dedup)} unique tools to scrape ({len(todo)} rows incl. duplicates across niches)")
 
     results = {}
+    meta_zero_streak = 0
     with sync_playwright() as p:
         launch_kw = {}
         if os.environ.get("PW_CHROMIUM_PATH"): launch_kw["executable_path"] = os.environ["PW_CHROMIUM_PATH"]
@@ -765,6 +770,17 @@ def main():
                 sleep()
             stat = [res.get(f"{p}_status", "skipped") for p in ("meta","google","linkedin")]
             res["scrape_status"] = "ok" if all(s.startswith("ok") or s == "skipped" for s in stat) else "partial:" + ",".join(stat)
+            # Meta throttle detector: a page id resolved but zero ads, many times in a row, means empty responses, not real zeros
+            if "meta" not in skip:
+                if res.get("meta_page_id") and str(res.get("meta_active_ads", "0")) in ("0", "") and res.get("meta_result_count", "") == "":
+                    meta_zero_streak += 1
+                elif res.get("meta_status", "").startswith("ok"):
+                    meta_zero_streak = 0
+                if meta_zero_streak >= 6:
+                    print("    META THROTTLE SUSPECTED: 6 resolved pages in a row returned no ads; pausing 10 minutes")
+                    res["meta_status"] = "unverified_throttled"
+                    for k in ("meta_active_ads", "meta_ads_60d", "meta_ads_120d"): res[k] = "unverified (Meta throttled this run)"
+                    time.sleep(600); meta_zero_streak = 0
             res["scraped_at"] = dt.datetime.now().isoformat(timespec="seconds")
             results[norm(r["tool"])] = res
             print("    " + ", ".join(f"{k}={res[k]}" for k in ("meta_active_ads","meta_ads_60d","google_ad_count","google_overlap_90d_pass","linkedin_present") if k in res))

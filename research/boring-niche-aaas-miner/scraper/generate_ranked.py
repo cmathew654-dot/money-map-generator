@@ -48,6 +48,7 @@ How the numbers were obtained: Meta Ad Library (active ads, US, resolved to the 
 **Ranking:** niche ad score = mean of the two best tool scores among search-verified tools (0–10); method score = ad score + fragmentation score (0–5). Qualified niches first, then everything else by method score, then by the pre-audit provisional score.
 
 Known limits, stated plainly:
+- Meta for the 571 tools audited in the final run (2026-09-16 21:00+) is **unverified**: Meta throttled that run into empty results. Their scores rest on Google, LinkedIn and headcount only, so they can only rise. A slow Meta-only rerun is queued for the tools where +3 would change the verdict.
 - Meta sampling: fast mode read the first 30–60 ads of each Page, newest first. Big advertisers can be undercounted on the "≥3 ads running ≥60 days" test. Tools affected are flagged `undersampled` on their card and a targeted rescrape is queued.
 - Three tools with generic names resolved to the wrong Meta Page (Essential, GoPave, Contractor+). Their Meta points are zeroed; five more are flagged ambiguous.
 - Fragmentation scores are still conservative: gatekeeper and concentration searches never ran, so no niche got the "no gatekeeper" point.
@@ -65,7 +66,8 @@ def tool_table(i):
         if a.get("meta_page_flag"): flags.append(a["meta_page_flag"].split(":")[0])
         if a["tool"] in st["undersampled"]: flags.append("undersampled")
         if a["tool"] in HORIZONTAL: flags.append("horizontal")
-        out.append(f"| {a['tool']} | {v} | {a['verified_score']} | {a['tool_passes']} | {a['meta_active_ads']} / {a['meta_ads_60d']} / {a['meta_ads_120d']} ({a['meta_oldest_start'] or '-'}) | {a['meta_page_name'] or '-'} | {a['direct_response_cta']} | {a['google_ad_count']} / {a['google_overlap_90d_pass']} ({a['google_first_shown_min'] or '-'}) | {a['linkedin_present']} {a['linkedin_ad_count'] or ''} | {a['headcount_bonus']} | {' '.join(flags)} |")
+        meta_cell = "unverified (throttled run)" if str(a.get('meta_status','')).startswith('unverified') else f"{a['meta_active_ads']} / {a['meta_ads_60d']} / {a['meta_ads_120d']} ({a['meta_oldest_start'] or '-'})"
+        out.append(f"| {a['tool']} | {v} | {a['verified_score']} | {a['tool_passes']} | {meta_cell} | {a['meta_page_name'] or '-'} | {a['direct_response_cta']} | {a['google_ad_count']} / {a['google_overlap_90d_pass']} ({a['google_first_shown_min'] or '-'}) | {a['linkedin_present']} {a['linkedin_ad_count'] or ''} | {a['headcount_bonus']} | {' '.join(flags)} |")
     return "\n".join(out)
 def urls_for(i):
     u = []

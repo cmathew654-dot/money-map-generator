@@ -2,13 +2,14 @@
 
 ## Status: Step 3 ad audit completed for all 134 search-verified tools (run on a local machine, 2026-09-16)
 
-**Qualified niches by the method's definition (≥2 search-verified tools scoring ≥5): 19.** Provisional (would qualify counting tools whose membership in the niche came from prior knowledge, not search): 1. Niches 61–160 were never searched for tools (session search cap), so most of them cannot qualify yet; see README for the rerun plan.
+**Qualified niches by the method's definition (≥2 search-verified tools scoring ≥5): 22.** Provisional (would qualify counting tools whose membership in the niche came from prior knowledge, not search): 1. Niches 61–160 were never searched for tools (session search cap), so most of them cannot qualify yet; see README for the rerun plan.
 
 How the numbers were obtained: Meta Ad Library (active ads, US, resolved to the vendor's Page; start dates from Meta's own data feed), Google Ads Transparency Center (creatives with first-shown and last-shown dates from Google's own feed; a creative passes the 90-day test when first shown ≥90 days ago and still shown within 14 days), LinkedIn Ad Library (presence and run dates, advertiser-verified). Scoring follows the brief: Meta +3 (≥5 active and ≥3 running ≥60 days), Google +3 (≥5 ads and ≥3 passing 90 days), LinkedIn +1, bootstrapped/<50 staff +2, direct-response CTA +1. Tool passes at ≥5.
 
 **Ranking:** niche ad score = mean of the two best tool scores among search-verified tools (0–10); method score = ad score + fragmentation score (0–5). Qualified niches first, then everything else by method score, then by the pre-audit provisional score.
 
 Known limits, stated plainly:
+- Meta for the 571 tools audited in the final run (2026-09-16 21:00+) is **unverified**: Meta throttled that run into empty results. Their scores rest on Google, LinkedIn and headcount only, so they can only rise. A slow Meta-only rerun is queued for the tools where +3 would change the verdict.
 - Meta sampling: fast mode read the first 30–60 ads of each Page, newest first. Big advertisers can be undercounted on the "≥3 ads running ≥60 days" test. Tools affected are flagged `undersampled` on their card and a targeted rescrape is queued.
 - Three tools with generic names resolved to the wrong Meta Page (Essential, GoPave, Contractor+). Their Meta points are zeroed; five more are flagged ambiguous.
 - Fragmentation scores are still conservative: gatekeeper and concentration searches never ran, so no niche got the "no gatekeeper" point.
@@ -25,51 +26,51 @@ Known limits, stated plainly:
 | 3 | Irrigation & lawn sprinkler contractors | QUALIFIED | 9 | Housecall Pro, Service Fusion, ServiceTitan, HindSite Software / FieldCentral | 8.0 | 5 | 13.0 |
 | 4 | Plumbing contractors | QUALIFIED (horizontal-only) | 8 | FieldPulse, ServiceTitan | 8.0 | 5 | 13.0 |
 | 5 | Pressure washing & exterior cleaning | QUALIFIED (horizontal-only) | 12 | Housecall Pro, Service Fusion, Jobber | 8.0 | 5 | 13.0 |
-| 6 | Appliance repair | QUALIFIED (horizontal-only) | 4 | Housecall Pro, ServiceTitan | 8.0 | 5 | 13.0 |
-| 7 | Air duct & dryer vent cleaning | QUALIFIED (horizontal-only) | 5 | Service Fusion, ServiceTitan | 8.0 | 5 | 13.0 |
+| 6 | Appliance repair | QUALIFIED (horizontal-only) | 7 | Housecall Pro, ServiceTitan | 8.0 | 5 | 13.0 |
+| 7 | Air duct & dryer vent cleaning | QUALIFIED | 8 | Service Fusion, ServiceTitan, Vonigo | 8.0 | 5 | 13.0 |
 | 8 | Garage door installers & repair | QUALIFIED (horizontal-only) | 11 | FieldPulse, ServiceTitan, Jobber | 8.0 | 4 | 12.0 |
-| 9 | Locksmiths | QUALIFIED (horizontal-only) | 7 | FieldPulse, Housecall Pro, Service Fusion, ServiceTitan | 8.0 | 4 | 12.0 |
-| 10 | Epoxy & garage floor coating contractors | QUALIFIED | 4 | DripJobs, Builder Prime | 6.5 | 5 | 11.5 |
+| 9 | Locksmiths | QUALIFIED (horizontal-only) | 8 | FieldPulse, Housecall Pro, Service Fusion, ServiceTitan | 8.0 | 4 | 12.0 |
+| 10 | Epoxy & garage floor coating contractors | QUALIFIED | 7 | DripJobs, Builder Prime | 6.5 | 5 | 11.5 |
 | 11 | Lawn care & landscape maintenance | QUALIFIED | 7 | ServiceTitan, HindSite Software / FieldCentral | 7.0 | 4 | 11.0 |
 | 12 | Residential painting contractors | QUALIFIED | 9 | DripJobs, PaintScout | 7.0 | 4 | 11.0 |
 | 13 | HVAC contractors | QUALIFIED | 11 | Housecall Pro, ServiceTrade | 6.5 | 4 | 10.5 |
 | 14 | Fire extinguisher & fire alarm inspection companies | QUALIFIED | 8 | Inspect Point, ServiceTrade | 5.5 | 5 | 10.5 |
-| 15 | Deck & patio builders | QUALIFIED | 5 | Builder Prime, Houzz Pro | 6.0 | 4 | 10.0 |
-| 16 | Carpet & upholstery cleaning | QUALIFIED (horizontal-only) | 8 | Housecall Pro, Jobber | 7.5 | 2 | 9.5 |
-| 17 | Foundation repair & basement waterproofing contractors | QUALIFIED | 3 | Builder Prime, Contractor Accelerator | 6.0 | 3 | 9.0 |
-| 18 | Fire sprinkler contractors | QUALIFIED | 5 | Inspect Point, BuildOps, ServiceTrade | 5.5 | 3 | 8.5 |
-| 19 | Glass & glazing contractors | QUALIFIED | 4 | FieldPulse, Smart Glazier Software | 7.5 | 1 | 8.5 |
-| 20 | Snow removal contractors | audited, not passing | 4 | Aspire | 5.0 | 4 | 9.0 |
-| 21 | Lawn fertilization & weed control route businesses | audited, not passing | 5 | HindSite Software / FieldCentral | 4.5 | 4 | 8.5 |
-| 22 | Low-voltage, alarm & security camera installers | audited, not passing (horizontal-only) | 6 | ServiceTitan | 5.5 | 3 | 8.5 |
-| 23 | Gutter installation & cleaning contractors | audited, not passing | 4 | RoofSnap | 6.5 | 2 | 8.5 |
-| 24 | Small fleet trucking companies (1-20 trucks) | audited, not passing | 8 | TruckingOffice | 4.5 | 4 | 8.5 |
-| 25 | Mosquito & bird control services | audited, not passing | 5 | - | 3.0 | 5 | 8.0 |
-| 26 | Artificial turf & sports court installers | audited, not passing | 3 | - | 3.0 | 5 | 8.0 |
-| 27 | Non-emergency medical transportation providers | audited, not passing | 8 | RouteGenie | 4.0 | 4 | 8.0 |
-| 28 | Home health & non-medical home care agencies | audited, not passing | 8 | - | 4.0 | 4 | 8.0 |
-| 29 | CDL truck driving schools | audited, not passing | 5 | - | 3.0 | 5 | 8.0 |
-| 30 | Pool service & maintenance routes | audited, not passing | 5 | Pool Brain | 4.5 | 3 | 7.5 |
-| 31 | Septic system installers | audited, not passing (horizontal-only) | 7 | ServiceTitan | 5.5 | 2 | 7.5 |
-| 32 | Residential cleaning & maid services | audited, not passing (horizontal-only) | 7 | Housecall Pro | 5.5 | 2 | 7.5 |
-| 33 | Wildlife removal & nuisance animal control | audited, not passing | 3 | - | 2.5 | 5 | 7.5 |
-| 34 | Commercial kitchen exhaust hood cleaning | audited, not passing | 2 | ServiceTrade | 3.5 | 4 | 7.5 |
-| 35 | Backflow prevention testing companies | audited, not passing | 8 | Inspect Point | 4.5 | 3 | 7.5 |
-| 36 | Tree service & arborists | audited, not passing | 8 | - | 3.0 | 4 | 7.0 |
-| 37 | Chimney sweeps & chimney repair | audited, not passing (horizontal-only) | 2 | ServiceTitan | 5.0 | 2 | 7.0 |
-| 38 | Land surveyors | audited, not passing | 1 | - | 2 | 5 | 7 |
-| 39 | Stump grinding & land clearing | audited, not passing | 5 | - | 2.5 | 4 | 6.5 |
-| 40 | Water well drilling contractors | audited, not passing (horizontal-only) | 4 | Jobber | 4.5 | 2 | 6.5 |
-| 41 | Pool builders | audited, not passing (horizontal-only) | 6 | Houzz Pro | 4.5 | 2 | 6.5 |
-| 42 | Window cleaning | audited, not passing | 4 | - | 2.0 | 4 | 6.0 |
-| 43 | Small engine & outdoor power equipment repair | audited, not passing | 1 | - | 3 | 3 | 6 |
-| 44 | Title & escrow agencies | audited, not passing | 1 | - | 2 | 4 | 6 |
-| 45 | Asphalt paving & sealcoating contractors | audited, not passing | 8 | - | 1.5 | 4 | 5.5 |
-| 46 | Concrete flatwork & driveway contractors | audited, not passing | 3 | - | 2.5 | 3 | 5.5 |
-| 47 | Flooring & tile contractors | audited, not passing | 9 | Builder Prime | 3.5 | 2 | 5.5 |
-| 48 | DOT / trucking compliance consultants | audited, not passing | 8 | - | 2.5 | 3 | 5.5 |
-| 49 | Pest control operators | audited, not passing | 1 | - | 3 | 2 | 5 |
-| 50 | Roll-off dumpster rental | audited, not passing | 1 | - | 4 | 1 | 5 |
+| 15 | Food trucks | QUALIFIED | 8 | Roaming Hunger (vendor portal), Truckster (vendor platform) | 5.5 | 5 | 10.5 |
+| 16 | Deck & patio builders | QUALIFIED | 5 | Builder Prime, Houzz Pro | 6.0 | 4 | 10.0 |
+| 17 | Independent used car dealers | QUALIFIED | 7 | AutoRaptor CRM, Wayne Reaves Software | 5.0 | 5 | 10.0 |
+| 18 | Small residential property managers | QUALIFIED | 9 | Innago, Rentec Direct | 5.0 | 5 | 10.0 |
+| 19 | Carpet & upholstery cleaning | QUALIFIED (horizontal-only) | 8 | Housecall Pro, Jobber | 7.5 | 2 | 9.5 |
+| 20 | Foundation repair & basement waterproofing contractors | QUALIFIED | 3 | Builder Prime, Contractor Accelerator | 6.0 | 3 | 9.0 |
+| 21 | Fire sprinkler contractors | QUALIFIED | 5 | Inspect Point, BuildOps, ServiceTrade | 5.5 | 3 | 8.5 |
+| 22 | Glass & glazing contractors | QUALIFIED | 4 | FieldPulse, Smart Glazier Software | 7.5 | 1 | 8.5 |
+| 23 | Trailer dealers | audited, not passing | 7 | Blackpurl | 4.5 | 5 | 9.5 |
+| 24 | Self-storage facilities | audited, not passing | 7 | Storeganise | 4.5 | 5 | 9.5 |
+| 25 | Music schools & private music teachers | audited, not passing | 11 | Opus1.io | 4.5 | 5 | 9.5 |
+| 26 | Driving schools | audited, not passing | 8 | DrivingSchoolSoftware.com (DrivingSchool.Software) | 4.5 | 5 | 9.5 |
+| 27 | Tutoring centers | audited, not passing | 8 | Teachworks | 4.5 | 5 | 9.5 |
+| 28 | Snow removal contractors | audited, not passing | 4 | Aspire | 5.0 | 4 | 9.0 |
+| 29 | Independent auto repair shops | audited, not passing | 8 | - | 4.0 | 5 | 9.0 |
+| 30 | Independent tire shops | audited, not passing | 10 | - | 4.0 | 5 | 9.0 |
+| 31 | Boutique fitness & yoga studios | audited, not passing | 9 | - | 4.0 | 5 | 9.0 |
+| 32 | Medical billing companies | audited, not passing | 6 | - | 4.0 | 5 | 9.0 |
+| 33 | Courier & last-mile delivery companies | audited, not passing | 9 | Shipday | 5.0 | 4 | 9.0 |
+| 34 | Boat dealers & marinas | audited, not passing | 12 | - | 4.0 | 5 | 9.0 |
+| 35 | Laundromats | audited, not passing | 6 | CleanCloud | 4.0 | 5 | 9.0 |
+| 36 | Pet grooming salons & mobile groomers | audited, not passing | 11 | - | 4.0 | 5 | 9.0 |
+| 37 | Tattoo studios | audited, not passing | 8 | Porter | 4.0 | 5 | 9.0 |
+| 38 | Martial arts schools | audited, not passing | 5 | Kicksite | 4.0 | 5 | 9.0 |
+| 39 | Lawn fertilization & weed control route businesses | audited, not passing | 5 | HindSite Software / FieldCentral | 4.5 | 4 | 8.5 |
+| 40 | Low-voltage, alarm & security camera installers | audited, not passing (horizontal-only) | 6 | ServiceTitan | 5.5 | 3 | 8.5 |
+| 41 | Gutter installation & cleaning contractors | audited, not passing | 4 | RoofSnap | 6.5 | 2 | 8.5 |
+| 42 | Campgrounds & RV parks | audited, not passing | 10 | - | 3.5 | 5 | 8.5 |
+| 43 | Photographers & photo booth operators | audited, not passing | 7 | - | 3.5 | 5 | 8.5 |
+| 44 | Artificial turf & sports court installers | audited, not passing | 6 | - | 3.5 | 5 | 8.5 |
+| 45 | Environmental testing labs (asbestos, lead, water) | audited, not passing | 8 | - | 3.5 | 5 | 8.5 |
+| 46 | Private investigators | audited, not passing | 8 | - | 3.5 | 5 | 8.5 |
+| 47 | Mortgage brokers | audited, not passing | 7 | BNTouch | 3.5 | 5 | 8.5 |
+| 48 | Small fleet trucking companies (1-20 trucks) | audited, not passing | 8 | TruckingOffice | 4.5 | 4 | 8.5 |
+| 49 | Construction equipment rental yards | audited, not passing | 7 | Quipli | 4.5 | 4 | 8.5 |
+| 50 | Party & event rental companies (tents, bounce houses) | audited, not passing | 9 | - | 3.5 | 5 | 8.5 |
 
 ---
 
@@ -167,9 +168,9 @@ Known limits, stated plainly:
 | Sera Systems | yes | 3 | no | 17 / 0 / 0 (2026-08-24) | Sera Systems | yes | 51 / 0 (2024-08-20) | no 0 | 2 | undersampled |
 | TurboBid | yes | 2 | no | 0 / 0 / 0 (-) | TurboBid Estimating Software | no | 0 / 0 (-) | no 0 | 2 |  |
 | The New Flat Rate | yes | 1 | no | 7 / 0 / 0 (2026-07-23) | The New Flat Rate | yes | 19 / 1 (2024-07-18) | no 0 | 0 |  |
-| AceWatt CRM | yes | 0 | no | 0 / 0 / 0 (-) | Ace Watt |  | 0 / 0 (-) | no 0 | 0 |  |
+| AceWatt CRM | yes | 0 | no | 0 / 0 / 0 (-) | Ace Watt | no | 0 / 0 (-) | no 0 | 0 |  |
 | Business Genie | yes | 0 | no | 0 / 0 / 0 (-) | Business Genie App | no | 1 / 0 (2026-04-11) | no 0 | 0 |  |
-| CRM for Electricians | yes | 0 | no | 0 / 0 / 0 (-) | CRM  |  | 0 / 0 (-) | no 0 | 0 |  |
+| CRM for Electricians | yes | 0 | no | 0 / 0 / 0 (-) | CRM  | no | 0 / 0 (-) | no 0 | 0 |  |
 | Flat Rate Plus Online | yes | 0 | no | 0 / 0 / 0 (-) | Flat Rate | no | 0 / 0 (-) | no 0 | 0 | ambiguous_page |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
@@ -354,8 +355,8 @@ Known limits, stated plainly:
 | Jobber | no (prior knowledge) | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
 | TurboBid | yes | 2 | no | 0 / 0 / 0 (-) | TurboBid Estimating Software | no | 0 / 0 (-) | no 0 | 2 |  |
 | Business Genie | yes | 0 | no | 0 / 0 / 0 (-) | Business Genie App | no | 1 / 0 (2026-04-11) | no 0 | 0 |  |
-| Flat Rate Software (flatratesoftware.com) | yes | 0 | no | 0 / 0 / 0 (-) | Flat Rate |  | 0 / 0 (-) | no 0 | 0 |  |
-| NSPG Price Guide (flatratepricebook.com) | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
+| Flat Rate Software (flatratesoftware.com) | yes | 0 | no | 0 / 0 / 0 (-) | Flat Rate | no | 0 / 0 (-) | no 0 | 0 |  |
+| NSPG Price Guide (flatratepricebook.com) | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Pipe-Pro (Professional Estimating Systems) | yes | 0 | no | 5 / 5 / 5 (2026-05-15) | Pipe Pro Plumbing | no | 0 / 0 (-) | no 0 | 0 | wrong_page |
 | QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
 
@@ -439,9 +440,9 @@ Known limits, stated plainly:
 | MakeWash | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Markate | yes | 0 | no | 0 / 0 / 0 (-) | Markate | no | 6 / 0 (2025-07-21) | no 0 | 0 |  |
 | PowerWashOffice | yes | 0 | no | 0 / 0 / 0 (-) | PowerwashOffice | no | 0 / 0 (-) | no 0 | 0 |  |
-| Pressure Washing Calculator (Hero Softwash) | yes | 0 | no | 0 / 0 / 0 (-) | Pressure Washing |  | 0 / 0 (-) | no 0 | 0 |  |
+| Pressure Washing Calculator (Hero Softwash) | yes | 0 | no | 0 / 0 / 0 (-) | Pressure Washing | no | 0 / 0 (-) | no 0 | 0 |  |
 | ResponsiBid | yes | 0 | no | 0 / 0 / 0 (-) | ResponsiBid | no | 1 / 0 (2026-05-18) | no 0 | 0 |  |
-| SatQuote | yes | 0 | no | 0 / 0 / 0 (-) | SatQuote |  | 1 / 1 (2025-02-17) | no 0 | 0 |  |
+| SatQuote | yes | 0 | no | 0 / 0 / 0 (-) | SatQuote | no | 1 / 1 (2025-02-17) | no 0 | 0 |  |
 | WorkQuote | yes | 0 | no | 0 / 0 / 0 (-) | WorkQuote: The All-in-One App for Your Service Business | no | 1 / 0 (2026-05-05) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
@@ -530,8 +531,11 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
+| Method:Field Services | yes | 3 | no | unverified (throttled run) | - | no | 200 / 21 (2023-02-27) | no 0 | 0 |  |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Rossware ServiceDesk | yes | 2 | no | unverified (throttled run) | - | no | 1 / 1 (2025-01-31) | no 0 | 2 |  |
 | Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | no | 0 / 0 (-) | no 0 | 0 |  |
+| ServiceWorks | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -545,7 +549,7 @@ Known limits, stated plainly:
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (IBISWorld: 'overwhelming majority owner-operated with one or two trucks'). Public-price incumbents: 4. Gatekeeper: no for retail/COD work; partial for warranty work (ServiceBench and ServicePower dispatch networks route manufacturer/home-warranty jobs, but do not mandate the shop's own software). Top-4 share: highly fragmented, no company >5%; top four <40% of revenue (IBISWorld Appliance Repair in the US).
 
-**Evidence URLs (23):**
+**Evidence URLs (28):**
   - https://www.insurancexdate.com/naics/811412
   - https://www.housecallpro.com/industries/appliance-repair-software/
   - https://www.housecallpro.com/pricing/
@@ -564,11 +568,16 @@ Known limits, stated plainly:
   - https://www.ibisworld.com/united-states/industry/appliance-repair/1710/
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
   - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Method%3AField%20Services&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09243979642128302081?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
   - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=821421364649220
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Rossware%20ServiceDesk&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR10327935336444854273?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=179317675454866
   - https://adstransparency.google.com/advertiser/AR00871924403137413121?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ServiceWorks&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
 
 **Confidence:** medium-low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
 
@@ -576,9 +585,9 @@ Known limits, stated plainly:
 
 ## 7. Air duct & dryer vent cleaning  (NAICS 561790)
 
-- **Status:** QUALIFIED — horizontal-only pass. Research: searched (follow-up slice5).
+- **Status:** QUALIFIED. Research: searched (follow-up slice5).
 - **Method score:** 13.0 = ad score 8.0 (mean of best two verified tools) + fragmentation 5/5.
-- **Passing tools:** Service Fusion, ServiceTitan.
+- **Passing tools:** Service Fusion, ServiceTitan, Vonigo.
 - **Rescrape queued (Meta undersampled):** Workiz.
 - **Boring test:** 3/3 — Quotes, route scheduling, NADCA paperwork.
 - **US establishments:** 16,597 establishments (2020, https://www.insurancexdate.com/naics/561790); share <20 employees: unverified.
@@ -589,9 +598,12 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Service Fusion | yes | 8 | yes | 29 / 5 / 0 (2026-07-16) | Service Fusion | yes | 400 / 27 (2024-04-26) | yes 5 | 0 | horizontal |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
+| Vonigo | yes | 6 | yes | 0 / 0 / 0 (-) | Vonigo | unverified (host blocked) | 77 / 5 (2024-12-22) | yes 3 | 2 |  |
 | Workiz | yes | 3 | no | 110 / 0 / 0 (2026-08-09) | Workiz | no | 500 / 20 (2025-10-17) | no 0 | 0 | undersampled horizontal |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 | ManageMart | yes | 0 | no | 0 / 0 / 0 (-) | Managemart | no | 0 / 0 (-) | no 0 | 0 |  |
+| SetTime | yes | 0 | no | 0 / 0 / 0 (-) | Set Time | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| Upper | yes | 0 | no | 0 / 0 / 0 (-) | Upper | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -605,7 +617,7 @@ Known limits, stated plainly:
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (single-truck to multi-truck duct cleaners; franchisees of Dryer Vent Wizard/DUCTZ are a minority). Public-price incumbents: 4. Gatekeeper: no. Top-4 share: unverified.
 
-**Evidence URLs (29):**
+**Evidence URLs (33):**
   - https://www.insurancexdate.com/naics/561790
   - https://www.managemart.com/air-duct-cleaning
   - https://www.selecthub.com/p/field-service-software/managemart/
@@ -633,10 +645,14 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR01281923922538790913?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=179317675454866
   - https://adstransparency.google.com/advertiser/AR00871924403137413121?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=103200268477976
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=113494264162127
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=143117979081715
+  - https://adstransparency.google.com/advertiser/AR17980938755741057025?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=275323565950008
   - https://adstransparency.google.com/advertiser/AR18044909407396954113?region=US
 
-**Confidence:** medium-low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
+**Confidence:** medium-low. Weakest link: Meta undersampled for a large advertiser; rescrape pending.
 
 ---
 
@@ -661,8 +677,8 @@ Known limits, stated plainly:
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 | Contractor+ | yes | 1 | no | 59 / 0 / 0 (2026-09-08) | Contractor Growth Network | no | 40 / 1 (2024-12-19) | yes 3 | 0 | wrong_page horizontal |
 | Garage Door OS | yes | 1 | no | 95 / 0 / 0 (2026-08-20) | Garage | yes | 0 / 0 (-) | no 0 | 0 | wrong_page |
-| Insite4Doors | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-| Service Pro (MSI Data) - garage door | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 19 / 0 (2025-07-02) | no 0 | 0 |  |
+| Insite4Doors | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Service Pro (MSI Data) - garage door | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 19 / 0 (2025-07-02) | no 0 | 0 |  |
 | Smart Service | yes | 0 | no | 0 / 0 / 0 (-) | Smart Service | no | 0 / 0 (-) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
@@ -730,7 +746,7 @@ Known limits, stated plainly:
 
 - **Status:** QUALIFIED — horizontal-only pass. Research: searched (follow-up slice2).
 - **Method score:** 12.0 = ad score 8.0 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** FieldPulse, Housecall Pro, Service Fusion, ServiceTitan; passing but membership unverified: Jobber.
+- **Passing tools:** FieldPulse, Housecall Pro, Service Fusion, ServiceTitan.
 - **Rescrape queued (Meta undersampled):** Workiz.
 - **Boring test:** 3/3 — Dispatch, key/code records, invoicing.
 - **US establishments:** 4,030 establishments (3,952 businesses); also 8,316 active companies per SICCODE; IBISWorld 29,620 businesses (2026) (2020, https://naicslist.com/naics/561622); share <20 employees: unverified.
@@ -743,10 +759,10 @@ Known limits, stated plainly:
 | Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
 | Service Fusion | yes | 8 | yes | 29 / 5 / 0 (2026-07-16) | Service Fusion | yes | 400 / 27 (2024-04-26) | yes 5 | 0 | horizontal |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| Jobber | no (prior knowledge) | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
 | FieldEdge | yes | 3 | no | 1 / 0 / 0 (2026-08-31) | FieldEdge by Xplor | no | 44 / 9 (2021-10-25) | no 0 | 0 | horizontal |
 | Workiz | yes | 3 | no | 110 / 0 / 0 (2026-08-09) | Workiz | no | 500 / 20 (2025-10-17) | no 0 | 0 | undersampled horizontal |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| TEN4 (Nexent Innovation) | yes | 1 | no | 0 / 0 / 0 (-) | TEN 4 | unverified (host blocked) | 13 / 0 (2025-06-02) | yes 2 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -783,14 +799,14 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR12871690310899466241?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
   - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
-  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
   - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=506971112706787
   - https://adstransparency.google.com/advertiser/AR01281923922538790913?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=179317675454866
   - https://adstransparency.google.com/advertiser/AR00871924403137413121?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=575233089303209
+  - https://adstransparency.google.com/advertiser/AR01895898791811219457?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=275323565950008
   - https://adstransparency.google.com/advertiser/AR18044909407396954113?region=US
 
@@ -814,6 +830,9 @@ Known limits, stated plainly:
 | Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | no | 26 / 21 (2025-02-21) | no 0 | 0 |  |
 | Projul | yes | 3 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 2 |  |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Coating Pro Tech | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| CoatingOS | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| floorWIZ | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 5 / 2 (2025-01-10) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -827,7 +846,7 @@ Known limits, stated plainly:
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (one- to few-crew coating contractors; vendors price $30-$150/mo with no per-user fees). Public-price incumbents: 3. Gatekeeper: no (franchisors only: GarageExperts requires ServiceMinder; Garage Force uses proprietary CRM; franchises are a minority of installers). Top-4 share: no company >5% (IBISWorld Flooring Installation Services, proxy); installer level 'fragmented' (Ken Research US concrete floor coatings).
 
-**Evidence URLs (24):**
+**Evidence URLs (28):**
   - https://siccode.com/naics-code/238330/flooring-contractors
   - https://www.builderprime.com/industries/flooring
   - https://www.builderprime.com/pricing
@@ -846,12 +865,16 @@ Known limits, stated plainly:
   - https://www.ibisworld.com/united-states/industry/flooring-installation-services/196/
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1829807557257902
   - https://adstransparency.google.com/advertiser/AR14135757271249977345?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Coating%20Pro%20Tech&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CoatingOS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=2143682922612985
   - https://adstransparency.google.com/advertiser/AR12080640021686648833?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=2146347565625894
   - https://adstransparency.google.com/advertiser/AR15154333676306694145?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
   - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=floorWIZ&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09041574626789949441?region=US
 
 **Confidence:** medium. Weakest link: gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed.
 
@@ -959,11 +982,11 @@ Known limits, stated plainly:
 | PaintScout | yes | 7 | yes | 6 / 5 / 1 (2025-10-05) | PaintScout | yes | 56 / 20 (2024-12-05) | no 0 | 0 |  |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 | Clientility | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| Estimate Rocket | yes | 0 | no | 0 / 0 / 0 (-) | Estimate Rocket |  | 27 / 0 (2023-07-11) | no 0 | 0 |  |
+| Estimate Rocket | yes | 0 | no | 0 / 0 / 0 (-) | Estimate Rocket | no | 27 / 0 (2023-07-11) | no 0 | 0 |  |
 | PaintForce Painting Estimator | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| PaintPricing | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
+| PaintPricing | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Painting Contractor Estimates (iOS app) | yes | 0 | no | 0 / 0 / 0 (-) | Painting contractor | no | 0 / 0 (-) | no 0 | 0 |  |
-| Werx (painting) | yes | 0 | no | 0 / 0 / 0 (-) | WERX |  | 36 / 0 (2024-07-31) | no 0 | 0 |  |
+| Werx (painting) | yes | 0 | no | 0 / 0 / 0 (-) | WERX | no | 36 / 0 (2024-07-31) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1050,8 +1073,8 @@ Known limits, stated plainly:
 | The New Flat Rate | yes | 1 | no | 7 / 0 / 0 (2026-07-23) | The New Flat Rate | yes | 19 / 1 (2024-07-18) | no 0 | 0 |  |
 | Aptora Total Office Manager | yes | 0 | no | 0 / 0 / 0 (-) | Aptora | no | 4 / 0 (2025-05-10) | no 0 | 0 |  |
 | AutoHVAC | yes | 0 | no | 0 / 0 / 0 (-) | Auto hvac | no | 2 / 1 (2026-04-14) | no 0 | 0 |  |
-| HVAC ProposalKit | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-| OnCall Air | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
+| HVAC ProposalKit | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| OnCall Air | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | no | 0 / 0 (-) | no 0 | 0 |  |
 | Successware | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
@@ -1131,11 +1154,11 @@ Known limits, stated plainly:
 | Inspect Point | yes | 6 | yes | 0 / 0 / 0 (-) | Inspect Point | no | 76 / 20 (2023-03-13) | yes 5 | 2 |  |
 | ServiceTrade | yes | 5 | yes | 49 / 0 / 0 (2026-08-10) | ServiceTrade | yes | 200 / 16 (2024-01-24) | yes 8 | 0 | undersampled |
 | Uptick | yes | 4 | no | 9 / 0 / 0 (2026-08-31) | Uptick | no | 22 / 11 (2025-08-11) | yes 8 | 0 |  |
-| Firebug EXT (General Data) | yes | 3 | no | 0 / 0 / 0 (-) | Firebug |  | 74 / 5 (2021-10-25) | no 0 | 0 |  |
+| Firebug EXT (General Data) | yes | 3 | no | 0 / 0 / 0 (-) | Firebug | no | 74 / 5 (2021-10-25) | no 0 | 0 |  |
 | Essential | yes | 0 | no | 68 / 0 / 0 (2026-07-31) | Essential Sleep Hacks | no | 5 / 0 (2024-07-01) | no 0 | 0 | wrong_page |
-| FireInspect | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-| KomplyOS | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-| ZenFire (ZenTrades) | yes | 0 | no | 0 / 0 / 0 (-) | Zenfire |  | 0 / 0 (-) | no 0 | 0 |  |
+| FireInspect | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| KomplyOS | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| ZenFire (ZenTrades) | yes | 0 | no | 0 / 0 / 0 (-) | Zenfire | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1197,7 +1220,79 @@ Known limits, stated plainly:
 
 ---
 
-## 15. Deck & patio builders  (NAICS 236118)
+## 15. Food trucks  (NAICS 722330)
+
+- **Status:** QUALIFIED. Research: searched (follow-up slice4).
+- **Method score:** 10.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** Roaming Hunger (vendor portal), Truckster (vendor platform).
+- **Boring test:** 3/3 — Event booking, permits/commissary paperwork, catering quotes.
+- **US establishments:** 92,257 (IBISWorld Food Trucks) (2025, https://www.ibisworld.com/united-states/number-of-businesses/food-trucks/4322/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Roaming Hunger (vendor portal) | yes | 6 | yes | unverified (throttled run) | Roaming Hunger | no | 500 / 40 (2023-09-18) | yes 12 | 2 |  |
+| Truckster (vendor platform) | yes | 5 | yes | unverified (throttled run) | Truckster | no | 43 / 32 (2024-04-16) | no 0 | 2 |  |
+| Homebase (food truck page) | yes | 3 | no | unverified (throttled run) | Homebase | no | 40 / 34 (2024-06-07) | no 0 | 0 |  |
+| Square for Restaurants (food truck page) | yes | 3 | no | unverified (throttled run) | - | no | 36 / 34 (2021-10-25) | no 0 | 0 |  |
+| Catermonkey | yes | 0 | no | unverified (throttled run) | Catermonkey - app | no | 2 / 0 (2025-12-18) | no 0 | 0 |  |
+| Food Truck Lineup | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Food Truck OS | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| HubPlate | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> · Food trucks (NAICS 722330) — 8 tools, fragmentation 5/5
+> - Core jobs: POS/online ordering, location and event calendar, catering quotes and deposits, permit/commissary compliance records, staff scheduling, marketplace listings for bookings.
+> - Incumbents: Food Truck OS ($29/mo), HubPlate ($99/mo), Truckster vendor app ($25/mo, 10 staff, unfunded), Roaming Hunger (per-booking fees, 35 staff), Food Truck Lineup, Catermonkey ($63–$247/mo), Homebase and Square pages.
+> - Agent wedge: catering-and-permits agent — reply to event inquiries with quotes/minimums, collect deposits, file the city/commissary permit renewals and health-inspection documents, and post the weekly location schedule everywhere.
+> - Weakest evidence: buyers are tiny and high-churn (92,257 trucks, +16.9%/yr); Truckster price is a third-party figure; Food Truck OS and HubPlate have no headcount; ad-spend likely concentrated in Square/Toast rather than niche tools.
+> - Searches (12): IBISWorld count, 3× tool discovery, Food Truck Lineup, Truckster, HubPlate, concentration, Food Truck OS, Roaming Hunger, Catermonkey, Truckster company.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (truck owner; $25-$99/mo flat tools). Public-price incumbents: 4. Gatekeeper: none found (commissaries/city permits are compliance gates, not software mandates; Square is default but optional). Top-4 share: no company >5%; top 50 ~20% of revenue; 91% independently owned.
+
+**Evidence URLs (32):**
+  - https://www.ibisworld.com/united-states/number-of-businesses/food-trucks/4322/
+  - https://catermonkey.com/en/for-whom/food-trucks/
+  - https://catermonkey.com/en/prices/
+  - https://www.capterra.com/p/233143/Catermonkey/
+  - https://www.foodtrucklineup.com/software/
+  - https://foodtruckone.com/
+  - https://www.joinhomebase.com/food-truck-catering-event-management
+  - https://www.hubplate.app/blog/best-pos-system-for-food-trucks-in-2026
+  - https://www.hubplate.app/about
+  - https://vendor.roaminghunger.com/
+  - https://roaminghunger.com/catering/questions-and-answers/
+  - https://en.wikipedia.org/wiki/Roaming_Hunger
+  - https://squareup.com/us/en/restaurants/food-truck
+  - https://www.guideflow.com/blog/food-truck-pos-system
+  - https://gotruckster.com/truck-owner
+  - https://medium.com/@bigfatwriter/7-cool-food-truck-friendly-tools-c42b381cb1e1
+  - https://tracxn.com/d/companies/truckster/__EuPirfcxsVSbfGvfQn7My08qDAnMUnqloEH5rNOsxg0
+  - https://www.linkedin.com/company/gotruckster
+  - https://www.prweb.com/releases/food_trucks_in_the_us_industry_market_research_report_now_available_from_ibisworld/prweb11580691.htm
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=350873142440496
+  - https://adstransparency.google.com/advertiser/AR15265558623305072641?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Food%20Truck%20Lineup&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Food%20Truck%20OS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=281815715162966
+  - https://adstransparency.google.com/advertiser/AR16157099636731936769?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=HubPlate&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=90540788579
+  - https://adstransparency.google.com/advertiser/AR14854120762305937409?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Square%20for%20Restaurants&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR14896030700992987137?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=173075980020927
+  - https://adstransparency.google.com/advertiser/AR15563755488247021569?region=US
+
+**Confidence:** medium. Weakest link: gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed.
+
+---
+
+## 16. Deck & patio builders  (NAICS 236118)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 10.0 = ad score 6.0 (mean of best two verified tools) + fragmentation 4/5.
@@ -1254,7 +1349,164 @@ Known limits, stated plainly:
 
 ---
 
-## 16. Carpet & upholstery cleaning  (NAICS 561740)
+## 17. Independent used car dealers  (NAICS 441120)
+
+- **Status:** QUALIFIED. Research: searched (follow-up slice4).
+- **Method score:** 10.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** AutoRaptor CRM, Wayne Reaves Software.
+- **Boring test:** 3/3 — Title/DMV paperwork, BHPH collections, inventory listings.
+- **US establishments:** 38,000+ (NIADA 'represents over 38,000 used vehicle dealers') (unverified, https://en.wikipedia.org/wiki/National_Independent_Automobile_Dealers_Association); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| AutoRaptor CRM | yes | 5 | yes | unverified (throttled run) | - | no | 48 / 16 (2025-05-26) | no 0 | 2 |  |
+| Wayne Reaves Software | yes | 5 | yes | unverified (throttled run) | Wayne Reaves Software & Web Sites | no | 20 / 12 (2023-07-06) | no 0 | 2 |  |
+| DealerCenter (Nowcom) | yes | 4 | no | unverified (throttled run) | DealerCenter | no | 22 / 18 (2021-10-25) | yes 1 | 0 |  |
+| AutoManager (DeskManager / WebManager) | yes | 2 | no | unverified (throttled run) | - | no | 6 / 2 (2021-10-26) | no 0 | 2 |  |
+| Selly Automotive | yes | 2 | no | unverified (throttled run) | Selly Automotive | no | 4 / 1 (2023-02-12) | no 0 | 2 |  |
+| Frazer DMS (Frazer Computing) | yes | 0 | no | unverified (throttled run) | - | no | 2 / 2 (2024-04-09) | no 0 | 0 |  |
+| MSP Buy Here Pay Here Software | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> · Independent used car dealers (NAICS 441120) — 7 tools, fragmentation 5/5
+> - Core jobs: inventory and desking, deal documents/e-contracting, BHPH loan servicing and collections, CRM/text follow-up, online listings and dealer website, QuickBooks accounting.
+> - Incumbents: Frazer ($129/mo, 54 staff, founded 1985), DealerCenter/Nowcom ($79/mo DMS, 700+ staff, Westlake sister), AutoManager ($88/mo, 48 staff), Wayne Reaves ($79/mo, 11–50 staff), Selly ($140/user/mo, 19 staff), AutoRaptor ($299/mo, 14 staff), MSP BHPH.
+> - Agent wedge: lead-response and BHPH collections agent — answer marketplace leads in minutes, schedule test drives, run stips checklists, and work the delinquency queue with compliant texts; priced per rooftop below the DMS.
+> - Weakest evidence: establishment count is NIADA's "38,000+" (association claim, no year) vs siccode's 850; Frazer pricing sources disagree ($119/$129/$199); DealerCenter effective cost depends on per-transaction fees.
+> - Searches (12): NIADA/NAICS count, 2× tool discovery, Frazer pricing, DealerCenter pricing, Frazer company, concentration, AutoManager, Selly, AutoRaptor, Wayne Reaves, Nowcom.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (independent lot owner; DMS $60-$199/mo month-to-month). Public-price incumbents: 4. Gatekeeper: none found (NIADA has no software mandate; Westlake/DealerCenter lender tie is optional). Top-4 share: CarMax 15.4% of industry revenue (IBISWorld); market 'highly fragmented' (CarMax 10-K).
+
+**Evidence URLs (38):**
+  - https://en.wikipedia.org/wiki/National_Independent_Automobile_Dealers_Association
+  - https://www.automanager.com/
+  - https://www.automanager.com/pricing/
+  - https://pitchbook.com/profiles/company/391819-69
+  - https://www.autoraptor.com/
+  - https://www.autoraptor.com/pricing/
+  - https://rocketreach.co/autoraptor-crm-profile_b5cbbd3bf42e148d
+  - https://www.dealercenter.com/
+  - https://www.dealercenter.com/pricing/
+  - https://www.marubeni.com/en/brand_media/scope/westlake/
+  - https://tracxn.com/d/companies/nowcom/__sLLdW9HRBOONb61-IAqXA2EWSMY0qggLHXVZBoNbwQo
+  - https://www.linkedin.com/company/dealercenter
+  - https://www.frazer.com/
+  - https://www.frazer.com/frazer-pricing
+  - https://leadiq.com/c/frazer-computing/5a1d9a972300005e0089becc
+  - https://www.crunchbase.com/organization/frazer-computing
+  - https://www.linkedin.com/company/frazer-computing
+  - https://www.capterra.com/p/87328/MSP-Buy-Here-Pay-Here-Software/
+  - https://www.sellyautomotive.com/
+  - https://subscribed.fyi/selly-automotive/pricing/
+  - https://getlatka.com/companies/selly-automotive-crm
+  - https://www.waynereaves.com/
+  - https://www.softwaresuggest.com/wayne-reaves-sw
+  - https://www.crunchbase.com/organization/wayne-reaves-software
+  - https://www.sec.gov/Archives/edgar/data/1170010/000117001024000034/kmx-20240229.htm
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=AutoManager&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR14484759510494740481?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=AutoRaptor%20CRM&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09529052521532751873?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=983854664969507
+  - https://adstransparency.google.com/advertiser/AR00938860472013160449?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Frazer%20DMS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR13419302094293172225?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=MSP%20Buy%20Here%20Pay%20Here%20Software&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431471896907560
+  - https://adstransparency.google.com/advertiser/AR11187676154314096641?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=193863927294648
+  - https://adstransparency.google.com/advertiser/AR01164240289620033537?region=US
+
+**Confidence:** medium. Weakest link: gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed.
+
+---
+
+## 18. Small residential property managers  (NAICS 531311)
+
+- **Status:** QUALIFIED. Research: searched (follow-up slice0).
+- **Method score:** 10.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** Innago, Rentec Direct.
+- **Boring test:** 3/3 — Rent collection, maintenance dispatch, lease paperwork.
+- **US establishments:** 55,347 establishments; 39,462 businesses (2020, https://www.naics.com/naics-code-description/?code=531311); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Innago | yes | 5 | yes | 0 / 0 / 0 (-) | Innago | unverified (host blocked) | 400 / 26 (2023-01-09) | no 0 | 2 |  |
+| Rentec Direct | yes | 5 | yes | 0 / 0 / 0 (-) | Rentec Direct | unverified (host blocked) | 57 / 40 (2023-08-15) | no 0 | 2 |  |
+| AppFolio | yes | 4 | no | unverified (throttled run) | AppFolio | no | 36 / 10 (2026-02-03) | yes 7 | 0 |  |
+| TenantCloud | yes | 4 | no | 0 / 0 / 0 (-) | TenantCloud | unverified (host blocked) | 80 / 19 (2023-02-23) | yes 1 | 0 |  |
+| TurboTenant | yes | 4 | no | unverified (throttled run) | - | no | 500 / 33 (2021-10-25) | yes 2 | 0 |  |
+| Yardi Breeze | yes | 4 | no | unverified (throttled run) | - | no | 73 / 15 (2023-05-02) | yes 7 | 0 |  |
+| Buildium | yes | 3 | no | 0 / 0 / 0 (-) | Buildium  | unverified (host blocked) | 500 / 28 (2026-01-05) | no 0 | 0 |  |
+| DoorLoop | yes | 3 | no | 0 / 0 / 0 (-) | DoorLoop | unverified (host blocked) | 300 / 20 (2022-11-15) | no 0 | 0 |  |
+| Shuk Rentals | yes | 0 | no | 0 / 0 / 0 (-) | Shuk Rentals | unverified (host blocked) | 4 / 0 (2026-03-12) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> — Small residential property managers (NAICS 531311)
+> - Incumbent jobs: listings + applications + screening, e-lease, rent collection/ACH, maintenance tickets, owner statements, trust accounting (TurboTenant, TenantCloud, Buildium, DoorLoop, Rentec Direct, Innago, AppFolio, Yardi Breeze, Shuk).
+> - AaaS wedge: "leasing-and-maintenance agent" for sub-100-unit managers: answers prospect inquiries, schedules showings, screens, chases late rent, triages maintenance requests to vendors, and drafts owner reports. Incumbents are feature-rich but human-driven; free tiers (TurboTenant, Innago) show price pressure on software alone, so the sell is labor replacement.
+> - Weakest evidence: establishment count attribution (naics.com vs insurancexdate.com); Buildium ownership/headcount not in results; DoorLoop/TurboTenant heavily funded so ad-longevity likely but crowded.
+> - Searches (10): NAICS count; best small-landlord software 2026; under-100-unit software; Buildium/AppFolio/DoorLoop/TenantCloud pricing; TenantCloud crunchbase; Innago; Rentec Direct; IBISWorld concentration; RPM franchise software; DoorLoop funding; TurboTenant/Innago employees.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner of a small property-management firm or self-managing landlord (flat per-account or per-unit pricing from free to $69/mo). Public-price incumbents: 7. Gatekeeper: no for independents (Real Property Management franchisees must use AppFolio + LeadSimple; franchise is a small share of 340k businesses). Top-4 share: no company >5% (IBISWorld Residential Property Managers); low concentration, largest Prologis (Property Management).
+
+**Evidence URLs (40):**
+  - https://www.naics.com/naics-code-description/?code=531311
+  - https://www.appfolio.com/blog/best-property-management-softwares-compared-2026
+  - https://renpro.com/property-management-software-pricing-comparison/
+  - https://www.buildium.com/blog/top-appfolio-alternatives/
+  - https://www.doorloop.com/blog/small-landlord-property-management-software
+  - https://www.doorloop.com/blog/appfolio-vs-buildium
+  - https://www.crunchbase.com/organization/doorloop
+  - https://www.calcalistech.com/ctechnews/article/b1sszfagkl
+  - https://innago.com/pricing/
+  - https://tracxn.com/d/companies/innago/__ZQ9Z0QpYfFQsV2aOV9_zF4fCt_5wG1mgsiuaDCBSFxQ
+  - https://www.rentecdirect.com/pricing
+  - https://aiforproptech.com/companies/rentec-direct/
+  - https://www.shukrentals.com/learn/property-management-software-for-small-landlords
+  - https://www.tenantcloud.com/review/appfolio-vs-buildium
+  - https://www.crunchbase.com/organization/tenantcloud-2
+  - https://pitchbook.com/profiles/company/120115-18
+  - https://www.linkedin.com/company/tenantcloud
+  - https://www.turbotenant.com/property-management-software/best-property-management-software-for-small-landlords/
+  - https://pitchbook.com/profiles/company/123927-04
+  - https://www.yardibreeze.com/blog/2026/03/best-property-management-software-50-units/
+  - https://fddexchange.com/fdd/real-property-management-2025/
+  - https://www.ibisworld.com/united-states/industry/residential-property-managers/6136/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=75233933923
+  - https://adstransparency.google.com/advertiser/AR16913727859011354625?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=544528678737128
+  - https://adstransparency.google.com/advertiser/AR03268743478334455809?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=104065147625774
+  - https://adstransparency.google.com/advertiser/AR15760400789232680961?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1195415940507807
+  - https://adstransparency.google.com/advertiser/AR12326793977628983297?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=97287212644
+  - https://adstransparency.google.com/advertiser/AR05330179243265490945?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=100447279438187
+  - https://adstransparency.google.com/advertiser/AR12896813567478595585?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1478665159044924
+  - https://adstransparency.google.com/advertiser/AR08453475861734096897?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=TurboTenant&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR16004943170366341121?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Yardi%20Breeze&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR00874605974558605313?region=US
+
+**Confidence:** medium. Weakest link: gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed.
+
+---
+
+## 19. Carpet & upholstery cleaning  (NAICS 561740)
 
 - **Status:** QUALIFIED — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 9.5 = ad score 7.5 (mean of best two verified tools) + fragmentation 2/5.
@@ -1323,7 +1575,7 @@ Known limits, stated plainly:
 
 ---
 
-## 17. Foundation repair & basement waterproofing contractors  (NAICS 238190)
+## 20. Foundation repair & basement waterproofing contractors  (NAICS 238190)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 9.0 = ad score 6.0 (mean of best two verified tools) + fragmentation 3/5.
@@ -1372,7 +1624,7 @@ Known limits, stated plainly:
 
 ---
 
-## 18. Fire sprinkler contractors  (NAICS 238220)
+## 21. Fire sprinkler contractors  (NAICS 238220)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 3/5.
@@ -1442,7 +1694,7 @@ Known limits, stated plainly:
 
 ---
 
-## 19. Glass & glazing contractors  (NAICS 238150)
+## 22. Glass & glazing contractors  (NAICS 238150)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 7.5 (mean of best two verified tools) + fragmentation 1/5.
@@ -1493,7 +1745,377 @@ Known limits, stated plainly:
 
 ---
 
-## 20. Snow removal contractors  (NAICS 561790)
+## 23. Trailer dealers  (NAICS 441229)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice4).
+- **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** Blackpurl.
+- **Boring test:** 3/3 — Title/registration paperwork, inventory, financing.
+- **US establishments:** 2,890 (IBISWorld Truck Trailer Dealers) (2025, https://www.ibisworld.com/united-states/number-of-businesses/truck-trailer-dealers/5419/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Blackpurl | yes | 5 | yes | unverified (throttled run) | Blackpurl | no | 7 / 7 (2024-12-30) | no 0 | 2 |  |
+| Lightspeed DMS (trailer) | yes | 4 | no | unverified (throttled run) | Lightspeed DMS | no | 74 / 12 (2025-02-25) | yes 12 | 0 |  |
+| Motility Software Solutions | yes | 4 | no | unverified (throttled run) | Motility Software Solutions | no | 11 / 4 (2023-04-07) | yes 5 | 0 |  |
+| Trailer Ops DMS | yes | 2 | no | unverified (throttled run) | - | no | 12 / 0 (2023-06-05) | no 0 | 2 |  |
+| EverLogic | yes | 0 | no | unverified (throttled run) | - | no | 1 / 1 (2024-12-19) | no 0 | 0 |  |
+| SOARR | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Softbase Evolution (Softbase Systems) | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 2 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> · Trailer dealers (NAICS 441229/441228) — 7 tools, fragmentation 5/5
+> - Core jobs: unit inventory with VIN/spec fields, quoting and deal documents (titles, registrations), parts/service, website sync and marketplace listings, floor-plan and accounting.
+> - Incumbents: Trailer Ops ($500/mo, 1–10 staff, 500+ dealers), Blackpurl ($408/mo, $99 NATDA rate, 24 staff), EverLogic ($129/licence, 3 min, $4k setup), Softbase (~14 staff, bootstrapped), Motility (since 1984, 800 rooftops), Lightspeed DMS ($450–$3,000+/mo), SOARR.
+> - Agent wedge: listing-and-title agent — build spec sheets and photos into every marketplace, answer inbound quote requests with availability/financing, and prepare title/registration packets per state; sub-$200/mo under Trailer Ops.
+> - Weakest evidence: IBISWorld count (2,890) covers truck trailer dealers, not light cargo/utility dealers; NATDA member count not found; Softbase/Motility/SOARR have no public price.
+> - Searches (12): NAICS/NATDA count, 3× tool discovery, EverLogic pricing, Blackpurl company, Trailer Ops company, concentration, Softbase, SOARR, Motility, Lightspeed pricing.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (trailer dealership owner; flat monthly DMS $387-$500). Public-price incumbents: 4. Gatekeeper: none found (NATDA offers affinity pricing, not a mandate; OEMs not shown to dictate DMS). Top-4 share: no company >5% (IBISWorld Truck Trailer Dealers).
+
+**Evidence URLs (35):**
+  - https://www.ibisworld.com/united-states/number-of-businesses/truck-trailer-dealers/5419/
+  - https://blackpurl.com/solutions/industry/trailer/
+  - https://www.natda.org/news/why-every-trailer-dealer-needs-a-software-solution
+  - https://tracxn.com/d/companies/blackpurl/__IsMxQqcsiWKdAV1rEPqP-PjmZqUBNASngjyu93OUdUc
+  - https://www.crunchbase.com/organization/blackpurl
+  - https://everlogic.com/trailer-dealership-management-software/
+  - https://everlogic.com/price/
+  - https://www.lightspeeddms.com/industries/trailer/
+  - https://www.lightspeeddms.com/solutions/pricing/
+  - https://www.motilitysoftware.com/industries/streamlining-trailer-management-with-dms/
+  - https://www.motilitysoftware.com/our-story/
+  - https://www.linkedin.com/company/motilityss
+  - https://www.soarrsolutions.com/
+  - https://www.soarrsolutions.com/manage
+  - https://www.linkedin.com/company/soarr
+  - https://softbasesystems.com/dealer-management-system-software/trailer/
+  - https://getlatka.com/companies/softbasesystems.com
+  - https://www.linkedin.com/company/softbase-development-inc
+  - https://www.trailerops.com/
+  - https://www.trailerops.com/pricing
+  - https://www.linkedin.com/company/trailer-ops
+  - https://www.crunchbase.com/organization/trailer-ops
+  - https://www.ibisworld.com/united-states/industry/truck-trailer-dealers/5419/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=206593603063802
+  - https://adstransparency.google.com/advertiser/AR04450930099822264321?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=EverLogic&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR12637102512906698753?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=106419704467456
+  - https://adstransparency.google.com/advertiser/AR04571436505507037185?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=366727146847
+  - https://adstransparency.google.com/advertiser/AR07963274261940928513?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=SOARR&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Softbase%20Evolution&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Trailer%20Ops%20DMS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR05747739743353831425?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 24. Self-storage facilities  (NAICS 531130)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice0).
+- **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** Storeganise.
+- **Boring test:** 3/3 — Move-ins, auto-pay, lien/auction notices.
+- **US establishments:** 32,231 companies (unverified, https://www.naics.com/naics-code-description/?code=531130); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Storeganise | yes | 6 | yes | unverified (throttled run) | Storeganise | no | 41 / 3 (2023-11-12) | yes 12 | 2 |  |
+| Storable Easy (Easy Storage Solutions) | yes | 3 | no | unverified (throttled run) | Storable | no | 700 / 4 (2025-08-20) | no 0 | 0 |  |
+| Storable Edge (storEDGE) | yes | 3 | no | unverified (throttled run) | - | no | 21 / 15 (2023-12-13) | no 0 | 0 |  |
+| Stora | yes | 2 | no | unverified (throttled run) | - | no | 7 / 0 (2026-01-07) | no 0 | 2 |  |
+| 6Storage | yes | 0 | no | unverified (throttled run) | 6Storage | no | 6 / 2 (2025-09-30) | no 0 | 0 |  |
+| Kinnovis | yes |  | unverified | unverified (throttled run) | KINNOVIS GmbH | no | 0 / 0 (-) | no 0 | 2 |  |
+| SiteLink (Storable) | yes |  | unverified | unverified (throttled run) | Sitelink | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> — Self-storage facilities (NAICS 531130)
+> - Incumbent jobs: unit map and rentals, online move-in, autopay/late fees and lien process, gate access control, tenant portal, dynamic pricing (Storable Edge/SiteLink/Easy, Stora, Storeganise, 6Storage, Kinnovis).
+> - AaaS wedge: "remote-manager agent" for unmanned or single-manager sites: answers inquiries, quotes and rents units, runs collections and lien notices by state rules, schedules gate codes and cleanouts. Independents own ~65% of facilities and vendors already price $75–$150/mo per facility.
+> - Weakest evidence: storEDGE/SiteLink prices are third-party; Storable vendor share not found; establishment count attribution (naics.com/insurancexdate) uncertain; Stora headcount 22 vs 39.
+> - Searches (11): NAICS count; independent-operator software; best software 2026 pricing; storEDGE/SiteLink/Easy/Stora pricing; Stora company; Storeganise; REIT share; Storable history; 6Storage; Storable Easy; Kinnovis.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner of a single or few-facility independent operator (~65% of US facilities are owned by operators outside the top 100). Public-price incumbents: 5. Gatekeeper: no (Self Storage Association is a trade body; REITs run in-house systems; no franchise/association software mandate found). Top-4 share: public companies/REITs own 23% of facilities, next top-100 own 13%, small operators ~65%; by square footage small operators 40%, REITs/public 38%.
+
+**Evidence URLs (31):**
+  - https://www.naics.com/naics-code-description/?code=531130
+  - https://us.6storage.com/self-storage-software/pricing/
+  - https://www.selecthub.com/p/self-storage-software/6storage/
+  - https://kinnovis.com/
+  - https://kinnovis.com/pricing/
+  - https://tracxn.com/d/companies/kinnovis/__5x0B3WzEEy3A7FeS3wVnV54xA8UESrHEFlsetx3pCv0
+  - https://www.storable.com/products/sitelink/
+  - https://softwareconnect.com/roundups/best-self-storage-software/
+  - https://stora.co/
+  - https://stora.co/pricing
+  - https://getlatka.com/companies/stora.co
+  - https://pitchbook.com/profiles/company/465807-43
+  - https://www.storageunitsoftware.com/about/
+  - https://www.capterra.com/p/112769/Self-Storage-Software/pricing/
+  - https://www.storable.com/products/edge/
+  - https://storeganise.com/pricing
+  - https://getlatka.com/companies/storeganise
+  - https://hk.linkedin.com/company/storeganise
+  - https://www.neighbor.com/storage-blog/self-storage-industry-statistics/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=250296611969272
+  - https://adstransparency.google.com/advertiser/AR05694026143615680513?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=114502993793090
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1251029251651742
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Stora&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR03857097166879195137?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=105157375402856
+  - https://adstransparency.google.com/advertiser/AR17356714548312145921?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Storable%20Edge&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR07149972451542171649?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=425879644251286
+  - https://adstransparency.google.com/advertiser/AR09656045015029252097?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 25. Music schools & private music teachers  (NAICS 611610)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice3).
+- **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** Opus1.io.
+- **Boring test:** 3/3 — Lesson scheduling, make-ups, tuition.
+- **US establishments:** 17,704 companies verified active (NAICS 611610 fine arts schools) (unverified, https://siccode.com/naics-code/611610/fine-arts-schools); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Opus1.io | yes | 5 | yes | unverified (throttled run) | - | no | 200 / 3 (2025-02-13) | no 0 | 2 |  |
+| Jumbula | yes | 4 | no | unverified (throttled run) | - | no | 35 / 4 (2022-08-08) | yes 4 | 0 |  |
+| Teachworks | yes | 4 | no | unverified (throttled run) | - | no | 12 / 6 (2023-08-14) | yes 3 | 0 |  |
+| Jackrabbit Music | yes | 3 | no | unverified (throttled run) | - | no | 55 / 20 (2025-08-01) | no 0 | 0 |  |
+| Teach 'n Go | yes | 3 | no | unverified (throttled run) | - | no | 9 / 3 (2022-10-19) | no 0 | 0 |  |
+| Bizzly | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Duet (Music Teacher's Helper) | yes | 0 | no | unverified (throttled run) | - | no | 2 / 1 (2025-07-18) | no 0 | 0 |  |
+| Fons | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | yes 2 | 0 |  |
+| My Music Staff (Port 443 Inc.) | yes | 0 | no | unverified (throttled run) | My Music Staff | no | 43 / 1 (2023-03-21) | no 0 | 0 |  |
+| Noto | yes | 0 | no | unverified (throttled run) | - | no | 12 / 0 (2025-11-02) | no 0 | 0 |  |
+| Nova Music | yes | 0 | no | unverified (throttled run) | Nova Music | no | 3 / 1 (2026-06-11) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Music schools & private music teachers (11 searches)
+> - Incumbent jobs: lesson calendar and make-ups, automatic invoicing/autopay and cancellation policy enforcement, parent portal, lesson notes/practice logs, teacher payroll for multi-teacher schools (My Music Staff, Opus1, Fons, Teachworks, Duet).
+> - AaaS wedge: make-up-lesson and attrition agent for 5-30 teacher schools (reschedule, fill gaps, chase unpaid invoices, re-engage lapsed students); Opus1's $98-$325/mo tiers show schools pay more than solo teachers ($9-$20/mo).
+> - Weakest evidence: establishment count is all fine-arts schools and excludes most sole-proprietor teachers; Fons domain and My Music Staff price came from third-party pages; Port 443 headcount not found.
+> - Searches: NAICS count; school management; best teacher software pricing; studio invoicing/portal; School of Rock franchise; My Music Staff/Port 443; Opus1; Fons; Teachworks; Duet; IBISWorld concentration.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (solo teachers and 1-10 teacher studios; sub-$20/mo plans). Public-price incumbents: 5. Gatekeeper: no (franchise slice only). Top-4 share: highly fragmented; no company >5% (IBISWorld Private Music Classes).
+
+**Evidence URLs (43):**
+  - https://siccode.com/naics-code/611610/fine-arts-schools
+  - https://www.bizzly.net/guides/best-music-school-software
+  - https://www.duetpartner.com/
+  - https://www.duetpartner.com/pricing
+  - https://www.capterra.com/p/171305/Fons/
+  - https://tutorbase.com/compare/fons-vs-mymusicstaff
+  - https://www.jackrabbitclass.com/music/
+  - https://jumbula.com/markets/music-school-software/
+  - https://www.mymusicstaff.com/
+  - https://www.musicaltrio.com/compare/best-software-solo-music-teachers
+  - https://www.zoominfo.com/c/port-443-inc/466757043
+  - https://ca.linkedin.com/company/port443
+  - https://www.withnoto.com/blog/best-music-lesson-scheduling-software
+  - https://trynovamusic.com/blog/how-to-choose-the-best-music-studio-management-software-in-2026
+  - https://opus1.io/
+  - https://opus1.io/pricing/
+  - https://getlatka.com/companies/opus1.io
+  - https://tracxn.com/d/companies/opus1io/__3pTChxAvqc6EzmAQY02EPBEJF30eFtytsNnAE7Bzbh8
+  - https://www.teachngo.com/solutions/music-school-software
+  - https://www.teachworks.com/music-school-management-software
+  - https://www.teachworks.com/pricing
+  - https://www.bachtorock.com/franchise-news/bach-to-rock-vs-school-of-rock/
+  - https://www.ibisworld.com/united-states/industry/private-music-classes/6539/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Bizzly&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Duet&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR06441350659278110721?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Fons&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Jackrabbit%20Music&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR18236816105324675073?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Jumbula&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR00386200813556465665?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=567612439963170
+  - https://adstransparency.google.com/advertiser/AR14200606363976990721?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Noto&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR06838102764371836929?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=307136149364095
+  - https://adstransparency.google.com/advertiser/AR13474526345698476033?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Opus1.io&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR16158267060382597121?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Teach%20%27n%20Go&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR07663009112547917825?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Teachworks&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09882076155836628993?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 26. Driving schools  (NAICS 611692)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice4).
+- **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** DrivingSchoolSoftware.com (DrivingSchool.Software).
+- **Boring test:** 3/3 — State-required hours logging, DMV forms, vehicle scheduling.
+- **US establishments:** 23,946 (IBISWorld Driving Schools) (2025, https://www.ibisworld.com/industry-statistics/number-of-businesses/driving-schools-united-states/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| DrivingSchoolSoftware.com (DrivingSchool.Software) | yes | 5 | yes | unverified (throttled run) | - | no | 14 / 12 (2021-10-25) | no 0 | 2 |  |
+| Teachworks (driving school page) | yes | 4 | no | unverified (throttled run) | - | no | 12 / 6 (2023-08-14) | yes 3 | 0 |  |
+| BookingTimes | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Drive Scout | yes | 0 | no | unverified (throttled run) | Drive Scout | no | 0 / 0 (-) | no 0 | 0 |  |
+| Drivers Ed Solutions | yes | 0 | no | unverified (throttled run) | Drivers Ed Solutions | no | 0 / 0 (-) | no 0 | 0 |  |
+| GoDribe | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| MyDriveSchool | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Software for Driving School | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> · Driving schools (NAICS 611692) — 8 tools, fragmentation 5/5
+> - Core jobs: lesson scheduling by instructor and vehicle, student records and progress logs, online enrolment and payments, DMV/state certificate reporting, reminders to cut no-shows.
+> - Incumbents: Drive Scout ($250/mo minimum), DrivingSchoolSoftware.com (3 staff, self-funded, demo-only), Teachworks ($16.49/mo + per lesson), BookingTimes ($61/mo, Australia), GoDribe ($49/mo), MyDriveSchool, Drivers Ed Solutions ($6.25/student), Software for Driving School ($49/mo).
+> - Agent wedge: enrolment-to-certificate agent — answer parent inquiries, sell packages, fill instructor gaps from waitlists, and file the state completion/electronic-certificate reports (MA ATLAS, CA TVCC, TX TDLR) that are now mandatory.
+> - Weakest evidence: several prices from roundups (GoDribe, Software for Driving School) with unknown domains; Drive Scout headcount not found; state portals confirmed as compliance gates but no vendor mandate found.
+> - Searches (11): IBISWorld count, 2× tool discovery, Drive Scout pricing, Drive Scout company, DrivingSchoolSoftware company, concentration, DMV gatekeeper, Teachworks, GoDribe, DriverSchedule, MyDriveSchool, BookingTimes.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (driving school owner; $16-$250/mo). Public-price incumbents: 4. Gatekeeper: none found (state DMV portals such as MA ATLAS and CA TVCC require electronic records/reporting but do not name a vendor). Top-4 share: no company >5% (IBISWorld Driving Schools).
+
+**Evidence URLs (29):**
+  - https://www.ibisworld.com/industry-statistics/number-of-businesses/driving-schools-united-states/
+  - https://bookingtimes.com/Complete-Driving-School-Software
+  - https://www.softwaresuggest.com/bookingtimes
+  - https://drivescout.com/
+  - https://drivescout.com/pricing/
+  - https://www.crunchbase.com/organization/drive-scout
+  - https://www.driversedsolutions.com/pricing.phtml
+  - https://www.drivingschoolsoftware.com/
+  - https://www.capterra.com/p/175083/Total-Driving-School-Management/
+  - https://getlatka.com/companies/drivingschoolsoftware.com
+  - https://www.linkedin.com/company/drivingschool-software
+  - https://www.capterra.ca/software/1025251/godribe
+  - https://www.softwareadvice.com/driving-school/
+  - https://mydriveschool.software/driving-school-software-features/
+  - https://www.guideflow.com/blog/driving-school-software
+  - https://www.teachworks.com/driving-school-management-software
+  - https://www.teachworks.com/pricing
+  - https://www.mass.gov/info-details/professional-driving-schools
+  - https://www.ibisworld.com/united-states/industry/driving-schools/4995/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=BookingTimes&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1623645227925584
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=194404354029386
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=DrivingSchoolSoftware.com&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR01502266516601569281?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=GoDribe&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=MyDriveSchool&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Software%20for%20Driving%20School&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Teachworks&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09882076155836628993?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 27. Tutoring centers  (NAICS 611691)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice0).
+- **Method score:** 9.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** Teachworks.
+- **Boring test:** 3/3 — Session scheduling, progress reports, billing.
+- **US establishments:** 7,885 companies (138,966 employees) (unverified, https://siccode.com/naics-code/611691/exam-preparation-tutoring); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Teachworks | yes | 6 | yes | unverified (throttled run) | - | no | 12 / 6 (2023-08-14) | yes 3 | 2 |  |
+| TutorCruncher | yes | 3 | no | unverified (throttled run) | - | no | 33 / 18 (2021-10-25) | no 0 | 0 |  |
+| Dewey | yes | 0 | no | unverified (throttled run) | Dewey | no | 0 / 0 (-) | no 0 | 0 |  |
+| Oases Online | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Pike13 | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| TutorBird (Port 443) | yes | 0 | no | unverified (throttled run) | TutorBird | no | 8 / 0 (2023-10-18) | no 0 | 0 |  |
+| Tutorbase | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Wise | yes | 0 | no | unverified (throttled run) | - | no | 1 / 0 (2026-06-27) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> — Tutoring centers (NAICS 611691)
+> - Incumbent jobs: tutor–student scheduling, lesson-based invoicing and tutor payroll, parent portal, lead tracking, session notes (TutorBird, Teachworks, TutorCruncher, Oases, Tutorbase, Wise, Pike13, Dewey).
+> - AaaS wedge: "matching-and-billing agent": intakes the parent lead, proposes tutor/time matches, books, sends prep/progress notes, bills per lesson, and pays tutors. Revenue-share pricing (TutorCruncher 1%, Tutorbase 1%) shows owners accept usage-based pricing.
+> - Weakest evidence: Teachworks and Oases prices are third-party; TutorBird headcount is qualitative ("small team"); Wise pricing not shown; concentration figures conflict (Kumon 8.9% vs 15%).
+> - Searches (10): NAICS count; "tutoring center" software; best tutoring software 2026 pricing; TutorBird/Pike13 pricing; Teachworks company; Port 443/TutorBird; IBISWorld/Kumon concentration; Kumon/Mathnasium franchise software; Tutorbase pricing; Wise.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner of an independent tutoring center or small agency (per-tutor pricing from $16.95/mo). Public-price incumbents: 4. Gatekeeper: no for independents (Kumon supplies its own operational software and Salesforce CRM to franchisees; Kumon 8.9% + Sylvan 4.5% share; 57% of centers are single-location or small chains). Top-4 share: top 10 players ~5% of revenue (2024); IBISWorld: Kumon 8.9%, Sylvan 4.5%.
+
+**Evidence URLs (34):**
+  - https://siccode.com/naics-code/611691/exam-preparation-tutoring
+  - https://www.g2.com/sellers/dewey-learning-inc
+  - https://tutorbase.com/compare/oases-vs-tutorcruncher
+  - https://tutorbase.com/blog/best-billing-software-for-tutoring-businesses
+  - https://www.teachworks.com/tutoring-management-software
+  - https://www.teachngo.com/blog/best-tutoring-business-software-us
+  - https://tracxn.com/d/companies/teachworks/__vrPpN-x2DqxGrVo3QTYruiUrE3R6tvNvkUABqWk6oes
+  - https://www.teachngo.com/blog/teachworks-review
+  - https://www.linkedin.com/company/teachworks
+  - https://www.tutorbird.com/
+  - https://www.capterra.com/p/181623/TutorBird/
+  - https://www.port443.io/
+  - https://ca.linkedin.com/company/port443
+  - https://tutorcruncher.com/blog/best-tutoring-software
+  - https://www.capterra.com/p/145838/TutorCruncher/
+  - https://tutorbase.com/
+  - https://tutorbase.com/blog/how-much-does-tutoring-software-cost
+  - https://www.wise.live/
+  - https://www.wise.live/pricing/
+  - https://tracxn.com/d/companies/wise/__3UqTczmh8mfcGdUWmVjECrY0QY1HlT0aLPD6xgPrM-M
+  - https://1851franchise.com/kumon-franchise-costs-fees-profit-and-data-for-2025-2729462
+  - https://gitnux.org/us-tutoring-industry-statistics/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=34303826286
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Oases%20Online&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Pike13&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Teachworks&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09882076155836628993?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=772690216132054
+  - https://adstransparency.google.com/advertiser/AR03418666080669794305?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=TutorCruncher&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR04420460261794643969?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Tutorbase&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Wise&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR13612737706088988673?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 28. Snow removal contractors  (NAICS 561790)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 9.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 4/5.
@@ -1508,7 +2130,7 @@ Known limits, stated plainly:
 | Aspire | yes | 8 | yes | 45 / 13 / 0 (2026-06-22) | Aspire Software | yes | 200 / 34 (2022-01-27) | yes 5 | 0 |  |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 | LMN (Landscape Management Network) | yes | 1 | no | 7 / 0 / 0 (2026-07-23) | - | yes | 4 / 0 (2025-05-08) | no 0 | 0 |  |
-| Yeti Software (Yeti Snow) | yes | 0 | no | 1 / 0 / 0 (2026-08-21) | Yeti Software Inc |  | 27 / 1 (2025-07-09) | no 0 | 0 |  |
+| Yeti Software (Yeti Snow) | yes | 0 | no | 1 / 0 / 0 (2026-08-21) | Yeti Software Inc | no | 27 / 1 (2025-07-09) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1556,7 +2178,726 @@ Known limits, stated plainly:
 
 ---
 
-## 21. Lawn fertilization & weed control route businesses  (NAICS 561730)
+## 29. Independent auto repair shops  (NAICS 811111)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice6).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Estimates, parts ordering, appointment scheduling.
+- **US establishments:** 307,058 businesses (2026, https://www.ibisworld.com/united-states/number-of-businesses/auto-mechanics/1689); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| AutoLeap | yes | 4 | no | unverified (throttled run) | AutoLeap | no | 200 / 33 (2023-09-20) | yes 12 | 0 |  |
+| Shop-Ware | yes | 4 | no | unverified (throttled run) | - | no | 32 / 16 (2022-06-01) | yes 2 | 0 |  |
+| Shopmonkey | yes | 4 | no | unverified (throttled run) | - | no | 500 / 17 (2026-03-29) | yes 10 | 0 |  |
+| Tekmetric | yes | 4 | no | unverified (throttled run) | - | no | 37 / 8 (2026-04-29) | yes 12 | 0 |  |
+| Mitchell 1 Manager SE | yes | 3 | no | unverified (throttled run) | - | no | 65 / 37 (2021-10-25) | no 0 | 0 |  |
+| NAPA TRACS | yes | 3 | no | unverified (throttled run) | NAPA TRACS | no | 11 / 10 (2024-10-17) | no 0 | 0 |  |
+| Garage360 | yes | 0 | no | unverified (throttled run) | - | no | 1 / 0 (2026-08-13) | no 0 | 0 |  |
+| autoGMS | yes |  | unverified | unverified (throttled run) | Autogms | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> — Independent auto repair shops · NAICS 811111 · 7 searches
+> - **Incumbent jobs:** estimates/repair orders, digital vehicle inspections with photo approvals, parts ordering, two-way texting, payments, tech time tracking (Tekmetric, Shopmonkey, AutoLeap, Shop-Ware, NAPA TRACS).
+> - **Wedge:** phone/text agent for estimate approvals, appointment reminders and declined-service follow-up, sold as an add-on to whatever SMS the shop runs.
+> - **Weakest evidence:** two establishment figures for the NAICS (97,995 vs 83,027) plus IBISWorld's broader 307,058; the fragmentation is not in doubt but the buyer count is. Incumbents are large and VC-funded (Shopmonkey $110M, AutoLeap $54M).
+> - **Fragmentation 5/5:** four public prices, low concentration, NAPA/Bosch tie-ins do not cover most shops.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator shop owner (single-location independents; vendors price per shop $179-279/mo). Public-price incumbents: 4. Gatekeeper: partial only: NAPA AutoCare perks tied to NAPA TRACS and Bosch Auto Service franchise-supplied software, but neither covers most independents. Top-4 share: low concentration (largest TravelCenters of America).
+
+**Evidence URLs (29):**
+  - https://www.ibisworld.com/united-states/number-of-businesses/auto-mechanics/1689
+  - https://www.cbinsights.com/company/autoleap
+  - https://www.g2.com/products/autoleap/pricing
+  - https://www.crunchbase.com/organization/autoleap
+  - https://garage360.io/blog/best-auto-repair-shop-software
+  - https://napatracs.com/
+  - https://shop-ware.com/packages/
+  - https://www.shopmonkey.io/
+  - https://www.shopmonkey.io/pricing
+  - https://getlatka.com/companies/shopmonkey
+  - https://www.cbinsights.com/company/shopmonkey/financials
+  - https://www.tekmetric.com/
+  - https://www.tekmetric.com/pricing
+  - https://myautogms.com/blog/best-auto-repair-shop-management-software-2026
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=106770701199975
+  - https://adstransparency.google.com/advertiser/AR12240226300437987329?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Garage360&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR12765659010154102785?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Mitchell%201%20Manager%20SE&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR10888021096435548161?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=614028805744077
+  - https://adstransparency.google.com/advertiser/AR11404447483070251009?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Shop-Ware&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR03146070416267673601?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Shopmonkey&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR01431268173167984641?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Tekmetric&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR16588403473821728769?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=503903039482255
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 30. Independent tire shops  (NAICS 441320)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice3).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Tire lookup, appointment scheduling, TPMS/registration paperwork.
+- **US establishments:** 23,069 companies verified active (NAICS 441320) (2021, https://siccode.com/naics-code/441320/tire-dealers-2); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| AutoLeap | yes | 4 | no | unverified (throttled run) | AutoLeap | no | 200 / 33 (2023-09-20) | yes 12 | 0 |  |
+| Tekmetric | yes | 4 | no | unverified (throttled run) | - | no | 37 / 8 (2026-04-29) | yes 12 | 0 |  |
+| Tire Guru | yes | 3 | no | unverified (throttled run) | Tire Guru | no | 6 / 6 (2023-06-09) | no 0 | 0 |  |
+| ASA Automotive Systems (GTX / TireMaster) | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Anolla | yes | 0 | no | 0 / 0 / 0 (-) | Anolla | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| EZnet Scheduler | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Tire Power (TCS Technologies) | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| TireShop (FreedomSoft) | yes |  | unverified | unverified (throttled run) | Tire shop | no | 0 / 0 (-) | no 0 | 0 |  |
+| Torque360 | yes | 0 | no | unverified (throttled run) | Torque 360 | no | 2 / 0 (2026-03-27) | no 0 | 0 |  |
+| Used Tire Shop | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Independent tire shops (11 searches)
+> - Incumbent jobs: tire catalog/fitment and inventory, POS and work orders, bay scheduling, national-account and manufacturer program billing, distributor ordering (ASA/GTX, Tire Guru, TireShop, Torque360); online booking and seasonal tire storage (Anolla, EZnet).
+> - AaaS wedge: quote-and-book agent that answers "do you have 225/45R17, when can I come in" by phone/text, checks distributor stock and fills bays; owner-operators pay $90-$135/mo today.
+> - Weakest evidence: establishment count is 2021-dated; Tire Guru has a pricing page but no amounts surfaced; ASA headcount from PitchBook (now Constellation-owned).
+> - Searches: NAICS count x2; tire shop software; best tire POS pricing; scheduling; IBISWorld concentration; TireShop pricing; Tire Guru; Torque360; ASA; Goodyear/Bridgestone dealer programs; Tire Guru pricing retry.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (independent tire dealers = two-thirds of revenue; many <5 employees). Public-price incumbents: 3. Gatekeeper: no (manufacturer programs offer, do not mandate). Top-4 share: low concentration; high fragmentation; ATD <10%; independents two-thirds of revenue.
+
+**Evidence URLs (33):**
+  - https://siccode.com/naics-code/441320/tire-dealers-2
+  - https://www.asaauto.com/
+  - https://pitchbook.com/profiles/company/62165-26
+  - https://www.linkedin.com/company/asa-tire-systems
+  - https://anolla.com/en/tire-shop-software
+  - https://autoleap.com/tire-shop-software/
+  - https://eznetscheduler.com/industry/tire-shop-scheduling-software/
+  - https://www.tekmetric.com/feature/tire-suite
+  - https://tireguru.net/
+  - https://tireguru.net/pricing/
+  - https://leadiq.com/c/tire-guru-software-websites-and-more/5eb99f00102cc03532d8b557
+  - https://tcstire.com/point-of-sale
+  - https://tireshopsoftware.com/about-freedomsoft/
+  - https://www.softwareadvice.com/auto-repair/tireshop-profile/
+  - https://www.torque360.co/tire-shop-management-software/
+  - https://www.torque360.co/pricing/
+  - https://www.usedtireshop.net/
+  - https://www.asaauto.com/products/cornerstone
+  - https://www.ibisworld.com/united-states/industry/tire-dealers/1013/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ASA%20Automotive%20Systems&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102041562207285
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=106770701199975
+  - https://adstransparency.google.com/advertiser/AR12240226300437987329?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=EZnet%20Scheduler&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Tekmetric&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR16588403473821728769?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=335500296521328
+  - https://adstransparency.google.com/advertiser/AR15997056837316771841?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Tire%20Power&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=533964353134707
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1613701312281740
+  - https://adstransparency.google.com/advertiser/AR13168561740343934977?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Used%20Tire%20Shop&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 31. Boutique fitness & yoga studios  (NAICS 713940)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice6).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 2/3 — Class scheduling, memberships, waivers.
+- **US establishments:** 37,317 businesses (Pilates & Yoga Studios) (unverified, https://www.ibisworld.com/united-states/industry/pilates-yoga-studios/4185/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Arketa | yes | 4 | no | unverified (throttled run) | Arketa | no | 94 / 31 (2025-03-18) | yes 4 | 0 |  |
+| Vagaro (yoga) | yes | 4 | no | unverified (throttled run) | Vagaro | no | 9 / 9 (2022-03-10) | yes 8 | 0 |  |
+| WellnessLiving | yes | 4 | no | unverified (throttled run) | - | no | 200 / 13 (2025-06-13) | yes 2 | 0 |  |
+| Mindbody | yes | 3 | no | unverified (throttled run) | - | no | 800 / 11 (2025-06-04) | no 0 | 0 |  |
+| Momence (Clubessential Holdings) | yes | 3 | no | unverified (throttled run) | Momence | no | 300 / 29 (2025-01-07) | no 0 | 0 |  |
+| Walla | yes | 3 | no | unverified (throttled run) | WALLA | no | 32 / 8 (2024-10-31) | no 0 | 0 |  |
+| Zenoti | yes | 3 | no | unverified (throttled run) | Zenoti | no | 5 / 3 (2026-01-08) | no 0 | 0 |  |
+| Momoyoga | yes | 0 | no | unverified (throttled run) | Momoyoga | no | unverified (host blocked) / unverified (host blocked) (-) | no 0 | 0 |  |
+| StudioBookings | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> — Boutique fitness & yoga studios · NAICS 713940 · 8 searches
+> - **Incumbent jobs:** class scheduling and booking, memberships/packs and autopay, waitlists, instructor payroll, marketing automation, branded apps (Mindbody, Momence, Arketa, Walla, WellnessLiving, Zenoti).
+> - **Wedge:** lead-to-intro-offer conversion and lapsed-member win-back agent; every incumbent charges extra for marketing automation, and studios are owner-run.
+> - **Weakest evidence:** Mindbody and Momence do not publish plan pricing (figures from third-party guides); the establishment figure is IBISWorld's Pilates & Yoga Studios count, not boutique fitness overall.
+> - **Fragmentation 5/5:** four public prices, no firm >5%, franchisors (Xponential 2,700+ studios) dictate software only inside their systems. Heavily contested incumbents (Arketa $22.6M raised 2025, Walla ~$18M).
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator studio owner (Arketa $49/mo individual tier; WellnessLiving $69/mo). Public-price incumbents: 4. Gatekeeper: none for independents; franchisors (Xponential 2,700+ NA studios, Orangetheory 1,500+, F45 3,300 global) dictate software only inside their systems. Top-4 share: highly fragmented; no company >5% (Pilates & Yoga Studios).
+
+**Evidence URLs (33):**
+  - https://www.ibisworld.com/united-states/industry/pilates-yoga-studios/4185/
+  - https://www.arketa.com/pricing
+  - https://pitchbook.com/profiles/company/439508-26
+  - https://vibefam.com/arketa-pricing-2026/
+  - https://www.mindbodyonline.com/business/education/blog/new-mindbody-pricing-united-states
+  - https://momence.com/pricing
+  - https://athletechnews.com/clubessential-holdings-acquires-saas-platform-momence/
+  - https://www.booknetic.com/blog/yoga-studio-management-software
+  - https://www.studiobookings.com/blog/best-yoga-studio-management-software
+  - https://lunacal.ai/yoga-studio-booking-scheduling-software/best
+  - https://www.guideflow.com/blog/barbershop-software
+  - https://www.hellowalla.com/made-for/yoga
+  - https://www.hellowalla.com/us/pricing
+  - https://www.sdbj.com/technology/software/walla-bolsters-financial-fitness-of-fitness-studios/
+  - https://app.dealroom.co/companies/walla_software
+  - https://www.wellnessliving.com/pricing/
+  - https://www.businesswire.com/news/home/20250107098298/en/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101799137942259
+  - https://adstransparency.google.com/advertiser/AR13598190746346717185?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Mindbody&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR17054110617427771393?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=107210108530763
+  - https://adstransparency.google.com/advertiser/AR13068919675897774081?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1548631865425338
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=StudioBookings&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=994274800426846
+  - https://adstransparency.google.com/advertiser/AR09419698221770342401?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=442774709072602
+  - https://adstransparency.google.com/advertiser/AR03363009351827587073?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=WellnessLiving&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR08215298278535725057?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=311504822253769
+  - https://adstransparency.google.com/advertiser/AR06124471940729012225?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 32. Medical billing companies  (NAICS 541219)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice4).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Claims scrubbing, denials follow-up, payer portals.
+- **US establishments:** over 3,000 (medical billing services firms) (unverified, https://verticaliq.com/product/medical-billing-services/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| PracticeSuite | yes | 4 | no | unverified (throttled run) | PracticeSuite | no | 23 / 7 (2024-04-15) | yes 12 | 0 |  |
+| Tebra (Kareo) | yes | 4 | no | 0 / 0 / 0 (-) | Tebra | unverified (host blocked) | 400 / 21 (2024-01-22) | yes 12 | 0 |  |
+| AdvancedMD (AdvancedBiller) | yes | 3 | no | 0 / 0 / 0 (-) | AdvancedMD | unverified (host blocked) | 500 / 9 (2026-03-16) | no 0 | 0 |  |
+| CollaborateMD | yes | 3 | no | 0 / 0 / 0 (-) | CollaborateMD | unverified (host blocked) | 200 / 9 (2025-01-10) | no 0 | 0 |  |
+| EZClaim | yes | 3 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 13 / 6 (2024-03-14) | no 0 | 0 |  |
+| ImagineSoftware (ImagineOne) | yes | 0 | no | 0 / 0 / 0 (-) | ImagineSoftware | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> · Medical billing companies (NAICS 541219) — 6 tools, fragmentation 5/5
+> - Core jobs: multi-client claim scrubbing and submission, ERA/denial work queues across practices, eligibility checks, patient statements, per-client KPI dashboards.
+> - Incumbents: ImagineSoftware (2000, ~204 staff, PE-owned), PracticeSuite (billing-company program, tailored pricing), CollaborateMD ($235/mo minimum, per-claim), EZClaim ($149/mo third-party), AdvancedMD AdvancedBiller ($229–$1,070/mo tiers), Tebra partner program ($99/provider/mo starter).
+> - Agent wedge: denial-appeal agent for small billing companies — read the 835/denial code, pull the chart note, draft and submit the appeal, track timely-filing deadlines per payer; charge per recovered claim.
+> - Weakest evidence: establishment count is "over 3,000" (Vertical IQ) without a year; the concentration citation is IBISWorld's adjacent Medical Claims Processing report; several prices are third-party restatements; gatekeeper risk (client practices' EHR dictating the biller's PM) unverified.
+> - Searches (10): NAICS count, 2× tool discovery, PracticeSuite, CollaborateMD, EZClaim, ImagineSoftware company, concentration, Tebra program, AdvancedMD program.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (billing company owner; per-provider or per-claim pricing, $235/mo minimums). Public-price incumbents: 4. Gatekeeper: none found (no payer/clearinghouse/association software mandate; client practices' EHR choice can constrain billers - unverified). Top-4 share: low market share concentration (IBISWorld Medical Claims Processing Services).
+
+**Evidence URLs (25):**
+  - https://verticaliq.com/product/medical-billing-services/
+  - https://www.advancedmd.com/medical-billing/for-billing-services/
+  - https://www.advancedmd.com/software-pricing/
+  - https://www.collaboratemd.com/pricing/medical-billing-and-labs/
+  - https://ezclaim.com/features-pricing/
+  - https://www.capterra.com/p/106348/EZClaim-Medical-Billing/
+  - https://imagineteam.com/specialties/billing-companies/
+  - https://getlatka.com/companies/imagine-software-
+  - https://www.crunchbase.com/organization/technology-partners-dba-imagine-software
+  - https://www.linkedin.com/company/technology-partners-inc--dba-imagine-software-
+  - https://practicesuite.com/medical-billing-company/
+  - https://practicesuite.com/products/pricing/
+  - https://www.tebra.com/pricing
+  - https://www.ibisworld.com/united-states/industry/medical-claims-processing-services/4792/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=118490988180563
+  - https://adstransparency.google.com/advertiser/AR07043581026378973185?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=70921490468
+  - https://adstransparency.google.com/advertiser/AR01928475191038443521?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=EZClaim&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR17079652478699438081?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=225969900947047
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=470820643000516
+  - https://adstransparency.google.com/advertiser/AR00621597560049500161?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1048055931885460
+  - https://adstransparency.google.com/advertiser/AR16832224910335016961?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 33. Courier & last-mile delivery companies  (NAICS 492210)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice3).
+- **Method score:** 9.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 4/5.
+- **Passing tools:** Shipday.
+- **Boring test:** 3/3 — Dispatch, proof of delivery, driver settlements.
+- **US establishments:** 5,362 establishments / 4,786 businesses (NAICS 492210, 2020 Census) (2020, https://www.naics.com/naics-code-description/?code=492210); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Shipday | yes | 6 | yes | unverified (throttled run) | - | no | 69 / 28 (2022-10-27) | yes 12 | 2 |  |
+| CXT Software | yes | 4 | no | unverified (throttled run) | CXT Software | no | 11 / 5 (2021-10-25) | yes 2 | 0 |  |
+| Onfleet | yes | 4 | no | unverified (throttled run) | - | no | 16 / 6 (2023-08-14) | yes 6 | 0 |  |
+| OnTime 360 (Vesigo Studios) | yes | 3 | no | unverified (throttled run) | - | no | 44 / 14 (2023-08-18) | no 0 | 0 |  |
+| Transvirtual | yes | 3 | no | unverified (throttled run) | - | no | 27 / 5 (2024-01-31) | no 0 | 0 |  |
+| Routific | yes | 0 | no | unverified (throttled run) | - | no | 4 / 2 (2025-05-07) | no 0 | 0 |  |
+| Simply Dispatch | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Track-POD | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Wodely | yes | 0 | no | unverified (throttled run) | - | no | 2 / 2 (2023-06-20) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Courier & last-mile delivery companies (11 searches)
+> - Incumbent jobs: order intake and dispatch, route optimization, driver app with proof of delivery, customer tracking portal, recurring invoicing and QuickBooks sync (OnTime 360, CXT, Shipday, Track-POD, Onfleet).
+> - AaaS wedge: dispatcher agent for 5-30 driver firms (intake by email/phone, quote, assign, exception texts) replacing a dispatcher seat rather than the $99-$249/mo software.
+> - Weakest evidence: establishment count sources disagree by an order of magnitude (siccode 671 vs Census 5,362 vs IBISWorld 3m); IBISWorld concentration is "moderate" because FedEx/UPS sit in the same industry; CXT headcount conflicts (11-50 vs ~200).
+> - Searches: NAICS count x2; dispatch software; best courier software pricing; billing/portal; IBISWorld concentration; OnTime/Vesigo; CXT; Shipday; Track-POD; CLDA.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 4/5. Check signer: owner-operator (local courier firms of 1-50 drivers; per-driver/per-order pricing). Public-price incumbents: 5. Gatekeeper: no. Top-4 share: moderate concentration; largest FedEx (US); global low concentration.
+
+**Evidence URLs (37):**
+  - https://www.naics.com/naics-code-description/?code=492210
+  - https://cxtsoftware.com/
+  - https://cxtsoftware.com/pricing/
+  - https://www.linkedin.com/company/cxtsoftware
+  - https://www.ontime360.com/features
+  - https://www.ontime360.com/courier-software-cost
+  - https://www.crowdreviews.com/ontime-360/company-info
+  - https://vesigo.com/company/about-us
+  - https://www.linkedin.com/company/vesigo-studios-inc
+  - https://onfleet.com/blog/courier-dispatch-software/
+  - https://www.routific.com/blog/best-courier-software
+  - https://www.shipday.com/pricing
+  - https://getlatka.com/companies/shipday.com
+  - https://www.crunchbase.com/organization/shipday
+  - https://courier-software.com/
+  - https://www.track-pod.com/courier-software/
+  - https://www.track-pod.com/pricing-delivery-app/
+  - https://www.transvirtual.com/us/courier-software/
+  - https://www.wodely.com/top-10-courier-management-software-in-2026-best-tools-for-efficient-last-mile-delivery/
+  - https://clda.org/
+  - https://www.ibisworld.com/united-states/industry/couriers-local-delivery-services/1950/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=208045941935
+  - https://adstransparency.google.com/advertiser/AR04082954825367552001?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=OnTime%20360&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR07744654001303453697?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Onfleet&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR11855280923002011649?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Routific&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR12662217849566134273?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Shipday&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR04558017137888722945?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Simply%20Dispatch&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Track-POD&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Transvirtual&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR03142043386211467265?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Wodely&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR07060053531629191169?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 34. Boat dealers & marinas  (NAICS 441222)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice3).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Slip billing, winterization scheduling, unit inventory.
+- **US establishments:** 7,896 companies verified active (NAICS 441222 boat dealers) (unverified, https://siccode.com/naics-code/441222/boat-dealers); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Lightspeed DMS | yes | 4 | no | unverified (throttled run) | Lightspeed DMS | no | 74 / 12 (2025-02-25) | yes 12 | 0 |  |
+| Storable Marine | yes | 4 | no | unverified (throttled run) | Storable Marine Rentals | no | 19 / 18 (2025-11-24) | yes 10 | 0 |  |
+| BiT DMS | yes | 0 | no | unverified (throttled run) | - | no | 16 / 1 (2024-09-10) | no 0 | 0 |  |
+| DealerRock | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| DockMaster | yes | 0 | no | unverified (throttled run) | Dockmaster | no | 6 / 0 (2025-02-06) | no 0 | 0 |  |
+| Dockwa | yes |  | unverified | unverified (throttled run) | Dockwa | no | 0 / 0 (-) | no 0 | 2 |  |
+| Ideal Computer Systems | yes |  | unverified | unverified (throttled run) | Ideal Computer Systems | no | 0 / 0 (-) | no 0 | 0 |  |
+| MARINAGO (Scribble Software) | yes | 0 | no | unverified (throttled run) | MarinaGo | no | 3 / 0 (2025-01-21) | no 0 | 0 |  |
+| MarinaOffice | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| SlipBoss | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Slipax | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Slipify | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Boat dealers & marinas (11 searches)
+> - Incumbent jobs: slip reservations and seasonal contracts, utility/fuel billing, dry-stack and service work orders, ship store POS (DockMaster, MARINAGO, SlipBoss, Dockwa); dealers: unit inventory, F&I, parts and service (DealerRock, BiT, Lightspeed).
+> - AaaS wedge: slip-waitlist and seasonal-renewal agent for family-run marinas (chase contracts, insurance certificates and payments; fill cancellations from the waitlist) on top of a $100-$250/mo tool; DealerRock's $390/mo month-to-month DMS shows dealers accept self-serve pricing.
+> - Weakest evidence: marinas' own NAICS (713930) was not counted; Dockwa and Bonfire pricing amounts not surfaced; DockMaster now a PE rollup asset with unverified headcount.
+> - Searches: NAICS count; marina management; best boat DMS pricing; marina pricing; IBISWorld concentration; SlipBoss; MARINAGO; DockMaster ownership; Dockwa funding; DealerRock; manufacturer DMS mandate; Dockwa pricing retry.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (family-run marinas and single-location boat dealers; per-slip/per-location pricing). Public-price incumbents: 3. Gatekeeper: no. Top-4 share: Boat Sales & Repair: low concentration (largest MarineMax); Marinas: highly fragmented, top 3 <5% of revenue.
+
+**Evidence URLs (43):**
+  - https://siccode.com/naics-code/441222/boat-dealers
+  - https://www.bitdms.com/marine/
+  - https://www.guideflow.com/blog/boat-dealer-software
+  - https://www.dealerrock.com/marine-dms-software/
+  - https://www.dealerrock.com/pricing/
+  - https://www.crunchbase.com/organization/dealerrock
+  - https://www.dockmaster.com/solutions/marina-management
+  - https://www.trysignalbase.com/news/acquisitions/dockmaster-software-acquired-by-aspire-software-acquisition
+  - https://www.linkedin.com/company/dockmastersoftware
+  - https://marinas.dockwa.com/
+  - https://marinas.dockwa.com/marina-software-pricing
+  - https://getlatka.com/companies/dockwa.com
+  - https://tracxn.com/d/companies/dockwa/__amygSuv0ZWamLsxD6eQUW3og9Mi-QP5ng2J0A2xXauw
+  - https://www.idealcomputersystems.com/dealer-management-software-marine
+  - https://www.lightspeeddms.com/industries/marine/
+  - https://www.marinago.com/
+  - https://www.softwareadvice.com/marine/marinago-profile/
+  - https://www.marinaoffice.net/
+  - https://www.capterra.com/p/98609/MarinaOffice/
+  - https://slipboss.com/
+  - https://www.softwareadvice.com/product/536921-SlipBoss/
+  - https://slipax.com/solutions/marina-management-companies
+  - https://www.slipifymarinas.com/
+  - https://www.storablemarine.com/marina-slip-management-software/
+  - https://tradeonlytoday.com/post-type-feature/get-with-the-program/
+  - https://www.ibisworld.com/united-states/industry/marinas/1654/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=BiT%20DMS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR10061413219655745537?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=DealerRock&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=496159837446396
+  - https://adstransparency.google.com/advertiser/AR14320538085857689601?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1514293938859347
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=240343959383518
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=106419704467456
+  - https://adstransparency.google.com/advertiser/AR04571436505507037185?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1159814977218472
+  - https://adstransparency.google.com/advertiser/AR17405601704321220609?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=MarinaOffice&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=SlipBoss&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Slipax&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Slipify&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=750057911994973
+  - https://adstransparency.google.com/advertiser/AR14575583431556595713?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 35. Laundromats  (NAICS 812310)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice1).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** CleanCloud.
+- **Boring test:** 3/3 — Machine uptime, wash-and-fold orders, cash/coin reconciliation.
+- **US establishments:** ~29,500 coin laundries (~$5B gross revenue) (unverified, https://laundryassociation.org/for-investors/industry-overview/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| CleanCloud | yes | 5 | yes | unverified (throttled run) | - | no | 38 / 18 (2023-05-11) | no 0 | 2 |  |
+| Cents | yes | 3 | no | unverified (throttled run) | CENTS | no | 200 / 15 (2022-12-16) | no 0 | 0 |  |
+| Curbside Laundries | yes | 3 | no | unverified (throttled run) | Curbside Laundries | no | 42 / 5 (2025-07-28) | no 0 | 0 |  |
+| LaundryMatch / LaunderPay | yes |  | unverified | unverified (throttled run) | LaundryMatch | no | 0 / 0 (-) | no 0 | 0 |  |
+| The Laundry Boss | yes | 0 | no | unverified (throttled run) | The Laundry Boss | no | 1 / 0 (2025-04-25) | no 0 | 0 |  |
+| Wash-Dry-Fold POS | yes | 0 | no | unverified (throttled run) | - | no | 4 / 2 (2025-02-23) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> · Laundromats (NAICS 812310)
+> - **Incumbent jobs:** attended POS for wash-dry-fold by weight, machine payments, pickup-and-delivery ordering and routing, customer notifications, employee time. Tools: Cents, Curbside Laundries, CleanCloud, Wash-Dry-Fold POS, LaundryMatch, The Laundry Boss.
+> - **Agent wedge:** a pickup-and-delivery growth agent that answers order texts, books routes, upsells recurring plans and reactivates lapsed households; the well-funded incumbent (Cents, $184M raised) is pushing an AI receptionist, so speed matters.
+> - **Weakest evidence:** establishment counts range 4,051 (siccode) to 29,500 (CLA) to 18,375 (IBISWorld-derived); Wash-Dry-Fold headcount not found.
+> - **Searches (8):** NAICS 812310 count; best laundromat software 2026; Cents/Curbside/CleanCloud pricing; laundromat fragmentation; Cents funding; CLA laundromat count; plus gap-fill Wash-Dry-Fold company, CleanCloud company, Curbside company.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (laundromat owner). Public-price incumbents: 3. Gatekeeper: no (67% of locations independent; ~80% single-location; no franchisor software mandate found). Top-4 share: top-5 = 32% of revenue (IBISWorld via VantaInsights).
+
+**Evidence URLs (28):**
+  - https://laundryassociation.org/for-investors/industry-overview/
+  - https://www.trycents.com/
+  - https://tracxn.com/d/companies/cents/__yxiP-gXq_ChEvBZ3hQsO6IhqoifY12AlSySLcq-6as0
+  - https://www.trycents.com/news/series-c-140-million-sumeru-equity
+  - https://cleancloudapp.com/laundromats
+  - https://pitchbook.com/profiles/company/228558-61
+  - https://tracxn.com/d/companies/cleancloud/__58xETg9ZD9h5VbVy3qdR-fdSZLb1QZBCx36Ox3gWqn8
+  - https://www.curbsidelaundries.com/
+  - https://www.zoominfo.com/c/curbside-laundries-llc/403187587
+  - https://www.linkedin.com/in/mrsimmons/ (founder)
+  - https://www.getlaundrymatch.com/post/best-laundromat-pos-software
+  - https://thelaundryboss.com/laundromat-industry-data-statistics/
+  - https://www.washdryfoldpos.com/
+  - https://www.washdryfoldpos.com/best-laundromat-pos-systems-in-2026-compared/
+  - https://www.guideflow.com/blog/laundromat-software
+  - https://vantainsights.com/insights/laundromat-industry-trends
+  - https://commercialobserver.com/2026/05/big-shift-in-retail-space-as-institutional-capital-moves-into-laundromats/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=317470618390051
+  - https://adstransparency.google.com/advertiser/AR10361297508528816129?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CleanCloud&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR13061698341224579073?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=238713076577782
+  - https://adstransparency.google.com/advertiser/AR12690010497039204353?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=751829274677953
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=776979862459439
+  - https://adstransparency.google.com/advertiser/AR10917406025724198913?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Wash-Dry-Fold%20POS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR14540040481238155265?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 36. Pet grooming salons & mobile groomers  (NAICS 812910)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice3).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Appointments, vaccination records, reminders.
+- **US establishments:** 32,943 companies verified active (NAICS 812910 pet care ex-vet) (unverified, https://siccode.com/naics-code/812910/pet-care); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| MoeGo | yes | 4 | no | unverified (throttled run) | - | no | 900 / 5 (2026-06-16) | yes 3 | 0 |  |
+| Vonigo | yes | 4 | no | 0 / 0 / 0 (-) | Vonigo | unverified (host blocked) | 77 / 5 (2024-12-22) | yes 3 | 0 |  |
+| DaySmart Pet | yes | 3 | no | unverified (throttled run) | - | no | 300 / 37 (2023-06-07) | no 0 | 0 |  |
+| GrooMore | yes | 3 | no | unverified (throttled run) | - | no | 12 / 3 (2026-05-11) | no 0 | 0 |  |
+| Groomsoft | yes | 3 | no | unverified (throttled run) | Groomsoft | no | 47 / 11 (2021-10-25) | no 0 | 0 |  |
+| Koalendar | yes | 3 | no | unverified (throttled run) | - | no | 35 / 7 (2025-10-30) | no 0 | 0 |  |
+| Vagaro | yes | 3 | no | unverified (throttled run) | - | no | 10 / 10 (2022-03-10) | no 0 | 0 |  |
+| Animalo | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Anolla | yes | 0 | no | 0 / 0 / 0 (-) | Anolla | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| Groomer.io | yes | 0 | no | unverified (throttled run) | Groomer.io | no | 9 / 0 (2025-07-03) | no 0 | 0 |  |
+| ShakeYourTail | yes | 0 | no | unverified (throttled run) | Shake your tail | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Pet grooming salons & mobile groomers (10 searches)
+> - Incumbent jobs: online booking, per-van route optimization and service radius, pet profiles/vaccination records, two-way SMS, deposits/no-show fees, recurring appointments (MoeGo, Groomer.io, Groomsoft, GrooMore).
+> - AaaS wedge: rebooking and route-filling agent for single-van groomers (fill cancellations by proximity, chase overdue pets, confirm by text); $29.95-$99/mo incumbents leave room for a per-van agent fee.
+> - Weakest evidence: count is whole pet-care NAICS; GrooMore/Vagaro/DaySmart prices via third-party blogs; MoeGo is VC-backed (no headcount bonus).
+> - Searches: NAICS count; salon booking; best grooming software pricing; mobile routing; IBISWorld concentration; MoeGo; Groomer.io; Groomsoft; GrooMore; franchise software.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (solo salons and single-van mobile groomers; per-van pricing). Public-price incumbents: 5. Gatekeeper: no (franchise slice only). Top-4 share: highly fragmented; no company >5% (IBISWorld Pet Grooming & Boarding).
+
+**Evidence URLs (42):**
+  - https://siccode.com/naics-code/812910/pet-care
+  - https://www.animalo.com/blog/pet-grooming-software-ultimate-2026-guide-for-salons
+  - https://anolla.com/en/pet-grooming-software
+  - https://www.groomore.com/mobile-grooming-software.html
+  - https://tryteddy.com/blog/best-mobile-pet-grooming-software-kg76y
+  - https://www.crunchbase.com/organization/groomore
+  - https://get.groomer.io/mobile
+  - https://get.groomer.io/pricing
+  - https://pitchbook.com/profiles/company/494755-03
+  - https://www.crunchbase.com/organization/groomer-io
+  - https://www.linkedin.com/company/groomer-io
+  - https://www.groomsoft.com/features/mobile-grooming-software/
+  - https://www.groomsoft.com/pricing/
+  - https://koalendar.com/scheduling-software-for/pet-grooming
+  - https://www.moego.pet/mobile-grooming
+  - https://www.moego.pet/pricing
+  - https://profiles.crustdata.com/company/moego
+  - https://tracxn.com/d/companies/moego/__KHSyZaiRnmBVNsN3RhyF0tTjS-VzeHaTbKjHNlzeRWM
+  - https://www.shakeyourtail.com/
+  - https://www.vagaro.com/pro/pet-grooming-software
+  - https://www.vonigo.com/industry/mobile-pet-grooming-software/
+  - https://aussiepetmobilefranchising.com/pet-franchise-blog/pet-grooming-technology/
+  - https://www.ibisworld.com/united-states/industry/pet-grooming-boarding/1735/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Animalo&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102041562207285
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=DaySmart%20Pet&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09896518309786943489?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=GrooMore&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR05294478418539184129?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=317812858406030
+  - https://adstransparency.google.com/advertiser/AR10456143941341282305?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=116482131772034
+  - https://adstransparency.google.com/advertiser/AR10127058204182446081?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Koalendar&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR17463480271285256193?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=MoeGo&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR16588403473821728769?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=219435565545145
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Vagaro&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09419698221770342401?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=143117979081715
+  - https://adstransparency.google.com/advertiser/AR17980938755741057025?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 37. Tattoo studios  (NAICS 812199)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice2).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** Porter.
+- **Boring test:** 3/3 — Consults, consent/health forms, deposits.
+- **US establishments:** 24,221 businesses (IBISWorld Tattoo Artists) (2024, https://www.ibisworld.com/united-states/number-of-businesses/tattoo-artists/4404/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Porter | yes | 5 | yes | unverified (throttled run) | Porter | no | 58 / 26 (2025-06-11) | no 0 | 2 |  |
+| Apprentice | yes | 3 | no | unverified (throttled run) | - | no | 11 / 4 (2026-03-26) | no 0 | 0 |  |
+| MyTattoo | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Salonist (tattoo) | yes | 0 | no | unverified (throttled run) | - | no | 4 / 0 (2025-09-15) | no 0 | 0 |  |
+| Tattoo Studio Pro | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 2 |  |
+| TattooPro (Punchey) | yes | 0 | no | unverified (throttled run) | - | no | 11 / 0 (2023-10-23) | no 0 | 0 |  |
+| Twizzlo | yes | 0 | no | unverified (throttled run) | Twizzlo | no | 3 / 0 (2026-02-16) | no 0 | 0 |  |
+| Venue Ink | yes | 0 | no | unverified (throttled run) | Venue Ink | no | 30 / 0 (2026-04-13) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Tattoo studios (NAICS 812199)
+> - Incumbent jobs: Tattoo Studio Pro, Porter, TattooPro, Twizzlo, MyTattoo, Venue Ink, Apprentice, Salonist (deposit-based booking, digital consent/health forms, artist commissions, client history).
+> - Agent wedge: booking and consent agent (DM/email/text intake, deposit collection, consent form completion, reminders, no-show recovery) for owner-operators with 1-2 staff; incumbents at $29/mo leave little price room, so the wedge must be per-booking or per-artist.
+> - Weakest evidence: establishment count is IBISWorld industry count, not NAICS 812199; Porter has no public figure in results; TattooPro founded/headcount unknown.
+> - Searches (7): IBISWorld count; "tattoo studio" software consent; best tattoo software 2026; Tattoo Studio Pro founded; Porter pricing/funding; IBISWorld concentration; TattooPro pricing.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (owner tattoos; avg 1.8 employees). Public-price incumbents: 3. Gatekeeper: no. Top-4 share: no company >5% (IBISWorld Tattoo Artists).
+
+**Evidence URLs (31):**
+  - https://www.ibisworld.com/united-states/number-of-businesses/tattoo-artists/4404/
+  - https://useapprentice.com/blog/best-tattoo-shop-management-software-features-reviews-and-top-picks
+  - https://mytattoo.software/tattoo-studio-software/
+  - https://www.getporter.io/for-studios
+  - https://www.getporter.io/pricing
+  - https://pitchbook.com/profiles/company/529312-15
+  - https://www.linkedin.com/company/get-porter
+  - https://salonist.io/industries/tattoo-studio-software
+  - https://tattoostudiopro.com/
+  - https://www.guideflow.com/blog/tattoo-shop-software
+  - https://getlatka.com/companies/tattoostudiopro.com/team
+  - https://www.linkedin.com/company/tattoostudiopro
+  - https://tattoopro.io/
+  - https://tattoopro.io/pricing
+  - https://twizzlo.com/articles/tattoo-shop-management-software/
+  - https://www.venue.ink/blog/how-tattoo-scheduling-software-can-transform-your-tattoo-studios-day-to-day
+  - https://www.ibisworld.com/united-states/industry/tattoo-artists/4404/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Apprentice&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR06676072709358616577?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=MyTattoo&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=252526671610402
+  - https://adstransparency.google.com/advertiser/AR05696232296516943873?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Salonist&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR17555611477312798721?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Tattoo%20Studio%20Pro&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=TattooPro&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR15078908656110010369?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=928840380309522
+  - https://adstransparency.google.com/advertiser/AR07333592207640756225?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=100397966467569
+  - https://adstransparency.google.com/advertiser/AR11092445948993863681?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 38. Martial arts schools  (NAICS 611620)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice1).
+- **Method score:** 9.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** Kicksite.
+- **Boring test:** 3/3 — Memberships, belt testing, attendance.
+- **US establishments:** 76,364 martial arts studios (IBISWorld, cited by Gymdesk) (2026, https://gymdesk.com/blog/martial-arts-industry-statistics); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Kicksite | yes | 5 | yes | unverified (throttled run) | - | no | 13 / 10 (2021-10-25) | no 0 | 2 |  |
+| Gymdesk | yes | 3 | no | unverified (throttled run) | - | no | 200 / 6 (2024-10-14) | no 0 | 0 |  |
+| PushPress | yes | 3 | no | unverified (throttled run) | PushPress Gym Software | no | 300 / 13 (2021-10-25) | no 0 | 0 |  |
+| Spark Membership | yes | 3 | no | unverified (throttled run) | - | no | 300 / 8 (2026-04-30) | no 0 | 0 |  |
+| Zen Planner (Daxko) | yes | 3 | no | unverified (throttled run) | - | no | 200 / 14 (2023-08-25) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> · Martial arts schools (NAICS 611620)
+> - **Incumbent jobs:** family memberships and billing, attendance, belt/rank tracking and testing, trial-class lead follow-up, waivers for minors. Tools: Kicksite, Spark Membership, Zen Planner (Daxko), Gymdesk, PushPress.
+> - **Agent wedge:** a trial-to-enrollment agent that answers web/Facebook leads, books the intro class, sends reminders and converts to membership; incumbents charge $49-$249/mo and Spark's whole pitch is lead automation, so target the schools on cheaper tools.
+> - **Weakest evidence:** IBISWorld count (76,364) includes sole proprietors; Spark Membership headcount not found; ATA-affiliated schools' tooling not verified.
+> - **Searches (7):** NAICS 611620 count; best martial arts software 2026; Kicksite/Spark/Zen Planner pricing; martial arts concentration/franchise; Kicksite company; Spark company (twice); plus gap-fill Zen Planner/Daxko, Gymdesk.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (school owner / head instructor). Public-price incumbents: 4. Gatekeeper: no (largest franchise network ~1.8% share; Premier Martial Arts / Tiger-Rock franchises are small minorities; no software mandate found). Top-4 share: highly fragmented; no company >5%.
+
+**Evidence URLs (23):**
+  - https://gymdesk.com/blog/martial-arts-industry-statistics
+  - https://gymdesk.com/blog/best-martial-arts-management-software
+  - https://gymdesk.com/originals/gymdesk-founder-story-eran-galperin
+  - https://kicksite.com/
+  - https://tracxn.com/d/companies/kicksite/__U4o3NqAPU8ZYut-X_QmgMTCQVmnFeqOouAaSRXHDM9Q
+  - https://www.pushpress.com/blog/best-martial-arts-management-software
+  - https://sparkmembership.com/martial-arts-software/
+  - https://zenplanner.com/pricing/
+  - https://www.prnewswire.com/news-releases/daxko-acquires-zen-planner-to-become-preeminent-software-provider-in-member-based-health--wellness-industry-300426349.html
+  - https://www.wodify.com/blog/pricing-guide-martial-arts-software
+  - https://www.dojostack.io/vs/spark-membership-vs-zen-planner
+  - https://www.premiermartialartsfranchise.com/
+  - https://www.ibisworld.com/united-states/industry/martial-arts-studios/4187/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Gymdesk&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR16251560278402007041?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Kicksite&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR15593204842045112321?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=231554983551166
+  - https://adstransparency.google.com/advertiser/AR01020303823723298817?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Spark%20Membership&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR05337555213941211137?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Zen%20Planner&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR08493127197379264513?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 39. Lawn fertilization & weed control route businesses  (NAICS 561730)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 4/5.
@@ -1626,7 +2967,7 @@ Known limits, stated plainly:
 
 ---
 
-## 22. Low-voltage, alarm & security camera installers  (NAICS 238210)
+## 40. Low-voltage, alarm & security camera installers  (NAICS 238210)
 
 - **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 3/5.
@@ -1690,7 +3031,7 @@ Known limits, stated plainly:
 
 ---
 
-## 23. Gutter installation & cleaning contractors  (NAICS 238170)
+## 41. Gutter installation & cleaning contractors  (NAICS 238170)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 6.5 (mean of best two verified tools) + fragmentation 2/5.
@@ -1750,7 +3091,419 @@ Known limits, stated plainly:
 
 ---
 
-## 24. Small fleet trucking companies (1-20 trucks)  (NAICS 484121)
+## 42. Campgrounds & RV parks  (NAICS 721211)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice3).
+- **Method score:** 8.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Reservations, site maps, seasonal contracts.
+- **US establishments:** 7,338 companies verified active (NAICS 721211) (unverified, https://siccode.com/naics-code/721211/rv-recreational-vehicle-parks-campgrounds); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Firefly Reservations | yes | 4 | no | unverified (throttled run) | Firefly Reservations | no | 40 / 9 (2023-11-06) | yes 12 | 0 |  |
+| Campspot | yes | 3 | no | unverified (throttled run) | - | no | 6 / 4 (2024-06-12) | no 0 | 0 |  |
+| Bonfire | yes | 2 | no | unverified (throttled run) | - | no | 4 / 0 (2026-04-01) | no 0 | 2 |  |
+| CampLife | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Campground Master | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| GraceSoft | yes | 0 | no | unverified (throttled run) | Grace Soft | no | 10 / 2 (2021-10-25) | no 0 | 0 |  |
+| Keepr | yes | 0 | no | unverified (throttled run) | - | no | 1 / 1 (2026-06-02) | no 0 | 0 |  |
+| Premier Campground Management (PCM) | yes |  | unverified | unverified (throttled run) | Premier Campground Management | no | 0 / 0 (-) | no 0 | 0 |  |
+| ReservationKey | yes | 0 | no | unverified (throttled run) | - | no | 23 / 2 (2025-04-14) | no 0 | 0 |  |
+| RoverPass | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Campgrounds & RV parks (10 searches)
+> - Incumbent jobs: site map and online reservations, seasonal/monthly billing, dynamic pricing, POS/store, marketplace distribution, check-in (Campspot, CampLife, Firefly, RoverPass, Bonfire).
+> - AaaS wedge: phone/text reservation and cancellation-refill agent for independent parks (per-reservation incumbents at $2-$3.50 mean a per-booking agent fee is native to the category).
+> - Weakest evidence: Firefly headcount result was clearly misattributed (501-1,000) and left unverified; Bonfire pricing amounts not surfaced; Campspot price via third-party comparison page.
+> - Searches: NAICS count; reservation software; best campground software pricing; KOA K2; IBISWorld concentration; Firefly; Campspot; CampLife; Bonfire; RoverPass; Firefly headcount retry.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (88% of RV parks independently owned; per-reservation pricing). Public-price incumbents: 4. Gatekeeper: no (franchise slice only: KOA). Top-4 share: low concentration; largest Equity Lifestyle Properties (IBISWorld Campgrounds & RV Parks).
+
+**Evidence URLs (41):**
+  - https://siccode.com/naics-code/721211/rv-recreational-vehicle-parks-campgrounds
+  - https://www.letsbonfire.com/
+  - https://www.letsbonfire.com/bonfire-pricing
+  - https://gust.com/companies/letsbonfire
+  - https://software.camplife.com/
+  - https://software.camplife.com/pricing
+  - https://leadiq.com/c/camplife/5a1dcf0a2300005b00d68dec
+  - https://campgroundmaster.com/
+  - https://www.guideflow.com/blog/campground-management-software
+  - https://keeprstay.com/compare/pricing
+  - https://tracxn.com/d/companies/campspot/__xLqQUy-QmNW1hSGL9TC2UiZCYv7AfKURta3243ZEM_s
+  - https://www.crunchbase.com/organization/campspot
+  - https://fireflyreservations.com/
+  - https://fireflyreservations.com/blog/campground-software-comparison
+  - https://www.linkedin.com/company/fireflyreservations
+  - https://www.gracesoft.com/campground-management-software
+  - https://keeprstay.com/guides/campground-software
+  - https://www.premiercampground.com/
+  - https://www.reservationkey.com/reservation-software/campgrounds
+  - https://software.roverpass.com/campground-reservation-software
+  - https://software.roverpass.com/
+  - https://tracxn.com/d/companies/roverpass/__QpiSrUS8oDllHLS_Uu05zzXRbZ4ABeudFSsQirO3XIU
+  - https://www.crunchbase.com/organization/roverpass
+  - https://www.koapressroom.com/press/koa-announces-all-locations-now-on-k2-reservation-system/
+  - https://www.ibisworld.com/united-states/market-size/campgrounds-rv-parks/1667/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Bonfire&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09711540854396551169?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CampLife&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Campground%20Master&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Campspot&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09456135143761641473?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102121741619224
+  - https://adstransparency.google.com/advertiser/AR15663179273865265153?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=429603020241104
+  - https://adstransparency.google.com/advertiser/AR03803989277788864513?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Keepr&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR07994516386627977217?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=508199629039063
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ReservationKey&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR09518532583256752129?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=RoverPass&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 43. Photographers & photo booth operators  (NAICS 541921)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice2).
+- **Method score:** 8.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Booking, contracts, galleries, invoicing.
+- **US establishments:** 10,622 establishments (portrait studios, NAICS 541921); 32,491 employees. IBISWorld Photography: 255k businesses (incl. nonemployers) (2020, https://naicslist.com/naics/541921); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| HoneyBook | yes | 4 | no | unverified (throttled run) | - | no | 40 / 37 (2022-10-14) | yes 9 | 0 |  |
+| Check Cherry | yes | 3 | no | unverified (throttled run) | Check Cherry | no | 82 / 3 (2021-10-25) | no 0 | 0 |  |
+| Studio Ninja (Captura / ImageQuix) | yes | 3 | no | unverified (throttled run) | Studio Ninja | no | 34 / 4 (2024-10-14) | no 0 | 0 |  |
+| BoothBook | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Dubsado | yes | 0 | no | unverified (throttled run) | Dubsado | no | 0 / 0 (-) | no 0 | 0 |  |
+| Sprout Studio | yes | 0 | no | unverified (throttled run) | - | no | 15 / 0 (2025-08-04) | no 0 | 0 |  |
+| Tave Studio Manager (now VSCO Workspace) | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Photographers & photo booth operators (NAICS 541921)
+> - Incumbent jobs: HoneyBook, Sprout Studio, Studio Ninja, Tave/VSCO Workspace, Dubsado (leads, proposals, contracts, invoices, galleries); Check Cherry, BoothBook (photo booth quotes, backdrop/template selection, equipment checklists, event-day staffing).
+> - Agent wedge: inquiry-to-booking agent (answers inquiries within minutes, sends the proposal/contract, chases signature and deposit, schedules the pre-event call) for solo operators; $22-$39/mo incumbents mean the agent must be priced per booked event.
+> - Weakest evidence: HoneyBook starting price conflicts ($19 vs $36); Studio Ninja headcount unknown; establishment count covers portrait studios only (255k IBISWorld figure includes nonemployers).
+> - Searches (9): NAICS count; photographer CRM pricing; photo booth software; Sprout founded; Studio Ninja acquired; Check Cherry founded; BoothBook pricing; IBISWorld concentration; HoneyBook funding; Tave pricing.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (solo photographer / booth operator). Public-price incumbents: 6. Gatekeeper: no. Top-4 share: low market share concentration; largest is Shutterfly (IBISWorld Photography).
+
+**Evidence URLs (28):**
+  - https://naicslist.com/naics/541921
+  - https://boothbook.com/
+  - https://boothbook.com/pricing
+  - https://www.checkcherry.com/photo-booth-crm
+  - https://tracxn.com/d/companies/check-cherry/__ju-1JI5C0CR3Qod9sAKiq-X886_iMB2PrusBZHhifFI
+  - https://blog.bloom.io/best-crm-photographers/
+  - https://pitchbook.com/profiles/company/91077-49
+  - https://getsproutstudio.com/
+  - https://getsproutstudio.com/sprout-studioninja/
+  - https://www.crunchbase.com/organization/sprout-studio
+  - https://ca.linkedin.com/company/getsproutstudio
+  - https://www.studioninja.co/about-us/
+  - https://www.capterra.com/p/143855/Studio-Ninja
+  - https://www.studioninja.co/imagequix-acquires-studio-ninja/
+  - https://www.capterra.com/p/92909/Tave-Studio-Manager/pricing/
+  - https://www.slrlounge.com/inside-vscos-acquisition-of-tave-a-game-changer-for-creatives/
+  - https://www.ibisworld.com/united-states/industry/photography/1443/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=BoothBook&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=561524994043941
+  - https://adstransparency.google.com/advertiser/AR04703870310250708993?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=872925479412159
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=HoneyBook&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR04617303973089509377?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Sprout%20Studio&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR04393460911961014273?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1617599238481289
+  - https://adstransparency.google.com/advertiser/AR07722638102023372801?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Tave%20Studio%20Manager&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 44. Artificial turf & sports court installers  (NAICS 238990)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice1).
+- **Method score:** 8.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Site measure, material orders, crew scheduling.
+- **US establishments:** 37,952 establishments (37,500 businesses) (2020, https://siccode.com/naics-code/238990/specialty-trade-contractors); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ArcSite | yes | 4 | no | 9 / 0 / 0 (2026-08-06) | ArcSite | no | 15 / 5 (2022-09-15) | yes 9 | 0 |  |
+| Moasure (Landscape Designer TURF) | yes | 3 | no | 0 / 0 / 0 (-) | Moasure | unverified (host blocked) | 87 / 37 (2024-12-20) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| SiteRecon | yes | 1 | no | 0 / 0 / 0 (-) | SiteRecon | unverified (host blocked) | 0 / 0 (-) | yes 8 | 0 |  |
+| TurfEstimator | yes | 1 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 0 / 0 (-) | yes 4 | 0 |  |
+| MeasureSquare | yes | 0 | no | 0 / 0 / 0 (-) | Measure Square | no | 0 / 0 (-) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> · Artificial turf & sports court installers (NAICS 238990)
+> - **Incumbent jobs:** measure the yard (satellite/CAD/motion device), produce a per-square-foot quote with cut plan and material takeoff, send contract, collect deposit, schedule crew. Tools: TurfEstimator, QuoteIQ (turf landing), ArcSite, MeasureSquare, Moasure, SiteRecon.
+> - **Agent wedge:** an intake-to-quote agent that takes a homeowner's address and photos, returns a priced turf proposal with waste-optimised roll layout and follows up until signed; owners currently pay $30-$200/mo across two or three tools to do this by hand.
+> - **Weakest evidence:** no turf-specific establishment count (NAICS 238990 is a catch-all); US concentration statement is borrowed from Australia and from a 2016 sports-field S-1; TurfEstimator has no company facts at all.
+> - **Searches (9):** NAICS 238990 count; turf installer software/CRM; best turf software 2026; sports court installer software; TurfEstimator pricing; QuoteIQ pricing/founded; ArcSite pricing/crunchbase; turf industry fragmentation; turf franchise/STC gatekeeper. Plus gap-fill: MeasureSquare pricing, Moasure, TurfEstimator company.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (turf installation contractor). Public-price incumbents: 3. Gatekeeper: no (STC CSTI certification is voluntary; SYNLawn dealer program covers only its dealers; no software mandate found). Top-4 share: unverified (no US top-4 figure; 'no company >5%' in AU and in US sports-field construction).
+
+**Evidence URLs (27):**
+  - https://siccode.com/naics-code/238990/specialty-trade-contractors
+  - https://www.arcsite.com/industries/artificial-turf
+  - https://www.arcsite.com/pricing
+  - https://measuresquare.com/trade/artificial-turf/
+  - https://measuresquare.com/pricing/
+  - https://leadiq.com/c/measure-square-corp/5a1d9aa52300005c0089d109
+  - https://www.linkedin.com/company/measure-square
+  - https://www.moasure.com/pages/artificial-turf-software
+  - https://www.moasure.com/pages/partners-landscape-designer-turf
+  - https://www.moasure.com/
+  - https://myquoteiq.com/artificial-turf-installation-companies-crm/
+  - https://myquoteiq.com/pricing/
+  - https://myquoteiq.com/about-us/
+  - https://www.turfestimator.com/
+  - https://www.syntheticturfcouncil.org/mpage/CSTI
+  - https://www.synlawn.com/installation/
+  - https://www.ibisworld.com/australia/industry/artificial-grass-turf-installation/5561/
+  - https://www.sec.gov/Archives/edgar/data/0001539551/000121390016016481/fs12016_sportsfieldhold.htm
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=710368322419423
+  - https://adstransparency.google.com/advertiser/AR13909098755979739137?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=276493002487597
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=975923222465261
+  - https://adstransparency.google.com/advertiser/AR16128924668450045953?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
+  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=105657674519848
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=TurfEstimator&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 45. Environmental testing labs (asbestos, lead, water)  (NAICS 541380)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice6).
+- **Method score:** 8.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Chain-of-custody, accreditation paperwork, report turnaround.
+- **US establishments:** 4,130 active companies (NAICS 541380) (unverified, https://siccode.com/naics-code/541380/testing-laboratories-services); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| QBench | yes | 4 | no | 0 / 0 / 0 (-) | - | unverified | 80 / 5 (2025-04-04) | yes 12 | 0 |  |
+| Confience LIMS (QSI + ATL merger; formerly Accelerated Technology Laboratories) | yes | 3 | no | 0 / 0 / 0 (-) | Confience | unverified | 79 / 16 (2024-08-06) | no 0 | 0 |  |
+| BTSOFT (ALPACA LIMS Asbestos edition / LabMaster) | yes | 0 | no | 0 / 0 / 0 (-) | BTSoft | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| BlazeLIMS (Blaze Systems) | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| Clinisys Environmental Laboratory | yes | 0 | no | 0 / 0 / 0 (-) | Clinisys | unverified | 10 / 2 (2024-09-12) | no 0 | 0 |  |
+| CloudLIMS | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| LabLynx Environmental LIMS | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| Labbit | yes | 0 | no | 0 / 0 / 0 (-) | Labbit | unverified | 12 / 1 (2024-01-25) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> — Environmental testing labs (asbestos, lead, water) · NAICS 541380 · 9 searches
+> - **Incumbent jobs:** sample login and chain of custody, holding-time tracking, PLM/PCM/TEM asbestos worksheets, NVLAP/ELAP-compliant report generation and e-signature, EDD exports (CloudLIMS, QBench, BlazeLIMS, Confience, BTSOFT).
+> - **Wedge:** an agent that ingests chain-of-custody forms and instrument output, drafts the accredited report, and chases clients on holding-time deadlines. Small asbestos/lead labs still run these steps manually (BTSOFT and Confience sell packages for exactly this).
+> - **Weakest evidence:** establishment count is whole-NAICS (all testing labs, 4,130 active companies per siccode), no environmental-only count. CloudLIMS and BlazeLIMS prices come from third-party pricing guides that cite the vendor pages. Confience headcount not found.
+> - **Fragmentation 5/5:** three public prices, low concentration (IBISWorld), no software gatekeeper.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: lab owner / lab director (small independent labs; BlazeLIMS markets 'LIMS for small labs'). Public-price incumbents: 3. Gatekeeper: none found (NVLAP/NELAP accreditation governs methods and reports, no software vendor mandated). Top-4 share: low concentration (largest Intertek; consolidation rising).
+
+**Evidence URLs (30):**
+  - https://siccode.com/naics-code/541380/testing-laboratories-services
+  - https://btsoft.com/asbestos-laboratory/
+  - https://www.linkedin.com/company/btsofttech
+  - https://www.blazesystems.com/lims-for-environmental-laboratories/
+  - https://www.blazesystems.com/blazelims-prices/
+  - https://www.clinisys.com/us/en/clinisys-laboratory-solution/clinisys-environmental-laboratory/
+  - https://cloudlims.com/the-5-best-lims-for-environmental-testing-labs-in-2026/
+  - https://cloudlims.com/lims-software-pricing/
+  - https://www.confience.io/industries/industrial-hygiene-lims
+  - https://www.crunchbase.com/organization/accelerated-technology-laboratories
+  - https://www.linkedin.com/company/confience-software/
+  - https://www.lablynx.com/industries/environmental-lims/
+  - https://www.labbit.com/industries/environmental-testing
+  - https://qbench.com/qbench-lims-for-environmental-testing-labs
+  - https://qbench.com/pricing
+  - https://leadiq.com/c/qbench/5ec2c000102cc03532816d81
+  - https://www.crunchbase.com/organization/qbench
+  - https://www.ibisworld.com/united-states/number-of-businesses/laboratory-testing-services/1408/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=180275318671005
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=BlazeLIMS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101684208773528
+  - https://adstransparency.google.com/advertiser/AR16215164278859104257?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CloudLIMS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=115230449244
+  - https://adstransparency.google.com/advertiser/AR13336094696435351553?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=LabLynx%20Environmental%20LIMS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=672121836176284
+  - https://adstransparency.google.com/advertiser/AR05468407096330420225?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=QBench&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR13583170317999669249?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 46. Private investigators  (NAICS 561611)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice3).
+- **Method score:** 8.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** none.
+- **Boring test:** 3/3 — Case files, surveillance logs, billing by hour.
+- **US establishments:** 5,357 companies verified active (NAICS 561611) (unverified, https://siccode.com/naics-code/561611/investigation-services); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Kaseware | yes | 4 | no | 0 / 0 / 0 (-) | Kaseware | unverified (host blocked) | 24 / 9 (2022-01-28) | yes 10 | 0 |  |
+| Tracers | yes | 3 | no | 0 / 0 / 0 (-) | Tracers | unverified (host blocked) | 27 / 15 (2022-08-31) | no 0 | 0 |  |
+| Trackops | yes | 3 | no | 0 / 0 / 0 (-) | Track Ops Music | unverified | 9 / 9 (2021-10-25) | no 0 | 0 |  |
+| CROSStrax | yes | 1 | no | 0 / 0 / 0 (-) | CrossTrax Studio | unverified | 0 / 0 (-) | yes 6 | 0 |  |
+| Case Jacket | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| CaseFlow Investigator | yes | 0 | no | 0 / 0 / 0 (-) | Caseflow | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| Deelo | yes | 0 | no | 0 / 0 / 0 (-) | Deelo | no | 2 / 0 (2026-03-12) | no 0 | 0 |  |
+| THERMS | yes | 0 | no | 0 / 0 / 0 (-) | Therms | unverified (host blocked) | 2 / 0 (2026-03-31) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Private investigators (10 searches)
+> - Incumbent jobs: case file/evidence storage, investigator assignment and dispatch, time/mileage/expense capture, report writing, client portal and invoicing (CROSStrax, Trackops, THERMS, Case Jacket).
+> - AaaS wedge: surveillance-report drafting and billable-time reconciliation agent (turn field notes, GPS logs and photos into the client report and invoice); prices anchor at $35-$45/mo so the agent must replace admin hours, not software.
+> - Weakest evidence: establishment count conflicts (5,357 siccode vs 10,290 unattributed); Trackops pricing amounts not surfaced; top-4 share comes from statistic aggregators citing IBISWorld rather than IBISWorld directly.
+> - Searches: NAICS count; PI case management; best PI software pricing; PI CRM/billing; concentration; CROSStrax pricing; CROSStrax company; Trackops; THERMS; NCISS/NALI; siccode recount.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (solo PIs and 3-15 investigator agencies; CROSStrax Entry tier = 1 admin + 2 investigators). Public-price incumbents: 3. Gatekeeper: no. Top-4 share: top 4 <15% (2023, via zipdo); 85% of agencies <10 employees (IBISWorld 2022 via gitnux).
+
+**Evidence URLs (31):**
+  - https://siccode.com/naics-code/561611/investigation-services
+  - https://www.crosstrax.co/
+  - https://www.crosstrax.co/pricing/
+  - https://www.crunchbase.com/organization/crosstrax
+  - https://casejacket.com/
+  - https://www.caseflowinvestigator.com/
+  - https://www.deelo.ai/software/invoicing/private-investigators
+  - https://www.kaseware.com/
+  - https://www.therms.io/blog/what-software-do-private-investigators-use/
+  - https://www.therms.io/pricing/
+  - https://www.tracers.com/investigators/
+  - https://www.trackops.com/
+  - https://www.trackops.com/pricing.html
+  - https://www.linkedin.com/company/trackops-llc
+  - https://www.crunchbase.com/organization/trackops
+  - https://www.guideflow.com/blog/private-investigator-software)
+  - https://www.nciss.org/membership-and-benefits
+  - https://zipdo.co/private-investigation-industry-statistics/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=127284774044240
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Case%20Jacket&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1185866191273600
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1223424464197303
+  - https://adstransparency.google.com/advertiser/AR07129259928807538689?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=230515793953917
+  - https://adstransparency.google.com/advertiser/AR13035375465919938561?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=339060543691766
+  - https://adstransparency.google.com/advertiser/AR11651322564021583873?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=467279653366393
+  - https://adstransparency.google.com/advertiser/AR10984593607884800001?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=559324377552199
+  - https://adstransparency.google.com/advertiser/AR07177257622859415553?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 47. Mortgage brokers  (NAICS 522310)
+
+- **Status:** audited, not passing. Research: searched (follow-up slice2).
+- **Method score:** 8.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 5/5.
+- **Passing tools:** BNTouch.
+- **Boring test:** 3/3 — Document collection, disclosures, lender submissions.
+- **US establishments:** unverified — unverified; share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| BNTouch | yes | 5 | yes | unverified (throttled run) | Bntouch | no | 61 / 10 (2024-11-23) | no 0 | 2 |  |
+| LendingPad | yes | 2 | no | 0 / 0 / 0 (-) | LendingPad | unverified (host blocked) | 8 / 0 (2022-04-01) | no 0 | 2 |  |
+| ARIVE | yes | 0 | no | unverified (throttled run) | ARIVE | no | 0 / 0 (-) | no 0 | 0 |  |
+| Bonzo | yes | 0 | no | unverified (throttled run) | BONZO | no | 0 / 0 (-) | no 0 | 0 |  |
+| ICE Encompass | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Jungo (Salesforce) | yes |  | unverified | unverified (throttled run) | Jungo | no | 0 / 0 (-) | no 0 | 0 |  |
+| Shape | yes | 0 | no | unverified (throttled run) | SHAPE | no | 5 / 2 (2024-08-01) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Mortgage brokers (NAICS 522310)
+> - Incumbent jobs: ARIVE and LendingPad (LOS: application, pricing across wholesale lenders, pipeline, disclosures); BNTouch, Shape, Bonzo, Jungo (CRM: lead follow-up, drip, referral-partner marketing).
+> - Agent wedge: a loan-officer assistant that works the CRM (borrower/realtor follow-ups, document chasing, status updates) on top of ARIVE/LendingPad; per-user CRM pricing of $95-$165 is the ceiling.
+> - Weakest evidence: no US establishment count found for NAICS 522310; concentration statement is for the online-broker segment only; ARIVE price is third-party.
+> - Searches (9): NAICS count; best broker LOS 2026; broker CRM pricing; IBISWorld concentration; ARIVE founded/funding; LendingPad; AIME/gatekeeper; NMLS count; BNTouch founded.
+
+**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (broker-owner / branch manager). Public-price incumbents: 5. Gatekeeper: no (AIME partners with ARIVE/Lender Price as member benefits; wholesale lenders run their own portals but do not dictate the broker's LOS/CRM). Top-4 share: no company >5% (IBISWorld Online Mortgage Brokers segment).
+
+**Evidence URLs (23):**
+  - https://www.arive.com/
+  - https://www.arive.com/arive-faq
+  - https://pitchbook.com/profiles/company/458516-08
+  - https://bntouch.com/mortgage-crm/
+  - https://bntouch.com/team-mortgage-crm/
+  - https://tracxn.com/d/companies/bntouch/__AEanYgLw_pmf6ZeULNqBm6_CQ1rBtRaeDhGdiYyfni0
+  - https://www.linkedin.com/company/bntouch-inc
+  - https://bntouch.com/mortgage-blog/mortgage-crm-pricing-comparison-2026/
+  - https://www.saasworthy.com/product/lendingpad/pricing
+  - https://getlatka.com/companies/lendingpad.com#funding
+  - https://setshape.com/blog/best-mortgage-crm-for-loan-officers
+  - https://setshape.com/blog/top-loan-origination-systems
+  - https://www.ibisworld.com/united-states/market-research-reports/online-mortgage-brokers-industry/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=709153719445285
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=899295179942897
+  - https://adstransparency.google.com/advertiser/AR01207898185507274753?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=790234174654163
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ICE%20Encompass&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=72952356630
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=434737586893402
+  - https://adstransparency.google.com/advertiser/AR15624933732555685889?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=17110490676
+  - https://adstransparency.google.com/advertiser/AR03913159443713359873?region=US
+
+**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
+
+---
+
+## 48. Small fleet trucking companies (1-20 trucks)  (NAICS 484121)
 
 - **Status:** audited, not passing. Research: searched (follow-up batch 17, 2026-09-17).
 - **Method score:** 8.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 4/5.
@@ -1762,14 +3515,14 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| TruckingOffice | yes | 6 | yes | 0 / 0 / 0 (-) | TruckingOffice |  | 57 / 18 (2021-10-25) | yes 11 | 2 |  |
-| Motive Compliance Hub | yes | 3 | no | 0 / 0 / 0 (-) | Motive |  | 500 / 24 (2023-06-07) | no 0 | 0 |  |
-| Truckbase | yes | 2 | no | 0 / 0 / 0 (-) | Truckbase |  | 0 / 0 (-) | no 0 | 2 |  |
-| AscendTMS | yes | 1 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | yes 11 | 0 |  |
-| Axele | yes | 0 | no | 0 / 0 / 0 (-) | Axele |  | 0 / 0 (-) | no 0 | 0 |  |
-| Hawk Lane | yes | 0 | no | 0 / 0 / 0 (-) | Hawk Lane Tech |  | 1 / 0 (2026-08-04) | no 0 | 0 |  |
-| TruckLogics | yes | 0 | no | 0 / 0 / 0 (-) | TruckLogics |  | 0 / 0 (-) | no 0 | 0 |  |
-| Truckpedia | yes | 0 | no | 0 / 0 / 0 (-) | Truckpedia |  | 7 / 0 (2024-07-23) | no 0 | 0 |  |
+| TruckingOffice | yes | 6 | yes | 0 / 0 / 0 (-) | TruckingOffice | no | 57 / 18 (2021-10-25) | yes 11 | 2 |  |
+| Motive Compliance Hub | yes | 3 | no | 0 / 0 / 0 (-) | Motive | no | 500 / 24 (2023-06-07) | no 0 | 0 |  |
+| Truckbase | yes | 2 | no | 0 / 0 / 0 (-) | Truckbase | no | 0 / 0 (-) | no 0 | 2 |  |
+| AscendTMS | yes | 1 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | yes 11 | 0 |  |
+| Axele | yes | 0 | no | 0 / 0 / 0 (-) | Axele | no | 0 / 0 (-) | no 0 | 0 |  |
+| Hawk Lane | yes | 0 | no | 0 / 0 / 0 (-) | Hawk Lane Tech | no | 1 / 0 (2026-08-04) | no 0 | 0 |  |
+| TruckLogics | yes | 0 | no | 0 / 0 / 0 (-) | TruckLogics | no | 0 / 0 (-) | no 0 | 0 |  |
+| Truckpedia | yes | 0 | no | 0 / 0 / 0 (-) | Truckpedia | no | 7 / 0 (2024-07-23) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1828,1638 +3581,138 @@ Known limits, stated plainly:
 
 ---
 
-## 25. Mosquito & bird control services  (NAICS 561710)
-
-- **Status:** audited, not passing. Research: searched (follow-up slice3).
-- **Method score:** 8.0 = ad score 3.0 (mean of best two verified tools) + fragmentation 5/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Seasonal route programs, application logs, renewals.
-- **US establishments:** 18,490 companies verified active (NAICS 561710, all pest control) (2025, https://siccode.com/naics-code/561710/exterminating-pest-control-services); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Briostack | yes | 3 | no | 0 / 0 / 0 (-) | Briostack | no | 59 / 28 (2023-04-26) | no 0 | 0 |  |
-| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Deelo | yes | 0 | no | 0 / 0 / 0 (-) | Deelo | no | 2 / 0 (2026-03-12) | no 0 | 0 |  |
-| Smart Service | yes | 0 | no | 0 / 0 / 0 (-) | Smart Service | no | 0 / 0 (-) | no 0 | 0 | horizontal |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Mosquito & bird control services (11 searches)
-> - Incumbent jobs: recurring-visit scheduling and route re-sequencing around weather, seasonal subscription renewal/billing, chemical/material tracking, SMS reminders, customer portal (GorillaDesk, Pocomos, FieldRoutes, PestPac); wildlife side adds trap/camera monitoring, WILD reports and exclusion warranty inspections (WildPipe).
-> - AaaS wedge: seasonal re-sign and weather-bump rescheduling agent that renews subscriptions, re-routes the day and texts customers, sitting on top of a $49/route tool.
-> - Weakest evidence: establishment count is the whole pest-control NAICS, not the mosquito/bird subset; GorillaDesk plan prices came from a Help Center/aggregator result set rather than a live vendor page.
-> - Searches: NAICS count; mosquito software; best pest software pricing; bird/wildlife CRM; IBISWorld concentration; GorillaDesk pricing; GorillaDesk company; WildPipe; Pocomos; Mosquito Joe/Squad franchise software; Briostack.
-
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
-
-**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (1-2 location mosquito/wildlife firms; vendors price per route/van). Public-price incumbents: 4. Gatekeeper: no (franchise slice only). Top-4 share: low concentration; largest Rentokil (no top-4 figure).
-
-**Evidence URLs (35):**
-  - https://siccode.com/naics-code/561710/exterminating-pest-control-services
-  - https://www.briostack.com/pest-control-software
-  - https://www.softwareadvice.com/field-service/briostack-profile/
-  - https://www.briostack.com/brand-2
-  - https://www.linkedin.com/company/briostack
-  - https://www.deelo.ai/software/crm/pest-control-wildlife
-  - https://www.fieldroutes.com/solutions/pest-control-software
-  - https://gorilladesk.com/industries/mosquito-control-software/
-  - https://intercom.help/gorilladesk/en/articles/431660-plans-pricing
-  - https://www.zoominfo.com/c/gorilladesk-llc/363455027
-  - https://www.crunchbase.com/organization/gorilladesk
-  - https://www.linkedin.com/company/gorilladesk
-  - https://www.pestpac.com/blog/best-pest-control-software-tools-for-scaling-your-business
-  - https://pocomos.com/blog/top-software-for-mosquito-control-companies/
-  - https://pocomos.com/blog/how-much-does-pest-control-software-cost/
-  - https://rocketreach.co/pocomos-pest-control-software-profile_b5ec8df2f42e7c0e
-  - https://www.linkedin.com/company/pocomos
-  - https://myquoteiq.com/top-10-mosquito-control-estimating-software-in-2026/
-  - https://myquoteiq.com/best-software-for-pest-control-businesses/
-  - https://www.smartservice.com/industry/pest-control-software
-  - https://wildpipe.com/wildlife-control-crm/
-  - https://wildpipe.com/index.php/wildpipe-plans
-  - https://www.zoominfo.com/c/wildpipe-llc/348313118
-  - http://wildpipe.com/index.php/about-us
-  - https://www.franchising.com/news/20121231_mosquito_joe_chooses_franconnect_as_official_franc.html
-  - https://www.ibisworld.com/united-states/industry/pest-control/1495/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=113149019284976
-  - https://adstransparency.google.com/advertiser/AR15449119615661113345?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1223424464197303
-  - https://adstransparency.google.com/advertiser/AR07129259928807538689?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=387445444655938
-  - https://adstransparency.google.com/advertiser/AR10520026520397807617?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=119199734449082
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 26. Artificial turf & sports court installers  (NAICS 238990)
-
-- **Status:** audited, not passing. Research: searched (follow-up slice1).
-- **Method score:** 8.0 = ad score 3.0 (mean of best two verified tools) + fragmentation 5/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Site measure, material orders, crew scheduling.
-- **US establishments:** 37,952 establishments (37,500 businesses) (2020, https://siccode.com/naics-code/238990/specialty-trade-contractors); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| ArcSite | yes | 4 | no | 9 / 0 / 0 (2026-08-06) | ArcSite | no | 15 / 5 (2022-09-15) | yes 9 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| MeasureSquare | yes | 0 | no | 0 / 0 / 0 (-) | Measure Square | no | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> · Artificial turf & sports court installers (NAICS 238990)
-> - **Incumbent jobs:** measure the yard (satellite/CAD/motion device), produce a per-square-foot quote with cut plan and material takeoff, send contract, collect deposit, schedule crew. Tools: TurfEstimator, QuoteIQ (turf landing), ArcSite, MeasureSquare, Moasure, SiteRecon.
-> - **Agent wedge:** an intake-to-quote agent that takes a homeowner's address and photos, returns a priced turf proposal with waste-optimised roll layout and follows up until signed; owners currently pay $30-$200/mo across two or three tools to do this by hand.
-> - **Weakest evidence:** no turf-specific establishment count (NAICS 238990 is a catch-all); US concentration statement is borrowed from Australia and from a 2016 sports-field S-1; TurfEstimator has no company facts at all.
-> - **Searches (9):** NAICS 238990 count; turf installer software/CRM; best turf software 2026; sports court installer software; TurfEstimator pricing; QuoteIQ pricing/founded; ArcSite pricing/crunchbase; turf industry fragmentation; turf franchise/STC gatekeeper. Plus gap-fill: MeasureSquare pricing, Moasure, TurfEstimator company.
-
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
-
-**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (turf installation contractor). Public-price incumbents: 3. Gatekeeper: no (STC CSTI certification is voluntary; SYNLawn dealer program covers only its dealers; no software mandate found). Top-4 share: unverified (no US top-4 figure; 'no company >5%' in AU and in US sports-field construction).
-
-**Evidence URLs (23):**
-  - https://siccode.com/naics-code/238990/specialty-trade-contractors
-  - https://www.arcsite.com/industries/artificial-turf
-  - https://www.arcsite.com/pricing
-  - https://measuresquare.com/trade/artificial-turf/
-  - https://measuresquare.com/pricing/
-  - https://leadiq.com/c/measure-square-corp/5a1d9aa52300005c0089d109
-  - https://www.linkedin.com/company/measure-square
-  - https://www.moasure.com/pages/artificial-turf-software
-  - https://www.moasure.com/pages/partners-landscape-designer-turf
-  - https://www.moasure.com/
-  - https://myquoteiq.com/artificial-turf-installation-companies-crm/
-  - https://myquoteiq.com/pricing/
-  - https://myquoteiq.com/about-us/
-  - https://www.turfestimator.com/
-  - https://www.syntheticturfcouncil.org/mpage/CSTI
-  - https://www.synlawn.com/installation/
-  - https://www.ibisworld.com/australia/industry/artificial-grass-turf-installation/5561/
-  - https://www.sec.gov/Archives/edgar/data/0001539551/000121390016016481/fs12016_sportsfieldhold.htm
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=710368322419423
-  - https://adstransparency.google.com/advertiser/AR13909098755979739137?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=276493002487597
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 27. Non-emergency medical transportation providers  (NAICS 485991)
-
-- **Status:** audited, not passing. Research: searched (follow-up batch 17, 2026-09-17).
-- **Method score:** 8.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** RouteGenie.
-- **Boring test:** 3/3 — Trip scheduling, Medicaid broker billing, driver credentialing.
-- **US establishments:** over 10,000 NEMT companies (unverified, https://elitemedfinancials.com/nemt-industry-statistics/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| RouteGenie | yes | 5 | yes | 0 / 0 / 0 (-) | RouteGenie |  | 68 / 36 (2023-05-09) | no 0 | 2 |  |
-| Bambi | yes | 3 | no | 0 / 0 / 0 (-) | Bambi |  | 1 / 0 (2024-05-04) | yes 12 | 2 |  |
-| MediRoutes | yes | 1 | no | 0 / 0 / 0 (-) | MediRoutes |  | 63 / 0 (2023-09-08) | yes 2 | 0 |  |
-| NEMT Cloud Dispatch | yes | 0 | no | 0 / 0 / 0 (-) | NEMT Cloud Dispatch |  | 3 / 0 (2025-10-03) | no 0 | 0 |  |
-| RoutingBox | yes | 0 | no | 0 / 0 / 0 (-) | RoutingBox |  | 3 / 1 (2022-07-01) | no 0 | 0 |  |
-| Tobi Cloud | yes | 0 | no | 0 / 0 / 0 (-) | TobiCloud |  | 0 / 0 (-) | no 0 | 0 |  |
-| TripMaster (CTS Software) | yes | 0 | no | 0 / 0 / 0 (-) | Tripmaster Monkey Band |  | 0 / 0 (-) | no 0 | 0 |  |
-| ZeitRide | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Non-emergency medical transportation providers (NAICS 485991) — 7 searches
-> - Incumbents' jobs: trip import from broker portals (ModivCare WellRyde, MTM spreadsheets), scheduling/routing, driver app with EVV timestamps, claims to brokers (Bambi $69/veh, RouteGenie $50/veh, Tobi $60/veh+$0.10/trip, MediRoutes $0.50/trip, NEMT Cloud Dispatch $49.99/mo, RoutingBox, ZeitRide $49/veh, TripMaster).
-> - Wedge: broker claim denials/rework and credential expirations (MTM blocks trip assignment when credentials lapse). An agent that reconciles trips vs broker remittances and keeps driver/vehicle credentials current is a clean add-on to any dispatch tool.
-> - Weakest evidence: "over 10,000 NEMT companies" is a vendor blog figure with no year; Tobi/TripMaster domains unconfirmed; RouteGenie seed amount undisclosed.
-> - Searches: NEMT provider count; dispatch software; best NEMT pricing; broker portal requirements; Bambi funding; RouteGenie company; IBISWorld/industry count.
-
-**The agent version** [hypothesis]: Trip scheduling from broker portals → driver credential expirations → trip logs and Medicaid broker billing submitted. Needs: broker portals, SMS, billing templates.
-
-**Wedge** [hypothesis]: Broker trip-intake and billing agent for NEMT providers.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - Bambi: $69/vehicle/month, $0 setup, no long-term contract (https://nextbillion.ai/feeds/blog/nemt-scheduling-software-transparent-pricing)
-  - MediRoutes: $0.50 per managed trip; can exceed $200/vehicle/month all-in (https://nextbillion.ai/feeds/blog/nemt-scheduling-software-transparent-pricing)
-  - NEMT Cloud Dispatch: from $49.99/month (https://nemtclouddispatch.com/)
-  - RouteGenie: Growth from ~$50/vehicle/month, $0 setup (https://nextbillion.ai/feeds/blog/nemt-scheduling-software-transparent-pricing)
-  - Tobi Cloud: from $60/vehicle/month + $0.10/trip (https://nextbillion.ai/feeds/blog/nemt-scheduling-software-transparent-pricing)
-  - TripMaster (CTS Software): custom quote; third parties cite ~$125/month start (https://nextbillion.ai/feeds/blog/nemt-scheduling-software-transparent-pricing)
-  - ZeitRide: flat $49/vehicle (https://zeitride.com/blog/best-nemt-routing-software-2026)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~8 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (8 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 4/5. Check signer: owner of small van fleet (often 1-10 vehicles). Public-price incumbents: 4. Gatekeeper: yes: Medicaid brokers (ModivCare WellRyde portal, MTM) assign trips and require credentialing; ModivCare offers WellRyde at little/no cost. Top-4 share: highly fragmented, no company >5%.
-
-**Evidence URLs (26):**
-  - https://elitemedfinancials.com/nemt-industry-statistics/
-  - https://www.hibambi.com/
-  - https://nextbillion.ai/feeds/blog/nemt-scheduling-software-transparent-pricing
-  - https://builtin.com/company/bambi-nemt
-  - https://www.crunchbase.com/organization/bambi-0659
-  - https://mediroutes.com/
-  - https://nemtclouddispatch.com/
-  - https://routegenie.com/nemt-management-software/
-  - https://pitchbook.com/profiles/company/521432-38
-  - https://tracxn.com/d/companies/routegenie/__DJwezFIbuqx6ic7KzOtU7NgHWXNUxSszyAcIoo-lfSU
-  - https://routingbox.com/
-  - https://zeitride.com/blog/best-nemt-routing-software-2026
-  - https://www.hibambi.com/blog/what-to-know-about-modivcare-nemt-broker
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=110175879002375
-  - https://adstransparency.google.com/advertiser/AR06891785990101270529?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1402044913407950
-  - https://adstransparency.google.com/advertiser/AR17632808910253457409?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1589116667999197
-  - https://adstransparency.google.com/advertiser/AR09206911093656518657?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=116177616460416
-  - https://adstransparency.google.com/advertiser/AR17851424205908738049?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1768051770138945
-  - https://adstransparency.google.com/advertiser/AR07103119546663305217?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=2028876453813297
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1404340309849528
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ZeitRide&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 28. Home health & non-medical home care agencies  (NAICS 621610)
-
-- **Status:** audited, not passing. Research: searched (follow-up batch 17, 2026-09-17).
-- **Method score:** 8.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Caregiver scheduling, EVV, timesheets, Medicaid billing.
-- **US establishments:** 36,083 active companies (alt 68,232 establishments Apr 2024) (2022, https://www.naics.com/naics-code-description/?code=621610); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| AlayaCare | yes | 4 | no | 0 / 0 / 0 (-) | - |  | 34 / 14 (2023-04-19) | yes 12 | 0 |  |
-| AxisCare | yes | 4 | no | 0 / 0 / 0 (-) | AxisCare |  | 200 / 38 (2024-08-27) | yes 11 | 0 |  |
-| CareSmartz360 | yes | 4 | no | 0 / 0 / 0 (-) | CareSmartz360 |  | 200 / 10 (2023-06-26) | yes 12 | 0 |  |
-| ShiftCare | yes | 4 | no | 0 / 0 / 0 (-) | ShiftCare |  | 200 / 39 (2026-02-24) | yes 12 | 0 |  |
-| Alora Health | yes | 3 | no | 0 / 0 / 0 (-) | Alora Health Spa |  | 43 / 29 (2021-10-25) | no 0 | 0 |  |
-| HHAeXchange | yes | 3 | no | 0 / 0 / 0 (-) | HHAeXchange |  | 41 / 9 (2025-01-10) | no 0 | 0 |  |
-| CareTime | yes | 1 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | yes 4 | 0 |  |
-| BridgeCare OS | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Home health & non-medical home care agencies (NAICS 621610) — 8 searches
-> - Incumbents' jobs: caregiver scheduling/matching, EVV capture and aggregator submission, Medicaid/private-pay billing, caregiver recruiting/retention (AxisCare $79+, CareTime $49+, ShiftCare $8-9/user, CareSmartz360, BridgeCare OS $249+$14/caregiver, AlayaCare, Alora, WellSky, HHAeXchange).
-> - Wedge: EVV rejections and open-shift filling are daily fires; agent wedge = open-shift broadcast/fill and EVV exception clean-up before claims, or caregiver hiring pipeline (screening, license/CPR expiry tracking). Gatekeepers are heavy: state closed-model EVV vendors (Sandata ~25 states, HHAeXchange ~10) and franchisor platforms (Home Instead -> Honor).
-> - Weakest evidence: two conflicting establishment counts (36,083 vs 68,232) with ambiguous attribution; AxisCare/CareTime prices come from itqlick, not vendor pages; BridgeCare OS funding/headcount unknown.
-> - Searches: NAICS 621610 count; non-medical scheduling software; best home care software pricing; state EVV vendor mandates; AxisCare crunchbase; ShiftCare/CareSmartz pricing; BridgeCare OS; IBISWorld fragmentation + Home Instead software.
-
-**The agent version** [hypothesis]: Caregiver shift filling by text → EVV-compliant visit verification checks → timesheet-to-Medicaid billing. Needs: SMS, state EVV aggregator APIs, billing templates.
-
-**Wedge** [hypothesis]: Open-shift filling and EVV exception agent for small home care agencies.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - AxisCare: $79/month (1 user); $495/month (10 users); $2,295/month (100 users) per third-party listing (https://www.itqlick.com/compare/axiscare-software/caretime)
-  - BridgeCare OS: $249-$499/month flat + $12-$14 per caregiver; no setup fees; 14-day trial (https://bridgecareos.com/pricing/)
-  - CareSmartz360: quote-based; ~$10 per client/month cited by SelectHub (https://www.selecthub.com/p/home-care-software/caresmartz360/)
-  - CareTime: $49/month (1 user); $399/month (10 users); $1,999/month (100 users) per third-party listing (https://www.itqlick.com/compare/axiscare-software/caretime)
-  - ShiftCare: $8/user/month annual; $9/user/month monthly (https://shiftcare.com/pricing)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~8 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (8 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 4/5. Check signer: agency owner (often franchisee or solo founder). Public-price incumbents: 3. Gatekeeper: yes: state Medicaid EVV mandates; closed-model states require the state vendor (Sandata ~25 states; HHAeXchange ~10); franchisors (Home Instead) supply Honor Care Platform. Top-4 share: no company >5% share.
-
-**Evidence URLs (29):**
-  - https://www.naics.com/naics-code-description/?code=621610
-  - https://www.alorahealth.com/top-8-best-home-care-software-in-2026/
-  - https://www.alorahealth.com/blog-what-is-the-best-non-medical-home-care-software/
-  - https://axiscare.com/
-  - https://www.itqlick.com/compare/axiscare-software/caretime
-  - https://www.crunchbase.com/organization/axiscare
-  - https://bridgecareos.com/
-  - https://bridgecareos.com/pricing/
-  - https://www.caresmartz360.com/features/home-care-scheduling-software/
-  - https://www.selecthub.com/p/home-care-software/caresmartz360/
-  - https://www.hhaexchange.com/blog/everything-homecare-agencies-need-to-know-about-evv
-  - https://shiftcare.com/us/compare/caresmartz360
-  - https://shiftcare.com/pricing
-  - https://www.aveecare.com/resources/evv-vendors-by-state
-  - https://www.ibisworld.com/united-states/industry/home-care-providers/1579/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=AlayaCare&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://adstransparency.google.com/advertiser/AR14427932798201364481?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=487761654950450
-  - https://adstransparency.google.com/advertiser/AR06243691161895043073?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=193442200824387
-  - https://adstransparency.google.com/advertiser/AR08755935352868306945?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=BridgeCare%20OS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=165886647385848
-  - https://adstransparency.google.com/advertiser/AR10002276931648618497?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CareTime&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=732116770158298
-  - https://adstransparency.google.com/advertiser/AR10457669702703382529?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=835545213225423
-  - https://adstransparency.google.com/advertiser/AR04804078855113408513?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 29. CDL truck driving schools  (NAICS 611519)
-
-- **Status:** audited, not passing. Research: searched (follow-up batch 17, 2026-09-17).
-- **Method score:** 8.0 = ad score 3.0 (mean of best two verified tools) + fragmentation 5/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — ELDT registry reporting, DOT physicals, student tracking.
-- **US establishments:** 395 truck driving schools (IBISWorld); 4,462+ FMCSA TPR-registered ELDT providers (2024, https://www.ibisworld.com/united-states/number-of-businesses/truck-driving-schools/5118/); share <20 employees: schools with fewer than 10 employees estimated at over half of establishments.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| CDL PowerSuite | yes | 3 | no | 0 / 0 / 0 (-) | CDL Powersuite |  | 20 / 12 (2025-05-12) | no 0 | 0 |  |
-| Lumion | yes | 3 | no | 0 / 0 / 0 (-) | Lumion |  | 5 / 1 (2025-06-10) | yes 12 | 2 |  |
-| BoltCDL | yes | 0 | no | 0 / 0 / 0 (-) | Bolt CDL |  | 0 / 0 (-) | no 0 | 0 |  |
-| CDL Tracks | yes | 0 | no | 0 / 0 / 0 (-) | Cdl |  | 0 / 0 (-) | no 0 | 0 |  |
-| Truck School Software | yes | 0 | no | 0 / 0 / 0 (-) | Truck School |  | 2 / 2 (2021-11-09) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> CDL truck driving schools (NAICS 611519) — 8 searches
-> - Incumbents' jobs: enrollment/lead intake, tuition financing, range/BTW scheduling, ELDT curriculum delivery, FMCSA Training Provider Registry uploads, placement tracking (CDL PowerSuite $299/mo for 20 seats, Lumion $10.7M seed, CDL Tracks, BoltCDL from $15/mo, Truck School Software $29/user).
-> - Wedge: 4,462+ TPR-registered providers vs 395 IBISWorld "schools" means most trainers are tiny carriers/community programs; agent wedge = lead-to-enrollment follow-up and funding-paperwork (WIOA/VA/tuition financing) chasing, plus TPR upload QA.
-> - Weakest evidence: CDL Tracks pricing/headcount not found; CDL PowerSuite headcount unknown; the 4,462 TPR count comes from a directory site, not FMCSA.
-> - Searches: TPR provider count; school management software; best school software pricing; CDL PowerSuite pricing; CDL Tracks pricing; Lumion funding; Truck School Software capterra; IBISWorld truck driving schools; BoltCDL pricing.
-
-**The agent version** [hypothesis]: Student enrollment → ELDT Training Provider Registry certification submission → DOT physical/permit tracking → attendance hours. Needs: TPR portal, document intake, SMS.
-
-**Wedge** [hypothesis]: ELDT registry reporting agent for CDL schools.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - BoltCDL: from $15/month, usage-based; free trial (https://www.capterra.com/p/255250/BOLT/pricing/)
-  - CDL PowerSuite: $299/month incl. 20 student seats (plans $100-$300/month) (https://www.cdlpowersuite.com/pricing)
-  - Truck School Software: $29/user/month; free trial and free version (https://www.capterra.com/p/237587/Truck-School/)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 5/5. Check signer: school owner/director (many <10 employees). Public-price incumbents: 3. Gatekeeper: regulator only: FMCSA Training Provider Registry (free registry; schools must upload ELDT completions) - no vendor mandate found. Top-4 share: no company >5% share.
-
-**Evidence URLs (21):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/truck-driving-schools/5118/
-  - https://www.ibisworld.com/united-states/industry/truck-driving-schools/5118/
-  - https://boltcdl.com/
-  - https://www.capterra.com/p/255250/BOLT/pricing/
-  - https://www.cdlpowersuite.com/schools
-  - https://www.cdlpowersuite.com/pricing
-  - https://www.cdltracks.com/
-  - https://www.lumion.ai/cdl
-  - https://pitchbook.com/profiles/company/495414-82
-  - https://www.prnewswire.com/news-releases/lumion-closes-10-7m-to-power-the-ultimate-operating-system-for-trade-schools-tackling-the-skilled-labor-gap-302481551.html
-  - https://www.truckschoolsoftware.com/
-  - https://www.capterra.com/p/237587/Truck-School/
-  - https://tpr.fmcsa.dot.gov/provider
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=100752379187089
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=111710761381588
-  - https://adstransparency.google.com/advertiser/AR01270457442190229505?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=223325694534274
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=110600224030743
-  - https://adstransparency.google.com/advertiser/AR01303231117855293441?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=30706735027
-  - https://adstransparency.google.com/advertiser/AR01502266516601569281?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 30. Pool service & maintenance routes  (NAICS 561790)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 7.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 3/5.
-- **Passing tools:** Pool Brain.
-- **Boring test:** 3/3 — Weekly route stops, chemical logs, repair upsells.
-- **US establishments:** 78817 (2025, https://www.ibisworld.com/united-states/number-of-businesses/swimming-pool-cleaning-services/4832/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Pool Brain | yes | 5 | yes | 0 / 0 / 0 (-) | PoolBrain | no | 95 / 8 (2022-12-22) | no 0 | 2 |  |
-| Skimmer | yes | 4 | no | 0 / 0 / 0 (-) | Skimmer | no | 90 / 25 (2023-07-05) | yes 12 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Pool Founder | yes | 0 | no | 0 / 0 / 0 (-) | Pool Founder | no | 1 / 0 (2026-04-02) | no 0 | 0 |  |
-| PoolDial | yes | 0 | no | 0 / 0 / 0 (-) | PoolDial | no | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Pool service & maintenance routes
-> - Core jobs: weekly route sequencing and density mapping, chemical readings and dosing logs at each stop (Skimmer digital service logs), per-pool billing, service reports with photos emailed to customers, spring open/fall close scheduling, AI phone answering (PoolDial).
-> - Incumbents: Skimmer ($98/mo + $2/pool, $84M VC, 29,000 pros, 700,000 pools), Pool Brain ($55/user + $10/admin, 11-50 staff, Phoenix), PoolDial (per-pool, amount unverified), Pool Founder, PoolVerify, QuoteIQ.
-> - Agent wedge: chemistry-plus-communication agent. Techs enter readings; an agent computes dosing, flags equipment issues, drafts the customer report, and schedules repairs/upsells. Skimmer doubling its per-pool fee signals pricing power that a cheaper agent can undercut for the 2-3x larger sole-proprietor tail Poolfounder describes.
-> - Weakest evidence: franchisors (Poolwerx/Norwest, Pool Scouts) exist but whether they mandate software is unverified; no top-4 share; PoolDial/Pool Founder/PoolVerify have no verified pricing.
-
-**The agent version** [hypothesis]: Weekly route generation → chemical log per stop from tech texts/photos → repair upsell quotes → monthly invoicing. Needs: SMS, route optimization, invoicing.
-
-**Wedge** [hypothesis]: Route-and-chemical-log agent for solo pool routes.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - Pool Brain: $55/user/mo technicians + $10/mo per admin seat (per https://pooldial.com/resources/articles/software-reviews/poolbrain-review) (https://www.capterra.com/p/194225/Pool-Brain/)
-  - QuoteIQ: $29.99/mo Essentials (1 user); Elite $299; Max $699 per https://contractortoolstack.com/software/quoteiq/pricing/ (https://myquoteiq.com/pricing/)
-  - Skimmer: $98/mo base + $2/mo per additional location (per https://www.poolfounder.com/skimmer-pricing-review); PoolDial cites $29-$49/mo tiers (https://www.getskimmer.com/pricing)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 3/5. Check signer: owner-operator (route owners; franchises like Poolwerx/Pool Scouts exist). Public-price incumbents: 3. Gatekeeper: franchisors present (Poolwerx backed by Norwest; Pool Scouts) but software mandate unverified. Top-4 share: unverified.
-
-**Evidence URLs (22):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/swimming-pool-cleaning-services/4832/
-  - https://www.capterra.com/p/194225/Pool-Brain/
-  - https://www.linkedin.com/company/poolbrain
-  - https://www.poolfounder.com/pool-service-software-pricing
-  - https://pooldial.com/resources/articles/software-reviews/best-pool-service-software
-  - https://myquoteiq.com/best-route-optimization-software-pool-service-2026/
-  - https://myquoteiq.com/pricing/
-  - https://www.crunchbase.com/organization/quoteiq
-  - https://myquoteiq.com/about-us/
-  - https://www.getskimmer.com/
-  - https://www.getskimmer.com/pricing
-  - https://www.poolfounder.com/skimmer-pricing-review
-  - https://poolwerxfranchising.com/poolwerx-and-norwest-join-forces-to-dominate-the-pool-maintenance-industry/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=407333409864667
-  - https://adstransparency.google.com/advertiser/AR15570575535535816705?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=958383427357880
-  - https://adstransparency.google.com/advertiser/AR01168260387599024129?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=839352082593900
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=113269167207176
-  - https://adstransparency.google.com/advertiser/AR11995227690698276865?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 31. Septic system installers  (NAICS 238910)
-
-- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 7.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** ServiceTitan.
-- **Boring test:** 3/3 — Digging and permitting tanks; county health-dept permits and as-built drawings.
-- **US establishments:** 38,839 establishments (38,433 businesses); septic installers are a subset of NAICS 238910 Site Preparation Contractors (2020, https://naicslist.com/naics/238910); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| Bella FSM | yes | 3 | no | 0 / 0 / 0 (-) | Bella FSM | no | 8 / 3 (2025-05-02) | no 0 | 0 | horizontal |
-| ServiceCore | yes | 3 | no | 3 / 0 / 0 (2026-09-09) | ServiceCore | no | 24 / 12 (2023-04-28) | yes 11 | 0 |  |
-| PumpDocket | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 2 / 0 (2026-04-10) | no 0 | 0 |  |
-| PumperPro | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| SepticPro | yes | 0 | no | 0 / 0 / 0 (-) | Septicpro | no | 0 / 0 (-) | no 0 | 0 |  |
-| Smart Service | yes | 0 | no | 0 / 0 / 0 (-) | Smart Service | no | 0 / 0 (-) | no 0 | 0 | horizontal |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> . Septic system installers (238910)
-> - Core jobs: dispatch pump trucks, recurring service-interval scheduling and routing by neighborhood, trip tickets / DOT manifests / jurisdiction compliance paperwork, same-day invoicing, QuickBooks sync (ServiceCore, PumpDocket, Smart Service, Bella FSM). SepticPro adds county permit data and site plans for installers.
-> - Wedge: an agent that pulls county permit requirements, drafts the site-plan/permit packet and the compliance trip ticket per jurisdiction, then schedules the pumping reminder. Installers are under-served; most tools are pumping-centric.
-> - Weakest evidence: no installer-only establishment count (NAICS 238910 mixes excavation, demolition and septic); PumpDocket price attribution within the result set is uncertain; no vendor headcounts beyond ServiceCore (163, VC-backed).
-
-**The agent version** [hypothesis]: County health-department permit application → as-built drawing package → inspection scheduling → invoice. Needs: county portals/forms, drawing template, calendar.
-
-**Wedge** [hypothesis]: County septic permit and as-built paperwork agent.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - PumpDocket: $99/mo (1-3 trucks Starter); $230/mo 4-10 trucks; $454/mo 11+ trucks (https://www.pumpdocket.com/septic-software)
-  - ServiceCore: $200/mo per truck (third-party listing; vendor requires demo) (https://servicecore.com/pricing/)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (small pumping/installation firms; vendors price per truck, 1-3 truck starter tiers). Public-price incumbents: 2. Gatekeeper: not searched (session search budget exhausted). Top-4 share: unverified.
-
-**Evidence URLs (25):**
-  - https://naicslist.com/naics/238910
-  - https://www.bellafsm.com/industries/septic-software/scheduling/
-  - https://www.pumpdocket.com/septic-software
-  - https://www.softwareadvice.com/product/538880-PumpDocket/
-  - https://pumperpro.app/
-  - https://septicprotools.com/pricing
-  - https://servicecore.com/septic-business-software/
-  - https://servicecore.com/pricing/
-  - https://www.cbinsights.com/company/servicecore
-  - https://www.crunchbase.com/organization/servicecore
-  - https://www.capterra.com/p/158918/ServiceCore/
-  - https://www.linkedin.com/company/servicecore
-  - https://www.servicetitan.com/industries/septic-business-software
-  - https://www.smartservice.com/industry/septic-tank-service-software
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=185269961511257
-  - https://adstransparency.google.com/advertiser/AR09429960273030021121?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=PumpDocket&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://adstransparency.google.com/advertiser/AR00771463958442803201?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=PumperPro&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=115991701940916
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=624372454388997
-  - https://adstransparency.google.com/advertiser/AR16372434505086009345?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=179317675454866
-  - https://adstransparency.google.com/advertiser/AR00871924403137413121?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=119199734449082
-
-**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
-## 32. Residential cleaning & maid services  (NAICS 561720)
-
-- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 7.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** Housecall Pro.
-- **Boring test:** 3/3 — Recurring scheduling, cleaner assignment, quotes by sq ft.
-- **US establishments:** 356516 (2024, https://www.ibisworld.com/united-states/number-of-businesses/residential-cleaning-services/6542/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
-| ZenMaid | yes | 3 | no | 0 / 0 / 0 (-) | ZenMaid | no | 39 / 16 (2024-01-10) | no 0 | 0 |  |
-| MaidCentral | yes | 1 | no | 0 / 0 / 0 (-) | MaidCentral Software | no | 0 / 0 (-) | yes 8 | 0 |  |
-| CleansyAI | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| MaidEasy | yes | 0 | no | 0 / 0 / 0 (-) | Maid Easy | no | 0 / 0 (-) | no 0 | 0 |  |
-| QuoteIQ | no (prior knowledge) | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| The Cleaning Software | yes | 0 | no | 0 / 0 / 0 (-) | The Cleaning Software | no | 3 / 1 (2025-11-03) | no 0 | 0 |  |
-| Zenbooker | yes | 0 | no | 0 / 0 / 0 (-) | Zenbooker | no | 17 / 0 (2026-04-07) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Residential cleaning & maid services
-> - Core jobs users log in for (from snippets): recurring appointment scheduling, crew dispatch, online booking widgets embedded on the owner's site (Zenbooker), customer reminders, invoicing/payments, payroll (MaidEasy), kiosk/employee communication (MaidCentral).
-> - Vertical tools are plentiful (ZenMaid, MaidCentral, MaidEasy, Zenbooker, The Cleaning Software, CleansyAI) plus horizontal Housecall Pro/Jobber/QuoteIQ landing pages; only QuoteIQ's $29.99/mo appeared in a result (its own listicle).
-> - Agent wedge: an inbound-lead-to-booked-recurring-clean agent (quote from photos/sq ft, book, remind, reschedule, chase no-shows) for owners with 1-5 cleaners; the incumbents still require the owner to configure schedules by hand.
-> - Weakest link: no pricing pages, headcounts or ad evidence captured; 356,516 IBISWorld count is an industry definition that includes solo cleaners, so serviceable market is much smaller.
-
-**The agent version** [hypothesis]: Inbound quote by sq ft/rooms → recurring schedule → cleaner assignment texts → payment collection → rebooking on cancellations. Needs: SMS, calendar, payments.
-
-**Wedge** [hypothesis]: Quote-book-collect agent for solo/small maid services.
-
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~3 hrs/week.
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (small maid-service owners; ZenMaid markets to '3,000+ maid service owners'). Public-price incumbents: 1. Gatekeeper: unverified. Top-4 share: unverified.
-
-**Evidence URLs (22):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/residential-cleaning-services/6542/
-  - https://cleansyai.com/blog/best-maid-service-software
-  - https://www.housecallpro.com/industries/maid-service-software/
-  - https://maidcentral.com/
-  - https://maideasysoftware.com/
-  - https://thecleaningsoftware.com/
-  - https://get.zenmaid.com/
-  - https://zenbooker.com/residential-cleaning-online-booking.html
-  - https://myquoteiq.com/top-8-softwares-for-maid-services-in-2026/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CleansyAI&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
-  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=374531319837407
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101986182288836
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=171037069427113
-  - https://adstransparency.google.com/advertiser/AR16207372297651093505?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1046212555396157
-  - https://adstransparency.google.com/advertiser/AR04437329209706151937?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1498364030464955
-  - https://adstransparency.google.com/advertiser/AR15571010589953097729?region=US
-
-**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
-## 33. Wildlife removal & nuisance animal control  (NAICS 561710)
-
-- **Status:** audited, not passing. Research: searched (follow-up slice2).
-- **Method score:** 7.5 = ad score 2.5 (mean of best two verified tools) + fragmentation 5/5.
-- **Passing tools:** none; passing but membership unverified: Jobber.
-- **Boring test:** 3/3 — Trap-check scheduling, state permits, exclusion quotes.
-- **US establishments:** 18,490 companies verified active (NAICS 561710 pest control incl. wildlife; no wildlife-only count found) (unverified, https://siccode.com/naics-code/561710/exterminating-pest-control-services); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Jobber | no (prior knowledge) | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Deelo | yes | 0 | no | 0 / 0 / 0 (-) | Deelo | no | 2 / 0 (2026-03-12) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Wildlife removal & nuisance animal control (NAICS 561710)
-> - Incumbent jobs: NWCOPRO (calls, trap-check scheduling, state capture logs, photos, billing), GorillaDesk (routes, recurring service), QuoteIQ/Deelo (estimates, scheduling, invoicing). Daily trap-check visits mandated in most states drive the scheduling job.
-> - Agent wedge: an inbound-call and dispatch agent that books the emergency visit, auto-creates the 24-hour trap-check series, files the state capture/disposition report and sends the exclusion quote. NWCOPRO's $26.50/mo flat price sets a low ceiling.
-> - Weakest evidence: no wildlife-only establishment count (pest-control code used); NWCOPRO founded/headcount not found; concentration statement is for pest control overall.
-> - Searches (8): NAICS count; "wildlife removal" software; best wildlife control software 2026; scheduling/dispatch Jobber/HCP; NWCOPRO pricing; GorillaDesk pricing/founded; QuoteIQ crunchbase; IBISWorld concentration; NWCOPRO founded.
-
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
-
-**Fragmentation (Step 4):** 5/5. Check signer: owner-operator (NWCO owner). Public-price incumbents: 4. Gatekeeper: no (NWCOA is a trade association; no software mandate seen). Top-4 share: unverified (pest control 'highly fragmented, thousands of local operators').
-
-**Evidence URLs (21):**
-  - https://siccode.com/naics-code/561710/exterminating-pest-control-services
-  - https://www.deelo.ai/best/field-service-management-for-pest-control-wildlife
-  - https://www.deelo.ai/blog/field-service-software-cost-2026
-  - https://myquoteiq.com/top-10-wildlife-removal-field-service-software-in-2026/
-  - https://gorilladesk.com/industries/wildlife-control-software/
-  - https://tooleduppro.com/guides/gorilladesk-pricing/
-  - https://getlatka.com/companies/gorilladesk.com
-  - https://www.nwcopro.com/
-  - https://www.g2.com/products/nwcopro-wildlife-control-software/pricing
-  - https://myquoteiq.com/wildlife-removal-companies-crm/
-  - https://myquoteiq.com/about-us/
-  - https://www.nwcoa.com/
-  - https://www.briostack.com/blog/pest-control-industry-statistics
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1223424464197303
-  - https://adstransparency.google.com/advertiser/AR07129259928807538689?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=387445444655938
-  - https://adstransparency.google.com/advertiser/AR10520026520397807617?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
-  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 34. Commercial kitchen exhaust hood cleaning  (NAICS 561790)
-
-- **Status:** audited, not passing. Research: searched (follow-up slice4).
-- **Method score:** 7.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** ServiceTrade.
-- **Rescrape queued (Meta undersampled):** ServiceTrade.
-- **Boring test:** 3/3 — NFPA 96 frequency scheduling, before/after photos, certificates.
-- **US establishments:** 2,851 (parent NAICS 561790, all 'other services to buildings and dwellings'; not hood-cleaning-specific) (unverified, https://siccode.com/naics-code/561790/services-buildings-dwellings); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| ServiceTrade | yes | 5 | yes | 49 / 0 / 0 (2026-08-10) | ServiceTrade | yes | 200 / 16 (2024-01-24) | yes 8 | 0 | undersampled |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> · Commercial kitchen exhaust hood cleaning (NAICS 561790) — 8 tools, fragmentation 4/5
-> - Core jobs users log in for: recurring restaurant accounts on NFPA 96 frequency schedules, overnight crew dispatch, before/after photo reports and NFPA 96 certificates/stickers, per-hood quoting, QuickBooks invoicing.
-> - Incumbents: two new verticals (HoodOps, launching Aug 2026, built by an IKECA operator; HoodClean Pro), plus horizontals with dedicated pages (ServiceTrade $150M raised / 193–228 staff; Smart Service $49.99/mo; QuoteIQ $29.99/mo, 12 staff, bootstrapped; Service Genius $39/mo; Thoughtful Systems; eHoodCleaner).
-> - Agent wedge: an "NFPA 96 compliance clerk" that turns technician photos into the certificate + inspection report, auto-schedules the next cleaning by hood type/frequency, and chases the restaurant/AHJ for sign-off — the exact job HoodOps just productised, which signals demand.
-> - Weakest evidence: no hood-cleaning-specific establishment count (only parent NAICS 561790: 2,851 firms on siccode) and no concentration statement; HoodOps and HoodClean Pro publish no prices; IKECA membership figures conflict (250 vs ~500).
-> - Searches (12): establishment count, 3× tool discovery, HoodOps pricing, HoodClean Pro pricing, ServiceTrade funding, HOODZ/IKECA gatekeeper, NAICS 561790 count, IKECA concentration, Smart Service pricing, HoodOps founder.
-
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
-
-**Fragmentation (Step 4):** 4/5. Check signer: owner-operator (small hood-cleaning firms, often 1-3 crews; vendors price flat per company with unlimited users). Public-price incumbents: 3. Gatekeeper: none found. Top-4 share: unverified.
-
-**Evidence URLs (21):**
-  - https://siccode.com/naics-code/561790/services-buildings-dwellings
-  - https://hoodcleanpro.com/
-  - https://www.gethoodops.com/
-  - https://myquoteiq.com/crm-for-hood-vent-cleaning/
-  - https://bootstrappers.com/mike-vida-quoteiq/
-  - https://myquoteiq.com/about-us/
-  - https://thoughtfulsystems.com/industries/kitchen-exhaust-software/
-  - https://service-genius.com/industries/kitchen-exhaust-software/
-  - https://www.capterra.com/p/231421/Service-Genius/
-  - https://servicetrade.com/industries/kitchen-exhaust-cleaning/
-  - https://tracxn.com/d/companies/servicetrade/__APALF8w4etWIA8yd9FRrj5A_9IYHUu0MwpKG9gKhk_w
-  - https://www.crunchbase.com/organization/servicetrade
-  - https://www.linkedin.com/company/servicetrade
-  - https://www.smartservice.com/industry/hood-cleaning-software
-  - https://www.smartservice.com/pricing
-  - http://www.ehoodcleaner.com/hood-cleaning-software.html
-  - https://www.franchisedirect.com/businessservicesfranchise/hoodz-franchise-08257/ufoc/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=709305829119809
-  - https://adstransparency.google.com/advertiser/AR07759657559018962945?region=US
-
-**Confidence:** low. Weakest link: Meta undersampled for a large advertiser; rescrape pending.
-
----
-
-## 35. Backflow prevention testing companies  (NAICS 238220)
-
-- **Status:** audited, not passing. Research: searched (follow-up batch 17, 2026-09-17).
-- **Method score:** 7.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 3/5.
-- **Passing tools:** Inspect Point.
-- **Boring test:** 3/3 — Annual test scheduling, water-purveyor report submission, gauge calibration.
-- **US establishments:** 111,200 (NAICS 238220 plumbing/HVAC contractors; backflow-only subset unverified) (2023, https://www.ibisworld.com/classifications/naics/238220/plumbing-heating-and-air-conditioning-contractors/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Inspect Point | yes | 6 | yes | 0 / 0 / 0 (-) | Inspect Point | no | 76 / 20 (2023-03-13) | yes 5 | 2 |  |
-| BSI Online (Backflow Solutions Inc) | yes | 3 | no | 0 / 0 / 0 (-) | BSI Online Shop |  | 15 / 3 (2023-07-05) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Backflow Reporter | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-| EcosConnect | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-| FieldPie | yes | 0 | no | 0 / 0 / 0 (-) | FieldPie |  | 1 / 0 (2026-05-24) | no 0 | 0 |  |
-| SwiftComply | yes | 0 | no | 0 / 0 / 0 (-) | SwiftComply |  | 0 / 0 (-) | no 0 | 0 |  |
-| Truwave Software | yes | 0 | no | 0 / 0 / 0 (-) | TruWave |  | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Backflow prevention testing companies (NAICS 238220) — 8 searches
-> - Incumbents' jobs: tester-side scheduling/annual retest reminders/invoicing (QuoteIQ, FieldPie, Truwave, EcosConnect) and utility-side tracking portals that testers are forced to file into (BSI Online $15.95/test, SwiftComply $10/passed test in Dallas, Tokay). Inspect Point covers backflow as a trade module of fire ITM.
-> - Wedge: an agent that pulls each tester's assembly list, auto-files results into whichever utility portal governs the address (BackflowPath catalogs portals by city), and triggers the annual retest reminder + repair quote. The portal maze is the pain; nobody tester-side owns it.
-> - Weakest evidence: no backflow-specific establishment count (only NAICS 238220 = 111,200); tester-side vendors' headcounts/pricing (Truwave, EcosConnect, Backflow Reporter) never surfaced.
-> - Searches: bizbite/industry size; "backflow testing" software; best backflow software 2026; scheduling CRM pricing; NAICS 238220 count; Inspect Point crunchbase; BSI Online fees; utility portal mandates.
-
-**The agent version** [hypothesis]: Annual test due dates per device → customer scheduling by text → test results captured → report submitted to each water purveyor in its required format. Needs: purveyor portals/forms, SMS, calendar.
-
-**Wedge** [hypothesis]: Backflow test-report submission agent.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - BSI Online (Backflow Solutions Inc): $15.95 filing fee per test report (range $12.95-$19.95 by jurisdiction) (https://www.bsionlinetracking.com/default/terms-conditions)
-  - QuoteIQ: $29.99/month (Essentials) (https://myquoteiq.com/crm-for-backflow-testing-companies/)
-  - SwiftComply: $10 per passed test (City of Dallas program) (https://dallascityhall.com/departments/waterutilities/Pages/Backflow-Test-Reports.aspx)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 3/5. Check signer: owner-operator / small plumbing or fire-protection contractor. Public-price incumbents: 3. Gatekeeper: yes: water utilities mandate submission through contracted portals (BSI Online, SwiftComply, Tokay) with per-test filing fees; Dallas enrollment mandatory. Top-4 share: unverified.
-
-**Evidence URLs (25):**
-  - https://www.ibisworld.com/classifications/naics/238220/plumbing-heating-and-air-conditioning-contractors/
-  - https://backflow.com/
-  - https://www.bsionlinetracking.com/default/terms-conditions
-  - https://backflowreporter.app/
-  - https://www.ecosconnect.com/
-  - https://www.fieldpie.com/home-service/backflow-testing-software/
-  - https://www.inspectpoint.com/trades/backflow/
-  - https://pitchbook.com/profiles/company/439227-91
-  - https://www.crunchbase.com/organization/inspect-point
-  - https://myquoteiq.com/crm-for-backflow-testing-companies/
-  - https://www.swiftcomply.com/backflow-testers/
-  - https://dallascityhall.com/departments/waterutilities/Pages/Backflow-Test-Reports.aspx
-  - https://www.truwavesoftware.com/backflow.html
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1661802167416532
-  - https://adstransparency.google.com/advertiser/AR16896832935137640449?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Backflow%20Reporter&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=EcosConnect&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1701182970115182
-  - https://adstransparency.google.com/advertiser/AR14713186641757863937?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=854398374581747
-  - https://adstransparency.google.com/advertiser/AR17562238852368695297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1802337856673167
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=107109794791614
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 36. Tree service & arborists  (NAICS 561730)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 7.0 = ad score 3.0 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** none.
-- **Rescrape queued (Meta undersampled):** SingleOps.
-- **Boring test:** 3/3 — Estimates, crane/crew scheduling, ISA/permit paperwork.
-- **US establishments:** 175035 (2025, https://www.ibisworld.com/united-states/number-of-businesses/tree-trimming-services/6064/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| ArboStar | yes | 3 | no | 3 / 2 / 0 (2026-05-29) | ArboStar | yes | 33 / 0 (2022-08-13) | yes 6 | 2 |  |
-| Arborgold | yes | 3 | no | 0 / 0 / 0 (-) | Arborgold Software | no | 17 / 6 (2021-10-25) | no 0 | 0 |  |
-| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| SingleOps | yes | 2 | no | 42 / 0 / 0 (2026-07-23) | SingleOps | yes | 21 / 0 (2024-10-01) | yes 9 | 0 | undersampled |
-| ArboristDesk | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| Fieldified | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| Treezi | yes | 0 | no | 0 / 0 / 0 (-) | Treezi | no | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Tree service & arborists
-> - Core jobs users log in for: CRM/lead tracking, estimating (often photo-based), crew scheduling and dispatch, invoicing/online payments, GPS tree mapping and tree inventory, plant-health-care (PHC) program contracts, safety/compliance records, fleet tracking (ArboStar, Arborgold, SingleOps, Treezi snippets).
-> - Incumbents: ArboStar (47 staff, bootstrapped, quote-only pricing), SingleOps (88 staff, VC, now Granum, bought LMN), Arborgold ($129/mo, founded 2004), Treezi ($49.99/user), ArboristDesk ($79/mo, 14-day trial), QuoteIQ ($29.99).
-> - Agent wedge: photo-to-estimate plus tree-inventory/PHC renewal agent. Tree jobs are quoted on site from photos and sizes; an agent that turns a homeowner's photos and address into a priced proposal, then auto-runs PHC/pruning-cycle renewals, replaces the estimating + CRM seats owner-operators pay $79-$299/mo for.
-> - Weakest evidence: IBISWorld business count conflicts internally (175,035 vs 19,929 operators); no ad-library signal captured; SingleOps funding figures conflict ($8.6M vs $82.6M).
-
-**The agent version** [hypothesis]: Homeowner photos + address in → priced tree-work proposal with ISA-style scope → schedule crew/crane window → PHC and pruning-cycle renewals sent automatically each season. Needs: SMS/email, photo intake, pricing rules per operator, calendar, invoicing.
-
-**Wedge** [hypothesis]: Photo-to-estimate agent for removals/pruning; expand into PHC renewal cycles.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - Arborgold: $129/mo Starter (Professional $299, Enterprise $499, prepaid annually) per https://fieldserviceguide.com/arborgold-2/ (https://www.capterra.com/p/12741/Arborgold/pricing/)
-  - ArboristDesk: $79/mo Starter ($69/mo annual); Growth $149; Pro $249; extra users $12-18/mo (https://arboristdesk.com/pricing/)
-  - QuoteIQ: $29.99/mo Essentials (1 user); Elite $299; Max $699 per https://contractortoolstack.com/software/quoteiq/pricing/ (https://myquoteiq.com/pricing/)
-  - SingleOps: $200/mo (third-party claim, https://serviceagent.ai/blogs/tree-care-crm-software/) (https://granum.com/singleops/pricing/)
-  - Treezi: $49.99/user/mo Boost-In ($503.88/user/yr annual) per https://www.guideflow.com/blog/tree-service-software (https://treeziapp.com/)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 4/5. Check signer: owner-operator (small tree companies; founders of ArboStar/Treezi/QuoteIQ are ex-contractors). Public-price incumbents: 4. Gatekeeper: unverified (gatekeeper searches not run; session WebSearch budget exhausted). Top-4 share: low concentration (share unverified).
-
-**Evidence URLs (37):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/tree-trimming-services/6064/
-  - https://arbostar.com/arborist-software/tree-care-crm
-  - https://g2.com/products/arbostar/pricing
-  - https://getlatka.com/companies/arbostar
-  - https://www.crunchbase.com/organization/arbostar
-  - https://www.softwareadvice.com/forestry/arbostar-profile/
-  - https://ca.linkedin.com/company/arbostar
-  - https://www.capterra.com/p/12741/Arborgold/
-  - https://www.capterra.com/p/12741/Arborgold/pricing/
-  - https://fervorstudio.ca/news/arborgold-review-pricing-alternatives/
-  - https://arboristdesk.com/pricing/
-  - https://fieldified.com/blog/apps-for-arborists
-  - https://gorilladesk.com/industries/tree-service-software/
-  - https://myquoteiq.com/top-10-crms-for-tree-service-businesses-in-2026/
-  - https://myquoteiq.com/pricing/
-  - https://www.crunchbase.com/organization/quoteiq
-  - https://myquoteiq.com/about-us/
-  - https://granum.com/singleops/pricing/
-  - https://getlatka.com/companies/singleops
-  - https://tracxn.com/d/companies/singleops/__wpGjZc-FoFtwDsALEMuFrBrrabFaDIuhque36M33rDk
-  - https://www.capterra.com/p/176935/SingleOps/
-  - https://treeziapp.com/
-  - https://aplustree.com/treezi/
-  - https://www.ibisworld.com/united-states/industry/tree-trimming-services/6064/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=105872330787722
-  - https://adstransparency.google.com/advertiser/AR16717311514142310401?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=334976265915
-  - https://adstransparency.google.com/advertiser/AR08308089114230521857?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ArboristDesk&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Fieldified&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=387445444655938
-  - https://adstransparency.google.com/advertiser/AR10520026520397807617?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=162421207288610
-  - https://adstransparency.google.com/advertiser/AR12829969393723113473?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101495245470701
-
-**Confidence:** low. Weakest link: Meta undersampled for a large advertiser; rescrape pending.
-
----
-
-## 37. Chimney sweeps & chimney repair  (NAICS 561790)
-
-- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 7.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** ServiceTitan.
-- **Boring test:** 3/3 — Level-2 inspection reports, seasonal routes, CSIA paperwork.
-- **US establishments:** 6313 (2024, https://www.ibisworld.com/united-states/market-research-reports/fireplace-services-industry/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Chimney sweeps & chimney repair
-> - Core jobs: Level 1/2/3 inspection pricing and documentation (CSIA tiers), photo-based inspection reports for liner/cap work, annual sweep reminders (12-month recurrence), Oct-Feb seasonal capacity planning, invoicing.
-> - Incumbents: no chimney-specific vertical SaaS surfaced; ServiceTitan (dedicated landing), QuoteIQ (SEO pages, $29.99), Housecall Pro and Jobber (mentioned without dedicated landing URLs).
-> - Agent wedge: inspection-report and annual-recall agent - assembles the photo-documented Level 1/2 report from tech inputs, sends it to the homeowner and (for real estate transactions) the agent/buyer, and books the following year's sweep. The report itself is a compliance artifact incumbents treat as a generic photo attachment.
-> - Weakest evidence: only 2 tools with verified niche landing pages (fails the 3-tool bar); IBISWorld Fireplace Services count (6,313) is a shrinking proxy category; whether CSIA or NCSG endorse any software is unverified.
-
-**The agent version** [hypothesis]: Seasonal sweep rebooking → Level-2 inspection report drafted from tech photos/notes → repair quote → invoice. Needs: SMS, report template, photo intake.
-
-**Wedge** [hypothesis]: Level-2 inspection report agent for chimney sweeps.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - QuoteIQ: $29.99/mo Essentials (1 user); Elite $299; Max $699 per https://contractortoolstack.com/software/quoteiq/pricing/ (https://myquoteiq.com/pricing/)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (small sweep companies; CSIA-certified techs). Public-price incumbents: 1. Gatekeeper: CSIA certification/inspection levels referenced; software mandate unverified. Top-4 share: unverified.
-
-**Evidence URLs (11):**
-  - https://www.ibisworld.com/united-states/market-research-reports/fireplace-services-industry/
-  - https://myquoteiq.com/top-8-softwares-for-chimney-sweep-businesses-in-2026/
-  - https://myquoteiq.com/pricing/
-  - https://www.crunchbase.com/organization/quoteiq
-  - https://myquoteiq.com/about-us/
-  - https://www.servicetitan.com/industries/chimney-sweep-software
-  - https://www.cleansavannah.com/post/best-chimney-sweep-software-2026
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=179317675454866
-  - https://adstransparency.google.com/advertiser/AR00871924403137413121?region=US
-
-**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
-## 38. Land surveyors  (NAICS 541370)
+## 49. Construction equipment rental yards  (NAICS 532412)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice5).
-- **Method score:** 7 = ad score 2 (mean of best two verified tools) + fragmentation 5/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Plat filings, quotes, deed research.
-- **US establishments:** 6,191 active companies (unverified, https://siccode.com/naics-code/541370/surveying-mapping); share <20 employees: unverified.
+- **Method score:** 8.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 4/5.
+- **Passing tools:** Quipli.
+- **Boring test:** 3/3 — Rental contracts, availability, maintenance, damage billing.
+- **US establishments:** 937 active companies (unverified, https://siccode.com/naics-code/532412/construction-mining-forestry-machinery-equipment-rental-leasing); share <20 employees: unverified.
 
 **Ad audit (Step 3):**
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Quipli | yes | 5 | yes | unverified (throttled run) | Quipli | no | 20 / 7 (2023-04-13) | no 0 | 2 |  |
+| Point of Rental | yes | 4 | no | unverified (throttled run) | - | no | 40 / 11 (2023-03-22) | yes 1 | 0 |  |
+| EZRentOut (EZO) | yes | 0 | no | unverified (throttled run) | - | no | 92 / 1 (2023-10-04) | no 0 | 0 |  |
+| RentMy | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Rentrax | yes | 0 | no | unverified (throttled run) | - | no | 1 / 1 (2026-06-12) | no 0 | 0 |  |
+| Reservety | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Texada | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
-> Land surveyors (NAICS 541370)
-> - Incumbents' jobs: job/client database keyed to parcel location, crew scheduling, field time entry, survey records index (prior jobs by location), one-click invoicing and QuickBooks sync (Cyanic Job Book, Kudurru Stone, Pimarc, Project Tracker Pro, Wunz Efficiency, QuoteIQ).
-> - Wedge: an agent that turns crew field notes and hours into the WIP report and invoice, and answers "have we surveyed near this parcel before" from the records index, for firms under $1M revenue (over 70% of the industry) that pay $10-$40 per user/mo today.
-> - Weakest evidence: two vendor prices are low-headcount startups (4 and 2-10 employees); Pimarc price unknown; gatekeeper check (NSPS, state boards) not searched directly.
-> - Searches: NAICS count; "land surveyor" business management software; best surveying business software 2026; Cyanic pricing; Kudurru pricing; Pimarc pricing; IBISWorld concentration; Cyanic company.
+> Construction equipment rental yards (NAICS 532412)
+> - Incumbents' jobs: rental contracts and availability calendar, online ordering, utilization and maintenance tracking, delivery scheduling, invoicing, telematics (Quipli, Point of Rental, EZRentOut, Texada, Rentrax, Reservety, RentMy).
+> - Wedge: an agent that takes contractor rental requests by phone/text, checks availability, generates the contract and delivery ticket, and chases returns/overdue rentals; independents hold about 45% of the market and pay $399+/mo or $6,000/location/yr.
+> - Weakest evidence: establishment count (937) looks like a verified-active subset; Quipli's fee is a third-party figure; no vendor-public price beyond EZRentOut.
+> - Searches: NAICS count; best rental software 2026; Quipli company; Point of Rental company; concentration/independents share; EZRentOut/Texada pricing.
 
 **The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
 
-**Fragmentation (Step 4):** 5/5. Check signer: owner-operator licensed surveyor (over 70% of firms under $1M revenue). Public-price incumbents: 3. Gatekeeper: no. Top-4 share: no company >5%; top 50 about 33% of revenue.
+**Fragmentation (Step 4):** 4/5. Check signer: owner-operator independent rental yard (about 45% of market value held by local/independent companies). Public-price incumbents: 1. Gatekeeper: no. Top-4 share: top 5 = 22.2% (United Rentals 10.1%, Sunbelt 6.8%, Herc 2.6%, Loxam 1.8%, H&E 0.9%).
 
-**Evidence URLs (16):**
-  - https://siccode.com/naics-code/541370/surveying-mapping
-  - https://getjobbook.com/project-management-for-surveyors
-  - https://getjobbook.com/pricing
-  - https://www.crunchbase.com/organization/cyanic-automation
-  - https://kudurrustone.com/
-  - https://kudurrustone.com/pricing
-  - https://www.linkedin.com/company/kudurru-stone-llc
-  - https://www.pimarc.com/land-surveyors
-  - https://projecttrackerpro.com/
-  - https://myquoteiq.com/top-8-softwares-for-land-surveying-businesses-in-2026/
-  - https://myquoteiq.com/pricing/
-  - https://contractortoolstack.com/software/quoteiq/pricing/
-  - https://www.wunzefficiency.com/project-management-software-for-land-surveyor.html
-  - https://www.ibisworld.com/united-states/industry/surveying-mapping-services/1407/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 39. Stump grinding & land clearing  (NAICS 238910)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 6.5 = ad score 2.5 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** none.
-- **Rescrape queued (Meta undersampled):** SingleOps.
-- **Boring test:** 3/3 — Per-stump quotes, equipment scheduling, 811 locates.
-- **US establishments:** 38839 (2020, https://www.insurancexdate.com/naics/238910); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Arborgold | yes | 3 | no | 0 / 0 / 0 (-) | Arborgold Software | no | 17 / 6 (2021-10-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| SingleOps | yes | 2 | no | 42 / 0 / 0 (2026-07-23) | SingleOps | yes | 21 / 0 (2024-10-01) | yes 9 | 0 | undersampled |
-| OctopusPro | yes | 0 | no | 0 / 0 / 0 (-) | Octopus Pro | no | 0 / 0 (-) | no 0 | 0 |  |
-| Yardbook | yes | 0 | no | 0 / 0 / 0 (-) | Yardbook | no | 37 / 0 (2026-04-02) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Stump grinding & land clearing
-> - Core jobs: fast per-stump quoting from photos/diameter, scattered-property routing, invoicing/payment on completion, 2-way texting, follow-up on unconverted quotes (treeservicesoftware.com, QuoteIQ snippets). Land clearing (NAICS 238910) is more excavation/site-prep oriented and no tool for it surfaced.
-> - Incumbents: no stump-only vertical with public pricing; operators use tree tools (Arborgold $129, ArboristDesk $79, Treezi $49.99, SingleOps), OctopusPro's tree landing page, QuoteIQ, or free Yardbook.
-> - Agent wedge: photo-to-price stump quoting with instant text booking for single-machine operators who are underserved by $79-$299/mo arborist suites. The niche is small enough that incumbents do not build for it, which is exactly the agent-as-a-service opening.
-> - Weakest evidence: establishment count is for NAICS 238910 broadly (site prep, ~38,839 establishments, 2020) and the exact result page for that figure is inferred; stump-grinder-specific counts do not exist.
-
-**The agent version** [hypothesis]: Per-stump/acre quote from photos and site map → 811 locate ticket filed → equipment day scheduled → invoice. Needs: 811 portal, photo intake, calendar, invoicing.
-
-**Wedge** [hypothesis]: Quote-and-811-locate agent for stump/clearing jobs.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - Arborgold: $129/mo Starter (Professional $299, Enterprise $499, prepaid annually) per https://fieldserviceguide.com/arborgold-2/ (https://www.capterra.com/p/12741/Arborgold/pricing/)
-  - QuoteIQ: $29.99/mo Essentials (1 user); Elite $299; Max $699 per https://contractortoolstack.com/software/quoteiq/pricing/ (https://myquoteiq.com/pricing/)
-  - SingleOps: $200/mo (third-party claim, https://serviceagent.ai/blogs/tree-care-crm-software/) (https://granum.com/singleops/pricing/)
-  - Yardbook: $0/mo Starter (free indefinitely); paid $15-60/mo (https://fieldtics.com/blog/yardbook-review) (https://www.capterra.com/p/207272/Yardbook/)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 4/5. Check signer: owner-operator (single-machine stump grinders; small excavation crews). Public-price incumbents: 4. Gatekeeper: unverified (gatekeeper searches not run; session WebSearch budget exhausted). Top-4 share: low concentration (tree trimming parent industry; share unverified).
-
-**Evidence URLs (27):**
-  - https://www.insurancexdate.com/naics/238910
-  - https://www.capterra.com/p/12741/Arborgold/
-  - https://www.capterra.com/p/12741/Arborgold/pricing/
-  - https://fervorstudio.ca/news/arborgold-review-pricing-alternatives/
-  - https://octopuspro.com/tree-service-software/
-  - https://myquoteiq.com/stump-grinding-business-crm/
-  - https://myquoteiq.com/pricing/
-  - https://www.crunchbase.com/organization/quoteiq
-  - https://myquoteiq.com/about-us/
-  - https://granum.com/singleops/pricing/
-  - https://getlatka.com/companies/singleops
-  - https://tracxn.com/d/companies/singleops/__wpGjZc-FoFtwDsALEMuFrBrrabFaDIuhque36M33rDk
-  - https://www.capterra.com/p/176935/SingleOps/
-  - https://myquoteiq.com/top-8-softwares-for-stump-grinding-in-2026/
-  - https://www.capterra.com/p/207272/Yardbook/
-  - https://arboristdesk.com/pricing/
-  - https://treeziapp.com/
-  - https://www.ibisworld.com/united-states/industry/tree-trimming-services/6064/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=334976265915
-  - https://adstransparency.google.com/advertiser/AR08308089114230521857?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=200971729759285
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=162421207288610
-  - https://adstransparency.google.com/advertiser/AR12829969393723113473?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=470730253043212
-  - https://adstransparency.google.com/advertiser/AR14036505301503442945?region=US
-
-**Confidence:** low. Weakest link: Meta undersampled for a large advertiser; rescrape pending.
-
----
-
-## 40. Water well drilling contractors  (NAICS 237110)
-
-- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 6.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** Jobber.
-- **Boring test:** 3/3 — State well logs, driller licensing, pump service call-backs.
-- **US establishments:** 7,414 companies (entire NAICS 237110 Water and Sewer Line and Related Structures Construction; well drilling is a subset) (unverified, https://siccode.com/naics-code/237110/water-sewer-line-structures-construction); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| DrillerDB | yes | 2 | no | 0 / 0 / 0 (-) | Driller DB | no | 5 / 0 (2024-11-07) | no 0 | 2 |  |
-| IKOL | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| WellMagic | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> . Water well drilling contractors (237110)
-> - Core jobs: quotes, field well logs (offline), state well-record e-filing, well map, pump service tracking, inventory, billing/AR (DrillerDB, WellMagic).
-> - Wedge: state well-log completion and e-filing from a voice/photo capture at the rig, plus the customer-facing quote. DrillerDB (founded 2024, tiny team, $99-$799/mo) proves the buyer exists; WellMagic is a legacy incumbent with no public price.
-> - Weakest evidence: establishment count is the whole NAICS 237110 (7,414), not well drillers; only 4 tools found and two (IKOL, WellMagic) have no pricing or company data.
-
-**The agent version** [hypothesis]: Well-permit application to the state → drill log / well completion report filed → pump service reminders → invoice. Needs: state well portals, form templates, SMS.
-
-**Wedge** [hypothesis]: State well-log and permit filing agent for drillers.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - DrillerDB: $99/mo (range $99-$799/mo) (https://drillerdb.com/pricing)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (family drilling contractors; DrillerDB tiers from $99/mo). Public-price incumbents: 2. Gatekeeper: not searched (session search budget exhausted). Top-4 share: unverified.
-
-**Evidence URLs (15):**
-  - https://siccode.com/naics-code/237110/water-sewer-line-structures-construction
-  - https://drillerdb.com/
-  - https://drillerdb.com/pricing
-  - https://growjo.com/company/DrillerDB
-  - https://www.crunchbase.com/organization/drillerdb
-  - https://g2.com/sellers/drillerdb
-  - https://ikol.com/industry-well-drilling
-  - https://www.getjobber.com/industries/well-water-services/
-  - https://www.wellmagic.net/about-us
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=346753368510466
-  - https://adstransparency.google.com/advertiser/AR07786644882944163841?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=IKOL&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
-  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=WellMagic&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-
-**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
-## 41. Pool builders  (NAICS 238990)
-
-- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 6.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** Houzz Pro.
-- **Boring test:** 3/3 — Permit sets, subcontractor sequencing, change orders.
-- **US establishments:** 22,731 (IBISWorld Swimming Pool Construction businesses) (2026, https://www.ibisworld.com/industry-statistics/number-of-businesses/swimming-pool-construction-united-states/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Houzz Pro | yes | 6 | yes | 82 / 14 / 0 (2026-06-11) | Houzz Pro | no | 700 / 38 (2021-10-25) | no 0 | 0 | horizontal |
-| ProDBX | yes | 3 | no | 2 / 2 / 1 (2026-02-20) | Prodbx | no | 20 / 15 (2024-08-01) | no 0 | 0 |  |
-| 123worx | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| Poologics | yes | 0 | no | 0 / 0 / 0 (-) | Poologics | no | 3 / 0 (2025-09-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| Streamline CRM | yes | 0 | no | 0 / 0 / 0 (-) | Streamline CRM | no | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Pool builders (238990)
-> - Core jobs: lead pipeline with milestone stages, estimating/proposals, phase-based construction scheduling across subs, change orders, punch lists, warranties, customer texting (Poologics, ProDBX, 123worx, Houzz Pro).
-> - Wedge: sub-trade sequencing and homeowner status updates during a multi-week build; an agent that reads the schedule and keeps subs and homeowners informed would cut the coordinator role. 22,731 businesses (IBISWorld 2026) growing 4.2%/yr.
-> - Weakest link: no pricing, founding or headcount data captured for any pool-specific vendor; concentration unverified.
-
-**The agent version** [hypothesis]: Permit set assembly → subcontractor sequencing calendar → change-order documentation → draw requests. Needs: permit portals, calendar, PDF.
-
-**Wedge** [hypothesis]: Permit-set and sub-sequencing agent for pool builders.
-
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~5 hrs/week.
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (pool builders). Public-price incumbents: 1. Gatekeeper: unverified (search budget exhausted before this check). Top-4 share: unverified.
-
-**Evidence URLs (18):**
-  - https://www.ibisworld.com/industry-statistics/number-of-businesses/swimming-pool-construction-united-states/
-  - https://123worx.com/blog/project-management-software-for-pool-builders/
-  - https://pro.houzz.com/for-pros/software-pool-builder-crm
-  - https://www.poologics.com/
-  - https://prodbx.com/software/pool-contractor-software/
-  - https://myquoteiq.com/top-8-softwares-for-pool-installation-businesses-in-2026/
-  - https://streamlinecrm.com/pool-construction-software/
-  - https://myquoteiq.com/top-10-best-job-management-software-for-hardscaping-contractors-in-2026/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=123worx&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=111007986968452
-  - https://adstransparency.google.com/advertiser/AR16905769731288465409?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=241945385881441
-  - https://adstransparency.google.com/advertiser/AR05400722414654980097?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=578143355577454
-  - https://adstransparency.google.com/advertiser/AR09072498666199056385?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=579879858551764
-
-**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
-## 42. Window cleaning  (NAICS 561720)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 6.0 = ad score 2.0 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Pane-count quotes, recurring routes, commercial invoicing.
-- **US establishments:** 35344 (2024, https://www.ibisworld.com/united-states/number-of-businesses/window-washing/6458/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Squeegee (Nexdynamic) | yes | 2 | no | 18 / 10 / 7 (2025-10-16) | Squeegee Boys Mobile Detailing | yes | 0 / 0 (-) | yes 6 | 0 | wrong_page |
-| Fieldified | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| ResponsiBid | yes | 0 | no | 0 / 0 / 0 (-) | ResponsiBid | no | 1 / 0 (2026-05-18) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Window cleaning
-> - Core jobs: round/route management for recurring residential customers, bundle-and-upsell quoting (glass + screens + gutters), route-aware customer self-scheduling (ResponsiBid CrewCal), invoicing and card payments, customer texting.
-> - Incumbents: ResponsiBid ($179/mo flat), Squeegee (UK, from GBP 15.83/mo), QuoteIQ ($29.99), Fieldified; Jobber called "best overall" by several listicles but no dedicated landing URL surfaced.
-> - Agent wedge: recurring-round retention agent - reminds customers when their next clean is due, offers route-adjacent slots, and upsells adjacent services, which is the exact ResponsiBid value prop at $179/mo delivered to solo operators for a fraction of that.
-> - Weakest evidence: IBISWorld shows the business count shrinking (-4.9% CAGR), which undercuts the "growing niche" thesis; ResponsiBid and Squeegee founding/headcount unverified.
-
-**The agent version** [hypothesis]: Recurring-round retention: predict next-clean due date per customer → text a route-adjacent slot → confirm → invoice → upsell screens/gutters. Needs: SMS, calendar, invoicing.
-
-**Wedge** [hypothesis]: Recurring-round rebooking agent for solo window cleaners.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - QuoteIQ: $29.99/mo Essentials (1 user); Elite $299; Max $699 per https://contractortoolstack.com/software/quoteiq/pricing/ (https://myquoteiq.com/pricing/)
-  - ResponsiBid: $179/mo Follow-up+Quoting; Ultimate $199; Powerhouse Bundle $229 (https://www.selecthub.com/p/pricing-software/responsibid/)
-  - Squeegee (Nexdynamic): from GBP 15.83/mo + VAT (pricing page title); Core GBP 19/user/mo per https://softwarefinder.com/field-service/squeegee (https://squeeg.ee/pricing)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 4/5. Check signer: owner-operator (solo glass cleaners to small crews). Public-price incumbents: 3. Gatekeeper: unverified (gatekeeper searches not run; session WebSearch budget exhausted). Top-4 share: no company >5% share.
-
-**Evidence URLs (19):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/window-washing/6458/
-  - https://fieldified.com/blog/best-window-cleaning-software
-  - https://myquoteiq.com/crm-for-window-cleaning-business/
-  - https://myquoteiq.com/pricing/
-  - https://www.crunchbase.com/organization/quoteiq
-  - https://myquoteiq.com/about-us/
-  - https://responsibid.com/
-  - https://www.selecthub.com/p/pricing-software/responsibid/
-  - https://www.capterra.com/p/175241/ResponsiBid/
-  - https://squeeg.ee/professional-window-cleaner-software
-  - https://squeeg.ee/pricing
-  - https://sourceforge.net/software/product/Squeegee/
-  - https://www.ibisworld.com/united-states/industry/window-washing/6458/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Fieldified&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=175247412493060
-  - https://adstransparency.google.com/advertiser/AR12811532525050527745?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=116424831417172
+**Evidence URLs (28):**
+  - https://siccode.com/naics-code/532412/construction-mining-forestry-machinery-equipment-rental-leasing
+  - https://ezo.io/ezrentout/blog/best-equipment-rental-software-compared/
+  - https://ezo.io/ezrentout/pricing/
+  - https://www.point-of-rental.com/pricing/
+  - https://www.point-of-rental.com/press-release/point-rental-software-unveils-monthly-pricing-plans/
+  - https://getlatka.com/companies/Point_of_Rental_Software
+  - https://pitchbook.com/profiles/company/162361-09
+  - https://www.quipli.com/
+  - https://softwareconnect.com/reviews/quipli-rental/
+  - https://www.crunchbase.com/organization/quipli
+  - https://www.prnewswire.com/news-releases/quipli-receives-3-5m-in-funding-to-power-its-next-generation-equipment-rental-management-solution-301739654.html
+  - https://rentmy.co/blog/best-equipment-rental-management-software/
+  - https://rentrax.com/blog/top-10-equipment-rental-software/
+  - https://reservety.com/guides/construction-equipment/construction-equipment-rental-software.html
+  - https://ezo.io/ezrentout/blog/ezrentout-vs-point-of-rental-vs-texada-comparison/
+  - https://news.ararental.org/
+  - https://www.gminsights.com/industry-analysis/construction-equipment-rental-market
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=EZRentOut&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR16180457129176465409?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Point%20of%20Rental&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR14655331190307815425?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=109460314543797
+  - https://adstransparency.google.com/advertiser/AR05447051385063342081?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=RentMy&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Rentrax&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR02728847053932199937?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Reservety&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Texada&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
 
 **Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
 
 ---
 
-## 43. Small engine & outdoor power equipment repair  (NAICS 811411)
+## 50. Party & event rental companies (tents, bounce houses)  (NAICS 532289)
 
 - **Status:** audited, not passing. Research: searched (follow-up slice6).
-- **Method score:** 6 = ad score 3 (mean of best two verified tools) + fragmentation 3/5.
+- **Method score:** 8.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 5/5.
 - **Passing tools:** none.
-- **Boring test:** 3/3 — Work orders, parts lookup, warranty claims to OEMs.
-- **US establishments:** 1,708 establishments (1,689 businesses) (2020, https://naicscode.com/naics/?naics=811411); share <20 employees: unverified.
+- **Boring test:** 3/3 — Quotes, inventory availability, delivery routing, deposits.
+- **US establishments:** 9,353 businesses (2024, https://www.ibisworld.com/industry-statistics/number-of-businesses/party-supply-rental-united-states/); share <20 employees: unverified.
 
 **Ad audit (Step 3):**
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Orderry | yes | 3 | no | 5 / 0 / 0 (2026-07-27) | Orderry | no | 10 / 3 (2025-04-11) | no 0 | 0 |  |
+| Rentman (party rental) | yes | 4 | no | unverified (throttled run) | - | no | 26 / 13 (2024-03-07) | yes 11 | 0 |  |
+| Booqable (party rental) | yes | 3 | no | unverified (throttled run) | Booqable Rental Software | no | 53 / 35 (2023-02-09) | no 0 | 0 |  |
+| Event Rental Systems (ERS) | yes | 3 | no | unverified (throttled run) | - | no | 7 / 3 (2023-11-10) | no 0 | 0 |  |
+| Goodshuffle Pro | yes | 3 | no | unverified (throttled run) | Goodshuffle | no | 45 / 5 (2023-06-24) | no 0 | 0 |  |
+| Rentopian | yes | 3 | no | unverified (throttled run) | Rentopian - Event Rental Software | no | 5 / 5 (2026-02-18) | no 0 | 0 |  |
+| ARM Software (party rental) | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| InTempo Software (party & event rental) | yes |  | unverified | unverified (throttled run) | InTempo Software | no | 0 / 0 (-) | no 0 | 0 |  |
+| InflatableOffice | yes | 0 | no | unverified (throttled run) | - | no | 15 / 0 (2022-12-08) | no 0 | 0 |  |
+| Reservety | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
-> — Small engine & outdoor power equipment repair · NAICS 811411 · 9 searches
-> - **Incumbent jobs:** work orders and repair tickets, parts lookup and price-file updates, OEM warranty-claim submission and product registration (Stihl PSP, Toro EZ-Link), unit service history, seasonal scheduling (RepairDesk, Orderry, Flyntlok, Ideal/c-Systems/Charter under Constellation, BiT, Windward).
-> - **Wedge:** warranty-claim and parts-order agent that fills each OEM's portal from the repair ticket; every DMS lists this integration as a selling point, and standalone repair shops without a DMS do it by hand.
-> - **Weakest evidence:** Census 2020 count is tiny (1,708 establishments) and the servicing-dealer pool (6,638 stores) is the real market; no concentration statement for the repair segment; Constellation trio and Flyntlok are quote-only.
-> - **Fragmentation 3/5:** two public prices, concentration unverified.
+> — Party & event rental companies · NAICS 532289 · 7 searches
+> - **Incumbent jobs:** inventory availability by date, quotes/proposals with e-sign, online booking and deposits, delivery routing, damage waivers (Goodshuffle Pro, InflatableOffice, Event Rental Systems, Rentopian, Booqable, Rentman).
+> - **Wedge:** inbound-quote agent that checks availability, prices the package, and sends the contract; weekend-heavy demand and small crews make this the highest-leverage step.
+> - **Weakest evidence:** Goodshuffle headcount is a range (25–100); ERS and Rentopian prices come from Software Advice, not vendor pages.
+> - **Fragmentation 5/5:** top-4 share 9.0% (explicit IBISWorld figure), four public prices, no gatekeeper.
 
 **The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
 
-**Fragmentation (Step 4):** 3/5. Check signer: owner-operator repair shop / servicing dealer principal. Public-price incumbents: 2. Gatekeeper: partial: OEM warranty/parts portals (Stihl PSP, Toro EZ-Link) drive DMS integrations, but no OEM mandates a vendor in results. Top-4 share: unverified.
-
-**Evidence URLs (21):**
-  - https://naicscode.com/naics/?naics=811411
-  - https://www.bitdms.com/ope-dealer-management-software/
-  - https://chartersoftware.com/dealers-distributors/ope/
-  - https://constellationdealer.com/news/charter-software-acquisition
-  - https://www.flyntlok.com/solutions/outdoor-power-equipment-dealer-software
-  - https://www.cbinsights.com/company/flyntlok
-  - https://www.crunchbase.com/organization/flyntlok
-  - https://www.linkedin.com/company/flyntlok
-  - https://www.idealcomputersystems.com/business-management-software-outdoor-power-equipment
-  - https://www.idealcomputersystems.com/dealer-management-software-company
-  - https://www.lightspeeddms.com/industries/ope/
-  - https://orderry.com/small-engine-repair-shop-software/
-  - https://orderry.com/pricing/
-  - https://www.repairdesk.co/small-engine-repair-shop-software/
-  - https://www.repairdesk.co/pricing/
-  - https://gitnux.org/best/small-engine-repair-software/
-  - https://www.windwardsoftware.com/business-types/outdoor-power-equipment
-  - https://www.csystemssoftware.com/news/charter-software/
-  - https://www.flyntlok.com/features/equipment-dealer-service-management
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=907192299370160
-  - https://adstransparency.google.com/advertiser/AR07787129681672667137?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 44. Title & escrow agencies  (NAICS 541191)
-
-- **Status:** audited, not passing. Research: searched (follow-up slice3).
-- **Method score:** 6 = ad score 2 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Title search, closing scheduling, disbursement.
-- **US establishments:** 8,286 companies verified active (NAICS 541191) (unverified, https://siccode.com/naics-code/541191/title-abstract-settlement-offices); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| CloseWise | yes | 2 | no | 0 / 0 / 0 (-) | CloseWise.com | no | 1 / 1 (2026-05-10) | no 0 | 2 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Title & escrow agencies (10 searches)
-> - Incumbent jobs: order entry, title commitment/policy production, escrow accounting and disbursement, closing document prep, underwriter integrations (Qualia, SoftPro, Settlor, AccuTitle); CRM for referral sources (TitleTap, Title 360).
-> - AaaS wedge: order-status and payoff/HOA-document chasing agent that works alongside the production system (which is contact-sales and hard to replace); or realtor/lender referral follow-up replacing $249/mo CRM.
-> - Weakest evidence: only one third-party public price (TitleTap); core production vendors are quote-based; Qualia's rollup means the vendor market is concentrating even though the agency market is fragmented; underwriter gatekeeper search returned nothing either way.
-> - Searches: NAICS count; production software; best title software pricing; escrow CRM; IBISWorld concentration; TitleTap; Title 360; Settlor; AccuTitle; underwriter mandate.
-
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
-
-**Fragmentation (Step 4):** 4/5. Check signer: owner/manager of independent title agency (8,286 firms; per-user SaaS). Public-price incumbents: 1. Gatekeeper: no (underwriter mandate not found). Top-4 share: highly fragmented; no company >5% share (IBISWorld Title Insurance).
-
-**Evidence URLs (23):**
-  - https://siccode.com/naics-code/541191/title-abstract-settlement-offices
-  - https://accu-title.com/
-  - https://www.apollo.io/companies/AccuTitle-Software/54a13c2d69702d285146db01
-  - https://pitchbook.com/profiles/company/434271-52
-  - https://www.linkedin.com/company/accutitlesoftware
-  - https://closewise.com/title-and-escrow-companies/
-  - https://www.qualia.com/
-  - https://www.guideflow.com/blog/title-company-software
-  - https://www.certifid.com/article/qualia-vs-softpro
-  - https://settlor.com/
-  - https://settlor.com/about/
-  - https://www.linkedin.com/company/settlor
-  - https://www.softprocorp.com/
-  - https://www.certifid.com/article/title-production-software
-  - https://title360crm.com/
-  - https://www.titletap.com/titletap-crm/
-  - https://www.goodfirms.co/software/titletap
-  - https://leadiq.com/c/titletap/5a1ddb532300005e00e8e4ef
-  - https://stpetecatalyst.com/local-marketing-firm-titletap-is-acquired/
-  - https://agency.firstam.com/resources/what-is-a-title-underwriter?hs_amp=true
-  - https://www.ibisworld.com/united-states/industry/title-insurance/4784/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=103280362272627
-  - https://adstransparency.google.com/advertiser/AR04101574273099890689?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 45. Asphalt paving & sealcoating contractors  (NAICS 238990)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 5.5 = ad score 1.5 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Seasonal quoting, weather scheduling, municipal bid paperwork.
-- **US establishments:** 138,636 (IBISWorld Paving Contractors, businesses); 37,952 (NAICS 238990 establishments, Census 2020) (2026 / 2020, https://www.ibisworld.com/industry-statistics/number-of-businesses/paving-contractors-united-states/ ; https://naicslist.com/naics/238990); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| OneCrew | yes | 2 | no | 0 / 0 / 0 (-) | One Crew | no | 2 / 2 (2024-11-15) | no 0 | 2 |  |
-| GoPave | yes | 1 | no | 1 / 1 / 0 (2026-06-24) | Go Pave Utah | yes | 0 / 0 (-) | no 0 | 0 | wrong_page |
-| Projul | yes | 1 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 0 |  |
-| Bitumio | yes | 0 | no | 0 / 0 / 0 (-) | Bitumio | no | 1 / 1 (2023-11-27) | no 0 | 0 |  |
-| PavementSoft | yes | 0 | no | 0 / 0 / 0 (-) | Pavement Soft | no | 0 / 0 (-) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| SaaSphalt | yes | 0 | no | 0 / 0 / 0 (-) | SA Asphalt | no | 0 / 0 (-) | no 0 | 0 |  |
-| ScopeTakeoff | yes | 0 | no | 0 / 0 / 0 (-) | ScopeTakeoff.com | no | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Asphalt paving & sealcoating (238990)
-> - Core jobs users log in for: satellite/map measurement -> tonnage/material estimate -> proposal, crew scheduling, job costing, invoicing with QuickBooks sync (Bitumio, SaaSphalt, PavementSoft, OneCrew). GoPave is sales-only: missed-call text-back, follow-up, review requests.
-> - Wedge: the quoting loop is the whole business for sealcoat/small paving shops. An agent that takes an address, measures from imagery, prices from the shop's rate card, sends the proposal and runs follow-up (GoPave's entire product) replaces the CRM seat; per-seat pricing ($70-$149/user/mo) is a clear price umbrella.
-> - Weakest link: OneCrew is VC-funded ($13M) and is content-marketing aggressively, so the category is not unattended; PavementSoft's $59.99 came from review aggregators, not the vendor.
-
-**The agent version** [hypothesis]: Measure driveway/lot from satellite → seal/pave quote with material takeoff → weather-safe schedule → municipal bid paperwork drafted for small public jobs. Needs: measurement API, weather, quoting rules, PDF bid forms.
-
-**Wedge** [hypothesis]: Satellite-measure-to-quote agent for sealcoating/residential paving.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - Bitumio: $149 per user per month (mobile-only crew free) - https://bitumio.com/pricing/ (also https://www.contractorsoftwarehub.com/bitumio-review/) (https://bitumio.com/pricing/)
-  - SaaSphalt: $70 per user per month - https://www.saasphalt.com/pricing.htm (per getonecrew comparison https://www.getonecrew.com/post/asphalt-bidding-software) (https://www.saasphalt.com/pricing.htm)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 4/5. Check signer: owner-operator (small paving/sealcoating shops; SaaSphalt/Bitumio sell per-user month-to-month). Public-price incumbents: 5. Gatekeeper: unverified (search budget exhausted before this check). Top-4 share: <5% for any single company ('highly fragmented').
-
-**Evidence URLs (30):**
-  - https://www.ibisworld.com/industry-statistics/number-of-businesses/paving-contractors-united-states/ ; https://naicslist.com/naics/238990
-  - https://bitumio.com/
-  - https://bitumio.com/pricing/
-  - https://www.capterra.com/p/10009942/Bitumio/ (count not in snippet)
-  - https://gopavecrm.com/
-  - https://www.getonecrew.com/
-  - https://tracxn.com/d/companies/onecrew-software/__isHokKjZ3PfDIUiYIGY9V_NBmtQgdWuXc5M0CQxSYYw ; https://www.zoominfo.com/c/onecrew/1318566236
-  - https://www.crunchbase.com/organization/onecrew-software ; https://pitchbook.com/profiles/company/520775-11
-  - https://www.pavementsoft.com/
-  - https://www.capterra.com/p/229835/PavementSoft/ (count not in snippet)
-  - https://projul.com/industries/paving-contractor/
-  - https://myquoteiq.com/industries/asphalt-paving-software/
-  - https://www.saasphalt.com/sealcoating-software.htm
-  - https://www.saasphalt.com/pricing.htm
-  - https://scopetakeoff.com/asphalt-estimating-software/
-  - https://myquoteiq.com/top-10-best-job-management-software-for-hardscaping-contractors-in-2026/
-  - https://projul.com/industries/deck-builders/
-  - https://www.ibisworld.com/united-states/industry/paving-contractors/2020/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=108217512153347
-  - https://adstransparency.google.com/advertiser/AR12803873138072879105?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=190097907518199
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=393061860869508
-  - https://adstransparency.google.com/advertiser/AR10834318766691581953?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1878494522369815
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=2146347565625894
-  - https://adstransparency.google.com/advertiser/AR15154333676306694145?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=740100343000139
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1073545742508145
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 46. Concrete flatwork & driveway contractors  (NAICS 238110)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 5.5 = ad score 2.5 (mean of best two verified tools) + fragmentation 3/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Yardage quoting, pour scheduling around weather, permits.
-- **US establishments:** 93,960 businesses (IBISWorld Concrete Contractors in the US) (2026, https://www.ibisworld.com/united-states/number-of-businesses/concrete-contractors/200/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Projul | yes | 3 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 2 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| ScopeTakeoff | yes | 0 | no | 0 / 0 / 0 (-) | ScopeTakeoff.com | no | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> . Concrete flatwork & driveway contractors (238110)
-> - Core jobs: aerial measurement of driveways/patios, takeoff for slabs/footings/rebar (ScopeTakeoff), quoting, scheduling pours and crews, job costing (Projul, QuoteIQ).
-> - Wedge: a pour-day logistics agent (ready-mix ordering quantities from the takeoff, weather-based rescheduling, crew notifications) sits between estimating tools and the yard; no incumbent covers it.
-> - Weakest evidence: only three tools met the landing-page rule (Jobber's concrete page was not captured); ScopeTakeoff price comes from a third-party blog; no headcount for ScopeTakeoff.
-
-**The agent version** [hypothesis]: Yardage/sq ft quote from drawings or photos → pour scheduled around weather and ready-mix availability → permit forms drafted → invoice. Needs: quoting rules, weather API, permit portals.
-
-**Wedge** [hypothesis]: Quote-and-pour-scheduling agent for flatwork.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - Projul: $4,788/yr Core (up to 10 employees); Pro $14,388/yr unlimited users (https://projul.com/pricing/)
-  - QuoteIQ: $29.99/mo (https://myquoteiq.com/pricing/)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 3/5. Check signer: owner-operator (residential flatwork crews under 20 employees). Public-price incumbents: 3. Gatekeeper: not searched (session search budget exhausted). Top-4 share: unverified.
-
-**Evidence URLs (18):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/concrete-contractors/200/
-  - https://projul.com/industries/concrete-contractor/
-  - https://projul.com/pricing/
-  - https://softwareconnect.com/reviews/projul/
-  - https://projul.com/why-us/
-  - https://www.capterra.com/p/185634/Projul/
-  - https://myquoteiq.com/top-10-concrete-estimating-software-in-2026/
-  - https://myquoteiq.com/pricing/
-  - https://tracxn.com/d/companies/quoteiq/__baJVvCxQIOKFcjFDrIKoaTAs0SGEG9HCkMNvWwcyViU
-  - https://bootstrappers.com/mike-vida-quoteiq/
-  - https://contractortoolstack.com/software/quoteiq/
-  - https://scopetakeoff.com/blog/concrete/best-concrete-estimating-software/
-  - https://www.buildvisionai.com/best-concrete-estimating-software
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=2146347565625894
-  - https://adstransparency.google.com/advertiser/AR15154333676306694145?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1073545742508145
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 47. Flooring & tile contractors  (NAICS 238330)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 5.5 = ad score 3.5 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** Builder Prime.
-- **Rescrape queued (Meta undersampled):** Floorzap.
-- **Boring test:** 3/3 — Square-foot quotes, material takeoffs, install scheduling.
-- **US establishments:** 13,108 companies verified active (siccode); 77,869 employees (n.d., https://siccode.com/naics-code/238330/flooring-contractors); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | no | 26 / 21 (2025-02-21) | no 0 | 0 |  |
-| Floorzap | yes | 1 | no | 45 / 0 / 0 (2026-07-29) | Floorzap | yes | unverified (host blocked) / unverified (host blocked) (-) | unverified (host blocked)  | 0 | undersampled |
-| Projul | yes | 1 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 0 |  |
-| FieldGroove | yes | 0 | no | 0 / 0 / 0 (-) | FieldGroove | no | 0 / 0 (-) | no 0 | 0 |  |
-| FloorSoft | yes | 0 | no | 0 / 0 / 0 (-) | FloorSoft, Inc | no | 0 / 0 (-) | no 0 | 0 |  |
-| Measure Square | yes | 0 | no | 0 / 0 / 0 (-) | Measure Square | no | 0 / 0 (-) | no 0 | 0 |  |
-| ProjectsForce 360 | yes | 0 | no | 0 / 0 / 0 (-) | ProjectsForce | no | 25 / 0 (2026-02-16) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| WorkQuote | yes | 0 | no | 0 / 0 / 0 (-) | WorkQuote: The All-in-One App for Your Service Business | no | 1 / 0 (2026-05-05) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Flooring & tile contractors (238330)
-> - Core jobs: takeoff/measurement from plans, material estimating by sq ft, bids, install scheduling around other trades, crew tracking, job costing (Measure Square, Floorzap, FloorSoft, ProjectsForce, FieldGroove).
-> - Wedge: takeoff-to-bid automation for small contract flooring shops and install-day scheduling for retailer-dependent installers; Projul/QuoteIQ show sub-$30-$400/mo price points are accepted.
-> - Weakest link: none of the vertical vendors' pricing, age or size was captured; RFMS/QFloors (retail ERPs) were never researched; tile (238340) was not covered.
-
-**The agent version** [hypothesis]: Room measurements → material takeoff and quote → supplier order → install scheduling → invoice. Needs: quoting rules, supplier portals, calendar.
-
-**Wedge** [hypothesis]: Takeoff-and-quote agent for flooring installers.
-
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~3 hrs/week.
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (flooring contractors/installers; retailers for some tools). Public-price incumbents: 2. Gatekeeper: unverified (search budget exhausted before this check). Top-4 share: unverified.
-
-**Evidence URLs (25):**
-  - https://siccode.com/naics-code/238330/flooring-contractors
-  - https://www.builderprime.com/industries/flooring
-  - https://www.fieldgroove.com/flooring-software
-  - https://www.floorsoft.com/
-  - https://www.floorzap.com/
-  - https://measuresquare.com/
-  - https://www.projectsforce.com/flooring-business-software
-  - https://projul.com/industries/flooring-contractor/
-  - https://myquoteiq.com/top-10-best-scheduling-software-for-flooring-contractors-in-2026/
-  - https://workquote.app/industries/flooring-service
-  - https://projul.com/industries/deck-builders/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1829807557257902
-  - https://adstransparency.google.com/advertiser/AR14135757271249977345?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1579516802119215
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=186007324799549
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=375819546395972
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=276493002487597
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=456261247848039
-  - https://adstransparency.google.com/advertiser/AR14473943863720411137?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=2146347565625894
-  - https://adstransparency.google.com/advertiser/AR15154333676306694145?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=211311998732317
-  - https://adstransparency.google.com/advertiser/AR10989223771608449025?region=US
-
-**Confidence:** low. Weakest link: Meta undersampled for a large advertiser; rescrape pending.
-
----
-
-## 48. DOT / trucking compliance consultants  (NAICS 541618)
-
-- **Status:** audited, not passing. Research: searched (follow-up batch 17, 2026-09-17).
-- **Method score:** 5.5 = ad score 2.5 (mean of best two verified tools) + fragmentation 3/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Driver qualification files, drug-testing programs, audits.
-- **US establishments:** 11,419 (all of NAICS 541618; DOT-consultant subset unverified) (2020, https://www.item.com/naics/541618); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| DOTDriverFiles | yes | 3 | no | 0 / 0 / 0 (-) | DOTDriverFiles |  | 44 / 6 (2024-07-15) | no 0 | 0 |  |
-| DQM Connect | yes | 2 | no | 0 / 0 / 0 (-) | DQM |  | 0 / 0 (-) | no 0 | 2 |  |
-| Driver File Hub | yes | 1 | no | 41 / 1 / 1 (2025-11-20) | Driver | yes | 0 / 0 (-) | no 0 | 0 | wrong_page |
-| Avatar DriverHub | yes | 0 | no | 0 / 0 / 0 (-) | Avatar |  | 8 / 0 (2026-03-26) | no 0 | 0 |  |
-| CarrierLens | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-| FileFlo | yes | 0 | no | 0 / 0 / 0 (-) | - |  | 0 / 0 (-) | no 0 | 0 |  |
-| FleetDrive 360 | yes | 0 | no | 0 / 0 / 0 (-) | FleetDrive 360 |  | 0 / 0 (-) | no 0 | 0 |  |
-| Safety Compliance Tracker | yes | 0 | no | 0 / 0 / 0 (-) | Safety Compliance Tracker |  | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> DOT / trucking compliance consultants (NAICS 541618) — 8 searches (+2 in extra pass)
-> - Incumbents' jobs: driver qualification file tracking, med-card/MVR/annual-review expirations, drug & alcohol consortium/Clearinghouse queries, audit binders, multi-client dashboards (Safety Compliance Tracker's explicit consultant page, DQM Connect, CarrierLens, FileFlo, DOTDriverFiles $5/driver, Avatar DriverHub, J.J. Keller services).
-> - Wedge: consultants resell compliance labor; an agent that monitors each client carrier's DQF gaps, drafts the corrective-action packet, and chases drivers for documents lets a solo consultant serve 3x the carriers. Per-driver pricing (DOTDriverFiles) shows the unit economics.
-> - Weakest evidence: no count of DOT-specific consultants; Safety Compliance Tracker and CarrierLens pricing/headcount not found; FileFlo bootstrapped status unverified.
-> - Searches: NAICS 541618 count; consultant multi-client DQF software; best DQ software 2026; consultant population; SCT pricing; DQM Connect; CarrierLens pricing; FileFlo; SCT founder; DOTDriverFiles pricing.
-
-**The agent version** [hypothesis]: Driver qualification file completeness checks → drug-testing program enrollment and random-pool tracking → audit-ready file packs. Needs: document intake, FMCSA Clearinghouse, email.
-
-**Wedge** [hypothesis]: DQ-file compliance agent for small carriers (sold via consultants).
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - DOTDriverFiles: Free plan (pay per MVR/PSP report); Pro $5/driver/month; Pro+ $5/driver + $2/vehicle (https://dotdriverfiles.com/pricing/)
-  - DQM Connect: contact for quote (https://marketplace.geotab.com/solutions/dqmconnect/)
-  - Driver File Hub: pricing page exists; figures not surfaced (https://driverfilehub.com/pricing/)
-  - FileFlo: $89/month Starter; $299/month Professional flat (https://www.g2.com/products/fileflo/pricing)
-  - FleetDrive 360: pricing page exists; figures not surfaced (https://www.fleetdrive360.com/pricing/)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~6 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (6 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 3/5. Check signer: solo or small consultancy owner (often ex-safety director). Public-price incumbents: 2. Gatekeeper: none: FMCSA sets rules (DQF, Clearinghouse, drug consortium) but mandates no software vendor. Top-4 share: unverified.
-
-**Evidence URLs (23):**
-  - https://www.item.com/naics/541618
-  - https://www.avatarfleet.com/dot-compliance-software
-  - https://www.carrierlens.com/
-  - https://dotdriverfiles.com/
-  - https://dotdriverfiles.com/pricing/
-  - https://dqmconnect.com/
-  - https://marketplace.geotab.com/solutions/dqmconnect/
-  - https://tracxn.com/d/companies/dqm-connect/__hE5Htz3GK7Ho3wwvz4jeoGo-CJjraNviLa-XYXcYKTE
-  - https://driverfilehub.com/pricing/
-  - https://www.getfileflo.com/blog/best-dot-compliance-software-2026
-  - https://www.g2.com/products/fileflo/pricing
-  - https://www.fleetdrive360.com/pricing/
-  - https://safetycompliancetracker.com/dot-consultant-software/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=82771544063
-  - https://adstransparency.google.com/advertiser/AR07348859338909286401?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CarrierLens&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=302746632912898
-  - https://adstransparency.google.com/advertiser/AR16432680148785954817?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=325317343967
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1221434121328876
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=FileFlo&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=103104755491568
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=111587318625767
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 49. Pest control operators  (NAICS 561710)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 5 = ad score 3 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Recurring service routes, pesticide-use records, state reporting.
-- **US establishments:** 33197 (2025, https://www.ibisworld.com/united-states/number-of-businesses/pest-control/1495/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Briostack | yes | 3 | no | 0 / 0 / 0 (-) | Briostack | no | 59 / 28 (2023-04-26) | no 0 | 0 |  |
-| GorillaDesk | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Pest control operators
-> - Core jobs (inferred from vertical tools' positioning; not from snippets this session): route optimization, recurring service agreements, chemical/regulatory application records, technician mobile app, autopay.
-> - IBISWorld: 33,197 businesses (2025), 34,076 (2026). Sunair 10-K (FY2007) describes ~20,000 firms, highly fragmented, top five ~30% of revenue.
-> - Only Briostack surfaced in a result; PestPac and FieldRoutes are from prior knowledge. Both major incumbents are owned by consolidators (WorkWave, ServiceTitan) and are contact-sales, which leaves a self-serve gap for 1-3 truck operators.
-> - Agent wedge: missed-call/lead-response plus recurring-agreement renewal agent for small PCOs; compliance-record drafting from technician voice notes.
-> - Weakest link: no tool details verified; concentration source is a 2008 SEC filing.
-
-**The agent version** [hypothesis]: Recurring service routes → state pesticide-use records auto-generated from tech texts → renewals. Needs: SMS, state record templates, route calendar.
-
-**Wedge** [hypothesis]: Pesticide-use recordkeeping agent for small PCOs.
-
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~4 hrs/week.
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (majority of ~33k firms); corporate procurement at Rollins/Rentokil/Anticimex consolidators. Public-price incumbents: 0. Gatekeeper: unverified. Top-4 share: top 5 ~30% of revenues; top 100 ~50% (pest control, dated FY2007 SEC filing).
-
-**Evidence URLs (7):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/pest-control/1495/
-  - https://www.briostack.com/blog/pest-control-industry-statistics
-  - https://www.sec.gov/Archives/edgar/data/0000095366/000095014408000224/g11232ke10vk.htm
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=113149019284976
-  - https://adstransparency.google.com/advertiser/AR15449119615661113345?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=387445444655938
-  - https://adstransparency.google.com/advertiser/AR10520026520397807617?region=US
-
-**Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
-
----
-
-## 50. Roll-off dumpster rental  (NAICS 562111)
-
-- **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 5 = ad score 4 (mean of best two verified tools) + fragmentation 1/5.
-- **Passing tools:** none.
-- **Boring test:** 3/3 — Container tracking, drop/pickup scheduling, tonnage billing.
-- **US establishments:** 351 (2025, https://www.ibisworld.com/united-states/number-of-businesses/dumpster-rental/5837/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| CurbWaste | yes | 4 | no | 0 / 0 / 0 (-) | CurbWaste | no | 65 / 30 (2024-09-25) | yes 8 | 0 |  |
-| ServiceCore | no (prior knowledge) | 3 | no | 3 / 0 / 0 (2026-09-09) | ServiceCore | no | 24 / 12 (2023-04-28) | yes 11 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Roll-off dumpster rental
-> - IBISWorld counts only 351 businesses (2025) in its narrow definition, which conflicts with the visible long tail of independent haulers; NAICS 562111 is dominated by WM/Republic. Bin There Dump That is a franchisor.
-> - CurbWaste surfaced with a dumpster-rental profitability page; Docket, DRS, ServiceCore from prior knowledge.
-> - Core jobs (inferred): online ordering, delivery/pickup dispatch, asset (can) tracking, overage/tonnage billing.
-> - Agent wedge: inbound ordering + delivery/pickup scheduling agent tied to can inventory; small haulers still take orders by phone.
-> - Weakest link: establishment count is contradictory; tool pricing unverified.
-
-**The agent version** [hypothesis]: Drop/pickup scheduling → container tracking → tonnage billing reconciliation from landfill tickets. Needs: SMS, ticket OCR, invoicing.
-
-**Wedge** [hypothesis]: Landfill-ticket reconciliation and billing agent.
-
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~4 hrs/week.
-
-**Fragmentation (Step 4):** 1/5. Check signer: owner-operator (independent haulers) with municipal/contractor procurement for large accounts; Bin There Dump That franchise. Public-price incumbents: 0. Gatekeeper: possible (franchise). Top-4 share: unverified.
-
-**Evidence URLs (7):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/dumpster-rental/5837/
-  - https://www.curbwaste.com/dumpster-rental-business-profitability
-  - https://bintheredumpthatfranchise.com/blog/dumpster-rental-industry-is-right-for-you/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101757769190838
-  - https://adstransparency.google.com/advertiser/AR11369419739848769537?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=624372454388997
-  - https://adstransparency.google.com/advertiser/AR16372434505086009345?region=US
+**Fragmentation (Step 4):** 5/5. Check signer: owner-operator ('mom-and-pop' per IBISWorld; InflatableOffice free tier under 10 items). Public-price incumbents: 4. Gatekeeper: none found. Top-4 share: 9.0% (top four operators); low concentration; largest Party Rental Ltd.
+
+**Evidence URLs (31):**
+  - https://www.ibisworld.com/industry-statistics/number-of-businesses/party-supply-rental-united-states/
+  - https://www.armsoftware.com/party-rental-software/
+  - https://booqable.com/party-rental-software/
+  - https://eventrentalsystems.com/features/
+  - https://www.softwareadvice.com/event-rental/
+  - https://pro.goodshuffle.com/pricing
+  - https://www.owler.com/company/goodshuffleinc
+  - https://www.prnewswire.com/news-releases/washington-dc-startup-goodshuffle-raises-5mm-in-series-a-302087168.html
+  - https://www.linkedin.com/company/goodshuffle
+  - https://www.intemposoftware.com/industries/party-event-rental
+  - https://inflatableoffice.com/pricing/
+  - https://rentman.io/industries/party-rental
+  - https://rentopian.com/event-party-rental-software/
+  - https://www.softwareadvice.com/rental/rentopian-profile/
+  - https://reservety.com/guides/party-event-rental/party-rental-management-software.html
+  - https://www.ibisworld.com/united-states/number-of-businesses/party-supply-rental/4389/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ARM%20Software&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1507655699470083
+  - https://adstransparency.google.com/advertiser/AR17625691874566078465?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Event%20Rental%20Systems&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR04475549367759011841?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=198308396942060
+  - https://adstransparency.google.com/advertiser/AR11851906521816367105?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1576125195959577
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=InflatableOffice&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR14247211569501962241?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Rentman&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR13340353173689204737?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1435971013099871
+  - https://adstransparency.google.com/advertiser/AR00389413217165639681?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Reservety&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
 
 **Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
 
