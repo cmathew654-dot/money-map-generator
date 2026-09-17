@@ -533,7 +533,7 @@ Known limits, stated plainly:
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
 | Method:Field Services | yes | 3 | no | unverified (throttled run) | - | no | 200 / 21 (2023-02-27) | no 0 | 0 |  |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Rossware ServiceDesk | yes | 2 | no | unverified (throttled run) | - | no | 1 / 1 (2025-01-31) | no 0 | 2 |  |
+| Rossware ServiceDesk | yes | 2 | no | unverified (throttled run) | Rossware | no | 1 / 1 (2025-01-31) | no 0 | 2 |  |
 | Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | no | 0 / 0 (-) | no 0 | 0 |  |
 | ServiceWorks | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
@@ -573,7 +573,7 @@ Known limits, stated plainly:
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
   - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=821421364649220
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Rossware%20ServiceDesk&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=140956949284498
   - https://adstransparency.google.com/advertiser/AR10327935336444854273?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=179317675454866
   - https://adstransparency.google.com/advertiser/AR00871924403137413121?region=US
@@ -598,12 +598,12 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Service Fusion | yes | 8 | yes | 29 / 5 / 0 (2026-07-16) | Service Fusion | yes | 400 / 27 (2024-04-26) | yes 5 | 0 | horizontal |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| Vonigo | yes | 6 | yes | 0 / 0 / 0 (-) | Vonigo | unverified (host blocked) | 77 / 5 (2024-12-22) | yes 3 | 2 |  |
+| Vonigo | yes | 6 | yes | 0 / 0 / 0 (-) | Vonigo | no | 77 / 5 (2024-12-22) | yes 3 | 2 |  |
 | Workiz | yes | 3 | no | 110 / 0 / 0 (2026-08-09) | Workiz | no | 500 / 20 (2025-10-17) | no 0 | 0 | undersampled horizontal |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 | ManageMart | yes | 0 | no | 0 / 0 / 0 (-) | Managemart | no | 0 / 0 (-) | no 0 | 0 |  |
-| SetTime | yes | 0 | no | 0 / 0 / 0 (-) | Set Time | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
-| Upper | yes | 0 | no | 0 / 0 / 0 (-) | Upper | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| SetTime | yes | 0 | no | 0 / 0 / 0 (-) | Set Time | no | 0 / 0 (-) | no 0 | 0 |  |
+| Upper | yes | 0 | no | 0 / 0 / 0 (-) | Upper | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -762,7 +762,7 @@ Known limits, stated plainly:
 | FieldEdge | yes | 3 | no | 1 / 0 / 0 (2026-08-31) | FieldEdge by Xplor | no | 44 / 9 (2021-10-25) | no 0 | 0 | horizontal |
 | Workiz | yes | 3 | no | 110 / 0 / 0 (2026-08-09) | Workiz | no | 500 / 20 (2025-10-17) | no 0 | 0 | undersampled horizontal |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| TEN4 (Nexent Innovation) | yes | 1 | no | 0 / 0 / 0 (-) | TEN 4 | unverified (host blocked) | 13 / 0 (2025-06-02) | yes 2 | 0 |  |
+| TEN4 (Nexent Innovation) | yes | 1 | no | 0 / 0 / 0 (-) | TEN 4 | no | 13 / 0 (2025-06-02) | yes 2 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -830,9 +830,9 @@ Known limits, stated plainly:
 | Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | no | 26 / 21 (2025-02-21) | no 0 | 0 |  |
 | Projul | yes | 3 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 2 |  |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Coating Pro Tech | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
-| CoatingOS | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
-| floorWIZ | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 5 / 2 (2025-01-10) | no 0 | 0 |  |
+| Coating Pro Tech | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| CoatingOS | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| floorWIZ | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 5 / 2 (2025-01-10) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1234,7 +1234,7 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Roaming Hunger (vendor portal) | yes | 6 | yes | unverified (throttled run) | Roaming Hunger | no | 500 / 40 (2023-09-18) | yes 12 | 2 |  |
 | Truckster (vendor platform) | yes | 5 | yes | unverified (throttled run) | Truckster | no | 43 / 32 (2024-04-16) | no 0 | 2 |  |
-| Homebase (food truck page) | yes | 3 | no | unverified (throttled run) | Homebase | no | 40 / 34 (2024-06-07) | no 0 | 0 |  |
+| Homebase (food truck page) | yes | 3 | no | unverified (throttled run) | Homebase | unverified (host blocked) | 40 / 34 (2024-06-07) | no 0 | 0 |  |
 | Square for Restaurants (food truck page) | yes | 3 | no | unverified (throttled run) | - | no | 36 / 34 (2021-10-25) | no 0 | 0 |  |
 | Catermonkey | yes | 0 | no | unverified (throttled run) | Catermonkey - app | no | 2 / 0 (2025-12-18) | no 0 | 0 |  |
 | Food Truck Lineup | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
@@ -1364,7 +1364,7 @@ Known limits, stated plainly:
 | AutoRaptor CRM | yes | 5 | yes | unverified (throttled run) | - | no | 48 / 16 (2025-05-26) | no 0 | 2 |  |
 | Wayne Reaves Software | yes | 5 | yes | unverified (throttled run) | Wayne Reaves Software & Web Sites | no | 20 / 12 (2023-07-06) | no 0 | 2 |  |
 | DealerCenter (Nowcom) | yes | 4 | no | unverified (throttled run) | DealerCenter | no | 22 / 18 (2021-10-25) | yes 1 | 0 |  |
-| AutoManager (DeskManager / WebManager) | yes | 2 | no | unverified (throttled run) | - | no | 6 / 2 (2021-10-26) | no 0 | 2 |  |
+| AutoManager (DeskManager / WebManager) | yes | 2 | no | unverified (throttled run) | Auto Manager | unverified (host blocked) | 6 / 2 (2021-10-26) | no 0 | 2 |  |
 | Selly Automotive | yes | 2 | no | unverified (throttled run) | Selly Automotive | no | 4 / 1 (2023-02-12) | no 0 | 2 |  |
 | Frazer DMS (Frazer Computing) | yes | 0 | no | unverified (throttled run) | - | no | 2 / 2 (2024-04-09) | no 0 | 0 |  |
 | MSP Buy Here Pay Here Software | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
@@ -1408,7 +1408,7 @@ Known limits, stated plainly:
   - https://www.softwaresuggest.com/wayne-reaves-sw
   - https://www.crunchbase.com/organization/wayne-reaves-software
   - https://www.sec.gov/Archives/edgar/data/1170010/000117001024000034/kmx-20240229.htm
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=AutoManager&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=100127035908005
   - https://adstransparency.google.com/advertiser/AR14484759510494740481?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=AutoRaptor%20CRM&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR09529052521532751873?region=US
@@ -1438,15 +1438,15 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Innago | yes | 5 | yes | 0 / 0 / 0 (-) | Innago | unverified (host blocked) | 400 / 26 (2023-01-09) | no 0 | 2 |  |
-| Rentec Direct | yes | 5 | yes | 0 / 0 / 0 (-) | Rentec Direct | unverified (host blocked) | 57 / 40 (2023-08-15) | no 0 | 2 |  |
+| Innago | yes | 5 | yes | 0 / 0 / 0 (-) | Innago | no | 400 / 26 (2023-01-09) | no 0 | 2 |  |
+| Rentec Direct | yes | 5 | yes | 0 / 0 / 0 (-) | Rentec Direct | no | 57 / 40 (2023-08-15) | no 0 | 2 |  |
 | AppFolio | yes | 4 | no | unverified (throttled run) | AppFolio | no | 36 / 10 (2026-02-03) | yes 7 | 0 |  |
-| TenantCloud | yes | 4 | no | 0 / 0 / 0 (-) | TenantCloud | unverified (host blocked) | 80 / 19 (2023-02-23) | yes 1 | 0 |  |
+| TenantCloud | yes | 4 | no | 0 / 0 / 0 (-) | TenantCloud | no | 80 / 19 (2023-02-23) | yes 1 | 0 |  |
 | TurboTenant | yes | 4 | no | unverified (throttled run) | - | no | 500 / 33 (2021-10-25) | yes 2 | 0 |  |
-| Yardi Breeze | yes | 4 | no | unverified (throttled run) | - | no | 73 / 15 (2023-05-02) | yes 7 | 0 |  |
-| Buildium | yes | 3 | no | 0 / 0 / 0 (-) | Buildium  | unverified (host blocked) | 500 / 28 (2026-01-05) | no 0 | 0 |  |
-| DoorLoop | yes | 3 | no | 0 / 0 / 0 (-) | DoorLoop | unverified (host blocked) | 300 / 20 (2022-11-15) | no 0 | 0 |  |
-| Shuk Rentals | yes | 0 | no | 0 / 0 / 0 (-) | Shuk Rentals | unverified (host blocked) | 4 / 0 (2026-03-12) | no 0 | 0 |  |
+| Yardi Breeze | yes | 4 | no | unverified (throttled run) | Yardi Breeze | no | 73 / 15 (2023-05-02) | yes 7 | 0 |  |
+| Buildium | yes | 3 | no | 0 / 0 / 0 (-) | Buildium  | no | 500 / 28 (2026-01-05) | no 0 | 0 |  |
+| DoorLoop | yes | 3 | no | 0 / 0 / 0 (-) | DoorLoop | no | 300 / 20 (2022-11-15) | no 0 | 0 |  |
+| Shuk Rentals | yes | 0 | no | 0 / 0 / 0 (-) | Shuk Rentals | no | 4 / 0 (2026-03-12) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1499,7 +1499,7 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR08453475861734096897?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=TurboTenant&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR16004943170366341121?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Yardi%20Breeze&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=998147790365460
   - https://adstransparency.google.com/advertiser/AR00874605974558605313?region=US
 
 **Confidence:** medium. Weakest link: gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed.
@@ -1760,7 +1760,7 @@ Known limits, stated plainly:
 | Blackpurl | yes | 5 | yes | unverified (throttled run) | Blackpurl | no | 7 / 7 (2024-12-30) | no 0 | 2 |  |
 | Lightspeed DMS (trailer) | yes | 4 | no | unverified (throttled run) | Lightspeed DMS | no | 74 / 12 (2025-02-25) | yes 12 | 0 |  |
 | Motility Software Solutions | yes | 4 | no | unverified (throttled run) | Motility Software Solutions | no | 11 / 4 (2023-04-07) | yes 5 | 0 |  |
-| Trailer Ops DMS | yes | 2 | no | unverified (throttled run) | - | no | 12 / 0 (2023-06-05) | no 0 | 2 |  |
+| Trailer Ops DMS | yes | 2 | no | unverified (throttled run) | Trailer Ops | no | 12 / 0 (2023-06-05) | no 0 | 2 |  |
 | EverLogic | yes | 0 | no | unverified (throttled run) | - | no | 1 / 1 (2024-12-19) | no 0 | 0 |  |
 | SOARR | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Softbase Evolution (Softbase Systems) | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 2 |  |
@@ -1812,7 +1812,7 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR07963274261940928513?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=SOARR&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Softbase%20Evolution&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Trailer%20Ops%20DMS&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=160264703845547
   - https://adstransparency.google.com/advertiser/AR05747739743353831425?region=US
 
 **Confidence:** low. Weakest link: fewer than 2 verified tools pass the ad test.
@@ -1832,8 +1832,8 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Storeganise | yes | 6 | yes | unverified (throttled run) | Storeganise | no | 41 / 3 (2023-11-12) | yes 12 | 2 |  |
-| Storable Easy (Easy Storage Solutions) | yes | 3 | no | unverified (throttled run) | Storable | no | 700 / 4 (2025-08-20) | no 0 | 0 |  |
-| Storable Edge (storEDGE) | yes | 3 | no | unverified (throttled run) | - | no | 21 / 15 (2023-12-13) | no 0 | 0 |  |
+| Storable Easy (Easy Storage Solutions) | yes | 3 | no | unverified (throttled run) | Storable | unverified (host blocked) | 700 / 4 (2025-08-20) | no 0 | 0 |  |
+| Storable Edge (storEDGE) | yes | 3 | no | unverified (throttled run) | Storable | no | 21 / 15 (2023-12-13) | no 0 | 0 |  |
 | Stora | yes | 2 | no | unverified (throttled run) | - | no | 7 / 0 (2026-01-07) | no 0 | 2 |  |
 | 6Storage | yes | 0 | no | unverified (throttled run) | 6Storage | no | 6 / 2 (2025-09-30) | no 0 | 0 |  |
 | Kinnovis | yes |  | unverified | unverified (throttled run) | KINNOVIS GmbH | no | 0 / 0 (-) | no 0 | 2 |  |
@@ -1851,7 +1851,7 @@ Known limits, stated plainly:
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner of a single or few-facility independent operator (~65% of US facilities are owned by operators outside the top 100). Public-price incumbents: 5. Gatekeeper: no (Self Storage Association is a trade body; REITs run in-house systems; no franchise/association software mandate found). Top-4 share: public companies/REITs own 23% of facilities, next top-100 own 13%, small operators ~65%; by square footage small operators 40%, REITs/public 38%.
 
-**Evidence URLs (31):**
+**Evidence URLs (30):**
   - https://www.naics.com/naics-code-description/?code=531130
   - https://us.6storage.com/self-storage-software/pricing/
   - https://www.selecthub.com/p/self-storage-software/6storage/
@@ -1879,7 +1879,6 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR03857097166879195137?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=105157375402856
   - https://adstransparency.google.com/advertiser/AR17356714548312145921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Storable%20Edge&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR07149972451542171649?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=425879644251286
   - https://adstransparency.google.com/advertiser/AR09656045015029252097?region=US
@@ -1904,7 +1903,7 @@ Known limits, stated plainly:
 | Jumbula | yes | 4 | no | unverified (throttled run) | - | no | 35 / 4 (2022-08-08) | yes 4 | 0 |  |
 | Teachworks | yes | 4 | no | unverified (throttled run) | - | no | 12 / 6 (2023-08-14) | yes 3 | 0 |  |
 | Jackrabbit Music | yes | 3 | no | unverified (throttled run) | - | no | 55 / 20 (2025-08-01) | no 0 | 0 |  |
-| Teach 'n Go | yes | 3 | no | unverified (throttled run) | - | no | 9 / 3 (2022-10-19) | no 0 | 0 |  |
+| Teach 'n Go | yes | 3 | no | unverified (throttled run) | Teach 'n Go | no | 9 / 3 (2022-10-19) | no 0 | 0 |  |
 | Bizzly | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Duet (Music Teacher's Helper) | yes | 0 | no | unverified (throttled run) | - | no | 2 / 1 (2025-07-18) | no 0 | 0 |  |
 | Fons | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | yes 2 | 0 |  |
@@ -1964,7 +1963,7 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR13474526345698476033?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Opus1.io&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR16158267060382597121?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Teach%20%27n%20Go&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=169806999837691
   - https://adstransparency.google.com/advertiser/AR07663009112547917825?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Teachworks&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR09882076155836628993?region=US
@@ -2191,9 +2190,9 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | AutoLeap | yes | 4 | no | unverified (throttled run) | AutoLeap | no | 200 / 33 (2023-09-20) | yes 12 | 0 |  |
-| Shop-Ware | yes | 4 | no | unverified (throttled run) | - | no | 32 / 16 (2022-06-01) | yes 2 | 0 |  |
-| Shopmonkey | yes | 4 | no | unverified (throttled run) | - | no | 500 / 17 (2026-03-29) | yes 10 | 0 |  |
-| Tekmetric | yes | 4 | no | unverified (throttled run) | - | no | 37 / 8 (2026-04-29) | yes 12 | 0 |  |
+| Shop-Ware | yes | 4 | no | unverified (throttled run) | Shopware | no | 32 / 16 (2022-06-01) | yes 2 | 0 |  |
+| Shopmonkey | yes | 4 | no | unverified (throttled run) | Shopmonkey | no | 500 / 17 (2026-03-29) | yes 10 | 0 |  |
+| Tekmetric | yes | 4 | no | unverified (throttled run) | Tekmetric | no | 37 / 8 (2026-04-29) | yes 12 | 0 |  |
 | Mitchell 1 Manager SE | yes | 3 | no | unverified (throttled run) | - | no | 65 / 37 (2021-10-25) | no 0 | 0 |  |
 | NAPA TRACS | yes | 3 | no | unverified (throttled run) | NAPA TRACS | no | 11 / 10 (2024-10-17) | no 0 | 0 |  |
 | Garage360 | yes | 0 | no | unverified (throttled run) | - | no | 1 / 0 (2026-08-13) | no 0 | 0 |  |
@@ -2234,11 +2233,11 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR10888021096435548161?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=614028805744077
   - https://adstransparency.google.com/advertiser/AR11404447483070251009?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Shop-Ware&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=120337994672097
   - https://adstransparency.google.com/advertiser/AR03146070416267673601?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Shopmonkey&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1789987241232022
   - https://adstransparency.google.com/advertiser/AR01431268173167984641?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Tekmetric&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183661115325642
   - https://adstransparency.google.com/advertiser/AR16588403473821728769?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=503903039482255
 
@@ -2259,10 +2258,10 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | AutoLeap | yes | 4 | no | unverified (throttled run) | AutoLeap | no | 200 / 33 (2023-09-20) | yes 12 | 0 |  |
-| Tekmetric | yes | 4 | no | unverified (throttled run) | - | no | 37 / 8 (2026-04-29) | yes 12 | 0 |  |
+| Tekmetric | yes | 4 | no | unverified (throttled run) | Tekmetric | no | 37 / 8 (2026-04-29) | yes 12 | 0 |  |
 | Tire Guru | yes | 3 | no | unverified (throttled run) | Tire Guru | no | 6 / 6 (2023-06-09) | no 0 | 0 |  |
 | ASA Automotive Systems (GTX / TireMaster) | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| Anolla | yes | 0 | no | 0 / 0 / 0 (-) | Anolla | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| Anolla | yes | 0 | no | 0 / 0 / 0 (-) | Anolla | no | 0 / 0 (-) | no 0 | 0 |  |
 | EZnet Scheduler | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Tire Power (TCS Technologies) | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | TireShop (FreedomSoft) | yes |  | unverified | unverified (throttled run) | Tire shop | no | 0 / 0 (-) | no 0 | 0 |  |
@@ -2306,7 +2305,7 @@ Known limits, stated plainly:
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=106770701199975
   - https://adstransparency.google.com/advertiser/AR12240226300437987329?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=EZnet%20Scheduler&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Tekmetric&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183661115325642
   - https://adstransparency.google.com/advertiser/AR16588403473821728769?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=335500296521328
   - https://adstransparency.google.com/advertiser/AR15997056837316771841?region=US
@@ -2334,7 +2333,7 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Arketa | yes | 4 | no | unverified (throttled run) | Arketa | no | 94 / 31 (2025-03-18) | yes 4 | 0 |  |
 | Vagaro (yoga) | yes | 4 | no | unverified (throttled run) | Vagaro | no | 9 / 9 (2022-03-10) | yes 8 | 0 |  |
-| WellnessLiving | yes | 4 | no | unverified (throttled run) | - | no | 200 / 13 (2025-06-13) | yes 2 | 0 |  |
+| WellnessLiving | yes | 4 | no | unverified (throttled run) | Wellness Living | no | 200 / 13 (2025-06-13) | yes 2 | 0 |  |
 | Mindbody | yes | 3 | no | unverified (throttled run) | - | no | 800 / 11 (2025-06-04) | no 0 | 0 |  |
 | Momence (Clubessential Holdings) | yes | 3 | no | unverified (throttled run) | Momence | no | 300 / 29 (2025-01-07) | no 0 | 0 |  |
 | Walla | yes | 3 | no | unverified (throttled run) | WALLA | no | 32 / 8 (2024-10-31) | no 0 | 0 |  |
@@ -2384,7 +2383,7 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR09419698221770342401?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=442774709072602
   - https://adstransparency.google.com/advertiser/AR03363009351827587073?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=WellnessLiving&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=443272975537137
   - https://adstransparency.google.com/advertiser/AR08215298278535725057?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=311504822253769
   - https://adstransparency.google.com/advertiser/AR06124471940729012225?region=US
@@ -2406,11 +2405,11 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | PracticeSuite | yes | 4 | no | unverified (throttled run) | PracticeSuite | no | 23 / 7 (2024-04-15) | yes 12 | 0 |  |
-| Tebra (Kareo) | yes | 4 | no | 0 / 0 / 0 (-) | Tebra | unverified (host blocked) | 400 / 21 (2024-01-22) | yes 12 | 0 |  |
-| AdvancedMD (AdvancedBiller) | yes | 3 | no | 0 / 0 / 0 (-) | AdvancedMD | unverified (host blocked) | 500 / 9 (2026-03-16) | no 0 | 0 |  |
-| CollaborateMD | yes | 3 | no | 0 / 0 / 0 (-) | CollaborateMD | unverified (host blocked) | 200 / 9 (2025-01-10) | no 0 | 0 |  |
-| EZClaim | yes | 3 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 13 / 6 (2024-03-14) | no 0 | 0 |  |
-| ImagineSoftware (ImagineOne) | yes | 0 | no | 0 / 0 / 0 (-) | ImagineSoftware | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| Tebra (Kareo) | yes | 4 | no | 0 / 0 / 0 (-) | Tebra | no | 400 / 21 (2024-01-22) | yes 12 | 0 |  |
+| AdvancedMD (AdvancedBiller) | yes | 3 | no | 0 / 0 / 0 (-) | AdvancedMD | no | 500 / 9 (2026-03-16) | no 0 | 0 |  |
+| CollaborateMD | yes | 3 | no | 0 / 0 / 0 (-) | CollaborateMD | no | 200 / 9 (2025-01-10) | no 0 | 0 |  |
+| EZClaim | yes | 3 | no | 0 / 0 / 0 (-) | - | no | 13 / 6 (2024-03-14) | no 0 | 0 |  |
+| ImagineSoftware (ImagineOne) | yes | 0 | no | 0 / 0 / 0 (-) | ImagineSoftware | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2470,8 +2469,8 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Shipday | yes | 6 | yes | unverified (throttled run) | - | no | 69 / 28 (2022-10-27) | yes 12 | 2 |  |
 | CXT Software | yes | 4 | no | unverified (throttled run) | CXT Software | no | 11 / 5 (2021-10-25) | yes 2 | 0 |  |
-| Onfleet | yes | 4 | no | unverified (throttled run) | - | no | 16 / 6 (2023-08-14) | yes 6 | 0 |  |
-| OnTime 360 (Vesigo Studios) | yes | 3 | no | unverified (throttled run) | - | no | 44 / 14 (2023-08-18) | no 0 | 0 |  |
+| Onfleet | yes | 4 | no | unverified (throttled run) | Onfleet | no | 16 / 6 (2023-08-14) | yes 6 | 0 |  |
+| OnTime 360 (Vesigo Studios) | yes | 3 | no | unverified (throttled run) | OnTime 360 | no | 44 / 14 (2023-08-18) | no 0 | 0 |  |
 | Transvirtual | yes | 3 | no | unverified (throttled run) | - | no | 27 / 5 (2024-01-31) | no 0 | 0 |  |
 | Routific | yes | 0 | no | unverified (throttled run) | - | no | 4 / 2 (2025-05-07) | no 0 | 0 |  |
 | Simply Dispatch | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
@@ -2514,9 +2513,9 @@ Known limits, stated plainly:
   - https://www.ibisworld.com/united-states/industry/couriers-local-delivery-services/1950/
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=208045941935
   - https://adstransparency.google.com/advertiser/AR04082954825367552001?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=OnTime%20360&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=284594628299005
   - https://adstransparency.google.com/advertiser/AR07744654001303453697?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Onfleet&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=225681110849279
   - https://adstransparency.google.com/advertiser/AR11855280923002011649?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Routific&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR12662217849566134273?region=US
@@ -2697,14 +2696,14 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | MoeGo | yes | 4 | no | unverified (throttled run) | - | no | 900 / 5 (2026-06-16) | yes 3 | 0 |  |
-| Vonigo | yes | 4 | no | 0 / 0 / 0 (-) | Vonigo | unverified (host blocked) | 77 / 5 (2024-12-22) | yes 3 | 0 |  |
-| DaySmart Pet | yes | 3 | no | unverified (throttled run) | - | no | 300 / 37 (2023-06-07) | no 0 | 0 |  |
+| Vonigo | yes | 4 | no | 0 / 0 / 0 (-) | Vonigo | no | 77 / 5 (2024-12-22) | yes 3 | 0 |  |
+| DaySmart Pet | yes | 3 | no | unverified (throttled run) | DaySmart Pet | no | 300 / 37 (2023-06-07) | no 0 | 0 |  |
 | GrooMore | yes | 3 | no | unverified (throttled run) | - | no | 12 / 3 (2026-05-11) | no 0 | 0 |  |
 | Groomsoft | yes | 3 | no | unverified (throttled run) | Groomsoft | no | 47 / 11 (2021-10-25) | no 0 | 0 |  |
-| Koalendar | yes | 3 | no | unverified (throttled run) | - | no | 35 / 7 (2025-10-30) | no 0 | 0 |  |
-| Vagaro | yes | 3 | no | unverified (throttled run) | - | no | 10 / 10 (2022-03-10) | no 0 | 0 |  |
+| Koalendar | yes | 3 | no | unverified (throttled run) | Koalendar | no | 35 / 7 (2025-10-30) | no 0 | 0 |  |
+| Vagaro | yes | 3 | no | unverified (throttled run) | Vagaro | no | 10 / 10 (2022-03-10) | no 0 | 0 |  |
 | Animalo | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
-| Anolla | yes | 0 | no | 0 / 0 / 0 (-) | Anolla | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| Anolla | yes | 0 | no | 0 / 0 / 0 (-) | Anolla | no | 0 / 0 (-) | no 0 | 0 |  |
 | Groomer.io | yes | 0 | no | unverified (throttled run) | Groomer.io | no | 9 / 0 (2025-07-03) | no 0 | 0 |  |
 | ShakeYourTail | yes | 0 | no | unverified (throttled run) | Shake your tail | no | 0 / 0 (-) | no 0 | 0 |  |
 
@@ -2746,7 +2745,7 @@ Known limits, stated plainly:
   - https://www.ibisworld.com/united-states/industry/pet-grooming-boarding/1735/
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Animalo&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102041562207285
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=DaySmart%20Pet&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=125574935615
   - https://adstransparency.google.com/advertiser/AR09896518309786943489?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=GrooMore&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR05294478418539184129?region=US
@@ -2754,12 +2753,12 @@ Known limits, stated plainly:
   - https://adstransparency.google.com/advertiser/AR10456143941341282305?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=116482131772034
   - https://adstransparency.google.com/advertiser/AR10127058204182446081?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Koalendar&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=103065858415984
   - https://adstransparency.google.com/advertiser/AR17463480271285256193?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=MoeGo&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR16588403473821728769?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=219435565545145
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Vagaro&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=994274800426846
   - https://adstransparency.google.com/advertiser/AR09419698221770342401?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=143117979081715
   - https://adstransparency.google.com/advertiser/AR17980938755741057025?region=US
@@ -2851,9 +2850,9 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Kicksite | yes | 5 | yes | unverified (throttled run) | - | no | 13 / 10 (2021-10-25) | no 0 | 2 |  |
-| Gymdesk | yes | 3 | no | unverified (throttled run) | - | no | 200 / 6 (2024-10-14) | no 0 | 0 |  |
+| Gymdesk | yes | 3 | no | unverified (throttled run) | Gymdesk | no | 200 / 6 (2024-10-14) | no 0 | 0 |  |
 | PushPress | yes | 3 | no | unverified (throttled run) | PushPress Gym Software | no | 300 / 13 (2021-10-25) | no 0 | 0 |  |
-| Spark Membership | yes | 3 | no | unverified (throttled run) | - | no | 300 / 8 (2026-04-30) | no 0 | 0 |  |
+| Spark Membership | yes | 3 | no | unverified (throttled run) | Spark Membership Software | no | 300 / 8 (2026-04-30) | no 0 | 0 |  |
 | Zen Planner (Daxko) | yes | 3 | no | unverified (throttled run) | - | no | 200 / 14 (2023-08-25) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
@@ -2882,13 +2881,13 @@ Known limits, stated plainly:
   - https://www.dojostack.io/vs/spark-membership-vs-zen-planner
   - https://www.premiermartialartsfranchise.com/
   - https://www.ibisworld.com/united-states/industry/martial-arts-studios/4187/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Gymdesk&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=827406780700974
   - https://adstransparency.google.com/advertiser/AR16251560278402007041?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Kicksite&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR15593204842045112321?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=231554983551166
   - https://adstransparency.google.com/advertiser/AR01020303823723298817?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Spark%20Membership&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101737692224409
   - https://adstransparency.google.com/advertiser/AR05337555213941211137?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Zen%20Planner&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR08493127197379264513?region=US
@@ -3105,7 +3104,7 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Firefly Reservations | yes | 4 | no | unverified (throttled run) | Firefly Reservations | no | 40 / 9 (2023-11-06) | yes 12 | 0 |  |
 | Campspot | yes | 3 | no | unverified (throttled run) | - | no | 6 / 4 (2024-06-12) | no 0 | 0 |  |
-| Bonfire | yes | 2 | no | unverified (throttled run) | - | no | 4 / 0 (2026-04-01) | no 0 | 2 |  |
+| Bonfire | yes | 2 | no | unverified (throttled run) | Bonfire | no | 4 / 0 (2026-04-01) | no 0 | 2 |  |
 | CampLife | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Campground Master | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | GraceSoft | yes | 0 | no | unverified (throttled run) | Grace Soft | no | 10 / 2 (2021-10-25) | no 0 | 0 |  |
@@ -3152,7 +3151,7 @@ Known limits, stated plainly:
   - https://www.crunchbase.com/organization/roverpass
   - https://www.koapressroom.com/press/koa-announces-all-locations-now-on-k2-reservation-system/
   - https://www.ibisworld.com/united-states/market-size/campgrounds-rv-parks/1667/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Bonfire&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=317435674949531
   - https://adstransparency.google.com/advertiser/AR09711540854396551169?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CampLife&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Campground%20Master&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
@@ -3185,7 +3184,7 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| HoneyBook | yes | 4 | no | unverified (throttled run) | - | no | 40 / 37 (2022-10-14) | yes 9 | 0 |  |
+| HoneyBook | yes | 4 | no | unverified (throttled run) | HoneyBook | no | 40 / 37 (2022-10-14) | yes 9 | 0 |  |
 | Check Cherry | yes | 3 | no | unverified (throttled run) | Check Cherry | no | 82 / 3 (2021-10-25) | no 0 | 0 |  |
 | Studio Ninja (Captura / ImageQuix) | yes | 3 | no | unverified (throttled run) | Studio Ninja | no | 34 / 4 (2024-10-14) | no 0 | 0 |  |
 | BoothBook | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
@@ -3227,7 +3226,7 @@ Known limits, stated plainly:
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=561524994043941
   - https://adstransparency.google.com/advertiser/AR04703870310250708993?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=872925479412159
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=HoneyBook&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=219518724837898
   - https://adstransparency.google.com/advertiser/AR04617303973089509377?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Sprout%20Studio&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR04393460911961014273?region=US
@@ -3252,10 +3251,10 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | ArcSite | yes | 4 | no | 9 / 0 / 0 (2026-08-06) | ArcSite | no | 15 / 5 (2022-09-15) | yes 9 | 0 |  |
-| Moasure (Landscape Designer TURF) | yes | 3 | no | 0 / 0 / 0 (-) | Moasure | unverified (host blocked) | 87 / 37 (2024-12-20) | no 0 | 0 |  |
+| Moasure (Landscape Designer TURF) | yes | 3 | no | 0 / 0 / 0 (-) | Moasure | no | 87 / 37 (2024-12-20) | no 0 | 0 |  |
 | QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| SiteRecon | yes | 1 | no | 0 / 0 / 0 (-) | SiteRecon | unverified (host blocked) | 0 / 0 (-) | yes 8 | 0 |  |
-| TurfEstimator | yes | 1 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 0 / 0 (-) | yes 4 | 0 |  |
+| SiteRecon | yes | 1 | no | 0 / 0 / 0 (-) | SiteRecon | no | 0 / 0 (-) | yes 8 | 0 |  |
+| TurfEstimator | yes | 1 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | yes 4 | 0 |  |
 | MeasureSquare | yes | 0 | no | 0 / 0 / 0 (-) | Measure Square | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
@@ -3315,14 +3314,14 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| QBench | yes | 4 | no | 0 / 0 / 0 (-) | - | unverified | 80 / 5 (2025-04-04) | yes 12 | 0 |  |
-| Confience LIMS (QSI + ATL merger; formerly Accelerated Technology Laboratories) | yes | 3 | no | 0 / 0 / 0 (-) | Confience | unverified | 79 / 16 (2024-08-06) | no 0 | 0 |  |
-| BTSOFT (ALPACA LIMS Asbestos edition / LabMaster) | yes | 0 | no | 0 / 0 / 0 (-) | BTSoft | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| BlazeLIMS (Blaze Systems) | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Clinisys Environmental Laboratory | yes | 0 | no | 0 / 0 / 0 (-) | Clinisys | unverified | 10 / 2 (2024-09-12) | no 0 | 0 |  |
-| CloudLIMS | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| LabLynx Environmental LIMS | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Labbit | yes | 0 | no | 0 / 0 / 0 (-) | Labbit | unverified | 12 / 1 (2024-01-25) | no 0 | 0 |  |
+| QBench | yes | 4 | no | 0 / 0 / 0 (-) | - | no | 80 / 5 (2025-04-04) | yes 12 | 0 |  |
+| Confience LIMS (QSI + ATL merger; formerly Accelerated Technology Laboratories) | yes | 3 | no | 0 / 0 / 0 (-) | Confience | no | 79 / 16 (2024-08-06) | no 0 | 0 |  |
+| BTSOFT (ALPACA LIMS Asbestos edition / LabMaster) | yes | 0 | no | 0 / 0 / 0 (-) | BTSoft | no | 0 / 0 (-) | no 0 | 0 |  |
+| BlazeLIMS (Blaze Systems) | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Clinisys Environmental Laboratory | yes | 0 | no | 0 / 0 / 0 (-) | Clinisys | no | 10 / 2 (2024-09-12) | no 0 | 0 |  |
+| CloudLIMS | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| LabLynx Environmental LIMS | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Labbit | yes | 0 | no | 0 / 0 / 0 (-) | Labbit | no | 12 / 1 (2024-01-25) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -3384,14 +3383,14 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Kaseware | yes | 4 | no | 0 / 0 / 0 (-) | Kaseware | unverified (host blocked) | 24 / 9 (2022-01-28) | yes 10 | 0 |  |
-| Tracers | yes | 3 | no | 0 / 0 / 0 (-) | Tracers | unverified (host blocked) | 27 / 15 (2022-08-31) | no 0 | 0 |  |
-| Trackops | yes | 3 | no | 0 / 0 / 0 (-) | Track Ops Music | unverified | 9 / 9 (2021-10-25) | no 0 | 0 |  |
-| CROSStrax | yes | 1 | no | 0 / 0 / 0 (-) | CrossTrax Studio | unverified | 0 / 0 (-) | yes 6 | 0 |  |
-| Case Jacket | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
-| CaseFlow Investigator | yes | 0 | no | 0 / 0 / 0 (-) | Caseflow | unverified (host blocked) | 0 / 0 (-) | no 0 | 0 |  |
+| Kaseware | yes | 4 | no | 0 / 0 / 0 (-) | Kaseware | no | 24 / 9 (2022-01-28) | yes 10 | 0 |  |
+| Tracers | yes | 3 | no | 0 / 0 / 0 (-) | Tracers | no | 27 / 15 (2022-08-31) | no 0 | 0 |  |
+| Trackops | yes | 3 | no | 0 / 0 / 0 (-) | Track Ops Music | no | 9 / 9 (2021-10-25) | no 0 | 0 |  |
+| CROSStrax | yes | 1 | no | 0 / 0 / 0 (-) | CrossTrax Studio | no | 0 / 0 (-) | yes 6 | 0 |  |
+| Case Jacket | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| CaseFlow Investigator | yes | 0 | no | 0 / 0 / 0 (-) | Caseflow | no | 0 / 0 (-) | no 0 | 0 |  |
 | Deelo | yes | 0 | no | 0 / 0 / 0 (-) | Deelo | no | 2 / 0 (2026-03-12) | no 0 | 0 |  |
-| THERMS | yes | 0 | no | 0 / 0 / 0 (-) | Therms | unverified (host blocked) | 2 / 0 (2026-03-31) | no 0 | 0 |  |
+| THERMS | yes | 0 | no | 0 / 0 / 0 (-) | Therms | no | 2 / 0 (2026-03-31) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -3455,7 +3454,7 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | BNTouch | yes | 5 | yes | unverified (throttled run) | Bntouch | no | 61 / 10 (2024-11-23) | no 0 | 2 |  |
-| LendingPad | yes | 2 | no | 0 / 0 / 0 (-) | LendingPad | unverified (host blocked) | 8 / 0 (2022-04-01) | no 0 | 2 |  |
+| LendingPad | yes | 2 | no | 0 / 0 / 0 (-) | LendingPad | no | 8 / 0 (2022-04-01) | no 0 | 2 |  |
 | ARIVE | yes | 0 | no | unverified (throttled run) | ARIVE | no | 0 / 0 (-) | no 0 | 0 |  |
 | Bonzo | yes | 0 | no | unverified (throttled run) | BONZO | no | 0 / 0 (-) | no 0 | 0 |  |
 | ICE Encompass | yes | 0 | no | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
@@ -3594,7 +3593,7 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Quipli | yes | 5 | yes | unverified (throttled run) | Quipli | no | 20 / 7 (2023-04-13) | no 0 | 2 |  |
-| Point of Rental | yes | 4 | no | unverified (throttled run) | - | no | 40 / 11 (2023-03-22) | yes 1 | 0 |  |
+| Point of Rental | yes | 4 | no | unverified (throttled run) | Point of Rental Software | no | 40 / 11 (2023-03-22) | yes 1 | 0 |  |
 | EZRentOut (EZO) | yes | 0 | no | unverified (throttled run) | - | no | 92 / 1 (2023-10-04) | no 0 | 0 |  |
 | RentMy | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 | Rentrax | yes | 0 | no | unverified (throttled run) | - | no | 1 / 1 (2026-06-12) | no 0 | 0 |  |
@@ -3633,7 +3632,7 @@ Known limits, stated plainly:
   - https://www.gminsights.com/industry-analysis/construction-equipment-rental-market
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=EZRentOut&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR16180457129176465409?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Point%20of%20Rental&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=296084096504
   - https://adstransparency.google.com/advertiser/AR14655331190307815425?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=109460314543797
   - https://adstransparency.google.com/advertiser/AR05447051385063342081?region=US
@@ -3659,9 +3658,9 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Rentman (party rental) | yes | 4 | no | unverified (throttled run) | - | no | 26 / 13 (2024-03-07) | yes 11 | 0 |  |
+| Rentman (party rental) | yes | 4 | no | unverified (throttled run) | Rentman  | no | 26 / 13 (2024-03-07) | yes 11 | 0 |  |
 | Booqable (party rental) | yes | 3 | no | unverified (throttled run) | Booqable Rental Software | no | 53 / 35 (2023-02-09) | no 0 | 0 |  |
-| Event Rental Systems (ERS) | yes | 3 | no | unverified (throttled run) | - | no | 7 / 3 (2023-11-10) | no 0 | 0 |  |
+| Event Rental Systems (ERS) | yes | 3 | no | unverified (throttled run) | Event Rental Systems, Inc. | no | 7 / 3 (2023-11-10) | no 0 | 0 |  |
 | Goodshuffle Pro | yes | 3 | no | unverified (throttled run) | Goodshuffle | no | 45 / 5 (2023-06-24) | no 0 | 0 |  |
 | Rentopian | yes | 3 | no | unverified (throttled run) | Rentopian - Event Rental Software | no | 5 / 5 (2026-02-18) | no 0 | 0 |  |
 | ARM Software (party rental) | yes |  | unverified | unverified (throttled run) | - | no | 0 / 0 (-) | no 0 | 0 |  |
@@ -3701,14 +3700,14 @@ Known limits, stated plainly:
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ARM%20Software&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1507655699470083
   - https://adstransparency.google.com/advertiser/AR17625691874566078465?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Event%20Rental%20Systems&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=191828113767
   - https://adstransparency.google.com/advertiser/AR04475549367759011841?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=198308396942060
   - https://adstransparency.google.com/advertiser/AR11851906521816367105?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1576125195959577
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=InflatableOffice&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
   - https://adstransparency.google.com/advertiser/AR14247211569501962241?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Rentman&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=538488346022137
   - https://adstransparency.google.com/advertiser/AR13340353173689204737?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1435971013099871
   - https://adstransparency.google.com/advertiser/AR00389413217165639681?region=US
