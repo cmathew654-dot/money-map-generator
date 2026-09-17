@@ -10,7 +10,7 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 9,4,2,yes,DripJobs|PaintScout
 10,3,0,no,
 11,8,0,no,
-12,5,3,yes,BuildOps|Inspect Point|ServiceTrade
+12,5,1,no,Inspect Point
 13,6,1,no,ServiceTitan
 14,6,1,no,Houzz Pro
 15,3,2,yes,Builder Prime|Contractor Accelerator
@@ -19,35 +19,35 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 18,5,2,yes,Builder Prime|Houzz Pro
 19,5,0,no,
 20,6,0,no,
-21,10,5,yes,HindSite Software / FieldCentral|Housecall Pro|Jobber|Service Fusion|ServiceTitan
-22,9,3,yes,Housecall Pro|Service Fusion|ServiceTitan
-23,7,1,no,Housecall Pro
+21,10,4,yes,HindSite Software / FieldCentral|Jobber|Service Fusion|ServiceTitan
+22,9,2,yes,Service Fusion|ServiceTitan
+23,7,0,no,
 24,7,4,yes,FieldPulse|Jobber|Service Fusion|ServiceTitan
 25,1,0,no,
 31,8,0,no,
-32,5,2,yes,RealGreen by WorkWave|ServiceTitan
-33,4,1,no,RealGreen by WorkWave
+32,4,1,no,ServiceTitan
+33,3,0,no,
 34,2,1,no,Aspire
-35,9,3,yes,Housecall Pro|Jobber|Service Fusion
+35,9,2,yes,Jobber|Service Fusion
 36,3,0,no,
 37,5,1,no,Pool Brain
 38,4,0,no,
 39,5,0,no,
 40,2,1,no,ServiceTitan
-41,8,1,no,Housecall Pro
+41,8,0,no,
 42,2,0,no,
-43,8,2,yes,Housecall Pro|Jobber
+43,8,1,no,Jobber
 44,2,0,no,
 45,2,1,no,Jobber
 46,2,0,no,
 47,3,1,no,Jobber
 48,2,0,no,
 49,2,0,no,
-50,3,2,yes,Housecall Pro|Jobber
+50,3,1,no,Jobber
 51,8,0,no,
 52,1,0,no,
 61,0,0,unverified,
-62,3,2,yes,Housecall Pro|Jobber
+62,3,1,no,Jobber
 63,0,0,unverified,
 64,0,0,unverified,
 65,0,0,unverified,
@@ -65,7 +65,7 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 87,0,0,unverified,
 88,0,0,unverified,
 89,0,0,unverified,
-90,1,1,no,Housecall Pro
+90,1,0,no,
 91,0,0,unverified,
 92,0,0,unverified,
 93,0,0,unverified,
