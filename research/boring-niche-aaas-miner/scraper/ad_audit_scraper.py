@@ -368,6 +368,7 @@ def meta_collect(page, cap, tool, args, parsed_text_first=True):
     """Scroll the current results view, collecting ads from JSON (primary) and DOM (fallback)."""
     json_ads = meta_ads_from_json(cap.take())
     text = body_text(page); parsed = parse_meta(text, tool)
+    stale = 0
     for i in range(args.scrolls * 3):
         target = parsed["result_count"]
         have = max(len(json_ads), len(parsed["ads"]))
@@ -375,6 +376,9 @@ def meta_collect(page, cap, tool, args, parsed_text_first=True):
         if target is None and i >= args.scrolls: break
         scroll(page, times=1); time.sleep(0.6 if FAST else 1.2)
         json_ads += meta_ads_from_json(cap.take()); text = body_text(page); parsed = parse_meta(text, tool)
+        now = max(len(json_ads), len(parsed["ads"]))
+        stale = stale + 1 if now <= have else 0
+        if stale >= 3: break   # nothing new after three scrolls: the page has no more ads to give
     seen = set(); ja = []
     for a in json_ads:
         k = a["id"] or (a["advertiser"], str(a["start"]))
