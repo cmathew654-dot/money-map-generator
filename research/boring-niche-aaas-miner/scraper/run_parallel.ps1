@@ -4,7 +4,7 @@ param([int]$N = 5, [string]$Extra = "--fast")
 $py = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
 $procs = @()
 for ($i = 0; $i -lt $N; $i++) {
-  $procs += Start-Process -FilePath $py -ArgumentList "ad_audit_scraper.py --shard $i/$N $Extra" -WorkingDirectory $PSScriptRoot -PassThru -RedirectStandardOutput (Join-Path $PSScriptRoot "shard$i.log") -RedirectStandardError (Join-Path $PSScriptRoot "shard$i.err")
+  $procs += Start-Process -FilePath $py -ArgumentList "-u ad_audit_scraper.py --shard $i/$N $Extra" -WorkingDirectory $PSScriptRoot -PassThru -RedirectStandardOutput (Join-Path $PSScriptRoot "shard$i.log") -RedirectStandardError (Join-Path $PSScriptRoot "shard$i.err")
 }
 Write-Host "started $N shards; waiting..."
 $procs | Wait-Process
