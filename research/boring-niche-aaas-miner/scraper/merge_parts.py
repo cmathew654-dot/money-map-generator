@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Merge ad_audit_filled.part*.csv shards into ad_audit_filled.csv (rows with results win over empty ones)."""
+"""Merge ad_audit_filled.part*.csv shards into ad_audit_filled.csv (rows with results win; newest scraped_at wins)."""
 import csv, glob
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
@@ -12,7 +12,9 @@ for f in parts:
         for k in r:
             if k not in cols: cols.append(k)
         key = (r["niche_id"], r["tool"])
-        if key not in merged or (r.get("scrape_status") and not merged[key].get("scrape_status")):
+        cur = merged.get(key)
+        newer = r.get("scrape_status") and (not cur or not cur.get("scrape_status") or (r.get("scraped_at", "") > cur.get("scraped_at", "")))
+        if cur is None or newer:
             merged[key] = r
 out = HERE.parent / "ad_audit_filled.csv"
 with open(out, "w", newline="", encoding="utf-8") as f:
