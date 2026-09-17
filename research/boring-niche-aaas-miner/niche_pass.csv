@@ -3,11 +3,11 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 2,4,1,no,Jobber
 3,6,4,yes,AccuLynx|RoofSnap|Roofr|ServiceTitan
 4,4,0,no,
-5,9,3,yes,FieldPulse|Jobber|ServiceTitan
+5,11,3,yes,FieldPulse|Jobber|ServiceTitan
 6,4,0,no,
 7,4,1,no,RoofSnap
 8,3,0,no,
-9,7,2,yes,DripJobs|PaintScout
+9,9,2,yes,DripJobs|PaintScout
 10,3,0,no,
 11,8,0,no,
 12,5,3,yes,BuildOps|Inspect Point|ServiceTrade
@@ -20,16 +20,16 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 19,5,0,no,
 20,6,0,no,
 21,10,5,yes,HindSite Software / FieldCentral|Housecall Pro|Jobber|Service Fusion|ServiceTitan
-22,9,3,yes,Housecall Pro|Service Fusion|ServiceTitan
-23,9,2,yes,Housecall Pro|ServiceTrade
-24,8,4,yes,FieldPulse|Jobber|Service Fusion|ServiceTitan
+22,11,3,yes,Housecall Pro|Service Fusion|ServiceTitan
+23,11,2,yes,Housecall Pro|ServiceTrade
+24,10,4,yes,FieldPulse|Jobber|Service Fusion|ServiceTitan
 25,1,0,no,
 31,8,0,no,
 32,6,2,yes,HindSite Software / FieldCentral|ServiceTitan
 33,4,1,no,HindSite Software / FieldCentral
 34,4,1,no,Aspire
-35,10,3,yes,Housecall Pro|Jobber|Service Fusion
-36,4,0,no,
+35,12,3,yes,Housecall Pro|Jobber|Service Fusion
+36,4,1,no,Squeegee (Nexdynamic)
 37,5,1,no,Pool Brain
 38,4,0,no,
 39,5,0,no,
@@ -46,18 +46,18 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 50,3,2,yes,Housecall Pro|Jobber
 51,8,0,no,
 52,1,0,no,
-57,2,1,no,Inspect Point
-58,4,2,yes,Inspect Point|ServiceTrade
+57,8,1,no,Inspect Point
+58,8,2,yes,Inspect Point|ServiceTrade
 61,0,0,unverified,
 62,3,2,yes,Housecall Pro|Jobber
 63,0,0,unverified,
 64,0,0,unverified,
 65,0,0,unverified,
-66,1,0,no,
+66,8,0,no,
 67,0,0,unverified,
 68,0,0,unverified,
 69,0,0,unverified,
-70,1,0,no,
+70,8,0,no,
 81,0,0,unverified,
 82,0,0,unverified,
 83,0,0,unverified,
@@ -68,13 +68,13 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 88,0,0,unverified,
 89,0,0,unverified,
 90,1,1,no,Housecall Pro
-91,2,0,no,
-92,0,0,unverified,
+91,8,1,no,TruckingOffice
+92,1,0,no,
 93,0,0,unverified,
 94,0,0,unverified,
 95,0,0,unverified,
 96,0,0,unverified,
-97,1,0,no,
+97,8,1,no,RouteGenie
 98,0,0,unverified,
 99,0,0,unverified,
 100,0,0,unverified,
@@ -94,11 +94,11 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 134,0,0,unverified,
 135,0,0,unverified,
 136,0,0,unverified,
-137,4,0,no,
+137,8,0,no,
 138,1,0,no,
 139,0,0,unverified,
 140,0,0,unverified,
-147,2,1,no,Lumion
+147,5,0,no,
 151,0,0,unverified,
 152,0,0,unverified,
 153,0,0,unverified,
