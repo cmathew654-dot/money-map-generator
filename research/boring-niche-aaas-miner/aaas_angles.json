@@ -248,5 +248,160 @@
   "Student enrollment \u2192 ELDT Training Provider Registry certification submission \u2192 DOT physical/permit tracking \u2192 attendance hours. Needs: TPR portal, document intake, SMS.",
   "ELDT registry reporting agent for CDL schools.",
   5
+ ],
+ "90": [
+  "Call/web intake collects model number and symptom \u2192 books the diagnostic visit \u2192 orders the likely part from the distributor before the return trip \u2192 files the manufacturer warranty claim \u2192 invoices. Needs: phone/SMS, parts catalog lookup, distributor ordering, OEM warranty portals, calendar.",
+  "Booking-and-parts agent that turns a symptom into a scheduled diagnostic with the right part pre-ordered.",
+  4
+ ],
+ "56": [
+  "Inbound call/text \u2192 quote from square footage and vent count \u2192 book the slot \u2192 after the job, send the NADCA-style before/after photo report \u2192 schedule the dryer-vent reminder for next year. Needs: SMS, photo intake, calendar, invoicing.",
+  "Quote, book, photo-report and annual rebook agent for one- and two-truck duct cleaners.",
+  3
+ ],
+ "62": [
+  "24/7 answer for lockout/rekey calls \u2192 quote from the shop's price book \u2192 dispatch nearest tech with ETA text \u2192 close the invoice on site. Needs: phone/SMS, price book, tech location, invoicing.",
+  "24/7 call-answering and dispatch agent for emergency lock jobs.",
+  5
+ ],
+ "27": [
+  "Photo + address \u2192 floor area measured \u2192 tiered epoxy/polyaspartic proposal with a visualizer render \u2192 follow-up sequence until signed \u2192 install scheduled around cure time. Needs: satellite measurement, photo intake, proposal template, SMS/email, calendar.",
+  "Quote-and-close agent for garage floor coatings (photo in, tiered signed proposal out).",
+  3
+ ],
+ "117": [
+  "Event inquiry \u2192 quote with minimums and menu \u2192 deposit collected \u2192 commissary and city permit renewals plus health-inspection documents filed on schedule \u2192 weekly location calendar posted to every channel. Needs: email/SMS, payments, permit portals, social posting.",
+  "Catering-quote and permit-renewal agent for food trucks.",
+  4
+ ],
+ "87": [
+  "Marketplace lead \u2192 reply in minutes with availability and payment estimate \u2192 test drive scheduled \u2192 stips checklist run on the buyer \u2192 for BHPH accounts, work the delinquency queue with compliant texts. Needs: marketplace inboxes, SMS, DMS/CRM API, compliance templates.",
+  "Lead-response and BHPH collections agent priced per rooftop.",
+  6
+ ],
+ "76": [
+  "Prospect inquiry \u2192 showing scheduled \u2192 application and screening run \u2192 late-rent chasing by text \u2192 maintenance request triaged to a vendor with owner approval \u2192 monthly owner report drafted. Needs: listing inboxes, SMS/email, screening API, vendor list, accounting export.",
+  "Leasing-and-maintenance agent for sub-100-unit managers.",
+  6
+ ],
+ "103": [
+  "Unit spec sheet and photos pushed to every marketplace \u2192 inbound quote requests answered with availability and financing \u2192 title and registration packet prepared per state on sale. Needs: marketplace APIs, DMS export, state DMV forms, email/SMS.",
+  "Listing-and-title packet agent for trailer dealers.",
+  4
+ ],
+ "106": [
+  "Inquiry \u2192 unit quote and online move-in \u2192 autopay set \u2192 late-fee and lien notices run per state timeline \u2192 gate codes and cleanouts scheduled. Needs: management-software API, SMS/email, state lien templates, gate system.",
+  "Remote-manager agent for unmanned or single-manager storage sites.",
+  5
+ ],
+ "145": [
+  "Cancellation \u2192 make-up slot offered from teacher gaps \u2192 unpaid invoices chased \u2192 lapsed students re-engaged \u2192 monthly teacher payroll summary. Needs: lesson calendar API, SMS/email, payments.",
+  "Make-up-lesson and attrition agent for multi-teacher music schools.",
+  4
+ ],
+ "146": [
+  "Parent inquiry \u2192 package sold and enrolment forms collected \u2192 instructor gaps filled from the waitlist \u2192 state completion or electronic-certificate report filed after each student. Needs: SMS/email, calendar, state DMV portals.",
+  "Enrolment-to-certificate agent covering the mandatory state filings.",
+  5
+ ],
+ "131": [
+  "Post-visit call-backs and recheck/refill reminders \u2192 records requests and referral summaries answered \u2192 pre-visit history written into the practice system. Needs: PIMS API, phone/SMS, email.",
+  "Client-communication and records agent for independent clinics.",
+  6
+ ],
+ "132": [
+  "Recall and reactivation outreach for overdue patients \u2192 insurance eligibility verified before each visit \u2192 appointment confirmations. Needs: Open Dental API, payer eligibility, SMS.",
+  "Recall and insurance-verification agent layered on Open Dental for solo practices.",
+  6
+ ],
+ "133": [
+  "Denied-claim rework and resubmission \u2192 lapsed-patient reactivation \u2192 care-plan payment reminders. Needs: EHR/clearinghouse access, SMS/email.",
+  "Claims follow-up and recall agent beside the chiropractic EHR.",
+  6
+ ],
+ "123": [
+  "Cancellation \u2192 nearby pet rebooked into the gap \u2192 overdue grooms chased on cadence \u2192 vaccination records confirmed before the visit. Needs: booking API, SMS, route logic.",
+  "Rebooking and route-filling agent for single-van groomers.",
+  3
+ ],
+ "124": [
+  "Booking request by phone/SMS/email \u2192 capacity checked and waitlist managed \u2192 vaccination uploads verified against expiry rules \u2192 report cards sent \u2192 cancellations refilled. Needs: booking-software API, document intake, SMS/email.",
+  "Front-desk agent for boarding and daycare, sold as an add-on to the booking system.",
+  5
+ ],
+ "107": [
+  "Order text \u2192 pickup scheduled on a route \u2192 recurring plan upsold \u2192 lapsed households reactivated. Needs: SMS, POS/route API, payments.",
+  "Pickup-and-delivery growth agent for laundromats.",
+  3
+ ],
+ "108": [
+  "Ready-for-pickup texts \u2192 delivery scheduling \u2192 reorder prompts and review requests. Needs: POS API, SMS.",
+  "Customer-communication and route agent layered on the dry-cleaning POS.",
+  3
+ ],
+ "121": [
+  "Overnight first call answered \u2192 case captured \u2192 state forms and obituary draft pre-filled \u2192 family checklist coordinated. Needs: phone, case-management API, state form templates, email.",
+  "First-call and paperwork agent for independent funeral homes.",
+  6
+ ],
+ "116": [
+  "Refill adherence outreach \u2192 prior-authorization and claim-rejection follow-up with prescribers and payers. Needs: pharmacy system API, fax/phone/email, payer portals.",
+  "Refill-adherence and rejection follow-up agent bolted onto the pharmacy system.",
+  8
+ ],
+ "72": [
+  "Source documents chased, classified and confirmed by SMS/WhatsApp (bilingual) \u2192 organizer completed \u2192 e-signature collected. Needs: portal API, SMS, document classification.",
+  "Document-chasing and intake agent for independent tax preparers.",
+  5
+ ],
+ "71": [
+  "Per-client monthly close checklist run \u2192 documents chased \u2192 uncategorized transactions flagged \u2192 client email drafted. Needs: QuickBooks/Xero API, email/SMS.",
+  "Monthly-close agent priced per client, not per seat.",
+  6
+ ],
+ "77": [
+  "Expiring policies pulled \u2192 requoted across carriers \u2192 client email drafted \u2192 certificate requests handled. Needs: AMS API, rater, email.",
+  "Renewal-remarketing and certificate agent inside the agency management system.",
+  6
+ ],
+ "93": [
+  "Call answered \u2192 inventory survey by text/photos \u2192 quote \u2192 follow-up until booked \u2192 crew scheduled. Needs: phone/SMS, photo intake, tariff rules, calendar.",
+  "Lead-response and estimating agent for movers.",
+  5
+ ],
+ "81": [
+  "Retail call intake and quote \u2192 ETA texts \u2192 impound and lien paperwork prepared. Needs: phone/SMS, price book, state lien forms.",
+  "Private-pay intake and impound paperwork agent (motor-club calls excluded).",
+  4
+ ],
+ "85": [
+  "VIN by text/phone \u2192 NAGS part priced \u2192 ADAS calibration need checked \u2192 mobile install booked \u2192 cash/fleet invoice. Needs: VIN decode, parts pricing, calendar, invoicing.",
+  "Quote-and-book agent for cash and fleet auto-glass work.",
+  4
+ ],
+ "82": [
+  "Estimate approvals by text \u2192 appointment reminders \u2192 declined-service follow-up. Needs: shop-management API, SMS.",
+  "Approval and declined-work follow-up agent as an add-on to the shop system.",
+  4
+ ],
+ "84": [
+  "Vehicle photos \u2192 package quote \u2192 route gap filled \u2192 lapsed customers re-engaged on a maintenance cadence. Needs: SMS, calendar, payments.",
+  "Booking-and-rebooking agent for solo mobile detailers.",
+  2
+ ],
+ "61": [
+  "Call-off detected \u2192 qualified guards texted \u2192 coverage confirmed \u2192 nightly client report written from tour data. Needs: scheduling/tour API, SMS, report template.",
+  "Open-shift-filling and client-reporting agent for small guard firms.",
+  6
+ ],
+ "69": [
+  "Bench candidates texted for open shifts \u2192 show-up confirmed \u2192 hours pushed into pay-and-bill. Needs: ATS/payroll API, SMS.",
+  "Candidate-reactivation and shift-fill agent for light-industrial staffing.",
+  6
+ ],
+ "143": [
+  "Trial-class inquiry \u2192 booked \u2192 membership sold \u2192 attendance and belt-test reminders \u2192 lapsed members re-engaged. Needs: membership-software API, SMS/email.",
+  "Trial-to-member and retention agent for martial arts schools.",
+  3
  ]
 }

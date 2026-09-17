@@ -545,7 +545,18 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment counts conflict (5,380 / 13,535 / 37,769); Rossware and Repair-CRM headcounts from ZoomInfo/Tracxn only; ServiceBench/ServicePower are a partial channel gatekeeper for warranty work.
 > - Searches (9): NAICS count; best appliance repair software 2026; ServiceDesk/Rossware/ServicePower; pricing per technician; Rossware pricing; Repair-CRM company; IBISWorld concentration; Housecall Pro landing; Rossware employees.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Call/web intake collects model number and symptom → books the diagnostic visit → orders the likely part from the distributor before the return trip → files the manufacturer warranty claim → invoices. Needs: phone/SMS, parts catalog lookup, distributor ordering, OEM warranty portals, calendar.
+
+**Wedge** [hypothesis]: Booking-and-parts agent that turns a symptom into a scheduled diagnostic with the right part pre-ordered.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Housecall Pro: Basic $59/mo; Essentials $149/mo; MAX $299/mo; +$35/mo per extra user; ~20% off annual; 14-day trial (https://www.housecallpro.com/pricing/)
+  - Method:Field Services: from $15/mo per technician (https://www.method.me/resources/best-appliance-repair-software/)
+  - QuoteIQ: $29.99/mo flat to $699/mo; no per-user fees (https://myquoteiq.com/top-10-best-scheduling-software-for-appliance-repair-businesses-in-2026/)
+  - Repair-CRM: $19/mo solo; $89/mo 2-5 techs; $119/mo 6-10; $179/mo 11-20 (https://www.repair-crm.com/2026/09/02/appliance-repair-software-the-2026-guide-for-small-shops/)
+  - Rossware ServiceDesk: $6,000 purchase or $325/mo for 24 months (contract purchase); support $50/mo after included period (https://rossware.net/PriceList.htm)
+  - ServiceTitan: $245-500 per technician per month plus $5,000-50,000 implementation (third-party) (https://www.cleansavannah.com/post/best-appliance-repair-software-2026)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (IBISWorld: 'overwhelming majority owner-operated with one or two trucks'). Public-price incumbents: 4. Gatekeeper: no for retail/COD work; partial for warranty work (ServiceBench and ServicePower dispatch networks route manufacturer/home-warranty jobs, but do not mandate the shop's own software). Top-4 share: highly fragmented, no company >5%; top four <40% of revenue (IBISWorld Appliance Repair in the US).
 
@@ -613,7 +624,16 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count is the whole NAICS 561790 (16,597 in 2020), not duct cleaners; concentration relies on a market-report phrase; QuoteIQ's self-funded status is from a result summary with uncertain attribution.
 > - Searches: NAICS count; "air duct cleaning" software; best air duct software 2026; dryer vent franchise/NADCA concentration; QuoteIQ pricing; Workiz pricing/funding; Vonigo pricing/employees; ManageMart/Service Fusion pricing.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Inbound call/text → quote from square footage and vent count → book the slot → after the job, send the NADCA-style before/after photo report → schedule the dryer-vent reminder for next year. Needs: SMS, photo intake, calendar, invoicing.
+
+**Wedge** [hypothesis]: Quote, book, photo-report and annual rebook agent for one- and two-truck duct cleaners.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - ManageMart: starts $16.25/mo (spotsaas) or $20/mo (selecthub); third-party (https://www.selecthub.com/p/field-service-software/managemart/)
+  - QuoteIQ: Essentials $29.99/mo (1 user); Beginner $74.99 (2); Pro $149.99 (4); Elite $299 (10); Max $699 (unlimited); 14-day free trial (https://myquoteiq.com/pricing/)
+  - Service Fusion: Starter $208/mo billed annually ($245 month-to-month); Plus about $324/mo; Pro $533/mo; unlimited users (https://www.servicefusion.com/pricing)
+  - Workiz: Starter $65/mo; Team $169/mo; Professional $299/mo; +$30 per additional user; free Lite plan (https://www.workiz.com/pricing-plans/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (single-truck to multi-truck duct cleaners; franchisees of Dryer Vent Wizard/DUCTZ are a minority). Public-price incumbents: 4. Gatekeeper: no. Top-4 share: unverified.
 
@@ -772,7 +792,15 @@ Known limits, stated plainly:
 > - Weakest evidence: only Workiz and QuoteIQ show public prices; TEN4 pricing page exists but no figure surfaced; establishment counts range 4,030 (Census 2020) to 29,620 (IBISWorld, likely incl. nonemployers).
 > - Searches (8): NAICS count; "locksmith" business software; best locksmith software 2026; dispatch/invoicing; Workiz pricing; TEN4 pricing; Workiz crunchbase; IBISWorld/ALOA concentration; FieldPulse pricing.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: 24/7 answer for lockout/rekey calls → quote from the shop's price book → dispatch nearest tech with ETA text → close the invoice on site. Needs: phone/SMS, price book, tech location, invoicing.
+
+**Wedge** [hypothesis]: 24/7 call-answering and dispatch agent for emergency lock jobs.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - FieldPulse: ~$89/mo + $30/user (third-party estimate; vendor uses custom per-seat quote) (https://www.fieldpulse.com/pricing)
+  - QuoteIQ: $29.99/mo (https://myquoteiq.com/top-10-locksmith-field-service-software-in-2026/)
+  - Workiz: Lite free (up to 2 users); Kickstart $187/mo; Standard $229/mo; Pro $270/mo; extra users ~$40-45/user/mo; 7-day trial (https://www.workiz.com/pricing-plans/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 4/5. Check signer: owner-operator (median shop 1-3 employees). Public-price incumbents: 2. Gatekeeper: no (ALOA is a trade association; no software mandate seen). Top-4 share: no company >5%; ten largest chains <8% of revenue.
 
@@ -842,7 +870,15 @@ Known limits, stated plainly:
 > - Weakest evidence: no epoxy-specific establishment count (siccode 13,108 is all flooring contractors); CoatingOS/Coating Pro Tech pricing and headcounts not public; QuoteIQ headcount unverified (self-funded claim from its own about page). Concentration statement is a proxy (all flooring installers).
 > - Searches (10): NAICS count; "epoxy flooring" contractor software; best garage floor coating business software 2026; epoxy CRM estimating; CoatingOS pricing; DripJobs pricing/founded; QuoteIQ crunchbase; franchise required software; IBISWorld concentration; concrete-coating contractor count; Coating Pro Tech pricing; Builder Prime pricing.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Photo + address → floor area measured → tiered epoxy/polyaspartic proposal with a visualizer render → follow-up sequence until signed → install scheduled around cure time. Needs: satellite measurement, photo intake, proposal template, SMS/email, calendar.
+
+**Wedge** [hypothesis]: Quote-and-close agent for garage floor coatings (photo in, tiered signed proposal out).
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Builder Prime: $79/mo Startup; $159/mo Essentials; $239/mo Growth (billed annually); alt per-user model $300/mo platform + $60 core user + $10 field user (https://www.builderprime.com/pricing)
+  - DripJobs: $97/mo (Pro); $147/mo (Advanced); no contracts (https://dripjobs.com/pricing)
+  - QuoteIQ: $29.99/mo (Essentials) to $699/mo (Max); 14-day free trial; no per-user fees (https://myquoteiq.com/epoxy-garage-floor-coating-companies-crm/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (one- to few-crew coating contractors; vendors price $30-$150/mo with no per-user fees). Public-price incumbents: 3. Gatekeeper: no (franchisors only: GarageExperts requires ServiceMinder; Garage Force uses proprietary CRM; franchises are a minority of installers). Top-4 share: no company >5% (IBISWorld Flooring Installation Services, proxy); installer level 'fragmented' (Ken Research US concrete floor coatings).
 
@@ -1250,7 +1286,19 @@ Known limits, stated plainly:
 > - Weakest evidence: buyers are tiny and high-churn (92,257 trucks, +16.9%/yr); Truckster price is a third-party figure; Food Truck OS and HubPlate have no headcount; ad-spend likely concentrated in Square/Toast rather than niche tools.
 > - Searches (12): IBISWorld count, 3× tool discovery, Food Truck Lineup, Truckster, HubPlate, concentration, Food Truck OS, Roaming Hunger, Catermonkey, Truckster company.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Event inquiry → quote with minimums and menu → deposit collected → commissary and city permit renewals plus health-inspection documents filed on schedule → weekly location calendar posted to every channel. Needs: email/SMS, payments, permit portals, social posting.
+
+**Wedge** [hypothesis]: Catering-quote and permit-renewal agent for food trucks.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Catermonkey: $63-$247/mo (TrustRadius); one tier $85/mo; 14-day free trial, cancel monthly (https://catermonkey.com/en/prices/)
+  - Food Truck OS: $29/mo flat; 14-day free trial (https://foodtruckone.com/)
+  - Homebase (food truck page): free scheduling/time tracking tier (https://www.joinhomebase.com/food-truck-catering-event-management)
+  - HubPlate: $99/mo flat per truck, zero transaction commissions, BYOD (https://www.hubplate.app/blog/best-pos-system-for-food-trucks-in-2026)
+  - Roaming Hunger (vendor portal): vendor fees charged per facilitated booking; amount unverified (https://roaminghunger.com/catering/questions-and-answers/)
+  - Square for Restaurants (food truck page): free software; 2.6% + 10c per transaction; reader ~$59 (https://www.guideflow.com/blog/food-truck-pos-system) (https://www.guideflow.com/blog/food-truck-pos-system)
+  - Truckster (vendor platform): $25/mo vendor membership (third-party; $15-$40 tiers cited) (https://medium.com/@bigfatwriter/7-cool-food-truck-friendly-tools-c42b381cb1e1)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (truck owner; $25-$99/mo flat tools). Public-price incumbents: 4. Gatekeeper: none found (commissaries/city permits are compliance gates, not software mandates; Square is default but optional). Top-4 share: no company >5%; top 50 ~20% of revenue; 91% independently owned.
 
@@ -1378,7 +1426,18 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count is NIADA's "38,000+" (association claim, no year) vs siccode's 850; Frazer pricing sources disagree ($119/$129/$199); DealerCenter effective cost depends on per-transaction fees.
 > - Searches (12): NIADA/NAICS count, 2× tool discovery, Frazer pricing, DealerCenter pricing, Frazer company, concentration, AutoManager, Selly, AutoRaptor, Wayne Reaves, Nowcom.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Marketplace lead → reply in minutes with availability and payment estimate → test drive scheduled → stips checklist run on the buyer → for BHPH accounts, work the delinquency queue with compliant texts. Needs: marketplace inboxes, SMS, DMS/CRM API, compliance templates.
+
+**Wedge** [hypothesis]: Lead-response and BHPH collections agent priced per rooftop.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - AutoManager (DeskManager / WebManager): DMS from $88/mo; CRM & text marketing $140/mo; DMS + website $144/mo (https://www.automanager.com/pricing/)
+  - AutoRaptor CRM: from $299/mo (https://www.softwaresuggest.com/autoraptor); per-user model (https://www.autoraptor.com/pricing/)
+  - DealerCenter (Nowcom): DMS $79/mo; CRM Plus $99/mo; CRM Pro $199/mo (https://softwarefinder.com/accounting-software/dealercenter); FAST DMS $60/mo, BHPH $50/mo (https://www.saasworthy.com/product/dealercenter/pricing); realistic stacks >$500/mo (https://www.dealervlo.com/blog/dealercenter-pricing-explained) (https://www.dealercenter.com/pricing/)
+  - Frazer DMS (Frazer Computing): $129/mo ($387/quarter, $1,299/yr) per https://www.chatref.ai/kb/guides/frazer-dealer-software-cost; desktop $119/mo, hosted from $199/mo per https://www.selecthub.com/p/dealer-management-systems/frazer/ (https://www.frazer.com/frazer-pricing)
+  - Selly Automotive: from $140/user/mo (also cited $130/mo) (https://subscribed.fyi/selly-automotive/pricing/)
+  - Wayne Reaves Software: from $79/mo (third-party) (https://www.softwaresuggest.com/wayne-reaves-sw)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~6 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (6 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (independent lot owner; DMS $60-$199/mo month-to-month). Public-price incumbents: 4. Gatekeeper: none found (NIADA has no software mandate; Westlake/DealerCenter lender tie is optional). Top-4 share: CarMax 15.4% of industry revenue (IBISWorld); market 'highly fragmented' (CarMax 10-K).
 
@@ -1456,7 +1515,21 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count attribution (naics.com vs insurancexdate.com); Buildium ownership/headcount not in results; DoorLoop/TurboTenant heavily funded so ad-longevity likely but crowded.
 > - Searches (10): NAICS count; best small-landlord software 2026; under-100-unit software; Buildium/AppFolio/DoorLoop/TenantCloud pricing; TenantCloud crunchbase; Innago; Rentec Direct; IBISWorld concentration; RPM franchise software; DoorLoop funding; TurboTenant/Innago employees.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Prospect inquiry → showing scheduled → application and screening run → late-rent chasing by text → maintenance request triaged to a vendor with owner approval → monthly owner report drafted. Needs: listing inboxes, SMS/email, screening API, vendor list, accounting export.
+
+**Wedge** [hypothesis]: Leasing-and-maintenance agent for sub-100-unit managers.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - AppFolio: ~$298/mo minimum, from $1.40/unit; went quote-only in 2026 (https://renpro.com/property-management-software-pricing-comparison/)
+  - Buildium: Essential $62/mo; Growth $192/mo; Premium $400/mo (third-party comparison; TurboTenant blog says $58/mo) (https://renpro.com/property-management-software-pricing-comparison/)
+  - DoorLoop: $69/$119/$179 per mo promo for up to 20 units; standard $99/$189/$239 (annual) (https://www.doorloop.com/blog/appfolio-vs-buildium)
+  - Innago: free (no license fees; tenant-paid fees) (https://innago.com/pricing/)
+  - Rentec Direct: Starter $25/mo (up to 10 properties); Pro and PM from $50/mo; no setup fees (https://www.rentecdirect.com/pricing)
+  - Shuk Rentals: $5/unit/mo flat, no ACH fees (https://www.shukrentals.com/learn/property-management-software-for-small-landlords)
+  - TenantCloud: Starter $15/mo annual or $18/mo monthly (up to 10 leases) (https://www.tenantcloud.com/review/appfolio-vs-buildium)
+  - TurboTenant: Essentials free (unlimited rentals); Manage $12/mo; Pro $28/mo (billed annually, flat per account) (https://www.turbotenant.com/property-management-software/best-property-management-software-for-small-landlords/)
+  - Yardi Breeze: $1/unit/mo with $100/mo minimum (Premier $2/unit) (https://www.yardibreeze.com/blog/2026/03/best-property-management-software-50-units/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~6 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (6 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner of a small property-management firm or self-managing landlord (flat per-account or per-unit pricing from free to $69/mo). Public-price incumbents: 7. Gatekeeper: no for independents (Real Property Management franchisees must use AppFolio + LeadSimple; franchise is a small share of 340k businesses). Top-4 share: no company >5% (IBISWorld Residential Property Managers); low concentration, largest Prologis (Property Management).
 
@@ -1774,7 +1847,17 @@ Known limits, stated plainly:
 > - Weakest evidence: IBISWorld count (2,890) covers truck trailer dealers, not light cargo/utility dealers; NATDA member count not found; Softbase/Motility/SOARR have no public price.
 > - Searches (12): NAICS/NATDA count, 3× tool discovery, EverLogic pricing, Blackpurl company, Trailer Ops company, concentration, Softbase, SOARR, Motility, Lightspeed pricing.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Unit spec sheet and photos pushed to every marketplace → inbound quote requests answered with availability and financing → title and registration packet prepared per state on sale. Needs: marketplace APIs, DMS export, state DMV forms, email/SMS.
+
+**Wedge** [hypothesis]: Listing-and-title packet agent for trailer dealers.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Blackpurl: Essentials $408/mo monthly ($388/mo annual) for 3 users, +$127/user/mo; $99/mo for NATDA members (https://www.natda.org/news/why-every-trailer-dealer-needs-a-software-solution)
+  - EverLogic: $129/mo per license, 3-license minimum; mobile app $39/mo per license; $4,000 one-time implementation (https://everlogic.com/price/)
+  - Lightspeed DMS (trailer): $450 to $3,000+/mo, modular (https://www.lightspeeddms.com/solutions/pricing/)
+  - SOARR: custom (contact sales) (https://www.soarrsolutions.com/manage)
+  - Trailer Ops DMS: $500/mo DMS + website (https://www.trailerops.com/pricing)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (trailer dealership owner; flat monthly DMS $387-$500). Public-price incumbents: 4. Gatekeeper: none found (NATDA offers affinity pricing, not a mandate; OEMs not shown to dictate DMS). Top-4 share: no company >5% (IBISWorld Truck Trailer Dealers).
 
@@ -1847,7 +1930,19 @@ Known limits, stated plainly:
 > - Weakest evidence: storEDGE/SiteLink prices are third-party; Storable vendor share not found; establishment count attribution (naics.com/insurancexdate) uncertain; Stora headcount 22 vs 39.
 > - Searches (11): NAICS count; independent-operator software; best software 2026 pricing; storEDGE/SiteLink/Easy/Stora pricing; Stora company; Storeganise; REIT share; Storable history; 6Storage; Storable Easy; Kinnovis.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Inquiry → unit quote and online move-in → autopay set → late-fee and lien notices run per state timeline → gate codes and cleanouts scheduled. Needs: management-software API, SMS/email, state lien templates, gate system.
+
+**Wedge** [hypothesis]: Remote-manager agent for unmanned or single-manager storage sites.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - 6Storage: from $75/mo (SelectHub); vendor blog cites $0.75/unit/mo and $30-$100/mo tiers (https://us.6storage.com/self-storage-software/pricing/)
+  - Kinnovis: request pricing (https://kinnovis.com/pricing/)
+  - SiteLink (Storable): ~$150/mo Web Edition (third-party) (https://softwareconnect.com/roundups/best-self-storage-software/)
+  - Stora: from $83/mo (SelectHub) (https://stora.co/pricing)
+  - Storable Easy (Easy Storage Solutions): $90/mo flat Basic; free trial (https://www.capterra.com/p/112769/Self-Storage-Software/pricing/)
+  - Storable Edge (storEDGE): $129/mo per facility (third-party); online-rental module +$25-$75/mo (https://softwareconnect.com/roundups/best-self-storage-software/)
+  - Storeganise: from $90/mo billed annually; free setup (https://storeganise.com/pricing)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner of a single or few-facility independent operator (~65% of US facilities are owned by operators outside the top 100). Public-price incumbents: 5. Gatekeeper: no (Self Storage Association is a trade body; REITs run in-house systems; no franchise/association software mandate found). Top-4 share: public companies/REITs own 23% of facilities, next top-100 own 13%, small operators ~65%; by square footage small operators 40%, REITs/public 38%.
 
@@ -1919,7 +2014,17 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count is all fine-arts schools and excludes most sole-proprietor teachers; Fons domain and My Music Staff price came from third-party pages; Port 443 headcount not found.
 > - Searches: NAICS count; school management; best teacher software pricing; studio invoicing/portal; School of Rock franchise; My Music Staff/Port 443; Opus1; Fons; Teachworks; Duet; IBISWorld concentration.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Cancellation → make-up slot offered from teacher gaps → unpaid invoices chased → lapsed students re-engaged → monthly teacher payroll summary. Needs: lesson calendar API, SMS/email, payments.
+
+**Wedge** [hypothesis]: Make-up-lesson and attrition agent for multi-teacher music schools.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Duet (Music Teacher's Helper): $9/mo + 1% on digital payments; 30-day trial; Online Studio add-on $8/mo (https://www.duetpartner.com/pricing)
+  - Fons: $19.95/mo single instructor (https://www.capterra.com/p/171305/Fons/)
+  - My Music Staff (Port 443 Inc.): $16.95/mo + $4.95 per additional teacher (third-party) (https://www.musicaltrio.com/compare/best-software-solo-music-teachers)
+  - Opus1.io: $98/mo Starter; Growth $199; Ultimate $325 (https://opus1.io/pricing/)
+  - Teachworks: $16.49/mo + 32¢ per lesson (Starter); Growth $47.99; Premium $187.99; 3-week trial (https://www.teachworks.com/pricing)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (solo teachers and 1-10 teacher studios; sub-$20/mo plans). Public-price incumbents: 5. Gatekeeper: no (franchise slice only). Top-4 share: highly fragmented; no company >5% (IBISWorld Private Music Classes).
 
@@ -2002,7 +2107,19 @@ Known limits, stated plainly:
 > - Weakest evidence: several prices from roundups (GoDribe, Software for Driving School) with unknown domains; Drive Scout headcount not found; state portals confirmed as compliance gates but no vendor mandate found.
 > - Searches (11): IBISWorld count, 2× tool discovery, Drive Scout pricing, Drive Scout company, DrivingSchoolSoftware company, concentration, DMV gatekeeper, Teachworks, GoDribe, DriverSchedule, MyDriveSchool, BookingTimes.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Parent inquiry → package sold and enrolment forms collected → instructor gaps filled from the waitlist → state completion or electronic-certificate report filed after each student. Needs: SMS/email, calendar, state DMV portals.
+
+**Wedge** [hypothesis]: Enrolment-to-certificate agent covering the mandatory state filings.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - BookingTimes: from $61/mo (Software Suggest); ~$39.95/mo entry and $99/mo usage-based also cited; charged per platform + per calendar (https://www.softwaresuggest.com/bookingtimes)
+  - Drive Scout: $50/user/mo, 5-user minimum ($250/mo); 10% off semi-annual, 20% off annual ($2,400/yr) (https://drivescout.com/pricing/)
+  - Drivers Ed Solutions: $6.25 per student; packages $600 (Registration Link; $150 for 4 months), $750 Standard, $1,200 Preferred (https://www.driversedsolutions.com/pricing.phtml)
+  - DrivingSchoolSoftware.com (DrivingSchool.Software): demo only; not published (https://www.capterra.com/p/175083/Total-Driving-School-Management/)
+  - GoDribe: Basic $49/mo, Professional $99/mo, Enterprise $199/mo (roundup) (https://www.softwareadvice.com/driving-school/)
+  - Software for Driving School: Solo $49/mo (1 user, 1 location); Team $79/mo (10 users); Growth $399/mo (https://www.softwareadvice.com/driving-school/)
+  - Teachworks (driving school page): Starter $16.49/mo + 32.0c per student lesson; Growth $47.99/mo + 18.9c; Premium $187.99/mo + 6.5c; 3-week free trial (https://www.teachworks.com/pricing)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (driving school owner; $16-$250/mo). Public-price incumbents: 4. Gatekeeper: none found (state DMV portals such as MA ATLAS and CA TVCC require electronic records/reporting but do not name a vendor). Top-4 share: no company >5% (IBISWorld Driving Schools).
 
@@ -2206,7 +2323,16 @@ Known limits, stated plainly:
 > - **Weakest evidence:** two establishment figures for the NAICS (97,995 vs 83,027) plus IBISWorld's broader 307,058; the fragmentation is not in doubt but the buyer count is. Incumbents are large and VC-funded (Shopmonkey $110M, AutoLeap $54M).
 > - **Fragmentation 5/5:** four public prices, low concentration, NAPA/Bosch tie-ins do not cover most shops.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Estimate approvals by text → appointment reminders → declined-service follow-up. Needs: shop-management API, SMS.
+
+**Wedge** [hypothesis]: Approval and declined-work follow-up agent as an add-on to the shop system.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - AutoLeap: $179/mo (Essentials); Pro $309/mo; Elite $409/mo; Enterprise custom (https://www.g2.com/products/autoleap/pricing)
+  - Shop-Ware: $279/mo (Startup); Pro $379; Master $499; Ultimate+ $999; unlimited users; month-to-month (https://shop-ware.com/packages/)
+  - Shopmonkey: $215/mo (annual) starting; tiers $125-425/mo; +$20/user (https://www.shopmonkey.io/pricing)
+  - Tekmetric: $199/mo (Start; $179 annual); Grow $349/mo; Scale $439/mo; Enterprise custom; unlimited users/ROs (https://www.tekmetric.com/pricing)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator shop owner (single-location independents; vendors price per shop $179-279/mo). Public-price incumbents: 4. Gatekeeper: partial only: NAPA AutoCare perks tied to NAPA TRACS and Bosch Auto Service franchise-supplied software, but neither covers most independents. Top-4 share: low concentration (largest TravelCenters of America).
 
@@ -2645,7 +2771,11 @@ Known limits, stated plainly:
 > - **Weakest evidence:** establishment counts range 4,051 (siccode) to 29,500 (CLA) to 18,375 (IBISWorld-derived); Wash-Dry-Fold headcount not found.
 > - **Searches (8):** NAICS 812310 count; best laundromat software 2026; Cents/Curbside/CleanCloud pricing; laundromat fragmentation; Cents funding; CLA laundromat count; plus gap-fill Wash-Dry-Fold company, CleanCloud company, Curbside company.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Order text → pickup scheduled on a route → recurring plan upsold → lapsed households reactivated. Needs: SMS, POS/route API, payments.
+
+**Wedge** [hypothesis]: Pickup-and-delivery growth agent for laundromats.
+
+**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~3 hrs/week.
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (laundromat owner). Public-price incumbents: 3. Gatekeeper: no (67% of locations independent; ~80% single-location; no franchisor software mandate found). Top-4 share: top-5 = 32% of revenue (IBISWorld via VantaInsights).
 
@@ -2715,7 +2845,19 @@ Known limits, stated plainly:
 > - Weakest evidence: count is whole pet-care NAICS; GrooMore/Vagaro/DaySmart prices via third-party blogs; MoeGo is VC-backed (no headcount bonus).
 > - Searches: NAICS count; salon booking; best grooming software pricing; mobile routing; IBISWorld concentration; MoeGo; Groomer.io; Groomsoft; GrooMore; franchise software.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Cancellation → nearby pet rebooked into the gap → overdue grooms chased on cadence → vaccination records confirmed before the visit. Needs: booking API, SMS, route logic.
+
+**Wedge** [hypothesis]: Rebooking and route-filling agent for single-van groomers.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Animalo: from $50/mo (https://www.animalo.com/blog/pet-grooming-software-ultimate-2026-guide-for-salons)
+  - DaySmart Pet: from $29/mo (third-party) (https://www.animalo.com/blog/pet-grooming-software-ultimate-2026-guide-for-salons)
+  - GrooMore: $39/mo (third-party) (https://tryteddy.com/blog/best-mobile-pet-grooming-software-kg76y)
+  - Groomer.io: $99/mo per facility or van; no contract (https://get.groomer.io/pricing)
+  - Groomsoft: $29.95/mo shops; $39.90/mo mobile groomers (https://www.groomsoft.com/pricing/)
+  - MoeGo: $49/mo per van (mobile) to $159; $79/mo per salon location to $239 (https://www.moego.pet/pricing)
+  - Vagaro: $23.99/mo base (third-party) (https://tryteddy.com/blog/best-mobile-pet-grooming-software-kg76y)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (solo salons and single-van mobile groomers; per-van pricing). Public-price incumbents: 5. Gatekeeper: no (franchise slice only). Top-4 share: highly fragmented; no company >5% (IBISWorld Pet Grooming & Boarding).
 
@@ -2863,7 +3005,13 @@ Known limits, stated plainly:
 > - **Weakest evidence:** IBISWorld count (76,364) includes sole proprietors; Spark Membership headcount not found; ATA-affiliated schools' tooling not verified.
 > - **Searches (7):** NAICS 611620 count; best martial arts software 2026; Kicksite/Spark/Zen Planner pricing; martial arts concentration/franchise; Kicksite company; Spark company (twice); plus gap-fill Zen Planner/Daxko, Gymdesk.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Trial-class inquiry → booked → membership sold → attendance and belt-test reminders → lapsed members re-engaged. Needs: membership-software API, SMS/email.
+
+**Wedge** [hypothesis]: Trial-to-member and retention agent for martial arts schools.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Zen Planner (Daxko): $99/mo Studio tier (add-ons: website $99, Engage $249, app $39) per https://1club.ai/blog/best-martial-arts-management-software-2026 (https://zenplanner.com/pricing/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (school owner / head instructor). Public-price incumbents: 4. Gatekeeper: no (largest franchise network ~1.8% share; Premier Martial Arts / Tiger-Rock franchises are small minorities; no software mandate found). Top-4 share: highly fragmented; no company >5%.
 
