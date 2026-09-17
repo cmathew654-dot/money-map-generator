@@ -1,0 +1,252 @@
+{
+ "32": [
+  "Inbound lead \u2192 priced recurring-service proposal \u2192 schedule slot on the existing route \u2192 auto-invoice after each visit \u2192 chase late payers by text. Needs: SMS/email, property-measurement source (satellite or the incumbent's measurement API), calendar, Stripe/QuickBooks. Done = a signed recurring agreement on the calendar with card on file.",
+  "Quote-and-book agent for mowing/maintenance leads (address in, signed recurring proposal out).",
+  4
+ ],
+ "31": [
+  "Homeowner photos + address in \u2192 priced tree-work proposal with ISA-style scope \u2192 schedule crew/crane window \u2192 PHC and pruning-cycle renewals sent automatically each season. Needs: SMS/email, photo intake, pricing rules per operator, calendar, invoicing.",
+  "Photo-to-estimate agent for removals/pruning; expand into PHC renewal cycles.",
+  4
+ ],
+ "33": [
+  "Per-lawn season plan (rounds with legal re-application intervals and weather windows) \u2192 pre-visit texts \u2192 post-visit state pesticide application record generated and filed. Needs: weather API, state applicator-record template, SMS, route calendar.",
+  "Application-round scheduler plus automatic pesticide application recordkeeping.",
+  5
+ ],
+ "39": [
+  "Per-stump/acre quote from photos and site map \u2192 811 locate ticket filed \u2192 equipment day scheduled \u2192 invoice. Needs: 811 portal, photo intake, calendar, invoicing.",
+  "Quote-and-811-locate agent for stump/clearing jobs.",
+  3
+ ],
+ "34": [
+  "Forecast watch \u2192 pre-storm crew staging texts \u2192 per-push service confirmations with timestamped photos to property managers \u2192 seasonal/per-push invoice and slip-and-fall liability log. Needs: weather API, crew SMS, photo capture, PDF log, invoicing.",
+  "Storm-event proof-of-service and liability log agent for commercial snow contracts.",
+  6
+ ],
+ "36": [
+  "Recurring-round retention: predict next-clean due date per customer \u2192 text a route-adjacent slot \u2192 confirm \u2192 invoice \u2192 upsell screens/gutters. Needs: SMS, calendar, invoicing.",
+  "Recurring-round rebooking agent for solo window cleaners.",
+  3
+ ],
+ "11": [
+  "Measure driveway/lot from satellite \u2192 seal/pave quote with material takeoff \u2192 weather-safe schedule \u2192 municipal bid paperwork drafted for small public jobs. Needs: measurement API, weather, quoting rules, PDF bid forms.",
+  "Satellite-measure-to-quote agent for sealcoating/residential paving.",
+  4
+ ],
+ "22": [
+  "Service-call intake \u2192 flat-rate quote from the operator's price book \u2192 permit application drafted for the jurisdiction \u2192 inspection scheduled \u2192 invoice. Needs: phone/SMS, price book, jurisdiction permit portals, calendar.",
+  "Permit-and-inspection paperwork agent for small residential electricians.",
+  5
+ ],
+ "21": [
+  "Spring start-up / fall winterization rebooking for the whole customer list \u2192 backflow test scheduled before the water purveyor's deadline \u2192 test report submitted \u2192 invoice. Needs: customer list, SMS, purveyor report templates/portals, calendar.",
+  "Seasonal rebooking plus backflow-deadline agent.",
+  4
+ ],
+ "35": [
+  "Address in \u2192 surface area measured \u2192 instant quote \u2192 booking \u2192 review request and follow-up sequence. Needs: satellite measurement, SMS/email, calendar, payments.",
+  "Address-in, priced-quote-out agent for house/roof/driveway washing.",
+  3
+ ],
+ "9": [
+  "Room/exterior photos + sq ft \u2192 estimate with paint/labor takeoff \u2192 schedule crew \u2192 RRP lead-paint documentation for pre-1978 homes \u2192 invoice. Needs: photo intake, estimating rules, EPA RRP checklist templates, calendar.",
+  "Estimate-plus-RRP-paperwork agent for residential painters.",
+  4
+ ],
+ "37": [
+  "Weekly route generation \u2192 chemical log per stop from tech texts/photos \u2192 repair upsell quotes \u2192 monthly invoicing. Needs: SMS, route optimization, invoicing.",
+  "Route-and-chemical-log agent for solo pool routes.",
+  3
+ ],
+ "8": [
+  "Yardage/sq ft quote from drawings or photos \u2192 pour scheduled around weather and ready-mix availability \u2192 permit forms drafted \u2192 invoice. Needs: quoting rules, weather API, permit portals.",
+  "Quote-and-pour-scheduling agent for flatwork.",
+  3
+ ],
+ "24": [
+  "After-hours call/text intake \u2192 flat-rate quote \u2192 dispatch to on-call tech \u2192 permit application for water heater/repipe \u2192 warranty registration \u2192 invoice. Needs: phone/SMS, price book, permit portals, calendar.",
+  "Permit and warranty-registration paperwork agent for small plumbing shops.",
+  5
+ ],
+ "3": [
+  "Storm lead \u2192 roof measured from aerial imagery \u2192 estimate \u2192 insurance supplement package assembled (photos, Xactimate-style line items) \u2192 job scheduled \u2192 invoice. Needs: aerial measurement, photo intake, PDF assembly, calendar.",
+  "Insurance-supplement assembly agent for residential roofers.",
+  5
+ ],
+ "13": [
+  "Install lead \u2192 permit and alarm-registration filings with the municipality \u2192 recurring inspection reminders and reports \u2192 monitoring contract renewals. Needs: municipal portals, PDF forms, SMS, calendar.",
+  "Alarm permit/registration filing agent for small low-voltage installers.",
+  4
+ ],
+ "4": [
+  "Linear-foot quote from a property-line sketch \u2192 HOA/permit application drafted \u2192 material order list \u2192 install date \u2192 invoice. Needs: measurement, permit templates, supplier ordering, calendar.",
+  "HOA/permit paperwork and quote agent for fence installers.",
+  3
+ ],
+ "7": [
+  "Linear-foot quote from satellite roofline \u2192 seasonal cleaning route rebooking \u2192 invoice. Needs: measurement, SMS, calendar.",
+  "Seasonal gutter-cleaning rebooking agent.",
+  2
+ ],
+ "38": [
+  "Roofline measurement \u2192 install/takedown quote \u2192 season schedule \u2192 storage tracking \u2192 next-season renewal outreach in August. Needs: measurement, SMS, calendar, inventory list.",
+  "Season-renewal and install/takedown scheduling agent.",
+  3
+ ],
+ "2": [
+  "Well-permit application to the state \u2192 drill log / well completion report filed \u2192 pump service reminders \u2192 invoice. Needs: state well portals, form templates, SMS.",
+  "State well-log and permit filing agent for drillers.",
+  4
+ ],
+ "5": [
+  "Service-call intake \u2192 part identified from photo (spring/opener) \u2192 quote \u2192 schedule \u2192 warranty claim to manufacturer \u2192 invoice. Needs: phone/SMS, parts catalog, OEM warranty portals.",
+  "Warranty-claim and quote agent for garage door service.",
+  3
+ ],
+ "6": [
+  "R-value/sq ft quote \u2192 utility rebate forms completed and submitted \u2192 energy-code compliance certificate \u2192 invoice. Needs: rebate program forms, quoting rules, PDF.",
+  "Utility-rebate paperwork agent for insulation contractors.",
+  4
+ ],
+ "10": [
+  "Site quote from plans \u2192 811 locate tickets \u2192 equipment-hour tracking \u2192 haul tickets reconciled \u2192 invoice. Needs: 811 portal, SMS from operators, invoicing.",
+  "811-locate and haul-ticket reconciliation agent.",
+  4
+ ],
+ "12": [
+  "NFPA 25 inspection schedule per building \u2192 inspector reports converted to AHJ-format submittals \u2192 deficiency quotes \u2192 renewal. Needs: inspection form templates, AHJ portals/email, quoting rules.",
+  "NFPA 25 report-to-AHJ submittal agent.",
+  6
+ ],
+ "23": [
+  "Maintenance-agreement renewals and tune-up scheduling \u2192 permit pulls \u2192 EPA 608 refrigerant log \u2192 invoice. Needs: SMS, permit portals, calendar, log templates.",
+  "Maintenance-agreement renewal and permit agent for small HVAC shops.",
+  5
+ ],
+ "40": [
+  "Seasonal sweep rebooking \u2192 Level-2 inspection report drafted from tech photos/notes \u2192 repair quote \u2192 invoice. Needs: SMS, report template, photo intake.",
+  "Level-2 inspection report agent for chimney sweeps.",
+  3
+ ],
+ "1": [
+  "County health-department permit application \u2192 as-built drawing package \u2192 inspection scheduling \u2192 invoice. Needs: county portals/forms, drawing template, calendar.",
+  "County septic permit and as-built paperwork agent.",
+  5
+ ],
+ "42": [
+  "Bid walkthrough notes \u2192 proposal with sq ft and frequency pricing \u2192 night-shift schedule \u2192 inspection checklist results to client \u2192 invoice. Needs: quoting rules, SMS, checklist template.",
+  "Bid-to-proposal agent for small janitorial companies.",
+  4
+ ],
+ "14": [
+  "Permit set assembly \u2192 subcontractor sequencing calendar \u2192 change-order documentation \u2192 draw requests. Needs: permit portals, calendar, PDF.",
+  "Permit-set and sub-sequencing agent for pool builders.",
+  5
+ ],
+ "15": [
+  "Inspection photos \u2192 repair proposal \u2192 engineer letter request \u2192 warranty transfer paperwork \u2192 financing application. Needs: photo intake, proposal template, email.",
+  "Proposal and warranty-transfer paperwork agent.",
+  4
+ ],
+ "16": [
+  "Room measurements \u2192 material takeoff and quote \u2192 supplier order \u2192 install scheduling \u2192 invoice. Needs: quoting rules, supplier portals, calendar.",
+  "Takeoff-and-quote agent for flooring installers.",
+  3
+ ],
+ "18": [
+  "Deck design brief \u2192 permit drawing package \u2192 material list \u2192 schedule. Needs: permit portals, drawing template.",
+  "Deck permit-package agent.",
+  3
+ ],
+ "19": [
+  "Design/quote from photos and dimensions \u2192 material tonnage order \u2192 weather schedule \u2192 invoice. Needs: quoting rules, supplier ordering, weather API.",
+  "Quote-and-material-order agent for hardscapers.",
+  3
+ ],
+ "41": [
+  "Inbound quote by sq ft/rooms \u2192 recurring schedule \u2192 cleaner assignment texts \u2192 payment collection \u2192 rebooking on cancellations. Needs: SMS, calendar, payments.",
+  "Quote-book-collect agent for solo/small maid services.",
+  3
+ ],
+ "25": [
+  "Job description + photos \u2192 small-job quote \u2192 schedule \u2192 parts list \u2192 invoice. Needs: SMS, calendar, invoicing.",
+  "Small-job quoting and scheduling agent.",
+  2
+ ],
+ "17": [
+  "Measure/order/install cycle tracking \u2192 supplier orders \u2192 install appointment. Needs: supplier portals, calendar.",
+  "Order-tracking and install-scheduling agent for glaziers.",
+  3
+ ],
+ "20": [
+  "In-home measure capture \u2192 vendor purchase order \u2192 install appointment \u2192 invoice. Needs: vendor order portals, calendar.",
+  "Vendor-order and install appointment agent.",
+  2
+ ],
+ "43": [
+  "Room-count quote \u2192 route slot \u2192 reminders \u2192 invoice \u2192 6-month rebook. Needs: SMS, calendar, payments.",
+  "Rebooking agent for carpet cleaners.",
+  2
+ ],
+ "44": [
+  "Recurring service routes \u2192 state pesticide-use records auto-generated from tech texts \u2192 renewals. Needs: SMS, state record templates, route calendar.",
+  "Pesticide-use recordkeeping agent for small PCOs.",
+  4
+ ],
+ "51": [
+  "State notification filings before abatement \u2192 air-clearance report assembly \u2192 disposal manifest tracking \u2192 invoice. Needs: state portals/forms, lab-report intake, PDF.",
+  "State abatement notification and clearance-report agent.",
+  6
+ ],
+ "48": [
+  "Drop/pickup scheduling \u2192 container tracking \u2192 tonnage billing reconciliation from landfill tickets. Needs: SMS, ticket OCR, invoicing.",
+  "Landfill-ticket reconciliation and billing agent.",
+  4
+ ],
+ "49": [
+  "Weekly service routes \u2192 event orders \u2192 unit tracking \u2192 invoicing. Needs: route calendar, SMS, invoicing.",
+  "Route and event-order agent for portable toilet operators.",
+  3
+ ],
+ "57": [
+  "Annual test due dates per device \u2192 customer scheduling by text \u2192 test results captured \u2192 report submitted to each water purveyor in its required format. Needs: purveyor portals/forms, SMS, calendar.",
+  "Backflow test-report submission agent.",
+  5
+ ],
+ "58": [
+  "Tag/inspection cycles per site \u2192 inspection results captured \u2192 AHJ report filed \u2192 deficiency quotes. Needs: report templates, AHJ email/portals, quoting rules.",
+  "Inspection-report-to-AHJ filing agent.",
+  5
+ ],
+ "70": [
+  "Driver qualification file completeness checks \u2192 drug-testing program enrollment and random-pool tracking \u2192 audit-ready file packs. Needs: document intake, FMCSA Clearinghouse, email.",
+  "DQ-file compliance agent for small carriers (sold via consultants).",
+  6
+ ],
+ "66": [
+  "Signing order intake \u2192 appointment confirmation \u2192 journal entry \u2192 invoice to signing service. Needs: email/SMS, calendar, invoicing.",
+  "Signing-order intake and invoicing agent for loan signing agents.",
+  3
+ ],
+ "91": [
+  "IFTA quarterly filing from ELD/fuel data \u2192 driver file expirations \u2192 load paperwork (rate cons, BOLs) collected and invoiced. Needs: ELD API, fuel-card data, state IFTA portals, email.",
+  "IFTA filing and driver-file expiration agent for 1-20 truck fleets.",
+  6
+ ],
+ "97": [
+  "Trip scheduling from broker portals \u2192 driver credential expirations \u2192 trip logs and Medicaid broker billing submitted. Needs: broker portals, SMS, billing templates.",
+  "Broker trip-intake and billing agent for NEMT providers.",
+  8
+ ],
+ "137": [
+  "Caregiver shift filling by text \u2192 EVV-compliant visit verification checks \u2192 timesheet-to-Medicaid billing. Needs: SMS, state EVV aggregator APIs, billing templates.",
+  "Open-shift filling and EVV exception agent for small home care agencies.",
+  8
+ ],
+ "147": [
+  "Student enrollment \u2192 ELDT Training Provider Registry certification submission \u2192 DOT physical/permit tracking \u2192 attendance hours. Needs: TPR portal, document intake, SMS.",
+  "ELDT registry reporting agent for CDL schools.",
+  5
+ ]
+}

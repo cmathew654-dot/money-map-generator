@@ -660,6 +660,7 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--all", action="store_true", help="include candidate (unverified) tool rows too")
     ap.add_argument("--niches", default="", help="comma-separated niche ids to include")
+    ap.add_argument("--tools", default="", help="semicolon-separated tool names to include (exact, case-insensitive)")
     ap.add_argument("--headed", action="store_true", help="show the browser (log in to Meta/LinkedIn once if walled)")
     ap.add_argument("--profile", default=str(HERE / "pw-profile"), help="persistent browser profile dir")
     ap.add_argument("--scrolls", type=int, default=6)
@@ -697,10 +698,12 @@ def main():
         for r in csv.DictReader(open(OUT_CSV, newline="", encoding="utf-8")):
             done[(r["niche_id"], r["tool"])] = r
     want = set(x.strip() for x in args.niches.split(",") if x.strip())
+    want_tools = set(norm(x) for x in args.tools.split(";") if x.strip())
     todo = []
     for r in rows:
         if not args.all and not r.get("verification_status", "").startswith("search"): continue
         if want and r["niche_id"] not in want: continue
+        if want_tools and norm(r["tool"]) not in want_tools: continue
         if not args.force and done.get((r["niche_id"], r["tool"]), {}).get("scrape_status") == "ok": continue
         todo.append(r)
     seen = set(); dedup = []

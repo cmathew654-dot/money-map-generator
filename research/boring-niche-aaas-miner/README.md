@@ -2,7 +2,9 @@
 
 ## Outcome in one paragraph
 
-The four-filter method was run as far as the environment allowed. **Step 3 (ad longevity), the core filter, could not be executed**, so **0 of the 50 carded ideas are "qualified" by the method's definition**. What is delivered instead is a fully structured, URL-cited pre-audit pipeline: 160 niche candidates, 550 tool rows (214 search-verified with cited URLs, 336 flagged as unverified candidates), prebuilt Meta / Google / LinkedIn lookup URLs for every tool, fragmentation scores where evidence exists, and 50 idea cards ranked by a provisional evidence score. No ad count, date, price, headcount or establishment figure was estimated; every number carries a URL or reads `unverified`.
+**Update:** Step 3 was completed afterwards by running `scraper/` on a local machine (all 134 search-verified tools audited on Meta, Google and LinkedIn from the platforms' own data feeds). `ideas_ranked.md` now ranks by real ad scores: 13 niches qualify on the method's definition, 2 more provisionally. Results live in `ad_audit_filled.csv`, `ad_audit_scored.csv`, `niche_pass.csv`; `scraper/generate_ranked.py` rebuilds the ranking from them.
+
+Original run (2026-09-15): the four-filter method was run as far as the remote environment allowed. **Step 3 (ad longevity), the core filter, could not be executed there**, so at that point 0 of the 50 carded ideas were qualified. What is delivered instead is a fully structured, URL-cited pre-audit pipeline: 160 niche candidates, 550 tool rows (214 search-verified with cited URLs, 336 flagged as unverified candidates), prebuilt Meta / Google / LinkedIn lookup URLs for every tool, fragmentation scores where evidence exists, and 50 idea cards ranked by a provisional evidence score. No ad count, date, price, headcount or establishment figure was estimated; every number carries a URL or reads `unverified`.
 
 ## What blocked the method
 
@@ -19,7 +21,9 @@ The four-filter method was run as far as the environment allowed. **Step 3 (ad l
 | `tools.csv` | 550 | Step 2 output. `verification_status` = `search-verified (URL-cited)` or `candidate (prior knowledge; not search-verified)`. Treat candidate rows as a worklist, never as findings |
 | `ad_audit.csv` | 550 | Step 3 scaffold. Lookup URLs prebuilt per tool; all Meta/Google/LinkedIn counts `unverified (host blocked)`; `headcount_bonus` (0/2) is the only scored signal; `verified_score` = headcount bonus only |
 | `fragmentation.csv` | 160 | Step 4 output. Scores 0–5 where searched; `unverified` where not. Gatekeeper/concentration checks were unrun everywhere, so scores are capped at 4 in practice |
-| `ideas_ranked.md` | 50 cards | Step 5. Ranked by provisional evidence score (formula in the file header). Each card: incumbent jobs, agent version, wedge, price ceiling from cited prices, evidence URLs, confidence, and an audit checklist of exact ad-library URLs |
+| `ideas_ranked.md` | 50 cards | Step 5. Ranked by method score (ad score + fragmentation) now that Step 3 has run; formula in the file header. Each card: incumbent jobs, agent version, wedge, price ceiling from cited prices, evidence URLs, confidence, and an audit checklist of exact ad-library URLs |
+| `ad_audit_filled.csv`, `ad_audit_scored.csv`, `niche_pass.csv` | 550 / 550 / 160 | Step 3 results from the local scraper run: raw platform data, per-tool score breakdown, per-niche pass/fail |
+| `aaas_angles.json`, `batch_notes.json` | | Inputs for `scraper/generate_ranked.py` (agent-version/wedge text per niche; per-niche research notes from the batch agents) |
 | `dead_ends.md` | 110 | Every non-carded niche with the filter or blocker that stopped it and what to run next |
 
 ## How to finish the run (estimated effort)
