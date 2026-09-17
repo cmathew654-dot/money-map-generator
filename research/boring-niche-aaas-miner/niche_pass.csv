@@ -7,7 +7,7 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 6,4,0,no,
 7,4,1,no,RoofSnap
 8,3,0,no,
-9,5,2,yes,DripJobs|PaintScout
+9,7,2,yes,DripJobs|PaintScout
 10,3,0,no,
 11,8,0,no,
 12,5,3,yes,BuildOps|Inspect Point|ServiceTrade
@@ -22,7 +22,7 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 21,10,5,yes,HindSite Software / FieldCentral|Housecall Pro|Jobber|Service Fusion|ServiceTitan
 22,9,3,yes,Housecall Pro|Service Fusion|ServiceTitan
 23,9,2,yes,Housecall Pro|ServiceTrade
-24,7,4,yes,FieldPulse|Jobber|Service Fusion|ServiceTitan
+24,8,4,yes,FieldPulse|Jobber|Service Fusion|ServiceTitan
 25,1,0,no,
 31,8,0,no,
 32,6,2,yes,HindSite Software / FieldCentral|ServiceTitan
