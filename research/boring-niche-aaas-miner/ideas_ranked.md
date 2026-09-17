@@ -20,33 +20,33 @@ Known limits, stated plainly:
 
 | rank | niche | status | tools audited | passing tools | ad score | frag | method score |
 |---|---|---|---|---|---|---|---|
-| 1 | Small residential electrical contractors | QUALIFIED (horizontal-only) | 9 | Service Fusion, ServiceTitan, Housecall Pro | 8.0 | 4 | 12.0 |
+| 1 | Small residential electrical contractors | QUALIFIED (horizontal-only) | 9 | Housecall Pro, Service Fusion, ServiceTitan | 8.0 | 4 | 12.0 |
 | 2 | Residential roofing contractors | QUALIFIED | 6 | RoofSnap, AccuLynx, Roofr, ServiceTitan | 8.5 | 3 | 11.5 |
-| 3 | Irrigation & lawn sprinkler contractors | QUALIFIED | 9 | Service Fusion, ServiceTitan, HindSite Software / FieldCentral, Housecall Pro | 8.0 | 3 | 11.0 |
+| 3 | Irrigation & lawn sprinkler contractors | QUALIFIED | 9 | Housecall Pro, Service Fusion, ServiceTitan, HindSite Software / FieldCentral | 8.0 | 3 | 11.0 |
 | 4 | Plumbing contractors | QUALIFIED (horizontal-only) | 5 | FieldPulse, ServiceTitan | 8.0 | 3 | 11.0 |
-| 5 | Lawn care & landscape maintenance | QUALIFIED | 5 | ServiceTitan, RealGreen by WorkWave | 6.5 | 4 | 10.5 |
-| 6 | Pressure washing & exterior cleaning | QUALIFIED (horizontal-only) | 9 | Service Fusion, Jobber, Housecall Pro | 7.5 | 3 | 10.5 |
+| 5 | Pressure washing & exterior cleaning | QUALIFIED (horizontal-only) | 9 | Housecall Pro, Service Fusion, Jobber | 8.0 | 3 | 11.0 |
+| 6 | Lawn care & landscape maintenance | QUALIFIED | 5 | ServiceTitan, RealGreen by WorkWave | 6.5 | 4 | 10.5 |
 | 7 | Residential painting contractors | QUALIFIED | 4 | DripJobs, PaintScout | 7.0 | 3 | 10.0 |
 | 8 | Garage door installers & repair | QUALIFIED (horizontal-only) | 7 | FieldPulse, ServiceTitan, Jobber | 8.0 | 2 | 10.0 |
 | 9 | Glass & glazing contractors | QUALIFIED | 4 | FieldPulse, Smart Glazier Software | 7.5 | 1 | 8.5 |
-| 10 | Foundation repair & basement waterproofing contractors | QUALIFIED | 3 | Builder Prime, Contractor Accelerator | 6.0 | 2 | 8.0 |
-| 11 | Deck & patio builders | QUALIFIED | 5 | Builder Prime, Houzz Pro | 6.0 | 2 | 8.0 |
-| 12 | Fire sprinkler contractors | QUALIFIED | 5 | Inspect Point, BuildOps, ServiceTrade | 5.5 | 2 | 7.5 |
-| 13 | Carpet & upholstery cleaning | QUALIFIED (horizontal-only) | 8 | Jobber, Housecall Pro | 6.0 | 1 | 7.0 |
-| 14 | Snow removal contractors | audited, not passing | 2 | Aspire | 5.0 | 4 | 9.0 |
-| 15 | Low-voltage, alarm & security camera installers | audited, not passing (horizontal-only) | 6 | ServiceTitan | 5.5 | 3 | 8.5 |
-| 16 | Gutter installation & cleaning contractors | audited, not passing | 4 | RoofSnap | 6.5 | 2 | 8.5 |
-| 17 | Lawn fertilization & weed control route businesses | audited, not passing | 4 | RealGreen by WorkWave | 4.0 | 4 | 8.0 |
-| 18 | HVAC contractors | audited, not passing (horizontal-only) | 7 | Housecall Pro | 4.0 | 4 | 8.0 |
+| 10 | Carpet & upholstery cleaning | QUALIFIED (horizontal-only) | 8 | Housecall Pro, Jobber | 7.5 | 1 | 8.5 |
+| 11 | Foundation repair & basement waterproofing contractors | QUALIFIED | 3 | Builder Prime, Contractor Accelerator | 6.0 | 2 | 8.0 |
+| 12 | Deck & patio builders | QUALIFIED | 5 | Builder Prime, Houzz Pro | 6.0 | 2 | 8.0 |
+| 13 | Fire sprinkler contractors | QUALIFIED | 5 | Inspect Point, BuildOps, ServiceTrade | 5.5 | 2 | 7.5 |
+| 14 | HVAC contractors | audited, not passing (horizontal-only) | 7 | Housecall Pro | 5.5 | 4 | 9.5 |
+| 15 | Snow removal contractors | audited, not passing | 2 | Aspire | 5.0 | 4 | 9.0 |
+| 16 | Low-voltage, alarm & security camera installers | audited, not passing (horizontal-only) | 6 | ServiceTitan | 5.5 | 3 | 8.5 |
+| 17 | Gutter installation & cleaning contractors | audited, not passing | 4 | RoofSnap | 6.5 | 2 | 8.5 |
+| 18 | Lawn fertilization & weed control route businesses | audited, not passing | 4 | RealGreen by WorkWave | 4.0 | 4 | 8.0 |
 | 19 | Pool service & maintenance routes | audited, not passing | 5 | Pool Brain | 4.5 | 3 | 7.5 |
 | 20 | Septic system installers | audited, not passing (horizontal-only) | 7 | ServiceTitan | 5.5 | 2 | 7.5 |
-| 21 | Tree service & arborists | audited, not passing | 8 | - | 3.0 | 4 | 7.0 |
-| 22 | Chimney sweeps & chimney repair | audited, not passing (horizontal-only) | 2 | ServiceTitan | 5.0 | 2 | 7.0 |
-| 23 | Stump grinding & land clearing | audited, not passing | 5 | - | 2.5 | 4 | 6.5 |
-| 24 | Water well drilling contractors | audited, not passing (horizontal-only) | 4 | Jobber | 4.5 | 2 | 6.5 |
-| 25 | Pool builders | audited, not passing (horizontal-only) | 6 | Houzz Pro | 4.5 | 2 | 6.5 |
-| 26 | Flooring & tile contractors | audited, not passing | 9 | Builder Prime | 4.0 | 2 | 6.0 |
-| 27 | Residential cleaning & maid services | audited, not passing (horizontal-only) | 7 | Housecall Pro | 4.0 | 2 | 6.0 |
+| 21 | Residential cleaning & maid services | audited, not passing (horizontal-only) | 7 | Housecall Pro | 5.5 | 2 | 7.5 |
+| 22 | Tree service & arborists | audited, not passing | 8 | - | 3.0 | 4 | 7.0 |
+| 23 | Chimney sweeps & chimney repair | audited, not passing (horizontal-only) | 2 | ServiceTitan | 5.0 | 2 | 7.0 |
+| 24 | Stump grinding & land clearing | audited, not passing | 5 | - | 2.5 | 4 | 6.5 |
+| 25 | Water well drilling contractors | audited, not passing (horizontal-only) | 4 | Jobber | 4.5 | 2 | 6.5 |
+| 26 | Pool builders | audited, not passing (horizontal-only) | 6 | Houzz Pro | 4.5 | 2 | 6.5 |
+| 27 | Flooring & tile contractors | audited, not passing | 9 | Builder Prime | 4.0 | 2 | 6.0 |
 | 28 | Asphalt paving & sealcoating contractors | audited, not passing | 8 | - | 1.5 | 4 | 5.5 |
 | 29 | Concrete flatwork & driveway contractors | audited, not passing | 3 | - | 2.5 | 3 | 5.5 |
 | 30 | Window cleaning | audited, not passing | 3 | - | 1.0 | 4 | 5.0 |
@@ -77,8 +77,8 @@ Known limits, stated plainly:
 
 - **Status:** QUALIFIED — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 12.0 = ad score 8.0 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** Service Fusion, ServiceTitan, Housecall Pro.
-- **Rescrape queued (Meta undersampled):** Housecall Pro, Sera Systems.
+- **Passing tools:** Housecall Pro, Service Fusion, ServiceTitan.
+- **Rescrape queued (Meta undersampled):** Sera Systems.
 - **Boring test:** 3/3 — Permits/inspections, service calls, flat-rate pricing books.
 - **US establishments:** 55951 (unverified, https://siccode.com/naics-code/238210/electrical-contractors-wiring-installation-contractors); share <20 employees: unverified.
 
@@ -86,15 +86,15 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
+| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
 | Service Fusion | yes | 8 | yes | 29 / 5 / 0 (2026-07-16) | Service Fusion | yes | 400 / 27 (2024-04-26) | yes 5 | 0 | horizontal |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| Housecall Pro | yes | 5 | yes | 480 / 2 / 2 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | undersampled horizontal |
 | Method CRM | yes | 4 | no | 4 / 2 / 2 (2023-05-30) | Method CRM | yes | 200 / 21 (2023-02-27) | no 0 | 0 | horizontal |
 | Sera Systems | yes | 3 | no | 17 / 0 / 0 (2026-08-24) | Sera Systems | yes | 51 / 0 (2024-08-20) | no 0 | 2 | undersampled |
-| TurboBid | yes | 2 | no | 0 / 0 / 0 (-) | TurboBid Estimating Software | unverified | 0 / 0 (-) | no 0 | 2 |  |
+| TurboBid | yes | 2 | no | 0 / 0 / 0 (-) | TurboBid Estimating Software | no | 0 / 0 (-) | no 0 | 2 |  |
 | The New Flat Rate | yes | 1 | no | 7 / 0 / 0 (2026-07-23) | The New Flat Rate | yes | 19 / 1 (2024-07-18) | no 0 | 0 |  |
-| Business Genie | yes | 0 | no | 0 / 0 / 0 (-) | Business Genie App | unverified | 1 / 0 (2026-04-11) | no 0 | 0 |  |
-| Flat Rate Plus Online | yes | 0 | no | 0 / 0 / 0 (-) | Flat Rate | unverified | 0 / 0 (-) | no 0 | 0 | ambiguous_page |
+| Business Genie | yes | 0 | no | 0 / 0 / 0 (-) | Business Genie App | no | 1 / 0 (2026-04-11) | no 0 | 0 |  |
+| Flat Rate Plus Online | yes | 0 | no | 0 / 0 / 0 (-) | Flat Rate | no | 0 / 0 (-) | no 0 | 0 | ambiguous_page |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -169,7 +169,7 @@ Known limits, stated plainly:
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 11.5 = ad score 8.5 (mean of best two verified tools) + fragmentation 3/5.
 - **Passing tools:** RoofSnap, AccuLynx, Roofr, ServiceTitan.
-- **Rescrape queued (Meta undersampled):** JobNimbus, Leap.
+- **Rescrape queued (Meta undersampled):** JobNimbus.
 - **Boring test:** 3/3 — Storm-chasing estimates, insurance supplements, crew scheduling.
 - **US establishments:** 108,598 businesses (IBISWorld Roofing Contractors in the US) (2026, https://www.ibisworld.com/united-states/number-of-businesses/roofing-contractors/198); share <20 employees: unverified.
 
@@ -181,8 +181,8 @@ Known limits, stated plainly:
 | AccuLynx | yes | 8 | yes | 10 / 9 / 5 (2025-08-20) | AccuLynx | yes | 83 / 24 (2023-03-05) | yes 2 | 0 |  |
 | Roofr | yes | 8 | yes | 113 / 22 / 0 (2026-05-28) | Roofr | yes | 400 / 37 (2023-06-28) | yes 10 | 0 |  |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| JobNimbus | yes | 4 | no | 63 / 0 / 0 (2026-09-10) | JobNimbus | yes | 400 / 21 (2023-07-05) | no 0 | 0 | undersampled |
-| Leap | yes | 4 | no | 39 / 0 / 0 (2026-08-13) | LEAP | yes | 200 / 21 (2025-02-05) | no 0 | 0 | undersampled |
+| JobNimbus | yes | 4 | no | 67 / 0 / 0 (2026-09-10) | JobNimbus | yes | 400 / 21 (2023-07-05) | no 0 | 0 | undersampled |
+| Leap | yes | 4 | no | 39 / 0 / 0 (2026-08-13) | LEAP | yes | 200 / 21 (2025-02-05) | no 0 | 0 | ambiguous_page |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -242,8 +242,7 @@ Known limits, stated plainly:
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 11.0 = ad score 8.0 (mean of best two verified tools) + fragmentation 3/5.
-- **Passing tools:** Service Fusion, ServiceTitan, HindSite Software / FieldCentral, Housecall Pro; passing but membership unverified: Jobber.
-- **Rescrape queued (Meta undersampled):** Housecall Pro.
+- **Passing tools:** Housecall Pro, Service Fusion, ServiceTitan, HindSite Software / FieldCentral; passing but membership unverified: Jobber.
 - **Boring test:** 3/3 — Spring start-up/winterization routes, backflow tests, zone repairs.
 - **US establishments:** 2425 (2024, https://www.ibisworld.com/united-states/number-of-businesses/lawn-sprinkler-installation-contractors/6488/); share <20 employees: unverified.
 
@@ -251,16 +250,16 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
+| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
 | Service Fusion | yes | 8 | yes | 29 / 5 / 0 (2026-07-16) | Service Fusion | yes | 400 / 27 (2024-04-26) | yes 5 | 0 | horizontal |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
 | Jobber | no (prior knowledge) | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
 | HindSite Software / FieldCentral | yes | 6 | yes | 4 / 4 / 0 (2026-06-22) | HindSite Software | yes | 12 / 9 (2021-10-25) | no 0 | 2 |  |
-| Housecall Pro | yes | 5 | yes | 480 / 2 / 2 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | undersampled horizontal |
 | Orderry | yes | 3 | no | 5 / 0 / 0 (2026-07-27) | Orderry | no | 10 / 3 (2025-04-11) | no 0 | 0 |  |
 | Contractor+ | yes | 1 | no | 59 / 0 / 0 (2026-09-08) | Contractor Growth Network | no | 40 / 1 (2024-12-19) | yes 3 | 0 | wrong_page horizontal |
-| IrrigationBossPro | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| LayCor | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| IrrigationBossPro | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| LayCor | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -322,7 +321,7 @@ Known limits, stated plainly:
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=179317675454866
   - https://adstransparency.google.com/advertiser/AR00871924403137413121?region=US
 
-**Confidence:** medium-low. Weakest link: Meta undersampled for a large advertiser; rescrape pending.
+**Confidence:** medium. Weakest link: gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed.
 
 ---
 
@@ -342,9 +341,9 @@ Known limits, stated plainly:
 | Service Fusion | no (prior knowledge) | 8 | yes | 29 / 5 / 0 (2026-07-16) | Service Fusion | yes | 400 / 27 (2024-04-26) | yes 5 | 0 | horizontal |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
 | Jobber | no (prior knowledge) | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| TurboBid | yes | 2 | no | 0 / 0 / 0 (-) | TurboBid Estimating Software | unverified | 0 / 0 (-) | no 0 | 2 |  |
-| Business Genie | yes | 0 | no | 0 / 0 / 0 (-) | Business Genie App | unverified | 1 / 0 (2026-04-11) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| TurboBid | yes | 2 | no | 0 / 0 / 0 (-) | TurboBid Estimating Software | no | 0 / 0 (-) | no 0 | 2 |  |
+| Business Genie | yes | 0 | no | 0 / 0 / 0 (-) | Business Genie App | no | 1 / 0 (2026-04-11) | no 0 | 0 |  |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -397,7 +396,86 @@ Known limits, stated plainly:
 
 ---
 
-## 5. Lawn care & landscape maintenance  (NAICS 561730)
+## 5. Pressure washing & exterior cleaning  (NAICS 561790)
+
+- **Status:** QUALIFIED — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
+- **Method score:** 11.0 = ad score 8.0 (mean of best two verified tools) + fragmentation 3/5.
+- **Passing tools:** Housecall Pro, Service Fusion, Jobber.
+- **Boring test:** 3/3 — Square-foot quoting, route scheduling, recurring commercial contracts.
+- **US establishments:** 34186 (2025, https://www.ibisworld.com/united-states/number-of-businesses/pressure-washing-services/6538/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
+| Service Fusion | yes | 8 | yes | 29 / 5 / 0 (2026-07-16) | Service Fusion | yes | 400 / 27 (2024-04-26) | yes 5 | 0 | horizontal |
+| Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| CrewNest | yes | 0 | no | 0 / 0 / 0 (-) | CrewNest | no | 0 / 0 (-) | no 0 | 0 |  |
+| MakeWash | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Markate | yes | 0 | no | 0 / 0 / 0 (-) | Markate | no | 6 / 0 (2025-07-21) | no 0 | 0 |  |
+| PowerWashOffice | yes | 0 | no | 0 / 0 / 0 (-) | PowerwashOffice | no | 0 / 0 (-) | no 0 | 0 |  |
+| ResponsiBid | yes | 0 | no | 0 / 0 / 0 (-) | ResponsiBid | no | 1 / 0 (2026-05-18) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Pressure washing & exterior cleaning
+> - Core jobs: square-footage measurement from satellite imagery (QuoteIQ MapMeasure Pro), chemical mix calculators, instant online quotes and booking tied to the website (PowerWashOffice), automated review requests, follow-up sequences (ResponsiBid), invoicing/payments.
+> - Incumbents: QuoteIQ ($29.99-$699, bootstrapped, founded 2023, hiked prices 75% in 2026), PowerWashOffice (free/$30), MakeWash (free at launch, $49 planned), CrewNest, Markate, ResponsiBid ($179), plus Jobber/Housecall Pro/Service Fusion dedicated landing pages.
+> - Agent wedge: address-in, priced-quote-out. Exterior cleaning is priced almost entirely by measurable surface area, so an agent that measures the property, quotes, books, and follows up by text replaces the quoting tool and the CRM at once. QuoteIQ's recent price hikes leave a cheap-tier gap.
+> - Weakest evidence: none of the pressure-washing-only tools (MakeWash, PowerWashOffice, CrewNest, Markate) have headcount, founding year, or review counts captured; concentration unverified.
+
+**The agent version** [hypothesis]: Address in → surface area measured → instant quote → booking → review request and follow-up sequence. Needs: satellite measurement, SMS/email, calendar, payments.
+
+**Wedge** [hypothesis]: Address-in, priced-quote-out agent for house/roof/driveway washing.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - MakeWash: free during launch; planned $49/mo (https://makewash.com/blog/best-pressure-washing-software-2026)
+  - PowerWashOffice: free Owner Operator plan; Teams $30/mo; add-ons $65/mo (CRM, WordPress/API) per https://www.guideflow.com/blog/pressure-washing-software (https://powerwash.software/)
+  - QuoteIQ: $29.99/mo Essentials (1 user); Elite $299; Max $699 per https://contractortoolstack.com/software/quoteiq/pricing/ (https://myquoteiq.com/pricing/)
+  - ResponsiBid: $179/mo Follow-up+Quoting; Ultimate $199; Powerhouse Bundle $229 (https://www.selecthub.com/p/pricing-software/responsibid/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
+
+**Fragmentation (Step 4):** 3/5. Check signer: owner-operator (solo operators and small crews). Public-price incumbents: 4. Gatekeeper: unverified (gatekeeper searches not run; session WebSearch budget exhausted). Top-4 share: unverified.
+
+**Evidence URLs (30):**
+  - https://www.ibisworld.com/united-states/number-of-businesses/pressure-washing-services/6538/
+  - https://www.crewnest.app/pressure-washing-crm
+  - https://www.housecallpro.com/industries/pressure-washing-software/
+  - https://www.getjobber.com/industries/pressure-washing-software/
+  - https://makewash.com/blog/best-pressure-washing-software-2026
+  - https://buildonauto.com/blog/best-crm-for-pressure-washing/
+  - https://powerwash.software/
+  - https://myquoteiq.com/crm-for-pressure-washing-business/
+  - https://myquoteiq.com/pricing/
+  - https://www.crunchbase.com/organization/quoteiq
+  - https://myquoteiq.com/about-us/
+  - https://responsibid.com/
+  - https://www.selecthub.com/p/pricing-software/responsibid/
+  - https://www.capterra.com/p/175241/ResponsiBid/
+  - https://www.servicefusion.com/pressure-wash-business-software
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1077834518736416
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
+  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
+  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=MakeWash&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1667913463426240
+  - https://adstransparency.google.com/advertiser/AR04364797743336521729?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=103567809370921
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
+  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=175247412493060
+  - https://adstransparency.google.com/advertiser/AR12811532525050527745?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=506971112706787
+  - https://adstransparency.google.com/advertiser/AR01281923922538790913?region=US
+
+**Confidence:** medium-low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
+
+---
+
+## 6. Lawn care & landscape maintenance  (NAICS 561730)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 10.5 = ad score 6.5 (mean of best two verified tools) + fragmentation 4/5.
@@ -412,9 +490,9 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
 | RealGreen by WorkWave | yes | 5 | yes | 44 / 0 / 0 (2026-08-26) | RealGreen | yes | 200 / 24 (2024-01-08) | yes 12 | 0 | undersampled |
-| Service Autopilot | yes | 3 | no | 0 / 0 / 0 (-) | Service Autopilot by Xplor | unverified | 25 / 16 (2023-07-28) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Yardbook | yes | 0 | no | 0 / 0 / 0 (-) | Yardbook | unverified | 37 / 0 (2026-04-02) | no 0 | 0 |  |
+| Service Autopilot | yes | 3 | no | 0 / 0 / 0 (-) | Service Autopilot by Xplor | no | 25 / 16 (2023-07-28) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Yardbook | yes | 0 | no | 0 / 0 / 0 (-) | Yardbook | no | 37 / 0 (2026-04-02) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -478,86 +556,6 @@ Known limits, stated plainly:
 
 ---
 
-## 6. Pressure washing & exterior cleaning  (NAICS 561790)
-
-- **Status:** QUALIFIED — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 10.5 = ad score 7.5 (mean of best two verified tools) + fragmentation 3/5.
-- **Passing tools:** Service Fusion, Jobber, Housecall Pro.
-- **Rescrape queued (Meta undersampled):** Housecall Pro.
-- **Boring test:** 3/3 — Square-foot quoting, route scheduling, recurring commercial contracts.
-- **US establishments:** 34186 (2025, https://www.ibisworld.com/united-states/number-of-businesses/pressure-washing-services/6538/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Service Fusion | yes | 8 | yes | 29 / 5 / 0 (2026-07-16) | Service Fusion | yes | 400 / 27 (2024-04-26) | yes 5 | 0 | horizontal |
-| Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| Housecall Pro | yes | 5 | yes | 480 / 2 / 2 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | undersampled horizontal |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| CrewNest | yes | 0 | no | 0 / 0 / 0 (-) | CrewNest | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| MakeWash | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Markate | yes | 0 | no | 0 / 0 / 0 (-) | Markate | unverified | 6 / 0 (2025-07-21) | no 0 | 0 |  |
-| PowerWashOffice | yes | 0 | no | 0 / 0 / 0 (-) | PowerwashOffice | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| ResponsiBid | yes | 0 | no | 0 / 0 / 0 (-) | ResponsiBid | unverified | 1 / 0 (2026-05-18) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Pressure washing & exterior cleaning
-> - Core jobs: square-footage measurement from satellite imagery (QuoteIQ MapMeasure Pro), chemical mix calculators, instant online quotes and booking tied to the website (PowerWashOffice), automated review requests, follow-up sequences (ResponsiBid), invoicing/payments.
-> - Incumbents: QuoteIQ ($29.99-$699, bootstrapped, founded 2023, hiked prices 75% in 2026), PowerWashOffice (free/$30), MakeWash (free at launch, $49 planned), CrewNest, Markate, ResponsiBid ($179), plus Jobber/Housecall Pro/Service Fusion dedicated landing pages.
-> - Agent wedge: address-in, priced-quote-out. Exterior cleaning is priced almost entirely by measurable surface area, so an agent that measures the property, quotes, books, and follows up by text replaces the quoting tool and the CRM at once. QuoteIQ's recent price hikes leave a cheap-tier gap.
-> - Weakest evidence: none of the pressure-washing-only tools (MakeWash, PowerWashOffice, CrewNest, Markate) have headcount, founding year, or review counts captured; concentration unverified.
-
-**The agent version** [hypothesis]: Address in → surface area measured → instant quote → booking → review request and follow-up sequence. Needs: satellite measurement, SMS/email, calendar, payments.
-
-**Wedge** [hypothesis]: Address-in, priced-quote-out agent for house/roof/driveway washing.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - MakeWash: free during launch; planned $49/mo (https://makewash.com/blog/best-pressure-washing-software-2026)
-  - PowerWashOffice: free Owner Operator plan; Teams $30/mo; add-ons $65/mo (CRM, WordPress/API) per https://www.guideflow.com/blog/pressure-washing-software (https://powerwash.software/)
-  - QuoteIQ: $29.99/mo Essentials (1 user); Elite $299; Max $699 per https://contractortoolstack.com/software/quoteiq/pricing/ (https://myquoteiq.com/pricing/)
-  - ResponsiBid: $179/mo Follow-up+Quoting; Ultimate $199; Powerhouse Bundle $229 (https://www.selecthub.com/p/pricing-software/responsibid/)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 3/5. Check signer: owner-operator (solo operators and small crews). Public-price incumbents: 4. Gatekeeper: unverified (gatekeeper searches not run; session WebSearch budget exhausted). Top-4 share: unverified.
-
-**Evidence URLs (30):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/pressure-washing-services/6538/
-  - https://www.crewnest.app/pressure-washing-crm
-  - https://www.housecallpro.com/industries/pressure-washing-software/
-  - https://www.getjobber.com/industries/pressure-washing-software/
-  - https://makewash.com/blog/best-pressure-washing-software-2026
-  - https://buildonauto.com/blog/best-crm-for-pressure-washing/
-  - https://powerwash.software/
-  - https://myquoteiq.com/crm-for-pressure-washing-business/
-  - https://myquoteiq.com/pricing/
-  - https://www.crunchbase.com/organization/quoteiq
-  - https://myquoteiq.com/about-us/
-  - https://responsibid.com/
-  - https://www.selecthub.com/p/pricing-software/responsibid/
-  - https://www.capterra.com/p/175241/ResponsiBid/
-  - https://www.servicefusion.com/pressure-wash-business-software
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1077834518736416
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
-  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
-  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=MakeWash&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1667913463426240
-  - https://adstransparency.google.com/advertiser/AR04364797743336521729?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=103567809370921
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=175247412493060
-  - https://adstransparency.google.com/advertiser/AR12811532525050527745?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=506971112706787
-  - https://adstransparency.google.com/advertiser/AR01281923922538790913?region=US
-
-**Confidence:** medium-low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
 ## 7. Residential painting contractors  (NAICS 238320)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
@@ -572,8 +570,8 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | DripJobs | yes | 7 | yes | 120 / 9 / 8 (2026-05-05) | DripJobs | yes | 78 / 9 (2024-02-22) | no 0 | 0 |  |
 | PaintScout | yes | 7 | yes | 6 / 5 / 1 (2025-10-05) | PaintScout | yes | 56 / 20 (2024-12-05) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Clientility | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Clientility | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -638,10 +636,10 @@ Known limits, stated plainly:
 | FieldPulse | yes | 8 | yes | 120 / 41 / 0 (2026-06-24) | FieldPulse | yes | 200 / 18 (2023-11-16) | yes 10 | 0 | horizontal |
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
 | Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| ServiceBridge | yes | 3 | no | 0 / 0 / 0 (-) | Service Bridge | unverified | 41 / 23 (2025-08-22) | no 0 | 0 |  |
+| ServiceBridge | yes | 3 | no | 0 / 0 / 0 (-) | Service Bridge | no | 41 / 23 (2025-08-22) | no 0 | 0 |  |
 | Workiz | yes | 3 | no | 110 / 0 / 0 (2026-08-09) | Workiz | no | 500 / 20 (2025-10-17) | no 0 | 0 | undersampled horizontal |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Smart Service | yes | 0 | no | 0 / 0 / 0 (-) | Smart Service | unverified | 0 / 0 (-) | no 0 | 0 | horizontal |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Smart Service | yes | 0 | no | 0 / 0 / 0 (-) | Smart Service | no | 0 / 0 (-) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -706,8 +704,8 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | FieldPulse | yes | 8 | yes | 120 / 41 / 0 (2026-06-24) | FieldPulse | yes | 200 / 18 (2023-11-16) | yes 10 | 0 | horizontal |
 | Smart Glazier Software | yes | 7 | yes | 8 / 3 / 0 (2026-06-22) | Smart Glazier Software | yes | 30 / 9 (2024-06-01) | no 0 | 0 |  |
-| GlassManager | yes | 3 | no | 3 / 0 / 0 (2026-09-10) | GlassManager | unverified | 19 / 3 (2023-06-30) | no 0 | 0 |  |
-| GlasPacLX (GTS Services) | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| GlassManager | yes | 3 | no | 3 / 0 / 0 (2026-09-10) | GlassManager | no | 19 / 3 (2023-06-30) | no 0 | 0 |  |
+| GlasPacLX (GTS Services) | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -742,7 +740,73 @@ Known limits, stated plainly:
 
 ---
 
-## 10. Foundation repair & basement waterproofing contractors  (NAICS 238190)
+## 10. Carpet & upholstery cleaning  (NAICS 561740)
+
+- **Status:** QUALIFIED — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
+- **Method score:** 8.5 = ad score 7.5 (mean of best two verified tools) + fragmentation 1/5.
+- **Passing tools:** Housecall Pro, Jobber.
+- **Boring test:** 3/3 — Room-count quoting, route scheduling, reminders.
+- **US establishments:** 41611 (2026, https://www.ibisworld.com/united-states/number-of-businesses/carpet-cleaning/1498/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
+| Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
+| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
+| ServiceMonster | yes | 3 | no | 0 / 0 / 0 (-) | ServiceMonster | no | 6 / 5 (2023-05-15) | no 0 | 0 |  |
+| Fieldd | yes | 0 | no | 0 / 0 / 0 (-) | Fieldd - Software for Services | no | 53 / 0 (2025-06-16) | no 0 | 0 | horizontal |
+| ManageMart | yes | 0 | no | 0 / 0 / 0 (-) | Managemart | no | 0 / 0 (-) | no 0 | 0 |  |
+| ScheduleDrop | yes | 0 | no | 0 / 0 / 0 (-) | ScheduleDrop | no | 0 / 0 (-) | no 0 | 0 |  |
+| ServGrow | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 8 / 0 (2025-12-03) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Carpet & upholstery cleaning
+> - Core jobs: job booking, quoting, technician assignment, invoicing/payments, marketing/reminders for repeat cleanings (ServiceMonster claims >75% client retention), tips/payout tracking (Fieldd).
+> - Eight tools with dedicated carpet landing pages found (ServiceMonster, ScheduleDrop, ServGrow, ManageMart, Fieldd, GorillaDesk, Housecall Pro, Jobber); ServiceMonster is the 20-year vertical incumbent.
+> - Agent wedge: reactivation/repeat-booking agent (12-month re-clean cadence outreach + instant quote) for solo truck-mount operators; retention is the metric incumbents already sell on.
+> - Weakest link: zero prices captured despite most of these tools publishing them; franchisor influence (Chem-Dry, Stanley Steemer) unverified.
+
+**The agent version** [hypothesis]: Room-count quote → route slot → reminders → invoice → 6-month rebook. Needs: SMS, calendar, payments.
+
+**Wedge** [hypothesis]: Rebooking agent for carpet cleaners.
+
+**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~2 hrs/week.
+
+**Fragmentation (Step 4):** 1/5. Check signer: owner-operator (solo/small truck-mount operators). Public-price incumbents: 0. Gatekeeper: unverified. Top-4 share: unverified.
+
+**Evidence URLs (23):**
+  - https://www.ibisworld.com/united-states/number-of-businesses/carpet-cleaning/1498/
+  - https://fieldd.co/industries/carpet-cleaning-software
+  - https://gorilladesk.com/industries/carpet-cleaning-software/
+  - https://www.housecallpro.com/industries/carpet-cleaning-software/
+  - https://www.getjobber.com/industries/carpet-cleaning-software/
+  - https://www.managemart.com/carpet-cleaning-software
+  - https://scheduledrop.com/carpet-cleaning
+  - https://www.servgrow.com/carpet-cleaning-software
+  - https://www.servicemonster.com/carpet-cleaning-software
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=108336860499717
+  - https://adstransparency.google.com/advertiser/AR12022871354345783297?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=387445444655938
+  - https://adstransparency.google.com/advertiser/AR10520026520397807617?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
+  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
+  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=104187944871222
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=596784700193438
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ServGrow&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://adstransparency.google.com/advertiser/AR03495879061392064513?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=10150114657650624
+  - https://adstransparency.google.com/advertiser/AR08781699796525121537?region=US
+
+**Confidence:** medium-low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
+
+---
+
+## 11. Foundation repair & basement waterproofing contractors  (NAICS 238190)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.0 = ad score 6.0 (mean of best two verified tools) + fragmentation 2/5.
@@ -754,9 +818,9 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | unverified | 26 / 21 (2025-02-21) | no 0 | 0 |  |
+| Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | no | 26 / 21 (2025-02-21) | no 0 | 0 |  |
 | Contractor Accelerator | yes | 6 | yes | 6 / 6 / 4 (2025-10-11) | Contractor Accelerator | no | 22 / 18 (2022-01-28) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -790,7 +854,7 @@ Known limits, stated plainly:
 
 ---
 
-## 11. Deck & patio builders  (NAICS 236118)
+## 12. Deck & patio builders  (NAICS 236118)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.0 = ad score 6.0 (mean of best two verified tools) + fragmentation 2/5.
@@ -803,11 +867,11 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | unverified | 26 / 21 (2025-02-21) | no 0 | 0 |  |
+| Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | no | 26 / 21 (2025-02-21) | no 0 | 0 |  |
 | Houzz Pro | yes | 6 | yes | 82 / 14 / 0 (2026-06-11) | Houzz Pro | no | 700 / 38 (2021-10-25) | no 0 | 0 | horizontal |
-| JobNimbus | yes | 4 | no | 63 / 0 / 0 (2026-09-10) | JobNimbus | yes | 400 / 21 (2023-07-05) | no 0 | 0 | undersampled |
+| JobNimbus | yes | 4 | no | 67 / 0 / 0 (2026-09-10) | JobNimbus | yes | 400 / 21 (2023-07-05) | no 0 | 0 | undersampled |
 | Projul | yes | 1 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -846,7 +910,7 @@ Known limits, stated plainly:
 
 ---
 
-## 12. Fire sprinkler contractors  (NAICS 238220)
+## 13. Fire sprinkler contractors  (NAICS 238220)
 
 - **Status:** QUALIFIED. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 7.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 2/5.
@@ -859,8 +923,8 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Inspect Point | yes | 6 | yes | 0 / 0 / 0 (-) | Inspect Point | unverified | 76 / 20 (2023-03-13) | yes 5 | 2 |  |
-| BuildOps | yes | 5 | yes | 61 / 0 / 0 (2026-08-03) | BuildOps | yes | 60 / 13 (2025-08-01) | yes 12 | 0 | undersampled horizontal |
+| Inspect Point | yes | 6 | yes | 0 / 0 / 0 (-) | Inspect Point | no | 76 / 20 (2023-03-13) | yes 5 | 2 |  |
+| BuildOps | yes | 5 | yes | 79 / 0 / 0 (2026-07-23) | BuildOps | yes | 60 / 13 (2025-08-01) | yes 12 | 0 | undersampled horizontal |
 | ServiceTrade | yes | 5 | yes | 49 / 0 / 0 (2026-08-10) | ServiceTrade | yes | 200 / 16 (2024-01-24) | yes 8 | 0 | undersampled |
 | Uptick | yes | 4 | no | 9 / 0 / 0 (2026-08-31) | Uptick | no | 22 / 11 (2025-08-11) | yes 8 | 0 |  |
 | Essential | yes | 0 | no | 68 / 0 / 0 (2026-07-31) | Essential Sleep Hacks | no | 5 / 0 (2024-07-01) | no 0 | 0 | wrong_page |
@@ -915,74 +979,75 @@ Known limits, stated plainly:
 
 ---
 
-## 13. Carpet & upholstery cleaning  (NAICS 561740)
+## 14. HVAC contractors  (NAICS 238220)
 
-- **Status:** QUALIFIED — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 7.0 = ad score 6.0 (mean of best two verified tools) + fragmentation 1/5.
-- **Passing tools:** Jobber, Housecall Pro.
-- **Rescrape queued (Meta undersampled):** Housecall Pro.
-- **Boring test:** 3/3 — Room-count quoting, route scheduling, reminders.
-- **US establishments:** 41611 (2026, https://www.ibisworld.com/united-states/number-of-businesses/carpet-cleaning/1498/); share <20 employees: unverified.
+- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
+- **Method score:** 9.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 4/5.
+- **Passing tools:** Housecall Pro.
+- **Rescrape queued (Meta undersampled):** Workiz.
+- **Boring test:** 2/3 — Maintenance agreements, dispatch, EPA/permit paperwork.
+- **US establishments:** 120461 (2026, https://www.ibisworld.com/united-states/number-of-businesses/heating-air-conditioning-contractors/1945/); share <20 employees: unverified.
 
 **Ad audit (Step 3):**
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| Housecall Pro | yes | 5 | yes | 480 / 2 / 2 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | undersampled horizontal |
-| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | unverified | 81 / 34 (2023-05-25) | no 0 | 0 |  |
-| ServiceMonster | yes | 3 | no | 0 / 0 / 0 (-) | ServiceMonster | unverified | 6 / 5 (2023-05-15) | no 0 | 0 |  |
-| Fieldd | yes | 0 | no | 0 / 0 / 0 (-) | Fieldd - Software for Services | unverified | 53 / 0 (2025-06-16) | no 0 | 0 | horizontal |
-| ManageMart | yes | 0 | no | 0 / 0 / 0 (-) | Managemart | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| ScheduleDrop | yes | 0 | no | 0 / 0 / 0 (-) | ScheduleDrop | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| ServGrow | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 8 / 0 (2025-12-03) | no 0 | 0 |  |
+| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
+| FieldEdge | yes | 3 | no | 1 / 0 / 0 (2026-08-31) | FieldEdge by Xplor | no | 44 / 9 (2021-10-25) | no 0 | 0 | horizontal |
+| Workiz | yes | 3 | no | 110 / 0 / 0 (2026-08-09) | Workiz | no | 500 / 20 (2025-10-17) | no 0 | 0 | undersampled horizontal |
+| Aptora Total Office Manager | yes | 0 | no | 0 / 0 / 0 (-) | Aptora | no | 4 / 0 (2025-05-10) | no 0 | 0 |  |
+| AutoHVAC | yes | 0 | no | 0 / 0 / 0 (-) | Auto hvac | no | 2 / 1 (2026-04-14) | no 0 | 0 |  |
+| Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | no | 0 / 0 (-) | no 0 | 0 |  |
+| Successware | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
-> Carpet & upholstery cleaning
-> - Core jobs: job booking, quoting, technician assignment, invoicing/payments, marketing/reminders for repeat cleanings (ServiceMonster claims >75% client retention), tips/payout tracking (Fieldd).
-> - Eight tools with dedicated carpet landing pages found (ServiceMonster, ScheduleDrop, ServGrow, ManageMart, Fieldd, GorillaDesk, Housecall Pro, Jobber); ServiceMonster is the 20-year vertical incumbent.
-> - Agent wedge: reactivation/repeat-booking agent (12-month re-clean cadence outreach + instant quote) for solo truck-mount operators; retention is the metric incumbents already sell on.
-> - Weakest link: zero prices captured despite most of these tools publishing them; franchisor influence (Chem-Dry, Stanley Steemer) unverified.
+> HVAC contractors
+> - Core jobs: dispatch to nearest tech, maintenance-agreement renewals, flat-rate pricing, invoicing with QuickBooks sync (FieldEdge, Successware, Aptora), inventory, and Manual J load calcs for equipment quotes (Cool Calc, AutoHVAC, Wrightsoft).
+> - Market is the most fragmented in the batch by evidence: 120,461 firms, largest player <2% share, ~70% of firms under 10 employees. But PE roll-ups are active (DealSeam tracker), and the horizontals price publicly ($49-149/mo).
+> - Agent wedge: maintenance-agreement renewal and seasonal tune-up booking, or a Manual J/quote agent that turns a site visit's photos and square footage into a load calc and equipment proposal (current DIY tools run $39-233/mo and are described as taking hours to learn).
+> - Weakest evidence: FieldEdge/Successware/Aptora pricing, headcount, and ownership went unverified; franchise software mandates (One Hour, etc.) not checked.
 
-**The agent version** [hypothesis]: Room-count quote → route slot → reminders → invoice → 6-month rebook. Needs: SMS, calendar, payments.
+**The agent version** [hypothesis]: Maintenance-agreement renewals and tune-up scheduling → permit pulls → EPA 608 refrigerant log → invoice. Needs: SMS, permit portals, calendar, log templates.
 
-**Wedge** [hypothesis]: Rebooking agent for carpet cleaners.
+**Wedge** [hypothesis]: Maintenance-agreement renewal and permit agent for small HVAC shops.
 
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~2 hrs/week.
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - AutoHVAC: first Manual J free (per page title) (https://autohvac.ai/manual-j-cost)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
 
-**Fragmentation (Step 4):** 1/5. Check signer: owner-operator (solo/small truck-mount operators). Public-price incumbents: 0. Gatekeeper: unverified. Top-4 share: unverified.
+**Fragmentation (Step 4):** 4/5. Check signer: owner-operator ('about 70% of the firms are independents with fewer than 10 employees'). Public-price incumbents: 4. Gatekeeper: unverified (franchise search not run — budget exhausted). Top-4 share: largest single player under 2% share (IBISWorld 2026 via withorbital); IBISWorld: low concentration, largest = Emcor Group.
 
 **Evidence URLs (23):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/carpet-cleaning/1498/
-  - https://fieldd.co/industries/carpet-cleaning-software
-  - https://gorilladesk.com/industries/carpet-cleaning-software/
-  - https://www.housecallpro.com/industries/carpet-cleaning-software/
-  - https://www.getjobber.com/industries/carpet-cleaning-software/
-  - https://www.managemart.com/carpet-cleaning-software
-  - https://scheduledrop.com/carpet-cleaning
-  - https://www.servgrow.com/carpet-cleaning-software
-  - https://www.servicemonster.com/carpet-cleaning-software
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=108336860499717
-  - https://adstransparency.google.com/advertiser/AR12022871354345783297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=387445444655938
-  - https://adstransparency.google.com/advertiser/AR10520026520397807617?region=US
+  - https://www.ibisworld.com/united-states/number-of-businesses/heating-air-conditioning-contractors/1945/
+  - https://www.aptora.com/industries/hvac-software
+  - https://autohvac.ai/manual-j-cost
+  - https://fieldedge.com/hvac-software/
+  - https://www.housecallpro.com/industries/hvac-software/
+  - https://www.repair-crm.com/2026/08/30/hvac-software-for-small-business-2026-guide-comparison/
+  - https://www.successware.com/industries/hvac-software/
+  - https://www.workiz.com/blog/hvac/best-hvac-business-software-comparison/
+  - https://serviceagent.ai/blogs/best-hvac-software-for-small-business/
+  - https://autohvac.ai/blog/manual-j-software-pricing-guide
+  - https://www.withorbital.com/data/hvac-industry-statistics/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=107791664473
+  - https://adstransparency.google.com/advertiser/AR06541920221911842817?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101779218410103
+  - https://adstransparency.google.com/advertiser/AR05588358429031792641?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=123302194386063
+  - https://adstransparency.google.com/advertiser/AR01165979373417791489?region=US
   - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
   - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=183668204989264
-  - https://adstransparency.google.com/advertiser/AR07389967871058640897?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=104187944871222
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=596784700193438
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=ServGrow&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://adstransparency.google.com/advertiser/AR03495879061392064513?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=10150114657650624
-  - https://adstransparency.google.com/advertiser/AR08781699796525121537?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=821421364649220
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Successware&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=275323565950008
+  - https://adstransparency.google.com/advertiser/AR18044909407396954113?region=US
 
-**Confidence:** medium-low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
+**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
 
 ---
 
-## 14. Snow removal contractors  (NAICS 561790)
+## 15. Snow removal contractors  (NAICS 561790)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 9.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 4/5.
@@ -995,7 +1060,7 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Aspire | yes | 8 | yes | 45 / 13 / 0 (2026-06-22) | Aspire Software | yes | 200 / 34 (2022-01-27) | yes 5 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1039,7 +1104,7 @@ Known limits, stated plainly:
 
 ---
 
-## 15. Low-voltage, alarm & security camera installers  (NAICS 238210)
+## 16. Low-voltage, alarm & security camera installers  (NAICS 238210)
 
 - **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 3/5.
@@ -1052,11 +1117,11 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| FieldForce Tracker | yes | 3 | no | 0 / 0 / 0 (-) | Field Force | unverified | 26 / 11 (2023-10-12) | no 0 | 0 | ambiguous_page |
-| ReachOut Suite | yes | 3 | no | 0 / 0 / 0 (-) | ReachOut Suite | unverified | 8 / 3 (2025-04-04) | no 0 | 0 |  |
-| WorkHorse SCS | yes | 3 | no | 0 / 0 / 0 (-) | Workhorse | unverified | 6 / 6 (2024-12-17) | no 0 | 0 | ambiguous_page |
-| SecurityTrax | yes | 2 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 2 |  |
-| Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| FieldForce Tracker | yes | 3 | no | 0 / 0 / 0 (-) | Field Force | no | 26 / 11 (2023-10-12) | no 0 | 0 | ambiguous_page |
+| ReachOut Suite | yes | 3 | no | 0 / 0 / 0 (-) | ReachOut Suite | no | 8 / 3 (2025-04-04) | no 0 | 0 |  |
+| WorkHorse SCS | yes | 3 | no | 0 / 0 / 0 (-) | Workhorse | no | 6 / 6 (2024-12-17) | no 0 | 0 | ambiguous_page |
+| SecurityTrax | yes | 2 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 2 |  |
+| Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1103,7 +1168,7 @@ Known limits, stated plainly:
 
 ---
 
-## 16. Gutter installation & cleaning contractors  (NAICS 238170)
+## 17. Gutter installation & cleaning contractors  (NAICS 238170)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.5 = ad score 6.5 (mean of best two verified tools) + fragmentation 2/5.
@@ -1117,8 +1182,8 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | RoofSnap | yes | 9 | yes | 10 / 3 / 0 (2026-07-17) | RoofSnap | yes | 200 / 40 (2022-05-05) | no 0 | 2 |  |
 | ArcSite | yes | 4 | no | 9 / 0 / 0 (2026-08-06) | ArcSite | no | 15 / 5 (2022-09-15) | yes 9 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| GutterCalc Pro | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 1 / 0 (2026-04-03) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| GutterCalc Pro | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 1 / 0 (2026-04-03) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1163,7 +1228,7 @@ Known limits, stated plainly:
 
 ---
 
-## 17. Lawn fertilization & weed control route businesses  (NAICS 561730)
+## 18. Lawn fertilization & weed control route businesses  (NAICS 561730)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 8.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 4/5.
@@ -1177,9 +1242,9 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | RealGreen by WorkWave | yes | 5 | yes | 44 / 0 / 0 (2026-08-26) | RealGreen | yes | 200 / 24 (2024-01-08) | yes 12 | 0 | undersampled |
-| Service Autopilot | yes | 3 | no | 0 / 0 / 0 (-) | Service Autopilot by Xplor | unverified | 25 / 16 (2023-07-28) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Momentum FSM | yes | 0 | no | 0 / 0 / 0 (-) | Momentum | unverified | 0 / 0 (-) | no 0 | 0 | ambiguous_page |
+| Service Autopilot | yes | 3 | no | 0 / 0 / 0 (-) | Service Autopilot by Xplor | no | 25 / 16 (2023-07-28) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Momentum FSM | yes | 0 | no | 0 / 0 / 0 (-) | Momentum | no | 0 / 0 (-) | no 0 | 0 | ambiguous_page |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1232,74 +1297,6 @@ Known limits, stated plainly:
 
 ---
 
-## 18. HVAC contractors  (NAICS 238220)
-
-- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 8.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 4/5.
-- **Passing tools:** Housecall Pro.
-- **Rescrape queued (Meta undersampled):** Housecall Pro, Workiz.
-- **Boring test:** 2/3 — Maintenance agreements, dispatch, EPA/permit paperwork.
-- **US establishments:** 120461 (2026, https://www.ibisworld.com/united-states/number-of-businesses/heating-air-conditioning-contractors/1945/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Housecall Pro | yes | 5 | yes | 480 / 2 / 2 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | undersampled horizontal |
-| FieldEdge | yes | 3 | no | 1 / 0 / 0 (2026-08-31) | FieldEdge by Xplor | unverified | 44 / 9 (2021-10-25) | no 0 | 0 | horizontal |
-| Workiz | yes | 3 | no | 110 / 0 / 0 (2026-08-09) | Workiz | no | 500 / 20 (2025-10-17) | no 0 | 0 | undersampled horizontal |
-| Aptora Total Office Manager | yes | 0 | no | 0 / 0 / 0 (-) | Aptora | unverified | 4 / 0 (2025-05-10) | no 0 | 0 |  |
-| AutoHVAC | yes | 0 | no | 0 / 0 / 0 (-) | Auto hvac | unverified | 2 / 1 (2026-04-14) | no 0 | 0 |  |
-| Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Successware | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> HVAC contractors
-> - Core jobs: dispatch to nearest tech, maintenance-agreement renewals, flat-rate pricing, invoicing with QuickBooks sync (FieldEdge, Successware, Aptora), inventory, and Manual J load calcs for equipment quotes (Cool Calc, AutoHVAC, Wrightsoft).
-> - Market is the most fragmented in the batch by evidence: 120,461 firms, largest player <2% share, ~70% of firms under 10 employees. But PE roll-ups are active (DealSeam tracker), and the horizontals price publicly ($49-149/mo).
-> - Agent wedge: maintenance-agreement renewal and seasonal tune-up booking, or a Manual J/quote agent that turns a site visit's photos and square footage into a load calc and equipment proposal (current DIY tools run $39-233/mo and are described as taking hours to learn).
-> - Weakest evidence: FieldEdge/Successware/Aptora pricing, headcount, and ownership went unverified; franchise software mandates (One Hour, etc.) not checked.
-
-**The agent version** [hypothesis]: Maintenance-agreement renewals and tune-up scheduling → permit pulls → EPA 608 refrigerant log → invoice. Needs: SMS, permit portals, calendar, log templates.
-
-**Wedge** [hypothesis]: Maintenance-agreement renewal and permit agent for small HVAC shops.
-
-**Price ceiling:** incumbent public prices found [search-cited]:
-  - AutoHVAC: first Manual J free (per page title) (https://autohvac.ai/manual-j-cost)
-  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
-
-**Fragmentation (Step 4):** 4/5. Check signer: owner-operator ('about 70% of the firms are independents with fewer than 10 employees'). Public-price incumbents: 4. Gatekeeper: unverified (franchise search not run — budget exhausted). Top-4 share: largest single player under 2% share (IBISWorld 2026 via withorbital); IBISWorld: low concentration, largest = Emcor Group.
-
-**Evidence URLs (23):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/heating-air-conditioning-contractors/1945/
-  - https://www.aptora.com/industries/hvac-software
-  - https://autohvac.ai/manual-j-cost
-  - https://fieldedge.com/hvac-software/
-  - https://www.housecallpro.com/industries/hvac-software/
-  - https://www.repair-crm.com/2026/08/30/hvac-software-for-small-business-2026-guide-comparison/
-  - https://www.successware.com/industries/hvac-software/
-  - https://www.workiz.com/blog/hvac/best-hvac-business-software-comparison/
-  - https://serviceagent.ai/blogs/best-hvac-software-for-small-business/
-  - https://autohvac.ai/blog/manual-j-software-pricing-guide
-  - https://www.withorbital.com/data/hvac-industry-statistics/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=107791664473
-  - https://adstransparency.google.com/advertiser/AR06541920221911842817?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101779218410103
-  - https://adstransparency.google.com/advertiser/AR05588358429031792641?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=123302194386063
-  - https://adstransparency.google.com/advertiser/AR01165979373417791489?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
-  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=821421364649220
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=Successware&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=275323565950008
-  - https://adstransparency.google.com/advertiser/AR18044909407396954113?region=US
-
-**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
 ## 19. Pool service & maintenance routes  (NAICS 561790)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
@@ -1312,11 +1309,11 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Pool Brain | yes | 5 | yes | 0 / 0 / 0 (-) | PoolBrain | unverified | 95 / 8 (2022-12-22) | no 0 | 2 |  |
-| Skimmer | yes | 4 | no | 0 / 0 / 0 (-) | Skimmer | unverified | 90 / 25 (2023-07-05) | yes 12 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Pool Founder | yes | 0 | no | 0 / 0 / 0 (-) | Pool Founder | unverified | 1 / 0 (2026-04-02) | no 0 | 0 |  |
-| PoolDial | yes | 0 | no | 0 / 0 / 0 (-) | PoolDial | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| Pool Brain | yes | 5 | yes | 0 / 0 / 0 (-) | PoolBrain | no | 95 / 8 (2022-12-22) | no 0 | 2 |  |
+| Skimmer | yes | 4 | no | 0 / 0 / 0 (-) | Skimmer | no | 90 / 25 (2023-07-05) | yes 12 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Pool Founder | yes | 0 | no | 0 / 0 / 0 (-) | Pool Founder | no | 1 / 0 (2026-04-02) | no 0 | 0 |  |
+| PoolDial | yes | 0 | no | 0 / 0 / 0 (-) | PoolDial | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1379,12 +1376,12 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| Bella FSM | yes | 3 | no | 0 / 0 / 0 (-) | Bella FSM | unverified | 8 / 3 (2025-05-02) | no 0 | 0 | horizontal |
+| Bella FSM | yes | 3 | no | 0 / 0 / 0 (-) | Bella FSM | no | 8 / 3 (2025-05-02) | no 0 | 0 | horizontal |
 | ServiceCore | yes | 3 | no | 3 / 0 / 0 (2026-09-09) | ServiceCore | no | 24 / 12 (2023-04-28) | yes 11 | 0 |  |
-| PumpDocket | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 2 / 0 (2026-04-10) | no 0 | 0 |  |
-| PumperPro | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| SepticPro | yes | 0 | no | 0 / 0 / 0 (-) | Septicpro | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Smart Service | yes | 0 | no | 0 / 0 / 0 (-) | Smart Service | unverified | 0 / 0 (-) | no 0 | 0 | horizontal |
+| PumpDocket | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 2 / 0 (2026-04-10) | no 0 | 0 |  |
+| PumperPro | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| SepticPro | yes | 0 | no | 0 / 0 / 0 (-) | Septicpro | no | 0 / 0 (-) | no 0 | 0 |  |
+| Smart Service | yes | 0 | no | 0 / 0 / 0 (-) | Smart Service | no | 0 / 0 (-) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1435,7 +1432,72 @@ Known limits, stated plainly:
 
 ---
 
-## 21. Tree service & arborists  (NAICS 561730)
+## 21. Residential cleaning & maid services  (NAICS 561720)
+
+- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
+- **Method score:** 7.5 = ad score 5.5 (mean of best two verified tools) + fragmentation 2/5.
+- **Passing tools:** Housecall Pro.
+- **Boring test:** 3/3 — Recurring scheduling, cleaner assignment, quotes by sq ft.
+- **US establishments:** 356516 (2024, https://www.ibisworld.com/united-states/number-of-businesses/residential-cleaning-services/6542/); share <20 employees: unverified.
+
+**Ad audit (Step 3):**
+
+| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Housecall Pro | yes | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
+| ZenMaid | yes | 3 | no | 0 / 0 / 0 (-) | ZenMaid | no | 39 / 16 (2024-01-10) | no 0 | 0 |  |
+| MaidCentral | yes | 1 | no | 0 / 0 / 0 (-) | MaidCentral Software | no | 0 / 0 (-) | yes 8 | 0 |  |
+| CleansyAI | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| MaidEasy | yes | 0 | no | 0 / 0 / 0 (-) | Maid Easy | no | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | no (prior knowledge) | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| The Cleaning Software | yes | 0 | no | 0 / 0 / 0 (-) | The Cleaning Software | no | 3 / 1 (2025-11-03) | no 0 | 0 |  |
+| Zenbooker | yes | 0 | no | 0 / 0 / 0 (-) | Zenbooker | no | 17 / 0 (2026-04-07) | no 0 | 0 |  |
+
+**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
+
+> Residential cleaning & maid services
+> - Core jobs users log in for (from snippets): recurring appointment scheduling, crew dispatch, online booking widgets embedded on the owner's site (Zenbooker), customer reminders, invoicing/payments, payroll (MaidEasy), kiosk/employee communication (MaidCentral).
+> - Vertical tools are plentiful (ZenMaid, MaidCentral, MaidEasy, Zenbooker, The Cleaning Software, CleansyAI) plus horizontal Housecall Pro/Jobber/QuoteIQ landing pages; only QuoteIQ's $29.99/mo appeared in a result (its own listicle).
+> - Agent wedge: an inbound-lead-to-booked-recurring-clean agent (quote from photos/sq ft, book, remind, reschedule, chase no-shows) for owners with 1-5 cleaners; the incumbents still require the owner to configure schedules by hand.
+> - Weakest link: no pricing pages, headcounts or ad evidence captured; 356,516 IBISWorld count is an industry definition that includes solo cleaners, so serviceable market is much smaller.
+
+**The agent version** [hypothesis]: Inbound quote by sq ft/rooms → recurring schedule → cleaner assignment texts → payment collection → rebooking on cancellations. Needs: SMS, calendar, payments.
+
+**Wedge** [hypothesis]: Quote-book-collect agent for solo/small maid services.
+
+**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~3 hrs/week.
+
+**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (small maid-service owners; ZenMaid markets to '3,000+ maid service owners'). Public-price incumbents: 1. Gatekeeper: unverified. Top-4 share: unverified.
+
+**Evidence URLs (22):**
+  - https://www.ibisworld.com/united-states/number-of-businesses/residential-cleaning-services/6542/
+  - https://cleansyai.com/blog/best-maid-service-software
+  - https://www.housecallpro.com/industries/maid-service-software/
+  - https://maidcentral.com/
+  - https://maideasysoftware.com/
+  - https://thecleaningsoftware.com/
+  - https://get.zenmaid.com/
+  - https://zenbooker.com/residential-cleaning-online-booking.html
+  - https://myquoteiq.com/top-8-softwares-for-maid-services-in-2026/
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CleansyAI&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
+  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=374531319837407
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101986182288836
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
+  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=171037069427113
+  - https://adstransparency.google.com/advertiser/AR16207372297651093505?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1046212555396157
+  - https://adstransparency.google.com/advertiser/AR04437329209706151937?region=US
+  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1498364030464955
+  - https://adstransparency.google.com/advertiser/AR15571010589953097729?region=US
+
+**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
+
+---
+
+## 22. Tree service & arborists  (NAICS 561730)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 7.0 = ad score 3.0 (mean of best two verified tools) + fragmentation 4/5.
@@ -1449,13 +1511,13 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | ArboStar | yes | 3 | no | 3 / 2 / 0 (2026-05-29) | ArboStar | yes | 33 / 0 (2022-08-13) | yes 6 | 2 |  |
-| Arborgold | yes | 3 | no | 0 / 0 / 0 (-) | Arborgold Software | unverified | 17 / 6 (2021-10-25) | no 0 | 0 |  |
-| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | unverified | 81 / 34 (2023-05-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Arborgold | yes | 3 | no | 0 / 0 / 0 (-) | Arborgold Software | no | 17 / 6 (2021-10-25) | no 0 | 0 |  |
+| GorillaDesk | yes | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 | SingleOps | yes | 2 | no | 42 / 0 / 0 (2026-07-23) | SingleOps | yes | 21 / 0 (2024-10-01) | yes 9 | 0 | undersampled |
-| ArboristDesk | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Fieldified | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Treezi | yes | 0 | no | 0 / 0 / 0 (-) | Treezi | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| ArboristDesk | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Fieldified | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Treezi | yes | 0 | no | 0 / 0 / 0 (-) | Treezi | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1522,7 +1584,7 @@ Known limits, stated plainly:
 
 ---
 
-## 22. Chimney sweeps & chimney repair  (NAICS 561790)
+## 23. Chimney sweeps & chimney repair  (NAICS 561790)
 
 - **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 7.0 = ad score 5.0 (mean of best two verified tools) + fragmentation 2/5.
@@ -1535,7 +1597,7 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | ServiceTitan | yes | 8 | yes | 330 / 10 / 3 (2025-06-19) | ServiceTitan | yes | 38 / 38 (2023-05-11) | yes 8 | 0 | horizontal |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1572,7 +1634,7 @@ Known limits, stated plainly:
 
 ---
 
-## 23. Stump grinding & land clearing  (NAICS 238910)
+## 24. Stump grinding & land clearing  (NAICS 238910)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 6.5 = ad score 2.5 (mean of best two verified tools) + fragmentation 4/5.
@@ -1585,11 +1647,11 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Arborgold | yes | 3 | no | 0 / 0 / 0 (-) | Arborgold Software | unverified | 17 / 6 (2021-10-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Arborgold | yes | 3 | no | 0 / 0 / 0 (-) | Arborgold Software | no | 17 / 6 (2021-10-25) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
 | SingleOps | yes | 2 | no | 42 / 0 / 0 (2026-07-23) | SingleOps | yes | 21 / 0 (2024-10-01) | yes 9 | 0 | undersampled |
-| OctopusPro | yes | 0 | no | 0 / 0 / 0 (-) | Octopus Pro | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Yardbook | yes | 0 | no | 0 / 0 / 0 (-) | Yardbook | unverified | 37 / 0 (2026-04-02) | no 0 | 0 |  |
+| OctopusPro | yes | 0 | no | 0 / 0 / 0 (-) | Octopus Pro | no | 0 / 0 (-) | no 0 | 0 |  |
+| Yardbook | yes | 0 | no | 0 / 0 / 0 (-) | Yardbook | no | 37 / 0 (2026-04-02) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1645,7 +1707,7 @@ Known limits, stated plainly:
 
 ---
 
-## 24. Water well drilling contractors  (NAICS 237110)
+## 25. Water well drilling contractors  (NAICS 237110)
 
 - **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 6.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 2/5.
@@ -1658,9 +1720,9 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Jobber | yes | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| DrillerDB | yes | 2 | no | 0 / 0 / 0 (-) | Driller DB | unverified | 5 / 0 (2024-11-07) | no 0 | 2 |  |
-| IKOL | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| WellMagic | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| DrillerDB | yes | 2 | no | 0 / 0 / 0 (-) | Driller DB | no | 5 / 0 (2024-11-07) | no 0 | 2 |  |
+| IKOL | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| WellMagic | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1700,7 +1762,7 @@ Known limits, stated plainly:
 
 ---
 
-## 25. Pool builders  (NAICS 238990)
+## 26. Pool builders  (NAICS 238990)
 
 - **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 6.5 = ad score 4.5 (mean of best two verified tools) + fragmentation 2/5.
@@ -1714,10 +1776,10 @@ Known limits, stated plainly:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Houzz Pro | yes | 6 | yes | 82 / 14 / 0 (2026-06-11) | Houzz Pro | no | 700 / 38 (2021-10-25) | no 0 | 0 | horizontal |
 | ProDBX | yes | 3 | no | 2 / 2 / 1 (2026-02-20) | Prodbx | no | 20 / 15 (2024-08-01) | no 0 | 0 |  |
-| 123worx | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Poologics | yes | 0 | no | 0 / 0 / 0 (-) | Poologics | unverified | 3 / 0 (2025-09-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| Streamline CRM | yes | 0 | no | 0 / 0 / 0 (-) | Streamline CRM | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| 123worx | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Poologics | yes | 0 | no | 0 / 0 / 0 (-) | Poologics | no | 3 / 0 (2025-09-25) | no 0 | 0 |  |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| Streamline CRM | yes | 0 | no | 0 / 0 / 0 (-) | Streamline CRM | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1758,7 +1820,7 @@ Known limits, stated plainly:
 
 ---
 
-## 26. Flooring & tile contractors  (NAICS 238330)
+## 27. Flooring & tile contractors  (NAICS 238330)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
 - **Method score:** 6.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 2/5.
@@ -1771,15 +1833,15 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | unverified | 26 / 21 (2025-02-21) | no 0 | 0 |  |
+| Builder Prime | yes | 6 | yes | 8 / 6 / 0 (2026-06-22) | Builder Prime | no | 26 / 21 (2025-02-21) | no 0 | 0 |  |
 | Floorzap | yes | 2 | no | 45 / 0 / 0 (2026-07-29) | Floorzap | yes | 12 / 0 (2025-02-06) | yes 10 | 0 | undersampled |
 | Projul | yes | 1 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 0 |  |
-| FieldGroove | yes | 0 | no | 0 / 0 / 0 (-) | FieldGroove | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| FloorSoft | yes | 0 | no | 0 / 0 / 0 (-) | FloorSoft, Inc | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Measure Square | yes | 0 | no | 0 / 0 / 0 (-) | Measure Square | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| ProjectsForce 360 | yes | 0 | no | 0 / 0 / 0 (-) | ProjectsForce | unverified | 25 / 0 (2026-02-16) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| WorkQuote | yes | 0 | no | 0 / 0 / 0 (-) | WorkQuote: The All-in-One App for Your Service Business | unverified | 1 / 0 (2026-05-05) | no 0 | 0 |  |
+| FieldGroove | yes | 0 | no | 0 / 0 / 0 (-) | FieldGroove | no | 0 / 0 (-) | no 0 | 0 |  |
+| FloorSoft | yes | 0 | no | 0 / 0 / 0 (-) | FloorSoft, Inc | no | 0 / 0 (-) | no 0 | 0 |  |
+| Measure Square | yes | 0 | no | 0 / 0 / 0 (-) | Measure Square | no | 0 / 0 (-) | no 0 | 0 |  |
+| ProjectsForce 360 | yes | 0 | no | 0 / 0 / 0 (-) | ProjectsForce | no | 25 / 0 (2026-02-16) | no 0 | 0 |  |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| WorkQuote | yes | 0 | no | 0 / 0 / 0 (-) | WorkQuote: The All-in-One App for Your Service Business | no | 1 / 0 (2026-05-05) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1828,72 +1890,6 @@ Known limits, stated plainly:
 
 ---
 
-## 27. Residential cleaning & maid services  (NAICS 561720)
-
-- **Status:** audited, not passing — horizontal-only pass. Research: searched (partial: search budget exhausted mid-batch).
-- **Method score:** 6.0 = ad score 4.0 (mean of best two verified tools) + fragmentation 2/5.
-- **Passing tools:** Housecall Pro.
-- **Rescrape queued (Meta undersampled):** Housecall Pro.
-- **Boring test:** 3/3 — Recurring scheduling, cleaner assignment, quotes by sq ft.
-- **US establishments:** 356516 (2024, https://www.ibisworld.com/united-states/number-of-businesses/residential-cleaning-services/6542/); share <20 employees: unverified.
-
-**Ad audit (Step 3):**
-
-| tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Housecall Pro | yes | 5 | yes | 480 / 2 / 2 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | undersampled horizontal |
-| ZenMaid | yes | 3 | no | 0 / 0 / 0 (-) | ZenMaid | unverified | 39 / 16 (2024-01-10) | no 0 | 0 |  |
-| MaidCentral | yes | 1 | no | 0 / 0 / 0 (-) | MaidCentral Software | unverified | 0 / 0 (-) | yes 8 | 0 |  |
-| CleansyAI | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| MaidEasy | yes | 0 | no | 0 / 0 / 0 (-) | Maid Easy | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| QuoteIQ | no (prior knowledge) | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| The Cleaning Software | yes | 0 | no | 0 / 0 / 0 (-) | The Cleaning Software | unverified | 3 / 1 (2025-11-03) | no 0 | 0 |  |
-| Zenbooker | yes | 0 | no | 0 / 0 / 0 (-) | Zenbooker | unverified | 17 / 0 (2026-04-07) | no 0 | 0 |  |
-
-**What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
-
-> Residential cleaning & maid services
-> - Core jobs users log in for (from snippets): recurring appointment scheduling, crew dispatch, online booking widgets embedded on the owner's site (Zenbooker), customer reminders, invoicing/payments, payroll (MaidEasy), kiosk/employee communication (MaidCentral).
-> - Vertical tools are plentiful (ZenMaid, MaidCentral, MaidEasy, Zenbooker, The Cleaning Software, CleansyAI) plus horizontal Housecall Pro/Jobber/QuoteIQ landing pages; only QuoteIQ's $29.99/mo appeared in a result (its own listicle).
-> - Agent wedge: an inbound-lead-to-booked-recurring-clean agent (quote from photos/sq ft, book, remind, reschedule, chase no-shows) for owners with 1-5 cleaners; the incumbents still require the owner to configure schedules by hand.
-> - Weakest link: no pricing pages, headcounts or ad evidence captured; 356,516 IBISWorld count is an industry definition that includes solo cleaners, so serviceable market is much smaller.
-
-**The agent version** [hypothesis]: Inbound quote by sq ft/rooms → recurring schedule → cleaner assignment texts → payment collection → rebooking on cancellations. Needs: SMS, calendar, payments.
-
-**Wedge** [hypothesis]: Quote-book-collect agent for solo/small maid services.
-
-**Price ceiling:** no incumbent price with a cited URL captured — unverified. Labor assumption, not measured: ~3 hrs/week.
-
-**Fragmentation (Step 4):** 2/5. Check signer: owner-operator (small maid-service owners; ZenMaid markets to '3,000+ maid service owners'). Public-price incumbents: 1. Gatekeeper: unverified. Top-4 share: unverified.
-
-**Evidence URLs (22):**
-  - https://www.ibisworld.com/united-states/number-of-businesses/residential-cleaning-services/6542/
-  - https://cleansyai.com/blog/best-maid-service-software
-  - https://www.housecallpro.com/industries/maid-service-software/
-  - https://maidcentral.com/
-  - https://maideasysoftware.com/
-  - https://thecleaningsoftware.com/
-  - https://get.zenmaid.com/
-  - https://zenbooker.com/residential-cleaning-online-booking.html
-  - https://myquoteiq.com/top-8-softwares-for-maid-services-in-2026/
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&q=CleansyAI&search_type=keyword_unordered&sort_data[mode]=total_impressions&sort_data[direction]=desc
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=431381633653850
-  - https://adstransparency.google.com/advertiser/AR17264116582418743297?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=374531319837407
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=101986182288836
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=102247669583224
-  - https://adstransparency.google.com/advertiser/AR01370189142603857921?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=171037069427113
-  - https://adstransparency.google.com/advertiser/AR16207372297651093505?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1046212555396157
-  - https://adstransparency.google.com/advertiser/AR04437329209706151937?region=US
-  - https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=1498364030464955
-  - https://adstransparency.google.com/advertiser/AR15571010589953097729?region=US
-
-**Confidence:** low. Weakest link: no vertical incumbent passes; qualification rests on horizontal tools.
-
----
-
 ## 28. Asphalt paving & sealcoating contractors  (NAICS 238990)
 
 - **Status:** audited, not passing. Research: searched (partial: search budget exhausted mid-batch).
@@ -1906,14 +1902,14 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| OneCrew | yes | 2 | no | 0 / 0 / 0 (-) | One Crew | unverified | 2 / 2 (2024-11-15) | no 0 | 2 |  |
+| OneCrew | yes | 2 | no | 0 / 0 / 0 (-) | One Crew | no | 2 / 2 (2024-11-15) | no 0 | 2 |  |
 | GoPave | yes | 1 | no | 1 / 1 / 0 (2026-06-24) | Go Pave Utah | yes | 0 / 0 (-) | no 0 | 0 | wrong_page |
 | Projul | yes | 1 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 0 |  |
-| Bitumio | yes | 0 | no | 0 / 0 / 0 (-) | Bitumio | unverified | 1 / 1 (2023-11-27) | no 0 | 0 |  |
-| PavementSoft | yes | 0 | no | 0 / 0 / 0 (-) | Pavement Soft | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| SaaSphalt | yes | 0 | no | 0 / 0 / 0 (-) | SA Asphalt | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| ScopeTakeoff | yes | 0 | no | 0 / 0 / 0 (-) | ScopeTakeoff.com | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| Bitumio | yes | 0 | no | 0 / 0 / 0 (-) | Bitumio | no | 1 / 1 (2023-11-27) | no 0 | 0 |  |
+| PavementSoft | yes | 0 | no | 0 / 0 / 0 (-) | Pavement Soft | no | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| SaaSphalt | yes | 0 | no | 0 / 0 / 0 (-) | SA Asphalt | no | 0 / 0 (-) | no 0 | 0 |  |
+| ScopeTakeoff | yes | 0 | no | 0 / 0 / 0 (-) | ScopeTakeoff.com | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -1982,8 +1978,8 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Projul | yes | 3 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 2 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| ScopeTakeoff | yes | 0 | no | 0 / 0 / 0 (-) | ScopeTakeoff.com | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| ScopeTakeoff | yes | 0 | no | 0 / 0 / 0 (-) | ScopeTakeoff.com | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2039,9 +2035,9 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Fieldified | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| ResponsiBid | yes | 0 | no | 0 / 0 / 0 (-) | ResponsiBid | unverified | 1 / 0 (2026-05-18) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Fieldified | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| ResponsiBid | yes | 0 | no | 0 / 0 / 0 (-) | ResponsiBid | no | 1 / 0 (2026-05-18) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2099,8 +2095,8 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Briostack | yes | 3 | no | 0 / 0 / 0 (-) | Briostack | unverified | 59 / 28 (2023-04-26) | no 0 | 0 |  |
-| GorillaDesk | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | unverified | 81 / 34 (2023-05-25) | no 0 | 0 |  |
+| Briostack | yes | 3 | no | 0 / 0 / 0 (-) | Briostack | no | 59 / 28 (2023-04-26) | no 0 | 0 |  |
+| GorillaDesk | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2144,7 +2140,7 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| CurbWaste | yes | 4 | no | 0 / 0 / 0 (-) | CurbWaste | unverified | 65 / 30 (2024-09-25) | yes 8 | 0 |  |
+| CurbWaste | yes | 4 | no | 0 / 0 / 0 (-) | CurbWaste | no | 65 / 30 (2024-09-25) | yes 8 | 0 |  |
 | ServiceCore | no (prior knowledge) | 3 | no | 3 / 0 / 0 (2026-09-09) | ServiceCore | no | 24 / 12 (2023-04-28) | yes 11 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
@@ -2189,7 +2185,7 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| CurbWaste | yes | 4 | no | 0 / 0 / 0 (-) | CurbWaste | unverified | 65 / 30 (2024-09-25) | yes 8 | 0 |  |
+| CurbWaste | yes | 4 | no | 0 / 0 / 0 (-) | CurbWaste | no | 65 / 30 (2024-09-25) | yes 8 | 0 |  |
 | ServiceCore | no (prior knowledge) | 3 | no | 3 / 0 / 0 (2026-09-09) | ServiceCore | no | 24 / 12 (2023-04-28) | yes 11 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
@@ -2234,8 +2230,8 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | HCSS HeavyBid | yes | 3 | no | 14 / 0 / 0 (2026-08-05) | HCSS | no | 200 / 27 (2023-02-02) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| EarthWorks Excavation Software (Tally Systems) | yes | 0 | no | 0 / 0 / 0 (-) | Earthworks | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| EarthWorks Excavation Software (Tally Systems) | yes | 0 | no | 0 / 0 / 0 (-) | Earthworks | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2287,10 +2283,10 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| FieldGroove | yes | 2 | no | 0 / 0 / 0 (-) | FieldGroove | unverified | 0 / 0 (-) | no 0 | 2 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| Allpro Insulator | yes | 0 | no | 0 / 0 / 0 (-) | Allpro | unverified | 0 / 0 (-) | no 0 | 0 | ambiguous_page |
-| FieldCamp | yes | 0 | no | 0 / 0 / 0 (-) | Field Camp | unverified | 3 / 0 (2025-08-13) | no 0 | 0 |  |
+| FieldGroove | yes | 2 | no | 0 / 0 / 0 (-) | FieldGroove | no | 0 / 0 (-) | no 0 | 2 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| Allpro Insulator | yes | 0 | no | 0 / 0 / 0 (-) | Allpro | no | 0 / 0 (-) | no 0 | 0 | ambiguous_page |
+| FieldCamp | yes | 0 | no | 0 / 0 / 0 (-) | Field Camp | no | 3 / 0 (2025-08-13) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2346,14 +2342,14 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| DocuSketch | yes | 4 | no | 0 / 0 / 0 (-) | DocuSketch | unverified | 60 / 38 (2024-07-18) | yes 9 | 0 |  |
-| Vev | yes | 1 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | yes 4 | 0 |  |
-| Cinderblock | yes | 0 | no | 0 / 0 / 0 (-) | Cinderblock | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Deelo | yes | 0 | no | 0 / 0 / 0 (-) | Deelo | unverified | 2 / 0 (2026-03-12) | no 0 | 0 |  |
-| FieldFlo | yes | 0 | no | 0 / 0 / 0 (-) | Fieldflo | unverified | 3 / 2 (2025-01-02) | no 0 | 0 |  |
-| OctopusPro | yes | 0 | no | 0 / 0 / 0 (-) | Octopus Pro | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| Xcelerate (XL Restoration Software) | yes | 0 | no | 0 / 0 / 0 (-) | Xcelerate | unverified | 4 / 1 (2025-04-11) | no 0 | 0 |  |
+| DocuSketch | yes | 4 | no | 0 / 0 / 0 (-) | DocuSketch | no | 60 / 38 (2024-07-18) | yes 9 | 0 |  |
+| Vev | yes | 1 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | yes 4 | 0 |  |
+| Cinderblock | yes | 0 | no | 0 / 0 / 0 (-) | Cinderblock | no | 0 / 0 (-) | no 0 | 0 |  |
+| Deelo | yes | 0 | no | 0 / 0 / 0 (-) | Deelo | no | 2 / 0 (2026-03-12) | no 0 | 0 |  |
+| FieldFlo | yes | 0 | no | 0 / 0 / 0 (-) | Fieldflo | no | 3 / 2 (2025-01-02) | no 0 | 0 |  |
+| OctopusPro | yes | 0 | no | 0 / 0 / 0 (-) | Octopus Pro | no | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| Xcelerate (XL Restoration Software) | yes | 0 | no | 0 / 0 / 0 (-) | Xcelerate | no | 4 / 1 (2025-04-11) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2414,9 +2410,9 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | ProDBX | no (prior knowledge) | 3 | no | 2 / 2 / 1 (2026-02-20) | Prodbx | no | 20 / 15 (2024-08-01) | no 0 | 0 |  |
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| FenceCloud | yes | 0 | no | 0 / 0 / 0 (-) | Fence Cloud | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Visual Fence Pro | yes | 0 | no | 0 / 0 / 0 (-) | Visual Fence Pro | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| FenceCloud | yes | 0 | no | 0 / 0 / 0 (-) | Fence Cloud | no | 0 / 0 (-) | no 0 | 0 |  |
+| Visual Fence Pro | yes | 0 | no | 0 / 0 / 0 (-) | Visual Fence Pro | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2471,10 +2467,10 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
-| JingleCRM | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Strandr | yes | 0 | no | 0 / 0 / 0 (-) | Strandr | unverified | 3 / 0 (2025-08-05) | no 0 | 0 |  |
-| Tinsel CRM | yes | 0 | no | 0 / 0 / 0 (-) | Tinsel CRM | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 2 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 2 | horizontal |
+| JingleCRM | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| Strandr | yes | 0 | no | 0 / 0 / 0 (-) | Strandr | no | 3 / 0 (2025-08-05) | no 0 | 0 |  |
+| Tinsel CRM | yes | 0 | no | 0 / 0 / 0 (-) | Tinsel CRM | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2529,10 +2525,10 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Projul | yes | 1 | no | 3 / 3 / 0 (2026-06-22) | Projul | yes | 3 / 1 (2023-02-14) | no 0 | 0 |  |
-| Eano | yes | 0 | no | 0 / 0 / 0 (-) | Eano | unverified | 16 / 0 (2025-02-27) | no 0 | 0 |  |
-| Outdoor Estimates | yes | 0 | no | 0 / 0 / 0 (-) | Outdoor Estimates | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
-| ScapeCubed | yes | 0 | no | 0 / 0 / 0 (-) | Scape Cubed | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| Eano | yes | 0 | no | 0 / 0 / 0 (-) | Eano | no | 16 / 0 (2025-02-27) | no 0 | 0 |  |
+| Outdoor Estimates | yes | 0 | no | 0 / 0 / 0 (-) | Outdoor Estimates | no | 0 / 0 (-) | no 0 | 0 |  |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| ScapeCubed | yes | 0 | no | 0 / 0 / 0 (-) | Scape Cubed | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2581,8 +2577,8 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Janitorial Manager | yes | 0 | no | 0 / 0 / 0 (-) | Janitorial Manager | unverified | 3 / 3 (2021-10-25) | no 0 | 0 |  |
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| Janitorial Manager | yes | 0 | no | 0 / 0 / 0 (-) | Janitorial Manager | no | 3 / 3 (2021-10-25) | no 0 | 0 |  |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2628,8 +2624,8 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Briostack | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | Briostack | unverified | 59 / 28 (2023-04-26) | no 0 | 0 |  |
-| GorillaDesk | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | unverified | 81 / 34 (2023-05-25) | no 0 | 0 |  |
+| Briostack | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | Briostack | no | 59 / 28 (2023-04-26) | no 0 | 0 |  |
+| GorillaDesk | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [hypothesis — batch had no search budget]
 
@@ -2668,11 +2664,11 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | BlindMatrix | yes | 1 | no | 2 / 0 / 0 (2026-09-11) | BlindMatrix Software | yes | 0 / 0 (-) | yes 8 | 0 |  |
-| Blinds Portal | yes | 0 | no | 0 / 0 / 0 (-) | - | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| BlindsBook | yes | 0 | no | 0 / 0 / 0 (-) | Blinds Book | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| MyBlindCo | yes | 0 | no | 0 / 0 / 0 (-) | Myblindco | unverified | 15 / 0 (2025-01-30) | no 0 | 0 |  |
-| Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | unverified | 0 / 0 (-) | no 0 | 0 |  |
-| Windowware Pro | yes | 0 | no | 0 / 0 / 0 (-) | Windowware Pro | unverified | 0 / 0 (-) | no 0 | 0 |  |
+| Blinds Portal | yes | 0 | no | 0 / 0 / 0 (-) | - | no | 0 / 0 (-) | no 0 | 0 |  |
+| BlindsBook | yes | 0 | no | 0 / 0 / 0 (-) | Blinds Book | no | 0 / 0 (-) | no 0 | 0 |  |
+| MyBlindCo | yes | 0 | no | 0 / 0 / 0 (-) | Myblindco | no | 15 / 0 (2025-01-30) | no 0 | 0 |  |
+| Repair-CRM | yes | 0 | no | 0 / 0 / 0 (-) | Repair-CRM | no | 0 / 0 (-) | no 0 | 0 |  |
+| Windowware Pro | yes | 0 | no | 0 / 0 / 0 (-) | Windowware Pro | no | 0 / 0 (-) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2720,7 +2716,7 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
-| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | unverified | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
+| QuoteIQ | yes | 0 | no | 0 / 0 / 0 (-) | Quote IQ | no | 26 / 0 (2025-02-14) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [search-cited where a URL is given]
 
@@ -2789,7 +2785,7 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Jobber | no (prior knowledge) | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| GorillaDesk | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | unverified | 81 / 34 (2023-05-25) | no 0 | 0 |  |
+| GorillaDesk | no (prior knowledge) | 3 | no | 0 / 0 / 0 (-) | GorillaDesk | no | 81 / 34 (2023-05-25) | no 0 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [hypothesis — batch had no search budget]
 
@@ -2827,7 +2823,7 @@ Known limits, stated plainly:
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Jobber | no (prior knowledge) | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| CurbWaste | no (prior knowledge) | 4 | no | 0 / 0 / 0 (-) | CurbWaste | unverified | 65 / 30 (2024-09-25) | yes 8 | 0 |  |
+| CurbWaste | no (prior knowledge) | 4 | no | 0 / 0 / 0 (-) | CurbWaste | no | 65 / 30 (2024-09-25) | yes 8 | 0 |  |
 | Workiz | no (prior knowledge) | 3 | no | 110 / 0 / 0 (2026-08-09) | Workiz | no | 500 / 20 (2025-10-17) | no 0 | 0 | horizontal |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [hypothesis — batch had no search budget]
@@ -2869,8 +2865,8 @@ Known limits, stated plainly:
 
 | tool | verified in niche | score | pass | Meta active / ≥60d / ≥120d (oldest) | Meta page | CTA | Google ads / pass-90d (first shown) | LinkedIn | headcount | flags |
 |---|---|---|---|---|---|---|---|---|---|---|
+| Housecall Pro | no (prior knowledge) | 8 | yes | 706 / 3 / 3 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
 | Jobber | no (prior knowledge) | 7 | yes | 170 / 11 / 7 (2026-05-12) | Jobber | yes | 40 / 31 (2022-08-13) | no 0 | 0 | horizontal |
-| Housecall Pro | no (prior knowledge) | 5 | yes | 480 / 2 / 2 (2025-08-21) | Housecall Pro | yes | 30 / 21 (2023-05-24) | yes 3 | 0 | horizontal |
 | ServiceCore | no (prior knowledge) | 3 | no | 3 / 0 / 0 (2026-09-09) | ServiceCore | no | 24 / 12 (2023-04-28) | yes 11 | 0 |  |
 
 **What the incumbent SaaS does / incumbents / weakest evidence** [hypothesis — batch had no search budget]

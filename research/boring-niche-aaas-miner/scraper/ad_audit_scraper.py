@@ -699,9 +699,12 @@ def main():
     rows = list(csv.DictReader(open(IN_CSV, newline="", encoding="utf-8")))
     cols = list(rows[0].keys()) + [c for c in EXTRA_COLS if c not in rows[0]]
     done = {}
-    if OUT_CSV.exists():
-        for r in csv.DictReader(open(OUT_CSV, newline="", encoding="utf-8")):
-            done[(r["niche_id"], r["tool"])] = r
+    # carry forward earlier results: the merged file first (so a shard never wipes another shard's fields), then this output file
+    for src in [HERE.parent / "ad_audit_filled.csv", OUT_CSV]:
+        if src.exists():
+            for r in csv.DictReader(open(src, newline="", encoding="utf-8")):
+                if r.get("scrape_status") or (r["niche_id"], r["tool"]) not in done:
+                    done[(r["niche_id"], r["tool"])] = r
     want = set(x.strip() for x in args.niches.split(",") if x.strip())
     want_tools = set(norm(x) for x in args.tools.split(";") if x.strip())
     if args.tools_file:

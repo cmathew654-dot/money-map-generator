@@ -19,7 +19,7 @@ META_WRONG_PAGE = {
     "GoPave": "resolved to 'Go Pave Utah' (a paving contractor, not the software)",
     "Contractor+": "resolved to 'Contractor Growth Network'",
 }
-META_AMBIGUOUS_PAGE = {"Momentum FSM": "Momentum", "WorkHorse SCS": "Workhorse", "FieldForce Tracker": "Field Force",
+META_AMBIGUOUS_PAGE = {"Leap": "LEAP (a second run resolved to LEAP Legal Software; page identity unconfirmed)", "Momentum FSM": "Momentum", "WorkHorse SCS": "Workhorse", "FieldForce Tracker": "Field Force",
                        "Flat Rate Plus Online": "Flat Rate", "Allpro Insulator": "Allpro"}
 rows = list(csv.DictReader(open(IN, newline="", encoding="utf-8")))
 for r in rows:
