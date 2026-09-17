@@ -24,8 +24,8 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 23,11,2,yes,Housecall Pro|ServiceTrade
 24,10,4,yes,FieldPulse|Jobber|Service Fusion|ServiceTitan
 25,1,0,no,
-27,4,2,yes,Builder Prime|DripJobs
-28,3,0,no,
+27,7,2,yes,Builder Prime|DripJobs
+28,6,0,no,
 31,8,0,no,
 32,6,2,yes,HindSite Software / FieldCentral|ServiceTitan
 33,4,1,no,HindSite Software / FieldCentral
@@ -39,118 +39,118 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 41,8,1,no,Housecall Pro
 42,2,0,no,
 43,8,2,yes,Housecall Pro|Jobber
-44,2,0,no,
-45,4,1,no,Jobber
-46,5,0,no,
+44,3,0,no,
+45,5,0,no,
+46,9,0,no,
 47,3,1,no,Jobber
 48,2,0,no,
 49,2,0,no,
 50,3,2,yes,Housecall Pro|Jobber
 51,8,0,no,
 52,1,0,no,
-55,2,1,no,ServiceTrade
-56,5,2,yes,Service Fusion|ServiceTitan
+55,8,1,no,ServiceTrade
+56,8,3,yes,Service Fusion|ServiceTitan|Vonigo
 57,8,1,no,Inspect Point
 58,8,2,yes,Inspect Point|ServiceTrade
-59,0,0,unverified,
-60,1,0,no,
-61,0,0,unverified,
-62,8,5,yes,FieldPulse|Housecall Pro|Jobber|Service Fusion|ServiceTitan
-63,1,0,no,
-64,0,0,unverified,
-65,0,0,unverified,
+59,8,0,no,
+60,6,0,no,
+61,6,0,no,
+62,8,4,yes,FieldPulse|Housecall Pro|Service Fusion|ServiceTitan
+63,8,0,no,
+64,6,0,no,
+65,3,0,no,
 66,8,0,no,
-67,0,0,unverified,
-68,0,0,unverified,
-69,0,0,unverified,
+67,9,0,no,
+68,8,0,no,
+69,5,0,no,
 70,8,0,no,
-71,0,0,unverified,
-72,0,0,unverified,
-73,0,0,unverified,
-74,1,0,no,
-75,0,0,unverified,
-76,0,0,unverified,
-77,0,0,unverified,
-78,0,0,unverified,
-79,1,0,no,
-80,0,0,unverified,
-81,0,0,unverified,
-82,0,0,unverified,
-83,0,0,unverified,
-84,1,0,no,
-85,2,0,no,
-86,0,0,unverified,
-87,0,0,unverified,
-88,0,0,unverified,
-89,1,0,no,
-90,4,2,yes,Housecall Pro|ServiceTitan
+71,7,1,no,Financial Cents
+72,8,0,no,
+73,6,0,no,
+74,6,0,no,
+75,9,0,no,
+76,9,2,yes,Innago|Rentec Direct
+77,7,0,no,
+78,7,1,no,BNTouch
+79,8,0,no,
+80,7,0,no,
+81,7,0,no,
+82,8,0,no,
+83,7,1,no,Web-Est
+84,6,0,no,
+85,8,0,no,
+86,10,0,no,
+87,7,2,yes,AutoRaptor CRM|Wayne Reaves Software
+88,6,0,no,
+89,10,1,no,Flyntlok DMS
+90,7,2,yes,Housecall Pro|ServiceTitan
 91,8,1,no,TruckingOffice
-92,1,0,no,
-93,0,0,unverified,
-94,0,0,unverified,
-95,0,0,unverified,
-96,0,0,unverified,
+92,7,0,no,
+93,8,0,no,
+94,9,1,no,Shipday
+95,7,0,no,
+96,6,0,no,
 97,8,1,no,RouteGenie
-98,0,0,unverified,
-99,0,0,unverified,
-100,0,0,unverified,
-101,0,0,unverified,
-102,0,0,unverified,
-103,0,0,unverified,
-104,0,0,unverified,
-105,0,0,unverified,
-106,0,0,unverified,
-107,0,0,unverified,
-108,0,0,unverified,
-109,0,0,unverified,
-110,0,0,unverified,
-111,0,0,unverified,
-112,0,0,unverified,
-113,0,0,unverified,
-114,0,0,unverified,
-115,0,0,unverified,
-116,0,0,unverified,
-117,0,0,unverified,
-118,0,0,unverified,
-119,0,0,unverified,
-120,0,0,unverified,
-121,0,0,unverified,
-122,0,0,unverified,
-123,0,0,unverified,
-124,0,0,unverified,
-125,0,0,unverified,
-126,0,0,unverified,
-127,0,0,unverified,
-128,0,0,unverified,
-129,0,0,unverified,
-130,0,0,unverified,
-131,0,0,unverified,
-132,0,0,unverified,
-133,0,0,unverified,
-134,0,0,unverified,
-135,0,0,unverified,
-136,0,0,unverified,
+98,10,0,no,
+99,8,0,no,
+100,6,0,no,
+101,7,0,no,
+102,12,0,no,
+103,7,1,no,Blackpurl
+104,7,1,no,Quipli
+105,9,0,no,
+106,7,1,no,Storeganise
+107,6,1,no,CleanCloud
+108,8,0,no,
+109,10,0,no,
+110,8,1,no,Rapid Garden POS
+111,7,1,no,FloristWare
+112,8,0,no,
+113,7,0,no,
+114,8,1,no,Orchid eBound (Orchid LLC)
+115,7,1,no,mPower Beverage (InfoSolve)
+116,10,0,no,
+117,8,2,yes,Roaming Hunger (vendor portal)|Truckster (vendor platform)
+118,5,0,no,
+119,9,0,no,
+120,7,0,no,
+121,6,1,no,Gather
+122,8,0,no,
+123,11,0,no,
+124,7,1,no,Gingr (Togetherwork)
+125,8,0,no,
+126,8,0,no,
+127,8,0,no,
+128,6,0,no,
+129,8,1,no,Porter
+130,8,0,no,
+131,8,0,no,
+132,6,0,no,
+133,8,0,no,
+134,8,0,no,
+135,7,0,no,
+136,8,0,no,
 137,8,0,no,
-138,1,0,no,
-139,0,0,unverified,
-140,0,0,unverified,
-141,0,0,unverified,
-142,0,0,unverified,
-143,0,0,unverified,
-144,0,0,unverified,
-145,0,0,unverified,
-146,0,0,unverified,
+138,8,0,no,
+139,7,0,no,
+140,5,0,no,
+141,10,0,no,
+142,8,0,no,
+143,5,1,no,Kicksite
+144,8,1,no,iClassPro
+145,11,1,no,Opus1.io
+146,8,1,no,DrivingSchoolSoftware.com (DrivingSchool.Software)
 147,5,0,no,
-148,0,0,unverified,
-149,0,0,unverified,
-150,0,0,unverified,
-151,0,0,unverified,
-152,0,0,unverified,
-153,0,0,unverified,
-154,0,0,unverified,
-155,0,0,unverified,
-156,0,0,unverified,
-157,0,0,unverified,
-158,0,0,unverified,
-159,0,0,unverified,
-160,0,0,unverified,
+148,8,0,no,
+149,9,1,no,Flight Schedule Pro
+150,8,1,no,Teachworks
+151,6,0,no,
+152,8,0,no,
+153,10,0,no,
+154,8,0,no,
+155,9,0,no,
+156,9,0,no,
+157,8,0,no,
+158,5,0,no,
+159,7,0,no,
+160,7,0,no,
