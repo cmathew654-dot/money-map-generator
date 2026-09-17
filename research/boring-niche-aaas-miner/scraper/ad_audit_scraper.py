@@ -408,6 +408,23 @@ def do_meta(page, row, tool, args):
     finally: cap.close()
 
 def _do_meta(page, row, tool, args, cap):
+    known = getattr(args, "known_page_ids", {}) or {}
+    pid = known.get(norm(row.get("tool", tool))) or known.get(norm(tool))
+    if pid:
+        # page id already resolved in an earlier run: go straight to the Page's ad list
+        if not goto(page, META_BASE + f"&search_type=page&view_all_page_id={pid}"): return {"meta_status": "nav_error"}
+        sleep(2.5, 3.5); dismiss_cookies(page)
+        parsed, ja = meta_collect(page, cap, tool, args)
+        if ja:
+            for a in ja: a["matched_page"] = True
+            parsed = {"result_count": parsed["result_count"], "ads": ja, "no_ads": parsed["no_ads"]}
+        s = summarize_meta(parsed, page_mode=True)
+        s.update({"meta_match_mode": "page_id_known_from_earlier_run", "meta_data_source": "json" if ja else "dom", "meta_page_id": pid,
+                  "meta_page_name": known.get("__name__" + norm(row.get("tool", tool)), ""), "meta_results_url": page.url})
+        if parsed["no_ads"] or parsed["result_count"] == 0: s["meta_status"] = "ok_no_ads"
+        elif parsed["ads"]: s["meta_status"] = "ok"
+        else: s["meta_status"] = "no_ads_parsed"; dump(page, f"{row['niche_id']}_{tool}_meta")
+        return s
     kw_url = META_BASE + "&q=" + urllib.parse.quote(tool) + "&search_type=keyword_unordered"
     if not goto(page, kw_url): return {"meta_status": "nav_error"}
     sleep(2, 3); dismiss_cookies(page)
@@ -723,6 +740,10 @@ def main():
             for r in csv.DictReader(open(src, newline="", encoding="utf-8")):
                 if r.get("scrape_status") or (r["niche_id"], r["tool"]) not in done:
                     done[(r["niche_id"], r["tool"])] = r
+    args.known_page_ids = {}
+    for r in done.values():
+        if r.get("meta_page_id") and str(r.get("meta_page_id")).isdigit():
+            args.known_page_ids[norm(r["tool"])] = r["meta_page_id"]; args.known_page_ids["__name__" + norm(r["tool"])] = r.get("meta_page_name", "")
     want = set(x.strip() for x in args.niches.split(",") if x.strip())
     want_tools = set(norm(x) for x in args.tools.split(";") if x.strip())
     if args.tools_file:
