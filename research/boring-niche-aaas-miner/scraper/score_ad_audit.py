@@ -18,6 +18,10 @@ META_WRONG_PAGE = {
     "Essential": "resolved to 'Essential Sleep Hacks'",
     "GoPave": "resolved to 'Go Pave Utah' (a paving contractor, not the software)",
     "Contractor+": "resolved to 'Contractor Growth Network'",
+    "Garage Door OS": "resolved to a page named 'Garage'",
+    "Driver File Hub": "resolved to a page named 'Driver'",
+    "Pipe-Pro (Professional Estimating Systems)": "resolved to 'Pipe Pro Plumbing' (a plumbing company)",
+    "Squeegee (Nexdynamic)": "resolved to 'Squeegee supreme win...' (unrelated page)",
 }
 META_AMBIGUOUS_PAGE = {"Leap": "LEAP (a second run resolved to LEAP Legal Software; page identity unconfirmed)", "Momentum FSM": "Momentum", "WorkHorse SCS": "Workhorse", "FieldForce Tracker": "Field Force",
                        "Flat Rate Plus Online": "Flat Rate", "Allpro Insulator": "Allpro"}

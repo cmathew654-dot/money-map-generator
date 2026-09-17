@@ -131,6 +131,23 @@ for k, i in enumerate(sel, 1):
     weakest = ("no vertical incumbent passes; qualification rests on horizontal tools" if st["horizontal_only"] else ("Meta undersampled for a large advertiser; rescrape pending" if st["undersampled"] else ("fewer than 2 verified tools pass the ad test" if st["status"] != "QUALIFIED" else "gatekeeper/concentration checks never ran, so fragmentation may be understated or a franchise gatekeeper missed")))
     L.append(f"\n**Confidence:** {conf}. Weakest link: {weakest}.\n\n---\n")
 (D / "ideas_ranked.md").write_text("\n".join(L), encoding="utf-8")
+# ---- dead_ends.md: every niche not qualified, with the filter that stops it today
+DL = ["# dead_ends.md — niches not (yet) qualified, and which filter stops them\n",
+      "All 160 niches have been searched (Step 2). `killed_by` reflects the current evidence; a niche whose tools are still awaiting the ad audit is not dead, just pending.\n",
+      "| id | niche | verified tools | audited | passing | frag | killed_by | note |", "|---|---|---|---|---|---|---|---|"]
+for i in sorted(N, key=int):
+    st = ST[i]
+    if st["status"] == "QUALIFIED": continue
+    n = N[i]; nv = int(n["n_tools_search_verified"]); fr = st["frag"]
+    if nv < 3: k, note = "Filter 2 (fewer than 3 URL-cited tools)", "re-run Step 2 with more searches or accept as thin"
+    elif st["audited"] == 0: k, note = "pending Step 3 (tools not yet audited)", "in scraper/rescrape_tools.txt"
+    elif st["audited"] < nv and len(st["passing"]) < 2: k, note = "pending Step 3 (partially audited)", f"{nv - st['audited']} tools still to audit"
+    elif len(st["passing"]) < 2: k, note = "Filter 3 (fewer than 2 tools score >=5)", f"best tools: {', '.join(a['tool'] for a in sorted(st['rows'], key=lambda a: -(num(a['verified_score']) or 0))[:3])}"
+    elif fr < 3: k, note = "Filter 4 (fragmentation < 3)", F.get(i, {}).get("gatekeeper_found", "")[:120]
+    else: k, note = "review", st["status"]
+    DL.append(f"| {i} | {n['niche']} | {nv} | {st['audited']} | {len(st['passing'])} | {fr} | {k} | {note} |")
+(D / "dead_ends.md").write_text("\n".join(DL) + "\n", encoding="utf-8")
+print("dead_ends rows:", len(DL) - 4)
 print(f"qualified {len(qualified)}: {[N[i]['niche'] for i in qualified]}")
 print(f"provisional {len(provisional)}: {[N[i]['niche'] for i in provisional]}")
 print("wrote ideas_ranked.md", (D / "ideas_ranked.md").stat().st_size, "bytes")

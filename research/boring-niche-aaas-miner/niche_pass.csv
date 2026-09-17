@@ -24,12 +24,14 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 23,11,2,yes,Housecall Pro|ServiceTrade
 24,10,4,yes,FieldPulse|Jobber|Service Fusion|ServiceTitan
 25,1,0,no,
+27,4,2,yes,Builder Prime|DripJobs
+28,3,0,no,
 31,8,0,no,
 32,6,2,yes,HindSite Software / FieldCentral|ServiceTitan
 33,4,1,no,HindSite Software / FieldCentral
 34,4,1,no,Aspire
 35,12,3,yes,Housecall Pro|Jobber|Service Fusion
-36,4,1,no,Squeegee (Nexdynamic)
+36,4,0,no,
 37,5,1,no,Pool Brain
 38,4,0,no,
 39,5,0,no,
@@ -38,19 +40,23 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 42,2,0,no,
 43,8,2,yes,Housecall Pro|Jobber
 44,2,0,no,
-45,2,1,no,Jobber
-46,2,0,no,
+45,4,1,no,Jobber
+46,5,0,no,
 47,3,1,no,Jobber
 48,2,0,no,
 49,2,0,no,
 50,3,2,yes,Housecall Pro|Jobber
 51,8,0,no,
 52,1,0,no,
+55,2,1,no,ServiceTrade
+56,5,2,yes,Service Fusion|ServiceTitan
 57,8,1,no,Inspect Point
 58,8,2,yes,Inspect Point|ServiceTrade
+59,0,0,unverified,
+60,1,0,no,
 61,0,0,unverified,
-62,3,2,yes,Housecall Pro|Jobber
-63,0,0,unverified,
+62,8,5,yes,FieldPulse|Housecall Pro|Jobber|Service Fusion|ServiceTitan
+63,1,0,no,
 64,0,0,unverified,
 65,0,0,unverified,
 66,8,0,no,
@@ -58,16 +64,26 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 68,0,0,unverified,
 69,0,0,unverified,
 70,8,0,no,
+71,0,0,unverified,
+72,0,0,unverified,
+73,0,0,unverified,
+74,1,0,no,
+75,0,0,unverified,
+76,0,0,unverified,
+77,0,0,unverified,
+78,0,0,unverified,
+79,1,0,no,
+80,0,0,unverified,
 81,0,0,unverified,
 82,0,0,unverified,
 83,0,0,unverified,
 84,1,0,no,
-85,0,0,unverified,
+85,2,0,no,
 86,0,0,unverified,
 87,0,0,unverified,
 88,0,0,unverified,
-89,0,0,unverified,
-90,1,1,no,Housecall Pro
+89,1,0,no,
+90,4,2,yes,Housecall Pro|ServiceTitan
 91,8,1,no,TruckingOffice
 92,1,0,no,
 93,0,0,unverified,
@@ -78,6 +94,26 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 98,0,0,unverified,
 99,0,0,unverified,
 100,0,0,unverified,
+101,0,0,unverified,
+102,0,0,unverified,
+103,0,0,unverified,
+104,0,0,unverified,
+105,0,0,unverified,
+106,0,0,unverified,
+107,0,0,unverified,
+108,0,0,unverified,
+109,0,0,unverified,
+110,0,0,unverified,
+111,0,0,unverified,
+112,0,0,unverified,
+113,0,0,unverified,
+114,0,0,unverified,
+115,0,0,unverified,
+116,0,0,unverified,
+117,0,0,unverified,
+118,0,0,unverified,
+119,0,0,unverified,
+120,0,0,unverified,
 121,0,0,unverified,
 122,0,0,unverified,
 123,0,0,unverified,
@@ -98,7 +134,16 @@ niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
 138,1,0,no,
 139,0,0,unverified,
 140,0,0,unverified,
+141,0,0,unverified,
+142,0,0,unverified,
+143,0,0,unverified,
+144,0,0,unverified,
+145,0,0,unverified,
+146,0,0,unverified,
 147,5,0,no,
+148,0,0,unverified,
+149,0,0,unverified,
+150,0,0,unverified,
 151,0,0,unverified,
 152,0,0,unverified,
 153,0,0,unverified,
