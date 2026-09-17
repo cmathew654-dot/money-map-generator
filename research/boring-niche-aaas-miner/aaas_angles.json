@@ -1,407 +1,482 @@
 {
  "32": [
-  "Inbound lead \u2192 priced recurring-service proposal \u2192 schedule slot on the existing route \u2192 auto-invoice after each visit \u2192 chase late payers by text. Needs: SMS/email, property-measurement source (satellite or the incumbent's measurement API), calendar, Stripe/QuickBooks. Done = a signed recurring agreement on the calendar with card on file.",
+  "Inbound lead → priced recurring-service proposal → schedule slot on the existing route → auto-invoice after each visit → chase late payers by text. Needs: SMS/email, property-measurement source (satellite or the incumbent's measurement API), calendar, Stripe/QuickBooks. Done = a signed recurring agreement on the calendar with card on file.",
   "Quote-and-book agent for mowing/maintenance leads (address in, signed recurring proposal out).",
   4
  ],
  "31": [
-  "Homeowner photos + address in \u2192 priced tree-work proposal with ISA-style scope \u2192 schedule crew/crane window \u2192 PHC and pruning-cycle renewals sent automatically each season. Needs: SMS/email, photo intake, pricing rules per operator, calendar, invoicing.",
+  "Homeowner photos + address in → priced tree-work proposal with ISA-style scope → schedule crew/crane window → PHC and pruning-cycle renewals sent automatically each season. Needs: SMS/email, photo intake, pricing rules per operator, calendar, invoicing.",
   "Photo-to-estimate agent for removals/pruning; expand into PHC renewal cycles.",
   4
  ],
  "33": [
-  "Per-lawn season plan (rounds with legal re-application intervals and weather windows) \u2192 pre-visit texts \u2192 post-visit state pesticide application record generated and filed. Needs: weather API, state applicator-record template, SMS, route calendar.",
+  "Per-lawn season plan (rounds with legal re-application intervals and weather windows) → pre-visit texts → post-visit state pesticide application record generated and filed. Needs: weather API, state applicator-record template, SMS, route calendar.",
   "Application-round scheduler plus automatic pesticide application recordkeeping.",
   5
  ],
  "39": [
-  "Per-stump/acre quote from photos and site map \u2192 811 locate ticket filed \u2192 equipment day scheduled \u2192 invoice. Needs: 811 portal, photo intake, calendar, invoicing.",
+  "Per-stump/acre quote from photos and site map → 811 locate ticket filed → equipment day scheduled → invoice. Needs: 811 portal, photo intake, calendar, invoicing.",
   "Quote-and-811-locate agent for stump/clearing jobs.",
   3
  ],
  "34": [
-  "Forecast watch \u2192 pre-storm crew staging texts \u2192 per-push service confirmations with timestamped photos to property managers \u2192 seasonal/per-push invoice and slip-and-fall liability log. Needs: weather API, crew SMS, photo capture, PDF log, invoicing.",
+  "Forecast watch → pre-storm crew staging texts → per-push service confirmations with timestamped photos to property managers → seasonal/per-push invoice and slip-and-fall liability log. Needs: weather API, crew SMS, photo capture, PDF log, invoicing.",
   "Storm-event proof-of-service and liability log agent for commercial snow contracts.",
   6
  ],
  "36": [
-  "Recurring-round retention: predict next-clean due date per customer \u2192 text a route-adjacent slot \u2192 confirm \u2192 invoice \u2192 upsell screens/gutters. Needs: SMS, calendar, invoicing.",
+  "Recurring-round retention: predict next-clean due date per customer → text a route-adjacent slot → confirm → invoice → upsell screens/gutters. Needs: SMS, calendar, invoicing.",
   "Recurring-round rebooking agent for solo window cleaners.",
   3
  ],
  "11": [
-  "Measure driveway/lot from satellite \u2192 seal/pave quote with material takeoff \u2192 weather-safe schedule \u2192 municipal bid paperwork drafted for small public jobs. Needs: measurement API, weather, quoting rules, PDF bid forms.",
+  "Measure driveway/lot from satellite → seal/pave quote with material takeoff → weather-safe schedule → municipal bid paperwork drafted for small public jobs. Needs: measurement API, weather, quoting rules, PDF bid forms.",
   "Satellite-measure-to-quote agent for sealcoating/residential paving.",
   4
  ],
  "22": [
-  "Service-call intake \u2192 flat-rate quote from the operator's price book \u2192 permit application drafted for the jurisdiction \u2192 inspection scheduled \u2192 invoice. Needs: phone/SMS, price book, jurisdiction permit portals, calendar.",
+  "Service-call intake → flat-rate quote from the operator's price book → permit application drafted for the jurisdiction → inspection scheduled → invoice. Needs: phone/SMS, price book, jurisdiction permit portals, calendar.",
   "Permit-and-inspection paperwork agent for small residential electricians.",
   5
  ],
  "21": [
-  "Spring start-up / fall winterization rebooking for the whole customer list \u2192 backflow test scheduled before the water purveyor's deadline \u2192 test report submitted \u2192 invoice. Needs: customer list, SMS, purveyor report templates/portals, calendar.",
+  "Spring start-up / fall winterization rebooking for the whole customer list → backflow test scheduled before the water purveyor's deadline → test report submitted → invoice. Needs: customer list, SMS, purveyor report templates/portals, calendar.",
   "Seasonal rebooking plus backflow-deadline agent.",
   4
  ],
  "35": [
-  "Address in \u2192 surface area measured \u2192 instant quote \u2192 booking \u2192 review request and follow-up sequence. Needs: satellite measurement, SMS/email, calendar, payments.",
+  "Address in → surface area measured → instant quote → booking → review request and follow-up sequence. Needs: satellite measurement, SMS/email, calendar, payments.",
   "Address-in, priced-quote-out agent for house/roof/driveway washing.",
   3
  ],
  "9": [
-  "Room/exterior photos + sq ft \u2192 estimate with paint/labor takeoff \u2192 schedule crew \u2192 RRP lead-paint documentation for pre-1978 homes \u2192 invoice. Needs: photo intake, estimating rules, EPA RRP checklist templates, calendar.",
+  "Room/exterior photos + sq ft → estimate with paint/labor takeoff → schedule crew → RRP lead-paint documentation for pre-1978 homes → invoice. Needs: photo intake, estimating rules, EPA RRP checklist templates, calendar.",
   "Estimate-plus-RRP-paperwork agent for residential painters.",
   4
  ],
  "37": [
-  "Weekly route generation \u2192 chemical log per stop from tech texts/photos \u2192 repair upsell quotes \u2192 monthly invoicing. Needs: SMS, route optimization, invoicing.",
+  "Weekly route generation → chemical log per stop from tech texts/photos → repair upsell quotes → monthly invoicing. Needs: SMS, route optimization, invoicing.",
   "Route-and-chemical-log agent for solo pool routes.",
   3
  ],
  "8": [
-  "Yardage/sq ft quote from drawings or photos \u2192 pour scheduled around weather and ready-mix availability \u2192 permit forms drafted \u2192 invoice. Needs: quoting rules, weather API, permit portals.",
+  "Yardage/sq ft quote from drawings or photos → pour scheduled around weather and ready-mix availability → permit forms drafted → invoice. Needs: quoting rules, weather API, permit portals.",
   "Quote-and-pour-scheduling agent for flatwork.",
   3
  ],
  "24": [
-  "After-hours call/text intake \u2192 flat-rate quote \u2192 dispatch to on-call tech \u2192 permit application for water heater/repipe \u2192 warranty registration \u2192 invoice. Needs: phone/SMS, price book, permit portals, calendar.",
+  "After-hours call/text intake → flat-rate quote → dispatch to on-call tech → permit application for water heater/repipe → warranty registration → invoice. Needs: phone/SMS, price book, permit portals, calendar.",
   "Permit and warranty-registration paperwork agent for small plumbing shops.",
   5
  ],
  "3": [
-  "Storm lead \u2192 roof measured from aerial imagery \u2192 estimate \u2192 insurance supplement package assembled (photos, Xactimate-style line items) \u2192 job scheduled \u2192 invoice. Needs: aerial measurement, photo intake, PDF assembly, calendar.",
+  "Storm lead → roof measured from aerial imagery → estimate → insurance supplement package assembled (photos, Xactimate-style line items) → job scheduled → invoice. Needs: aerial measurement, photo intake, PDF assembly, calendar.",
   "Insurance-supplement assembly agent for residential roofers.",
   5
  ],
  "13": [
-  "Install lead \u2192 permit and alarm-registration filings with the municipality \u2192 recurring inspection reminders and reports \u2192 monitoring contract renewals. Needs: municipal portals, PDF forms, SMS, calendar.",
+  "Install lead → permit and alarm-registration filings with the municipality → recurring inspection reminders and reports → monitoring contract renewals. Needs: municipal portals, PDF forms, SMS, calendar.",
   "Alarm permit/registration filing agent for small low-voltage installers.",
   4
  ],
  "4": [
-  "Linear-foot quote from a property-line sketch \u2192 HOA/permit application drafted \u2192 material order list \u2192 install date \u2192 invoice. Needs: measurement, permit templates, supplier ordering, calendar.",
+  "Linear-foot quote from a property-line sketch → HOA/permit application drafted → material order list → install date → invoice. Needs: measurement, permit templates, supplier ordering, calendar.",
   "HOA/permit paperwork and quote agent for fence installers.",
   3
  ],
  "7": [
-  "Linear-foot quote from satellite roofline \u2192 seasonal cleaning route rebooking \u2192 invoice. Needs: measurement, SMS, calendar.",
+  "Linear-foot quote from satellite roofline → seasonal cleaning route rebooking → invoice. Needs: measurement, SMS, calendar.",
   "Seasonal gutter-cleaning rebooking agent.",
   2
  ],
  "38": [
-  "Roofline measurement \u2192 install/takedown quote \u2192 season schedule \u2192 storage tracking \u2192 next-season renewal outreach in August. Needs: measurement, SMS, calendar, inventory list.",
+  "Roofline measurement → install/takedown quote → season schedule → storage tracking → next-season renewal outreach in August. Needs: measurement, SMS, calendar, inventory list.",
   "Season-renewal and install/takedown scheduling agent.",
   3
  ],
  "2": [
-  "Well-permit application to the state \u2192 drill log / well completion report filed \u2192 pump service reminders \u2192 invoice. Needs: state well portals, form templates, SMS.",
+  "Well-permit application to the state → drill log / well completion report filed → pump service reminders → invoice. Needs: state well portals, form templates, SMS.",
   "State well-log and permit filing agent for drillers.",
   4
  ],
  "5": [
-  "Service-call intake \u2192 part identified from photo (spring/opener) \u2192 quote \u2192 schedule \u2192 warranty claim to manufacturer \u2192 invoice. Needs: phone/SMS, parts catalog, OEM warranty portals.",
+  "Service-call intake → part identified from photo (spring/opener) → quote → schedule → warranty claim to manufacturer → invoice. Needs: phone/SMS, parts catalog, OEM warranty portals.",
   "Warranty-claim and quote agent for garage door service.",
   3
  ],
  "6": [
-  "R-value/sq ft quote \u2192 utility rebate forms completed and submitted \u2192 energy-code compliance certificate \u2192 invoice. Needs: rebate program forms, quoting rules, PDF.",
+  "R-value/sq ft quote → utility rebate forms completed and submitted → energy-code compliance certificate → invoice. Needs: rebate program forms, quoting rules, PDF.",
   "Utility-rebate paperwork agent for insulation contractors.",
   4
  ],
  "10": [
-  "Site quote from plans \u2192 811 locate tickets \u2192 equipment-hour tracking \u2192 haul tickets reconciled \u2192 invoice. Needs: 811 portal, SMS from operators, invoicing.",
+  "Site quote from plans → 811 locate tickets → equipment-hour tracking → haul tickets reconciled → invoice. Needs: 811 portal, SMS from operators, invoicing.",
   "811-locate and haul-ticket reconciliation agent.",
   4
  ],
  "12": [
-  "NFPA 25 inspection schedule per building \u2192 inspector reports converted to AHJ-format submittals \u2192 deficiency quotes \u2192 renewal. Needs: inspection form templates, AHJ portals/email, quoting rules.",
+  "NFPA 25 inspection schedule per building → inspector reports converted to AHJ-format submittals → deficiency quotes → renewal. Needs: inspection form templates, AHJ portals/email, quoting rules.",
   "NFPA 25 report-to-AHJ submittal agent.",
   6
  ],
  "23": [
-  "Maintenance-agreement renewals and tune-up scheduling \u2192 permit pulls \u2192 EPA 608 refrigerant log \u2192 invoice. Needs: SMS, permit portals, calendar, log templates.",
+  "Maintenance-agreement renewals and tune-up scheduling → permit pulls → EPA 608 refrigerant log → invoice. Needs: SMS, permit portals, calendar, log templates.",
   "Maintenance-agreement renewal and permit agent for small HVAC shops.",
   5
  ],
  "40": [
-  "Seasonal sweep rebooking \u2192 Level-2 inspection report drafted from tech photos/notes \u2192 repair quote \u2192 invoice. Needs: SMS, report template, photo intake.",
+  "Seasonal sweep rebooking → Level-2 inspection report drafted from tech photos/notes → repair quote → invoice. Needs: SMS, report template, photo intake.",
   "Level-2 inspection report agent for chimney sweeps.",
   3
  ],
  "1": [
-  "County health-department permit application \u2192 as-built drawing package \u2192 inspection scheduling \u2192 invoice. Needs: county portals/forms, drawing template, calendar.",
+  "County health-department permit application → as-built drawing package → inspection scheduling → invoice. Needs: county portals/forms, drawing template, calendar.",
   "County septic permit and as-built paperwork agent.",
   5
  ],
  "42": [
-  "Bid walkthrough notes \u2192 proposal with sq ft and frequency pricing \u2192 night-shift schedule \u2192 inspection checklist results to client \u2192 invoice. Needs: quoting rules, SMS, checklist template.",
+  "Bid walkthrough notes → proposal with sq ft and frequency pricing → night-shift schedule → inspection checklist results to client → invoice. Needs: quoting rules, SMS, checklist template.",
   "Bid-to-proposal agent for small janitorial companies.",
   4
  ],
  "14": [
-  "Permit set assembly \u2192 subcontractor sequencing calendar \u2192 change-order documentation \u2192 draw requests. Needs: permit portals, calendar, PDF.",
+  "Permit set assembly → subcontractor sequencing calendar → change-order documentation → draw requests. Needs: permit portals, calendar, PDF.",
   "Permit-set and sub-sequencing agent for pool builders.",
   5
  ],
  "15": [
-  "Inspection photos \u2192 repair proposal \u2192 engineer letter request \u2192 warranty transfer paperwork \u2192 financing application. Needs: photo intake, proposal template, email.",
+  "Inspection photos → repair proposal → engineer letter request → warranty transfer paperwork → financing application. Needs: photo intake, proposal template, email.",
   "Proposal and warranty-transfer paperwork agent.",
   4
  ],
  "16": [
-  "Room measurements \u2192 material takeoff and quote \u2192 supplier order \u2192 install scheduling \u2192 invoice. Needs: quoting rules, supplier portals, calendar.",
+  "Room measurements → material takeoff and quote → supplier order → install scheduling → invoice. Needs: quoting rules, supplier portals, calendar.",
   "Takeoff-and-quote agent for flooring installers.",
   3
  ],
  "18": [
-  "Deck design brief \u2192 permit drawing package \u2192 material list \u2192 schedule. Needs: permit portals, drawing template.",
+  "Deck design brief → permit drawing package → material list → schedule. Needs: permit portals, drawing template.",
   "Deck permit-package agent.",
   3
  ],
  "19": [
-  "Design/quote from photos and dimensions \u2192 material tonnage order \u2192 weather schedule \u2192 invoice. Needs: quoting rules, supplier ordering, weather API.",
+  "Design/quote from photos and dimensions → material tonnage order → weather schedule → invoice. Needs: quoting rules, supplier ordering, weather API.",
   "Quote-and-material-order agent for hardscapers.",
   3
  ],
  "41": [
-  "Inbound quote by sq ft/rooms \u2192 recurring schedule \u2192 cleaner assignment texts \u2192 payment collection \u2192 rebooking on cancellations. Needs: SMS, calendar, payments.",
+  "Inbound quote by sq ft/rooms → recurring schedule → cleaner assignment texts → payment collection → rebooking on cancellations. Needs: SMS, calendar, payments.",
   "Quote-book-collect agent for solo/small maid services.",
   3
  ],
  "25": [
-  "Job description + photos \u2192 small-job quote \u2192 schedule \u2192 parts list \u2192 invoice. Needs: SMS, calendar, invoicing.",
+  "Job description + photos → small-job quote → schedule → parts list → invoice. Needs: SMS, calendar, invoicing.",
   "Small-job quoting and scheduling agent.",
   2
  ],
  "17": [
-  "Measure/order/install cycle tracking \u2192 supplier orders \u2192 install appointment. Needs: supplier portals, calendar.",
+  "Measure/order/install cycle tracking → supplier orders → install appointment. Needs: supplier portals, calendar.",
   "Order-tracking and install-scheduling agent for glaziers.",
   3
  ],
  "20": [
-  "In-home measure capture \u2192 vendor purchase order \u2192 install appointment \u2192 invoice. Needs: vendor order portals, calendar.",
+  "In-home measure capture → vendor purchase order → install appointment → invoice. Needs: vendor order portals, calendar.",
   "Vendor-order and install appointment agent.",
   2
  ],
  "43": [
-  "Room-count quote \u2192 route slot \u2192 reminders \u2192 invoice \u2192 6-month rebook. Needs: SMS, calendar, payments.",
+  "Room-count quote → route slot → reminders → invoice → 6-month rebook. Needs: SMS, calendar, payments.",
   "Rebooking agent for carpet cleaners.",
   2
  ],
  "44": [
-  "Recurring service routes \u2192 state pesticide-use records auto-generated from tech texts \u2192 renewals. Needs: SMS, state record templates, route calendar.",
+  "Recurring service routes → state pesticide-use records auto-generated from tech texts → renewals. Needs: SMS, state record templates, route calendar.",
   "Pesticide-use recordkeeping agent for small PCOs.",
   4
  ],
  "51": [
-  "State notification filings before abatement \u2192 air-clearance report assembly \u2192 disposal manifest tracking \u2192 invoice. Needs: state portals/forms, lab-report intake, PDF.",
+  "State notification filings before abatement → air-clearance report assembly → disposal manifest tracking → invoice. Needs: state portals/forms, lab-report intake, PDF.",
   "State abatement notification and clearance-report agent.",
   6
  ],
  "48": [
-  "Drop/pickup scheduling \u2192 container tracking \u2192 tonnage billing reconciliation from landfill tickets. Needs: SMS, ticket OCR, invoicing.",
+  "Drop/pickup scheduling → container tracking → tonnage billing reconciliation from landfill tickets. Needs: SMS, ticket OCR, invoicing.",
   "Landfill-ticket reconciliation and billing agent.",
   4
  ],
  "49": [
-  "Weekly service routes \u2192 event orders \u2192 unit tracking \u2192 invoicing. Needs: route calendar, SMS, invoicing.",
+  "Weekly service routes → event orders → unit tracking → invoicing. Needs: route calendar, SMS, invoicing.",
   "Route and event-order agent for portable toilet operators.",
   3
  ],
  "57": [
-  "Annual test due dates per device \u2192 customer scheduling by text \u2192 test results captured \u2192 report submitted to each water purveyor in its required format. Needs: purveyor portals/forms, SMS, calendar.",
+  "Annual test due dates per device → customer scheduling by text → test results captured → report submitted to each water purveyor in its required format. Needs: purveyor portals/forms, SMS, calendar.",
   "Backflow test-report submission agent.",
   5
  ],
  "58": [
-  "Tag/inspection cycles per site \u2192 inspection results captured \u2192 AHJ report filed \u2192 deficiency quotes. Needs: report templates, AHJ email/portals, quoting rules.",
+  "Tag/inspection cycles per site → inspection results captured → AHJ report filed → deficiency quotes. Needs: report templates, AHJ email/portals, quoting rules.",
   "Inspection-report-to-AHJ filing agent.",
   5
  ],
  "70": [
-  "Driver qualification file completeness checks \u2192 drug-testing program enrollment and random-pool tracking \u2192 audit-ready file packs. Needs: document intake, FMCSA Clearinghouse, email.",
+  "Driver qualification file completeness checks → drug-testing program enrollment and random-pool tracking → audit-ready file packs. Needs: document intake, FMCSA Clearinghouse, email.",
   "DQ-file compliance agent for small carriers (sold via consultants).",
   6
  ],
  "66": [
-  "Signing order intake \u2192 appointment confirmation \u2192 journal entry \u2192 invoice to signing service. Needs: email/SMS, calendar, invoicing.",
+  "Signing order intake → appointment confirmation → journal entry → invoice to signing service. Needs: email/SMS, calendar, invoicing.",
   "Signing-order intake and invoicing agent for loan signing agents.",
   3
  ],
  "91": [
-  "IFTA quarterly filing from ELD/fuel data \u2192 driver file expirations \u2192 load paperwork (rate cons, BOLs) collected and invoiced. Needs: ELD API, fuel-card data, state IFTA portals, email.",
+  "IFTA quarterly filing from ELD/fuel data → driver file expirations → load paperwork (rate cons, BOLs) collected and invoiced. Needs: ELD API, fuel-card data, state IFTA portals, email.",
   "IFTA filing and driver-file expiration agent for 1-20 truck fleets.",
   6
  ],
  "97": [
-  "Trip scheduling from broker portals \u2192 driver credential expirations \u2192 trip logs and Medicaid broker billing submitted. Needs: broker portals, SMS, billing templates.",
+  "Trip scheduling from broker portals → driver credential expirations → trip logs and Medicaid broker billing submitted. Needs: broker portals, SMS, billing templates.",
   "Broker trip-intake and billing agent for NEMT providers.",
   8
  ],
  "137": [
-  "Caregiver shift filling by text \u2192 EVV-compliant visit verification checks \u2192 timesheet-to-Medicaid billing. Needs: SMS, state EVV aggregator APIs, billing templates.",
+  "Caregiver shift filling by text → EVV-compliant visit verification checks → timesheet-to-Medicaid billing. Needs: SMS, state EVV aggregator APIs, billing templates.",
   "Open-shift filling and EVV exception agent for small home care agencies.",
   8
  ],
  "147": [
-  "Student enrollment \u2192 ELDT Training Provider Registry certification submission \u2192 DOT physical/permit tracking \u2192 attendance hours. Needs: TPR portal, document intake, SMS.",
+  "Student enrollment → ELDT Training Provider Registry certification submission → DOT physical/permit tracking → attendance hours. Needs: TPR portal, document intake, SMS.",
   "ELDT registry reporting agent for CDL schools.",
   5
  ],
  "90": [
-  "Call/web intake collects model number and symptom \u2192 books the diagnostic visit \u2192 orders the likely part from the distributor before the return trip \u2192 files the manufacturer warranty claim \u2192 invoices. Needs: phone/SMS, parts catalog lookup, distributor ordering, OEM warranty portals, calendar.",
+  "Call/web intake collects model number and symptom → books the diagnostic visit → orders the likely part from the distributor before the return trip → files the manufacturer warranty claim → invoices. Needs: phone/SMS, parts catalog lookup, distributor ordering, OEM warranty portals, calendar.",
   "Booking-and-parts agent that turns a symptom into a scheduled diagnostic with the right part pre-ordered.",
   4
  ],
  "56": [
-  "Inbound call/text \u2192 quote from square footage and vent count \u2192 book the slot \u2192 after the job, send the NADCA-style before/after photo report \u2192 schedule the dryer-vent reminder for next year. Needs: SMS, photo intake, calendar, invoicing.",
+  "Inbound call/text → quote from square footage and vent count → book the slot → after the job, send the NADCA-style before/after photo report → schedule the dryer-vent reminder for next year. Needs: SMS, photo intake, calendar, invoicing.",
   "Quote, book, photo-report and annual rebook agent for one- and two-truck duct cleaners.",
   3
  ],
  "62": [
-  "24/7 answer for lockout/rekey calls \u2192 quote from the shop's price book \u2192 dispatch nearest tech with ETA text \u2192 close the invoice on site. Needs: phone/SMS, price book, tech location, invoicing.",
+  "24/7 answer for lockout/rekey calls → quote from the shop's price book → dispatch nearest tech with ETA text → close the invoice on site. Needs: phone/SMS, price book, tech location, invoicing.",
   "24/7 call-answering and dispatch agent for emergency lock jobs.",
   5
  ],
  "27": [
-  "Photo + address \u2192 floor area measured \u2192 tiered epoxy/polyaspartic proposal with a visualizer render \u2192 follow-up sequence until signed \u2192 install scheduled around cure time. Needs: satellite measurement, photo intake, proposal template, SMS/email, calendar.",
+  "Photo + address → floor area measured → tiered epoxy/polyaspartic proposal with a visualizer render → follow-up sequence until signed → install scheduled around cure time. Needs: satellite measurement, photo intake, proposal template, SMS/email, calendar.",
   "Quote-and-close agent for garage floor coatings (photo in, tiered signed proposal out).",
   3
  ],
  "117": [
-  "Event inquiry \u2192 quote with minimums and menu \u2192 deposit collected \u2192 commissary and city permit renewals plus health-inspection documents filed on schedule \u2192 weekly location calendar posted to every channel. Needs: email/SMS, payments, permit portals, social posting.",
+  "Event inquiry → quote with minimums and menu → deposit collected → commissary and city permit renewals plus health-inspection documents filed on schedule → weekly location calendar posted to every channel. Needs: email/SMS, payments, permit portals, social posting.",
   "Catering-quote and permit-renewal agent for food trucks.",
   4
  ],
  "87": [
-  "Marketplace lead \u2192 reply in minutes with availability and payment estimate \u2192 test drive scheduled \u2192 stips checklist run on the buyer \u2192 for BHPH accounts, work the delinquency queue with compliant texts. Needs: marketplace inboxes, SMS, DMS/CRM API, compliance templates.",
+  "Marketplace lead → reply in minutes with availability and payment estimate → test drive scheduled → stips checklist run on the buyer → for BHPH accounts, work the delinquency queue with compliant texts. Needs: marketplace inboxes, SMS, DMS/CRM API, compliance templates.",
   "Lead-response and BHPH collections agent priced per rooftop.",
   6
  ],
  "76": [
-  "Prospect inquiry \u2192 showing scheduled \u2192 application and screening run \u2192 late-rent chasing by text \u2192 maintenance request triaged to a vendor with owner approval \u2192 monthly owner report drafted. Needs: listing inboxes, SMS/email, screening API, vendor list, accounting export.",
+  "Prospect inquiry → showing scheduled → application and screening run → late-rent chasing by text → maintenance request triaged to a vendor with owner approval → monthly owner report drafted. Needs: listing inboxes, SMS/email, screening API, vendor list, accounting export.",
   "Leasing-and-maintenance agent for sub-100-unit managers.",
   6
  ],
  "103": [
-  "Unit spec sheet and photos pushed to every marketplace \u2192 inbound quote requests answered with availability and financing \u2192 title and registration packet prepared per state on sale. Needs: marketplace APIs, DMS export, state DMV forms, email/SMS.",
+  "Unit spec sheet and photos pushed to every marketplace → inbound quote requests answered with availability and financing → title and registration packet prepared per state on sale. Needs: marketplace APIs, DMS export, state DMV forms, email/SMS.",
   "Listing-and-title packet agent for trailer dealers.",
   4
  ],
  "106": [
-  "Inquiry \u2192 unit quote and online move-in \u2192 autopay set \u2192 late-fee and lien notices run per state timeline \u2192 gate codes and cleanouts scheduled. Needs: management-software API, SMS/email, state lien templates, gate system.",
+  "Inquiry → unit quote and online move-in → autopay set → late-fee and lien notices run per state timeline → gate codes and cleanouts scheduled. Needs: management-software API, SMS/email, state lien templates, gate system.",
   "Remote-manager agent for unmanned or single-manager storage sites.",
   5
  ],
  "145": [
-  "Cancellation \u2192 make-up slot offered from teacher gaps \u2192 unpaid invoices chased \u2192 lapsed students re-engaged \u2192 monthly teacher payroll summary. Needs: lesson calendar API, SMS/email, payments.",
+  "Cancellation → make-up slot offered from teacher gaps → unpaid invoices chased → lapsed students re-engaged → monthly teacher payroll summary. Needs: lesson calendar API, SMS/email, payments.",
   "Make-up-lesson and attrition agent for multi-teacher music schools.",
   4
  ],
  "146": [
-  "Parent inquiry \u2192 package sold and enrolment forms collected \u2192 instructor gaps filled from the waitlist \u2192 state completion or electronic-certificate report filed after each student. Needs: SMS/email, calendar, state DMV portals.",
+  "Parent inquiry → package sold and enrolment forms collected → instructor gaps filled from the waitlist → state completion or electronic-certificate report filed after each student. Needs: SMS/email, calendar, state DMV portals.",
   "Enrolment-to-certificate agent covering the mandatory state filings.",
   5
  ],
  "131": [
-  "Post-visit call-backs and recheck/refill reminders \u2192 records requests and referral summaries answered \u2192 pre-visit history written into the practice system. Needs: PIMS API, phone/SMS, email.",
+  "Post-visit call-backs and recheck/refill reminders → records requests and referral summaries answered → pre-visit history written into the practice system. Needs: PIMS API, phone/SMS, email.",
   "Client-communication and records agent for independent clinics.",
   6
  ],
  "132": [
-  "Recall and reactivation outreach for overdue patients \u2192 insurance eligibility verified before each visit \u2192 appointment confirmations. Needs: Open Dental API, payer eligibility, SMS.",
+  "Recall and reactivation outreach for overdue patients → insurance eligibility verified before each visit → appointment confirmations. Needs: Open Dental API, payer eligibility, SMS.",
   "Recall and insurance-verification agent layered on Open Dental for solo practices.",
   6
  ],
  "133": [
-  "Denied-claim rework and resubmission \u2192 lapsed-patient reactivation \u2192 care-plan payment reminders. Needs: EHR/clearinghouse access, SMS/email.",
+  "Denied-claim rework and resubmission → lapsed-patient reactivation → care-plan payment reminders. Needs: EHR/clearinghouse access, SMS/email.",
   "Claims follow-up and recall agent beside the chiropractic EHR.",
   6
  ],
  "123": [
-  "Cancellation \u2192 nearby pet rebooked into the gap \u2192 overdue grooms chased on cadence \u2192 vaccination records confirmed before the visit. Needs: booking API, SMS, route logic.",
+  "Cancellation → nearby pet rebooked into the gap → overdue grooms chased on cadence → vaccination records confirmed before the visit. Needs: booking API, SMS, route logic.",
   "Rebooking and route-filling agent for single-van groomers.",
   3
  ],
  "124": [
-  "Booking request by phone/SMS/email \u2192 capacity checked and waitlist managed \u2192 vaccination uploads verified against expiry rules \u2192 report cards sent \u2192 cancellations refilled. Needs: booking-software API, document intake, SMS/email.",
+  "Booking request by phone/SMS/email → capacity checked and waitlist managed → vaccination uploads verified against expiry rules → report cards sent → cancellations refilled. Needs: booking-software API, document intake, SMS/email.",
   "Front-desk agent for boarding and daycare, sold as an add-on to the booking system.",
   5
  ],
  "107": [
-  "Order text \u2192 pickup scheduled on a route \u2192 recurring plan upsold \u2192 lapsed households reactivated. Needs: SMS, POS/route API, payments.",
+  "Order text → pickup scheduled on a route → recurring plan upsold → lapsed households reactivated. Needs: SMS, POS/route API, payments.",
   "Pickup-and-delivery growth agent for laundromats.",
   3
  ],
  "108": [
-  "Ready-for-pickup texts \u2192 delivery scheduling \u2192 reorder prompts and review requests. Needs: POS API, SMS.",
+  "Ready-for-pickup texts → delivery scheduling → reorder prompts and review requests. Needs: POS API, SMS.",
   "Customer-communication and route agent layered on the dry-cleaning POS.",
   3
  ],
  "121": [
-  "Overnight first call answered \u2192 case captured \u2192 state forms and obituary draft pre-filled \u2192 family checklist coordinated. Needs: phone, case-management API, state form templates, email.",
+  "Overnight first call answered → case captured → state forms and obituary draft pre-filled → family checklist coordinated. Needs: phone, case-management API, state form templates, email.",
   "First-call and paperwork agent for independent funeral homes.",
   6
  ],
  "116": [
-  "Refill adherence outreach \u2192 prior-authorization and claim-rejection follow-up with prescribers and payers. Needs: pharmacy system API, fax/phone/email, payer portals.",
+  "Refill adherence outreach → prior-authorization and claim-rejection follow-up with prescribers and payers. Needs: pharmacy system API, fax/phone/email, payer portals.",
   "Refill-adherence and rejection follow-up agent bolted onto the pharmacy system.",
   8
  ],
  "72": [
-  "Source documents chased, classified and confirmed by SMS/WhatsApp (bilingual) \u2192 organizer completed \u2192 e-signature collected. Needs: portal API, SMS, document classification.",
+  "Source documents chased, classified and confirmed by SMS/WhatsApp (bilingual) → organizer completed → e-signature collected. Needs: portal API, SMS, document classification.",
   "Document-chasing and intake agent for independent tax preparers.",
   5
  ],
  "71": [
-  "Per-client monthly close checklist run \u2192 documents chased \u2192 uncategorized transactions flagged \u2192 client email drafted. Needs: QuickBooks/Xero API, email/SMS.",
+  "Per-client monthly close checklist run → documents chased → uncategorized transactions flagged → client email drafted. Needs: QuickBooks/Xero API, email/SMS.",
   "Monthly-close agent priced per client, not per seat.",
   6
  ],
  "77": [
-  "Expiring policies pulled \u2192 requoted across carriers \u2192 client email drafted \u2192 certificate requests handled. Needs: AMS API, rater, email.",
+  "Expiring policies pulled → requoted across carriers → client email drafted → certificate requests handled. Needs: AMS API, rater, email.",
   "Renewal-remarketing and certificate agent inside the agency management system.",
   6
  ],
  "93": [
-  "Call answered \u2192 inventory survey by text/photos \u2192 quote \u2192 follow-up until booked \u2192 crew scheduled. Needs: phone/SMS, photo intake, tariff rules, calendar.",
+  "Call answered → inventory survey by text/photos → quote → follow-up until booked → crew scheduled. Needs: phone/SMS, photo intake, tariff rules, calendar.",
   "Lead-response and estimating agent for movers.",
   5
  ],
  "81": [
-  "Retail call intake and quote \u2192 ETA texts \u2192 impound and lien paperwork prepared. Needs: phone/SMS, price book, state lien forms.",
+  "Retail call intake and quote → ETA texts → impound and lien paperwork prepared. Needs: phone/SMS, price book, state lien forms.",
   "Private-pay intake and impound paperwork agent (motor-club calls excluded).",
   4
  ],
  "85": [
-  "VIN by text/phone \u2192 NAGS part priced \u2192 ADAS calibration need checked \u2192 mobile install booked \u2192 cash/fleet invoice. Needs: VIN decode, parts pricing, calendar, invoicing.",
+  "VIN by text/phone → NAGS part priced → ADAS calibration need checked → mobile install booked → cash/fleet invoice. Needs: VIN decode, parts pricing, calendar, invoicing.",
   "Quote-and-book agent for cash and fleet auto-glass work.",
   4
  ],
  "82": [
-  "Estimate approvals by text \u2192 appointment reminders \u2192 declined-service follow-up. Needs: shop-management API, SMS.",
+  "Estimate approvals by text → appointment reminders → declined-service follow-up. Needs: shop-management API, SMS.",
   "Approval and declined-work follow-up agent as an add-on to the shop system.",
   4
  ],
  "84": [
-  "Vehicle photos \u2192 package quote \u2192 route gap filled \u2192 lapsed customers re-engaged on a maintenance cadence. Needs: SMS, calendar, payments.",
+  "Vehicle photos → package quote → route gap filled → lapsed customers re-engaged on a maintenance cadence. Needs: SMS, calendar, payments.",
   "Booking-and-rebooking agent for solo mobile detailers.",
   2
  ],
  "61": [
-  "Call-off detected \u2192 qualified guards texted \u2192 coverage confirmed \u2192 nightly client report written from tour data. Needs: scheduling/tour API, SMS, report template.",
+  "Call-off detected → qualified guards texted → coverage confirmed → nightly client report written from tour data. Needs: scheduling/tour API, SMS, report template.",
   "Open-shift-filling and client-reporting agent for small guard firms.",
   6
  ],
  "69": [
-  "Bench candidates texted for open shifts \u2192 show-up confirmed \u2192 hours pushed into pay-and-bill. Needs: ATS/payroll API, SMS.",
+  "Bench candidates texted for open shifts → show-up confirmed → hours pushed into pay-and-bill. Needs: ATS/payroll API, SMS.",
   "Candidate-reactivation and shift-fill agent for light-industrial staffing.",
   6
  ],
  "143": [
-  "Trial-class inquiry \u2192 booked \u2192 membership sold \u2192 attendance and belt-test reminders \u2192 lapsed members re-engaged. Needs: membership-software API, SMS/email.",
+  "Trial-class inquiry → booked → membership sold → attendance and belt-test reminders → lapsed members re-engaged. Needs: membership-software API, SMS/email.",
   "Trial-to-member and retention agent for martial arts schools.",
+  3
+ ],
+ "28": [
+  "Turf/court lead → satellite-measured area + material takeoff → itemized quote (base, infill, seams, drainage) → e-signed proposal → schedule crew and order materials. Needs: address→parcel measurement (Google Maps / Nearmap / Moasure export), price book, e-sign, calendar, supplier email. Done = signed proposal with deposit collected and materials ordered.",
+  "Address-in, signed-turf-quote-out agent that replaces the estimator's site-visit for small residential jobs (ArcSite/Moasure users draw by hand today).",
+  4
+ ],
+ "59": [
+  "Sample intake → chain-of-custody form generated → accreditation-compliant report assembled from instrument output → client emailed → invoice raised → re-test reminders sent. Needs: LIMS/instrument export (CSV), report templates (AIHA/NELAP formats), email, QuickBooks. Done = signed report delivered and invoice out within the lab's TAT.",
+  "Report-writing and chain-of-custody agent for small asbestos/lead/water labs that still assemble PDFs by hand outside their LIMS.",
+  6
+ ],
+ "63": [
+  "Case intake (attorney or insurer email) → conflict check → engagement letter → assignment to field investigator → surveillance/interview notes → formatted case report with exhibits → time-tracked invoice. Needs: email, e-sign, case-file store, report template, Clio/QuickBooks. Done = report and invoice delivered to the referring attorney.",
+  "Case-report and billing agent for 1–5 person PI firms (CROSStrax/Trackops users still write reports from notes by hand).",
+  5
+ ],
+ "73": [
+  "Encounter/superbill in → claim scrubbed against payer rules → submitted → denial worked (appeal letter drafted, missing info requested from practice) → patient statement → AR follow-up calls/texts. Needs: clearinghouse/PM export (837/835), payer portal logins, email, phone/SMS. Done = claim paid or appeal filed with denial reason logged.",
+  "Denial-management agent for small billing companies: works the 835 denial queue overnight and drafts appeals before the biller logs in.",
+  8
+ ],
+ "78": [
+  "Realtor/borrower lead → pre-qual questions by text → credit pulled with consent → rate-scenario sheet → pre-approval letter → doc checklist chased until file is complete → LOS record updated. Needs: SMS/email, credit vendor API, pricing engine, LOS (Encompass/LendingPad) API, e-sign. Done = complete file handed to processing.",
+  "Doc-chasing and pre-approval agent for independent brokers (BNTouch/Bonzo automate drips; nobody automates the chase to a complete file).",
+  6
+ ],
+ "86": [
+  "Tire/service lead (call, web form, DVI) → vehicle fitment looked up → tire options with price/availability from distributor feeds → quote texted → appointment booked → parts ordered → post-visit review request. Needs: phone/SMS, distributor APIs (ATD/USAutoForce), shop system (Tekmetric/AutoLeap) API, calendar. Done = appointment on the board with tires on order.",
+  "Tire-quote agent that answers the phone, quotes by size in 60 seconds, and books the bay.",
+  5
+ ],
+ "94": [
+  "Shipper order (email/portal/EDI) → rate quoted by zone/weight → dispatched onto driver route → live ETA texts → POD collected → invoice batch → chase unpaid. Needs: email/EDI parser, routing engine (Onfleet/OnTime API), SMS, QuickBooks. Done = delivered with POD and invoiced.",
+  "Order-to-dispatch agent for regional couriers still keying emailed orders into dispatch by hand.",
+  6
+ ],
+ "102": [
+  "Boat/slip inquiry → inventory or slip availability checked → quote with fees/taxes/registration → e-sign contract → deposit → delivery/haul-out scheduled → seasonal renewal outreach. Needs: DMS/marina system (Dockwa/DockMaster) API, e-sign, Stripe, SMS/email. Done = signed contract with deposit and delivery on the calendar.",
+  "Slip-renewal and inquiry-response agent for marinas and small boat dealers (Dockwa users still call every renewal).",
+  4
+ ],
+ "104": [
+  "Rental request (call/web) → machine availability + delivery window checked → quote with delivery/damage waiver → e-signed contract + insurance certificate collected → dispatched → off-rent call → invoice. Needs: rental system (Point of Rental/Quipli/Texada) API, e-sign, COI parsing, SMS, QuickBooks. Done = machine on rent with contract, COI and card on file.",
+  "Quote-to-contract agent for independent equipment yards: turns a phone request into a signed, insured rental without a counter person.",
+  5
+ ],
+ "105": [
+  "Event inquiry (date, headcount, venue) → availability checked → package proposed with tent/bounce/tables → e-signed rental agreement + deposit → delivery route slot → 48h reminder → damage/return check → balance collected. Needs: rental system (Goodshuffle/ERS/InflatableOffice) API, e-sign, Stripe, SMS. Done = signed agreement with deposit and delivery slot.",
+  "Inquiry-to-deposit agent for party rental companies drowning in weekend quote requests.",
+  4
+ ],
+ "129": [
+  "Booking inquiry (DM/text/web) → artist matched by style → deposit collected → consultation/design reference gathered → session booked → consent/aftercare forms → reminder → rebooking/touch-up follow-up. Needs: Instagram/SMS, calendar, Stripe, consent form e-sign. Done = deposited session on the artist's calendar with forms signed.",
+  "DM-to-deposit booking agent for studios whose artists lose hours a day answering Instagram inquiries.",
+  4
+ ],
+ "150": [
+  "Parent inquiry → diagnostic scheduled → tutor matched by subject/availability → package sold with card on file → recurring sessions scheduled → session notes to parent → missed-session rebooking → monthly billing. Needs: Teachworks/TutorCruncher API, calendar, Stripe, SMS/email. Done = enrolled student with recurring sessions and autopay.",
+  "Enrollment and rebooking agent for tutoring centers (owner-run; inquiry follow-up is the leak).",
+  5
+ ],
+ "153": [
+  "Reservation call/web request → site availability by rig length/hookups → booked with deposit → pre-arrival texts (gate code, rules) → early check-in/late checkout upsells → post-stay review request → seasonal-site renewal. Needs: reservation system (Campspot/CampLife/Firefly) API, phone/SMS, Stripe. Done = paid reservation with site assigned.",
+  "Phone-reservation agent for small RV parks that still lose bookings to a voicemail box.",
+  4
+ ],
+ "156": [
+  "Trial lead → intro offer sold → first-class booked → no-show recovery → membership conversion offer at class 3 → failed-payment recovery → win-back of lapsed members. Needs: Mindbody/Momence/Arketa API, SMS/email, Stripe. Done = converted member on autopay.",
+  "Intro-offer-to-member conversion agent for boutique studios (incumbents run drips; nobody closes the conversion by text).",
+  4
+ ],
+ "159": [
+  "Inquiry → package/date quoted → e-signed contract + retainer → questionnaire and timeline collected → shoot reminders → gallery delivery → print/album upsell → review and referral ask. Needs: HoneyBook/Dubsado/Sprout API, e-sign, Stripe, email/SMS. Done = booked shoot with retainer and questionnaire complete.",
+  "Inquiry-to-retainer agent for solo photographers and photo booth operators who respond to leads hours late.",
   3
  ]
 }

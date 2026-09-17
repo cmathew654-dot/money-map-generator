@@ -2187,7 +2187,18 @@ Known limits, stated plainly:
 > - Weakest evidence: Teachworks and Oases prices are third-party; TutorBird headcount is qualitative ("small team"); Wise pricing not shown; concentration figures conflict (Kumon 8.9% vs 15%).
 > - Searches (10): NAICS count; "tutoring center" software; best tutoring software 2026 pricing; TutorBird/Pike13 pricing; Teachworks company; Port 443/TutorBird; IBISWorld/Kumon concentration; Kumon/Mathnasium franchise software; Tutorbase pricing; Wise.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Parent inquiry → diagnostic scheduled → tutor matched by subject/availability → package sold with card on file → recurring sessions scheduled → session notes to parent → missed-session rebooking → monthly billing. Needs: Teachworks/TutorCruncher API, calendar, Stripe, SMS/email. Done = enrolled student with recurring sessions and autopay.
+
+**Wedge** [hypothesis]: Enrollment and rebooking agent for tutoring centers (owner-run; inquiry follow-up is the leak).
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Oases Online: $99-$699/mo plus $299 onboarding (alt from $16.95/mo); extra charges for SMS, templates, payments (https://tutorbase.com/compare/oases-vs-tutorcruncher)
+  - Teachworks: $16-$89/mo base plus per-lesson charge (third-party) (https://www.teachngo.com/blog/best-tutoring-business-software-us)
+  - TutorBird (Port 443): $16.95/mo Basic (1 tutor) + $4.95/mo per additional tutor/admin; 30-day trial (https://www.capterra.com/p/181623/TutorBird/)
+  - TutorCruncher: $30-$240/mo tiers plus 1% of revenue (pay-as-you-go) or 0.65% (Startup); enterprise custom (https://www.capterra.com/p/145838/TutorCruncher/)
+  - Tutorbase: free to use; 1% fee on invoices created; no per-user or per-lesson fees (https://tutorbase.com/blog/how-much-does-tutoring-software-cost)
+  - Wise: two packages; amounts not shown (https://www.wise.live/pricing/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner of an independent tutoring center or small agency (per-tutor pricing from $16.95/mo). Public-price incumbents: 4. Gatekeeper: no for independents (Kumon supplies its own operational software and Salesforce CRM to franchisees; Kumon 8.9% + Sylvan 4.5% share; 57% of centers are single-location or small chains). Top-4 share: top 10 players ~5% of revenue (2024); IBISWorld: Kumon 8.9%, Sylvan 4.5%.
 
@@ -2402,7 +2413,15 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count is 2021-dated; Tire Guru has a pricing page but no amounts surfaced; ASA headcount from PitchBook (now Constellation-owned).
 > - Searches: NAICS count x2; tire shop software; best tire POS pricing; scheduling; IBISWorld concentration; TireShop pricing; Tire Guru; Torque360; ASA; Goodyear/Bridgestone dealer programs; Tire Guru pricing retry.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Tire/service lead (call, web form, DVI) → vehicle fitment looked up → tire options with price/availability from distributor feeds → quote texted → appointment booked → parts ordered → post-visit review request. Needs: phone/SMS, distributor APIs (ATD/USAutoForce), shop system (Tekmetric/AutoLeap) API, calendar. Done = appointment on the board with tires on order.
+
+**Wedge** [hypothesis]: Tire-quote agent that answers the phone, quotes by size in 60 seconds, and books the bay.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Anolla: free plan (https://anolla.com/en/tire-shop-software)
+  - TireShop (FreedomSoft): from $135/mo (https://www.softwareadvice.com/auto-repair/tireshop-profile/)
+  - Torque360: $99.99/mo Starter ($89.99 annual); Turbo $199.99 (https://www.torque360.co/pricing/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (independent tire dealers = two-thirds of revenue; many <5 employees). Public-price incumbents: 3. Gatekeeper: no (manufacturer programs offer, do not mandate). Top-4 share: low concentration; high fragmentation; ATD <10%; independents two-thirds of revenue.
 
@@ -2475,7 +2494,18 @@ Known limits, stated plainly:
 > - **Weakest evidence:** Mindbody and Momence do not publish plan pricing (figures from third-party guides); the establishment figure is IBISWorld's Pilates & Yoga Studios count, not boutique fitness overall.
 > - **Fragmentation 5/5:** four public prices, no firm >5%, franchisors (Xponential 2,700+ studios) dictate software only inside their systems. Heavily contested incumbents (Arketa $22.6M raised 2025, Walla ~$18M).
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Trial lead → intro offer sold → first-class booked → no-show recovery → membership conversion offer at class 3 → failed-payment recovery → win-back of lapsed members. Needs: Mindbody/Momence/Arketa API, SMS/email, Stripe. Done = converted member on autopay.
+
+**Wedge** [hypothesis]: Intro-offer-to-member conversion agent for boutique studios (incumbents run drips; nobody closes the conversion by text).
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Arketa: $49/mo (Individual Basic, annual); Growth $83; Suite $124; Studio tiers custom ($149-699/mo estimates); +3% Arketa fee (https://www.arketa.com/pricing)
+  - Mindbody: advertised from $99/mo per location (Starter); studios quoted $129-159; staff +$30-50/mo each; branded app ~$199/mo (https://www.mindbodyonline.com/business/education/blog/new-mindbody-pricing-united-states)
+  - Momence (Clubessential Holdings): not published; reported ~$250/mo to $2,000+/mo; +1% Stripe markup (https://momence.com/pricing)
+  - Vagaro (yoga): $23.99/mo (see niche 126 row) (https://www.guideflow.com/blog/barbershop-software)
+  - Walla: $320/mo flat starting (https://www.hellowalla.com/us/pricing)
+  - WellnessLiving: $69/mo (Starter); Business $199/mo; BusinessPro $349/mo; Enterprise custom (https://www.wellnessliving.com/pricing/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator studio owner (Arketa $49/mo individual tier; WellnessLiving $69/mo). Public-price incumbents: 4. Gatekeeper: none for independents; franchisors (Xponential 2,700+ NA studios, Orangetheory 1,500+, F45 3,300 global) dictate software only inside their systems. Top-4 share: highly fragmented; no company >5% (Pilates & Yoga Studios).
 
@@ -2546,7 +2576,17 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count is "over 3,000" (Vertical IQ) without a year; the concentration citation is IBISWorld's adjacent Medical Claims Processing report; several prices are third-party restatements; gatekeeper risk (client practices' EHR dictating the biller's PM) unverified.
 > - Searches (10): NAICS count, 2× tool discovery, PracticeSuite, CollaborateMD, EZClaim, ImagineSoftware company, concentration, Tebra program, AdvancedMD program.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Encounter/superbill in → claim scrubbed against payer rules → submitted → denial worked (appeal letter drafted, missing info requested from practice) → patient statement → AR follow-up calls/texts. Needs: clearinghouse/PM export (837/835), payer portal logins, email, phone/SMS. Done = claim paid or appeal filed with denial reason logged.
+
+**Wedge** [hypothesis]: Denial-management agent for small billing companies: works the 835 denial queue overnight and drafts appeals before the biller logs in.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - AdvancedMD (AdvancedBiller): $229 to $1,070/mo tier for billing companies by client count (third-party); $429-$1,070/provider/mo packages (vendor blog https://www.advancedmd.com/blog/the-best-medical-billing-software-of-2026-features-pricing-and-performance-compared/) (https://www.advancedmd.com/software-pricing/)
+  - CollaborateMD: $235/mo minimum for medical billing services; per-claim from $0.32; practices $225/provider/mo (https://www.collaboratemd.com/pricing/medical-billing-and-labs/)
+  - EZClaim: $149/mo (Software Finder); $159/mo per biller and $79/user/mo also cited (https://ezclaim.com/features-pricing/)
+  - PracticeSuite: tailored plan for billing companies; amounts not shown (https://practicesuite.com/products/pricing/)
+  - Tebra (Kareo): Billing Starter $99/provider/mo non-physician, $199 physician (<100 claims/mo); $49-$799/provider/mo range (https://www.tebra.com/pricing)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~8 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (8 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (billing company owner; per-provider or per-claim pricing, $235/mo minimums). Public-price incumbents: 4. Gatekeeper: none found (no payer/clearinghouse/association software mandate; client practices' EHR choice can constrain billers - unverified). Top-4 share: low market share concentration (IBISWorld Medical Claims Processing Services).
 
@@ -2611,7 +2651,17 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count sources disagree by an order of magnitude (siccode 671 vs Census 5,362 vs IBISWorld 3m); IBISWorld concentration is "moderate" because FedEx/UPS sit in the same industry; CXT headcount conflicts (11-50 vs ~200).
 > - Searches: NAICS count x2; dispatch software; best courier software pricing; billing/portal; IBISWorld concentration; OnTime/Vesigo; CXT; Shipday; Track-POD; CLDA.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Shipper order (email/portal/EDI) → rate quoted by zone/weight → dispatched onto driver route → live ETA texts → POD collected → invoice batch → chase unpaid. Needs: email/EDI parser, routing engine (Onfleet/OnTime API), SMS, QuickBooks. Done = delivered with POD and invoiced.
+
+**Wedge** [hypothesis]: Order-to-dispatch agent for regional couriers still keying emailed orders into dispatch by hand.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - OnTime 360 (Vesigo Studios): $99/mo Start; Grow $249; Scale $499 (https://www.ontime360.com/courier-software-cost)
+  - Onfleet: Launch plan $619/mo (https://www.routific.com/blog/best-courier-software)
+  - Shipday: $0 Basic (300 orders/mo); Professional $39/mo; Elite $99; Business Advanced $299 (https://www.shipday.com/pricing)
+  - Track-POD: $59/driver/mo Advanced ($49 annual); 3-driver minimum; per-order from $285/mo (https://www.track-pod.com/pricing-delivery-app/)
+  - Wodely: $49/mo (400 tasks); $159/mo (2,000 tasks) (https://www.wodely.com/top-10-courier-management-software-in-2026-best-tools-for-efficient-last-mile-delivery/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~6 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (6 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 4/5. Check signer: owner-operator (local courier firms of 1-50 drivers; per-driver/per-order pricing). Public-price incumbents: 5. Gatekeeper: no. Top-4 share: moderate concentration; largest FedEx (US); global low concentration.
 
@@ -2691,7 +2741,16 @@ Known limits, stated plainly:
 > - Weakest evidence: marinas' own NAICS (713930) was not counted; Dockwa and Bonfire pricing amounts not surfaced; DockMaster now a PE rollup asset with unverified headcount.
 > - Searches: NAICS count; marina management; best boat DMS pricing; marina pricing; IBISWorld concentration; SlipBoss; MARINAGO; DockMaster ownership; Dockwa funding; DealerRock; manufacturer DMS mandate; Dockwa pricing retry.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Boat/slip inquiry → inventory or slip availability checked → quote with fees/taxes/registration → e-sign contract → deposit → delivery/haul-out scheduled → seasonal renewal outreach. Needs: DMS/marina system (Dockwa/DockMaster) API, e-sign, Stripe, SMS/email. Done = signed contract with deposit and delivery on the calendar.
+
+**Wedge** [hypothesis]: Slip-renewal and inquiry-response agent for marinas and small boat dealers (Dockwa users still call every renewal).
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - BiT DMS: from $238/mo, contract-free (https://www.guideflow.com/blog/boat-dealer-software)
+  - DealerRock: $390/mo Sales Core; Service Core $490; Complete $690 (month-to-month) (https://www.dealerrock.com/pricing/)
+  - Dockwa: free tier + % of revenue + annual software fee (amounts not in results) (https://marinas.dockwa.com/marina-software-pricing)
+  - SlipBoss: free up to 30 slips; Pro $100/mo; Ultimate $250/mo (https://www.softwareadvice.com/product/536921-SlipBoss/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (family-run marinas and single-location boat dealers; per-slip/per-location pricing). Public-price incumbents: 3. Gatekeeper: no. Top-4 share: Boat Sales & Repair: low concentration (largest MarineMax); Marinas: highly fragmented, top 3 <5% of revenue.
 
@@ -2938,7 +2997,15 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count is IBISWorld industry count, not NAICS 812199; Porter has no public figure in results; TattooPro founded/headcount unknown.
 > - Searches (7): IBISWorld count; "tattoo studio" software consent; best tattoo software 2026; Tattoo Studio Pro founded; Porter pricing/funding; IBISWorld concentration; TattooPro pricing.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Booking inquiry (DM/text/web) → artist matched by style → deposit collected → consultation/design reference gathered → session booked → consent/aftercare forms → reminder → rebooking/touch-up follow-up. Needs: Instagram/SMS, calendar, Stripe, consent form e-sign. Done = deposited session on the artist's calendar with forms signed.
+
+**Wedge** [hypothesis]: DM-to-deposit booking agent for studios whose artists lose hours a day answering Instagram inquiries.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Tattoo Studio Pro: Solo $29/mo (1 user); Crew $69/mo (5); Tribe $119/mo (10) (another roundup: from $39/mo, https://salonist.io/industries/tattoo-studio-software) (https://www.guideflow.com/blog/tattoo-shop-software)
+  - TattooPro (Punchey): $29/mo base (some listings $9/mo) (https://tattoopro.io/pricing)
+  - Twizzlo: $29.99 flat-rate booking platform (https://twizzlo.com/articles/tattoo-shop-management-software/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (owner tattoos; avg 1.8 employees). Public-price incumbents: 3. Gatekeeper: no. Top-4 share: no company >5% (IBISWorld Tattoo Artists).
 
@@ -3269,7 +3336,16 @@ Known limits, stated plainly:
 > - Weakest evidence: Firefly headcount result was clearly misattributed (501-1,000) and left unverified; Bonfire pricing amounts not surfaced; Campspot price via third-party comparison page.
 > - Searches: NAICS count; reservation software; best campground software pricing; KOA K2; IBISWorld concentration; Firefly; Campspot; CampLife; Bonfire; RoverPass; Firefly headcount retry.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Reservation call/web request → site availability by rig length/hookups → booked with deposit → pre-arrival texts (gate code, rules) → early check-in/late checkout upsells → post-stay review request → seasonal-site renewal. Needs: reservation system (Campspot/CampLife/Firefly) API, phone/SMS, Stripe. Done = paid reservation with site assigned.
+
+**Wedge** [hypothesis]: Phone-reservation agent for small RV parks that still lose bookings to a voicemail box.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - CampLife: $3 per reservation; subscription option for large/public parks (https://software.camplife.com/pricing)
+  - Campspot: $2 per booking; no subscription or setup (https://keeprstay.com/compare/pricing)
+  - Firefly Reservations: free to start; $3.50 per unit booked + $3.50/mo per ongoing reservation (https://fireflyreservations.com/blog/campground-software-comparison)
+  - RoverPass: $99/mo minimum + $1.50 per reservation; free setup (https://software.roverpass.com/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (88% of RV parks independently owned; per-reservation pricing). Public-price incumbents: 4. Gatekeeper: no (franchise slice only: KOA). Top-4 share: low concentration; largest Equity Lifestyle Properties (IBISWorld Campgrounds & RV Parks).
 
@@ -3348,7 +3424,19 @@ Known limits, stated plainly:
 > - Weakest evidence: HoneyBook starting price conflicts ($19 vs $36); Studio Ninja headcount unknown; establishment count covers portrait studios only (255k IBISWorld figure includes nonemployers).
 > - Searches (9): NAICS count; photographer CRM pricing; photo booth software; Sprout founded; Studio Ninja acquired; Check Cherry founded; BoothBook pricing; IBISWorld concentration; HoneyBook funding; Tave pricing.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Inquiry → package/date quoted → e-signed contract + retainer → questionnaire and timeline collected → shoot reminders → gallery delivery → print/album upsell → review and referral ask. Needs: HoneyBook/Dubsado/Sprout API, e-sign, Stripe, email/SMS. Done = booked shoot with retainer and questionnaire complete.
+
+**Wedge** [hypothesis]: Inquiry-to-retainer agent for solo photographers and photo booth operators who respond to leads hours late.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - BoothBook: from $29.99/mo; unlimited bookings; 14-day trial (https://boothbook.com/pricing)
+  - Check Cherry: from $39/mo; no per-transaction fees; unlimited staff (https://www.checkcherry.com/photo-booth-crm)
+  - Dubsado: $19-$30/mo range (roundup) (https://blog.bloom.io/best-crm-photographers/)
+  - HoneyBook: $36/mo (another source: $19/mo) (https://blog.bloom.io/best-crm-photographers/)
+  - Sprout Studio: Studio $29/mo; Studio Plus $49/mo; Studio Pro $69/mo (billed annually) (https://getsproutstudio.com/sprout-studioninja/)
+  - Studio Ninja (Captura / ImageQuix): $21.90/mo (https://www.capterra.com/p/143855/Studio-Ninja)
+  - Tave Studio Manager (now VSCO Workspace): Solo $22.49/mo ($270/yr, 2 users); Boutique $31.49/mo (6 users); Studio $44.99/mo (10 users); extra seats $4.99 (https://www.capterra.com/p/92909/Tave-Studio-Manager/pricing/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~3 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (3 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (solo photographer / booth operator). Public-price incumbents: 6. Gatekeeper: no. Top-4 share: low market share concentration; largest is Shutterfly (IBISWorld Photography).
 
@@ -3413,7 +3501,15 @@ Known limits, stated plainly:
 > - **Weakest evidence:** no turf-specific establishment count (NAICS 238990 is a catch-all); US concentration statement is borrowed from Australia and from a 2016 sports-field S-1; TurfEstimator has no company facts at all.
 > - **Searches (9):** NAICS 238990 count; turf installer software/CRM; best turf software 2026; sports court installer software; TurfEstimator pricing; QuoteIQ pricing/founded; ArcSite pricing/crunchbase; turf industry fragmentation; turf franchise/STC gatekeeper. Plus gap-fill: MeasureSquare pricing, Moasure, TurfEstimator company.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Turf/court lead → satellite-measured area + material takeoff → itemized quote (base, infill, seams, drainage) → e-signed proposal → schedule crew and order materials. Needs: address→parcel measurement (Google Maps / Nearmap / Moasure export), price book, e-sign, calendar, supplier email. Done = signed proposal with deposit collected and materials ordered.
+
+**Wedge** [hypothesis]: Address-in, signed-turf-quote-out agent that replaces the estimator's site-visit for small residential jobs (ArcSite/Moasure users draw by hand today).
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - ArcSite: $49/user/mo (Basic; Pro $99, Premier $149) per https://softwarefinder.com/construction/arc-site (https://www.arcsite.com/pricing)
+  - MeasureSquare: $54/mo Retail (Multi-family $164/mo, Commercial $197/mo) per https://measuresquare.com/pricing/measuresquare-8/ (https://measuresquare.com/pricing/)
+  - QuoteIQ: $29.99/mo (Essentials, 1 user); $74.99/$149.99/$299/$699 tiers (https://myquoteiq.com/pricing/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (turf installation contractor). Public-price incumbents: 3. Gatekeeper: no (STC CSTI certification is voluntary; SYNLawn dealer program covers only its dealers; no software mandate found). Top-4 share: unverified (no US top-4 figure; 'no company >5%' in AU and in US sports-field construction).
 
@@ -3479,7 +3575,15 @@ Known limits, stated plainly:
 > - **Weakest evidence:** establishment count is whole-NAICS (all testing labs, 4,130 active companies per siccode), no environmental-only count. CloudLIMS and BlazeLIMS prices come from third-party pricing guides that cite the vendor pages. Confience headcount not found.
 > - **Fragmentation 5/5:** three public prices, low concentration (IBISWorld), no software gatekeeper.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Sample intake → chain-of-custody form generated → accreditation-compliant report assembled from instrument output → client emailed → invoice raised → re-test reminders sent. Needs: LIMS/instrument export (CSV), report templates (AIHA/NELAP formats), email, QuickBooks. Done = signed report delivered and invoice out within the lab's TAT.
+
+**Wedge** [hypothesis]: Report-writing and chain-of-custody agent for small asbestos/lead/water labs that still assemble PDFs by hand outside their LIMS.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - BlazeLIMS (Blaze Systems): $350/mo (1 concurrent user SaaS); 2 users $600; 5 users $900; 10 users $1,400; site license from $10,575 (3 users) (https://www.blazesystems.com/blazelims-prices/)
+  - CloudLIMS: $75/mo (Lite); Standard $145/mo; Enterprise $245/mo; per-user tiers $270-280/user/mo for 3-5 users (https://cloudlims.com/lims-software-pricing/)
+  - QBench: $249/user/mo (Starter); Growth $299; Advanced $399; Enterprise custom (https://qbench.com/pricing)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~6 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (6 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: lab owner / lab director (small independent labs; BlazeLIMS markets 'LIMS for small labs'). Public-price incumbents: 3. Gatekeeper: none found (NVLAP/NELAP accreditation governs methods and reports, no software vendor mandated). Top-4 share: low concentration (largest Intertek; consolidation rising).
 
@@ -3548,7 +3652,15 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count conflicts (5,357 siccode vs 10,290 unattributed); Trackops pricing amounts not surfaced; top-4 share comes from statistic aggregators citing IBISWorld rather than IBISWorld directly.
 > - Searches: NAICS count; PI case management; best PI software pricing; PI CRM/billing; concentration; CROSStrax pricing; CROSStrax company; Trackops; THERMS; NCISS/NALI; siccode recount.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Case intake (attorney or insurer email) → conflict check → engagement letter → assignment to field investigator → surveillance/interview notes → formatted case report with exhibits → time-tracked invoice. Needs: email, e-sign, case-file store, report template, Clio/QuickBooks. Done = report and invoice delivered to the referring attorney.
+
+**Wedge** [hypothesis]: Case-report and billing agent for 1–5 person PI firms (CROSStrax/Trackops users still write reports from notes by hand).
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - CROSStrax: $35/mo Entry (1 admin, 2 investigators); Essential $65; Executive $105; Enterprise $295 (https://www.crosstrax.co/pricing/)
+  - Case Jacket: free plan (https://casejacket.com/)
+  - THERMS: $45/mo up to 5 users; Capterra lists $25/user/mo (https://www.therms.io/pricing/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (solo PIs and 3-15 investigator agencies; CROSStrax Entry tier = 1 admin + 2 investigators). Public-price incumbents: 3. Gatekeeper: no. Top-4 share: top 4 <15% (2023, via zipdo); 85% of agencies <10 employees (IBISWorld 2022 via gitnux).
 
@@ -3617,7 +3729,18 @@ Known limits, stated plainly:
 > - Weakest evidence: no US establishment count found for NAICS 522310; concentration statement is for the online-broker segment only; ARIVE price is third-party.
 > - Searches (9): NAICS count; best broker LOS 2026; broker CRM pricing; IBISWorld concentration; ARIVE founded/funding; LendingPad; AIME/gatekeeper; NMLS count; BNTouch founded.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Realtor/borrower lead → pre-qual questions by text → credit pulled with consent → rate-scenario sheet → pre-approval letter → doc checklist chased until file is complete → LOS record updated. Needs: SMS/email, credit vendor API, pricing engine, LOS (Encompass/LendingPad) API, e-sign. Done = complete file handed to processing.
+
+**Wedge** [hypothesis]: Doc-chasing and pre-approval agent for independent brokers (BNTouch/Bonzo automate drips; nobody automates the chase to a complete file).
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - ARIVE: ~$60-$100/user/mo (third-party); vendor: low monthly fee, free trial, no setup fees (https://www.arive.com/arive-faq)
+  - BNTouch: $165/mo solo; $95/seat/mo team (2-50 LOs) + $95 activation per user (https://bntouch.com/team-mortgage-crm/)
+  - Bonzo: $99/user/mo (https://bntouch.com/mortgage-blog/mortgage-crm-pricing-comparison-2026/)
+  - Jungo (Salesforce): $300+/user/mo (Salesforce + Jungo) (https://bntouch.com/mortgage-blog/mortgage-crm-pricing-comparison-2026/)
+  - LendingPad: from $55/mo (third-party); Broker Edition ~$59/user/mo per https://www.classvaluation.com/blog/7-loan-origination-software-for-mortgage-brokers-compared/ (https://www.saasworthy.com/product/lendingpad/pricing)
+  - Shape: $99/user/mo (https://setshape.com/blog/best-mortgage-crm-for-loan-officers)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~6 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (6 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator (broker-owner / branch manager). Public-price incumbents: 5. Gatekeeper: no (AIME partners with ARIVE/Lender Price as member benefits; wholesale lenders run their own portals but do not dictate the broker's LOS/CRM). Top-4 share: no company >5% (IBISWorld Online Mortgage Brokers segment).
 
@@ -3756,7 +3879,15 @@ Known limits, stated plainly:
 > - Weakest evidence: establishment count (937) looks like a verified-active subset; Quipli's fee is a third-party figure; no vendor-public price beyond EZRentOut.
 > - Searches: NAICS count; best rental software 2026; Quipli company; Point of Rental company; concentration/independents share; EZRentOut/Texada pricing.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Rental request (call/web) → machine availability + delivery window checked → quote with delivery/damage waiver → e-signed contract + insurance certificate collected → dispatched → off-rent call → invoice. Needs: rental system (Point of Rental/Quipli/Texada) API, e-sign, COI parsing, SMS, QuickBooks. Done = machine on rent with contract, COI and card on file.
+
+**Wedge** [hypothesis]: Quote-to-contract agent for independent equipment yards: turns a phone request into a signed, insured rental without a counter person.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - EZRentOut (EZO): Growth $399/mo; Premium $499/mo; Enterprise custom (other listings: from $89/mo or $50 per 2 users/mo) (https://ezo.io/ezrentout/pricing/)
+  - Point of Rental: customized SaaS plans; $0-down option (https://www.point-of-rental.com/press-release/point-rental-software-unveils-monthly-pricing-plans/)
+  - Quipli: flat $6,000 per location per year (third-party review) (https://softwareconnect.com/reviews/quipli-rental/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~5 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (5 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 4/5. Check signer: owner-operator independent rental yard (about 45% of market value held by local/independent companies). Public-price incumbents: 1. Gatekeeper: no. Top-4 share: top 5 = 22.2% (United Rentals 10.1%, Sunbelt 6.8%, Herc 2.6%, Loxam 1.8%, H&E 0.9%).
 
@@ -3824,7 +3955,16 @@ Known limits, stated plainly:
 > - **Weakest evidence:** Goodshuffle headcount is a range (25–100); ERS and Rentopian prices come from Software Advice, not vendor pages.
 > - **Fragmentation 5/5:** top-4 share 9.0% (explicit IBISWorld figure), four public prices, no gatekeeper.
 
-**The agent version / wedge:** not drafted for this niche (outside the original 50 cards); the audit data above stands on its own.
+**The agent version** [hypothesis]: Event inquiry (date, headcount, venue) → availability checked → package proposed with tent/bounce/tables → e-signed rental agreement + deposit → delivery route slot → 48h reminder → damage/return check → balance collected. Needs: rental system (Goodshuffle/ERS/InflatableOffice) API, e-sign, Stripe, SMS. Done = signed agreement with deposit and delivery slot.
+
+**Wedge** [hypothesis]: Inquiry-to-deposit agent for party rental companies drowning in weekend quote requests.
+
+**Price ceiling:** incumbent public prices found [search-cited]:
+  - Event Rental Systems (ERS): $79.95/mo (per feature) (https://www.softwareadvice.com/event-rental/)
+  - Goodshuffle Pro: $39/user/mo (Lite); Standard $139/mo flat; extra vehicles $39-49/mo (https://pro.goodshuffle.com/pricing)
+  - InflatableOffice: Free (<10 inventory items); $75-$215/mo for 35-250 items; custom above (https://inflatableoffice.com/pricing/)
+  - Rentopian: $59/mo flat; free trial and free version (https://www.softwareadvice.com/rental/rentopian-profile/)
+  Plus the owner's admin labor inside the tool. Assumption, not measured: ~4 hrs/week. Ceiling ≈ cheapest cited incumbent tier + (4 hrs/wk × the operator's admin hourly cost).
 
 **Fragmentation (Step 4):** 5/5. Check signer: owner-operator ('mom-and-pop' per IBISWorld; InflatableOffice free tier under 10 items). Public-price incumbents: 4. Gatekeeper: none found. Top-4 share: 9.0% (top four operators); low concentration; largest Party Rental Ltd.
 
