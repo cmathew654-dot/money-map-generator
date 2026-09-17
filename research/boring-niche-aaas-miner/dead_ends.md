@@ -8,6 +8,8 @@ Legend for `killed_by`:
 - **Carded anyway:** 8 unsearched niches were carded as judgment picks in ideas_ranked.md (ranks 43–50) and are not listed here.
 
 Fragmentation scores below are conservative: batches 1–6 could not run gatekeeper or concentration searches, so the 'no gatekeeper' point was withheld everywhere.
+Update 2026-09-17: niches 57, 58, 66, 70, 91, 97, 137 and 147 were researched in a follow-up batch (61 tools, all URL-cited) and removed from this list; 58 (fire extinguisher & alarm inspection) now qualifies.
+
 
 | id | niche | NAICS | research status | verified tools | frag score | killed_by | note / what to run next |
 |---|---|---|---|---|---|---|---|

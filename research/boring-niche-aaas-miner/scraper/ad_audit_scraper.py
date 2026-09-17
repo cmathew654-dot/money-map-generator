@@ -738,7 +738,8 @@ def main():
                 locale="en-US")
         page = ctx.new_page(); page.set_default_timeout(8000); page.set_default_navigation_timeout(45000)
         for i, r in enumerate(dedup, 1):
-            tool = r["tool"]; print(f"[{i}/{len(dedup)}] {tool} ({r['domain']})")
+            tool = re.sub(r"\s*\(.*?\)\s*", " ", r["tool"]).strip()  # search by the bare name; suffixes like "(HVAC)" are ours
+            print(f"[{i}/{len(dedup)}] {r['tool']} ({r['domain']})")
             res = {}
             for plat, fn in (("meta", do_meta), ("google", do_google), ("linkedin", do_linkedin)):
                 if plat in skip: continue
@@ -751,7 +752,7 @@ def main():
             stat = [res.get(f"{p}_status", "skipped") for p in ("meta","google","linkedin")]
             res["scrape_status"] = "ok" if all(s.startswith("ok") or s == "skipped" for s in stat) else "partial:" + ",".join(stat)
             res["scraped_at"] = dt.datetime.now().isoformat(timespec="seconds")
-            results[norm(tool)] = res
+            results[norm(r["tool"])] = res
             print("    " + ", ".join(f"{k}={res[k]}" for k in ("meta_active_ads","meta_ads_60d","google_ad_count","google_overlap_90d_pass","linkedin_present") if k in res))
             write_out(rows, cols, done, results)
         ctx.close()
