@@ -1,0 +1,108 @@
+niche_id,tools_audited,tools_passing,niche_passes_step3,passing_tools
+1,5,1,no,ServiceTitan
+2,3,1,no,Jobber
+3,6,4,yes,AccuLynx|RoofSnap|Roofr|ServiceTitan
+4,3,0,no,
+5,7,3,yes,FieldPulse|Jobber|ServiceTitan
+6,2,0,no,
+7,4,1,no,RoofSnap
+8,2,0,no,
+9,3,2,yes,DripJobs|PaintScout
+10,2,0,no,
+11,5,0,no,
+12,5,3,yes,BuildOps|Inspect Point|ServiceTrade
+13,5,1,no,ServiceTitan
+14,4,1,no,Houzz Pro
+15,3,2,yes,Builder Prime|Contractor Accelerator
+16,7,1,no,Builder Prime
+17,3,2,yes,FieldPulse|Smart Glazier Software
+18,5,2,yes,Builder Prime|Houzz Pro
+19,4,0,no,
+20,3,0,no,
+21,8,5,yes,HindSite Software / FieldCentral|Housecall Pro|Jobber|Service Fusion|ServiceTitan
+22,7,3,yes,Housecall Pro|Service Fusion|ServiceTitan
+23,6,1,no,Housecall Pro
+24,6,4,yes,FieldPulse|Jobber|Service Fusion|ServiceTitan
+25,1,0,no,
+31,5,0,no,
+32,5,2,yes,RealGreen by WorkWave|ServiceTitan
+33,3,1,no,RealGreen by WorkWave
+34,2,1,no,Aspire
+35,6,3,yes,Housecall Pro|Jobber|Service Fusion
+36,2,0,no,
+37,4,1,no,Pool Brain
+38,2,0,no,
+39,4,0,no,
+40,2,1,no,ServiceTitan
+41,6,1,no,Housecall Pro
+42,2,0,no,
+43,6,2,yes,Housecall Pro|Jobber
+44,2,0,no,
+45,2,1,no,Jobber
+46,2,0,no,
+47,3,1,no,Jobber
+48,2,0,no,
+49,2,0,no,
+50,3,2,yes,Housecall Pro|Jobber
+51,6,0,no,
+52,1,0,no,
+61,0,0,unverified,
+62,3,2,yes,Housecall Pro|Jobber
+63,0,0,unverified,
+64,0,0,unverified,
+65,0,0,unverified,
+66,0,0,unverified,
+67,0,0,unverified,
+68,0,0,unverified,
+69,0,0,unverified,
+70,0,0,unverified,
+81,0,0,unverified,
+82,0,0,unverified,
+83,0,0,unverified,
+84,1,0,no,
+85,0,0,unverified,
+86,0,0,unverified,
+87,0,0,unverified,
+88,0,0,unverified,
+89,0,0,unverified,
+90,1,1,no,Housecall Pro
+91,0,0,unverified,
+92,0,0,unverified,
+93,0,0,unverified,
+94,0,0,unverified,
+95,0,0,unverified,
+96,0,0,unverified,
+97,0,0,unverified,
+98,0,0,unverified,
+99,0,0,unverified,
+100,0,0,unverified,
+121,0,0,unverified,
+122,0,0,unverified,
+123,0,0,unverified,
+124,0,0,unverified,
+125,0,0,unverified,
+126,0,0,unverified,
+127,0,0,unverified,
+128,0,0,unverified,
+129,0,0,unverified,
+130,0,0,unverified,
+131,0,0,unverified,
+132,0,0,unverified,
+133,0,0,unverified,
+134,0,0,unverified,
+135,0,0,unverified,
+136,0,0,unverified,
+137,0,0,unverified,
+138,0,0,unverified,
+139,0,0,unverified,
+140,0,0,unverified,
+151,0,0,unverified,
+152,0,0,unverified,
+153,0,0,unverified,
+154,0,0,unverified,
+155,0,0,unverified,
+156,0,0,unverified,
+157,0,0,unverified,
+158,0,0,unverified,
+159,0,0,unverified,
+160,0,0,unverified,
